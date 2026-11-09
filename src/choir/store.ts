@@ -19,7 +19,7 @@ const CHARACTER_KEYS = ["larynx", "velum", "root", "epilarynx", "ventricular"] a
 function loadSaved(): MoppetVoice[] {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body)) return [...saved, ...(structuredClone(defaults.slice(saved.length)) as MoppetVoice[])];
+    if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body)) return defaults.map((d, i) => ({ ...structuredClone(d), ...saved[i], artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source } })) as MoppetVoice[];
   } catch {
     // no saved voices
   }
@@ -208,8 +208,7 @@ useStore.subscribe((st) => {
         for (const k of moved) x.artic[k] = artic[k];
       });
       const next = useMoppet.getState().voices[m.selected];
-      if (moved.some((k) => k === "larynx" || k === "epilarynx" || k === "ventricular")) editVoice(v.id, { artic: next.artic });
-      else editVoice(v.id, { rerender: true });
+      editVoice(v.id, { artic: next.artic });
     }
   }
   if (sourceChanged) {

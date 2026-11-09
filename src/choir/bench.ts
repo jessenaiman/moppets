@@ -15,7 +15,7 @@ function configs(): SingerConfig[] {
   return piece.tracks.map((t) => {
     const v = voices.find((x) => x.id === t.id)!;
     const plan = planTrack(t, piece, v);
-    return { sampleRate: FS, frames: FS * SECONDS, hop: hopFor(FS), voice: v, gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi) };
+    return { sampleRate: FS, frames: FS * SECONDS, hop: hopFor(FS), voice: v, gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi) };
   });
 }
 

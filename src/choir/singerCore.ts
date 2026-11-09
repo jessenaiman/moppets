@@ -6,7 +6,7 @@
 import { writeGestures, writeSteps, fromUtf8, utf8 } from "../wasm/wire.ts";
 import type { BeatStep } from "../wasm/types.ts";
 import type { Gesture } from "../wasm/types.ts";
-import { CHARACTER_TAG, characterGesture } from "./character.ts";
+import { CHARACTER_TAG, characterGesture, shapeGesture } from "./character.ts";
 import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 
 type Fn = (...a: number[]) => number;
@@ -24,15 +24,18 @@ const MAX_RECORDS = 4000;
  * Gestures reach the engine this far ahead of the clock. Blending walks every scheduled gesture
  * each control step, so handing over a whole round at once cost more than real time.
  */
-const SCHEDULE_AHEAD = 1.5;
+const SCHEDULE_AHEAD = 0.5;
 
 export interface SingerConfig {
   sampleRate: number;
   frames: number;
   hop: number;
   voice: MoppetVoice;
+  /** the score's gestures, before this voice colours them */
   gestures: Gesture[];
   firstF0: number;
+  /** let the velum recipe colour the vowels (solo-voiced pieces) */
+  nasal?: boolean;
 }
 
 /** Ring-out after a singer's last gesture before the engine may be parked (and how soon before an onset it wakes). */
@@ -82,9 +85,9 @@ export class SingerCore {
     x.engine_set_artic(h, 2);
     this.setSource(cfg.voice.source);
     // the pitch and breath the planner's gestures start from; every sung note sets its own f0
-    this.patch(SOURCE_KEYS, { f0: cfg.firstF0, pressure: 9, voiced: 1, glide: 0.035, drift: 5 });
+    this.patch(SOURCE_KEYS, { f0: cfg.firstF0, voiced: 1 });
     x.engine_set_source(h);
-    this.pending = [...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
+    this.pending = [characterGesture(cfg.voice, 0, cfg.frames / cfg.sampleRate, CHARACTER_TAG), ...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
     this.busy = busyIntervals(this.pending);
   }
 
@@ -108,7 +111,11 @@ export class SingerCore {
     const n = this.nextPending - from;
     if (n === 0) return;
     // engine_schedule places times relative to the voice clock
-    const part = this.pending.slice(from, this.nextPending).map((g) => ({ ...g, t0: g.t0 - clock, t1: g.t1 - clock }));
+    const part = this.pending.slice(from, this.nextPending).map((raw) => {
+      // the character posture is a live gesture of its own (setCharacter)
+      const g = raw.label === "character" ? raw : shapeGesture(raw, this.voice, !!this.cfg.nasal);
+      return { ...g, t0: g.t0 - clock, t1: g.t1 - clock };
+    });
     const written = writeGestures(this.x.memory.buffer, this.x.engine_records(this.h), part, MAX_RECORDS);
     this.x.engine_schedule(this.h, written, 0, from === 0 ? 1 : 0);
   }

@@ -136,7 +136,7 @@ class Session {
       return { voice, plan: planTrack(t, piece, voice) };
     });
     plans.forEach(({ voice, plan }, i) => {
-      spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice, gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi) }, voice);
+      spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice, gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi) }, voice);
     });
     if (piece.pluck) {
       const p = renderPluck(piece, this.sampleRate, this.frames);

@@ -1,21 +1,17 @@
 /**
  * Score → gestures, through the engine's own lyric and singing planners (main thread: they
- * allocate). Melody and timing come from the score; the character only biases vowel postures and
- * holds a laryngeal posture. Consonant closures keep their calibrated targets, so the lyrics stay
- * pronounceable, and no recipe value ever touches a pitch.
+ * allocate). Melody and timing come from the score; how a Moppet colours them is character.ts.
  */
 import { lyricsToSyllables, planSong } from "../wasm/engine.ts";
 import type { Gesture, Syllable } from "../wasm/types.ts";
 import type { Piece, ScoreEvent, Track } from "./music.ts";
-import { CHARACTER_TAG, characterGesture } from "./character.ts";
+import { PLAN_VIBRATO } from "./character.ts";
 import type { MoppetVoice } from "./voices.ts";
 
 /** Silence on the timeline before beat 0, so the first onset's consonant has room. */
 export const LEAD_IN = 0.4;
 /** Tail after the last beat for the final release to ring out. */
 export const TAIL = 0.6;
-const VIBRATO = 12;
-const VOWEL = /[aeiouɑɒæəɛɜɝɪɔʊʌ]/;
 
 export const beatSeconds = (piece: Piece) => 60 / piece.bpm;
 export const pieceSeconds = (piece: Piece) => LEAD_IN + piece.beats * beatSeconds(piece) + TAIL;
@@ -26,6 +22,8 @@ export interface TrackPlan {
   firstMidi: number;
   /** when this singer's last gesture has finished (s, on the timeline) */
   end: number;
+  /** this piece lets the voice's velum recipe colour its vowels */
+  nasal: boolean;
 }
 
 /** The syllables of one phrase of contiguous notes (each word's stress and syllable breaks come from the planner). */
@@ -43,15 +41,6 @@ function phraseSyllables(track: Track, group: ScoreEvent[]): Syllable[] {
   });
 }
 
-/** The velum recipe only colours the solo-voiced introduction: on sustained choir parts it swallowed the voice. */
-function applyCharacter(g: Gesture, v: MoppetVoice, nasal: boolean): Gesture {
-  if (!g.label || !VOWEL.test(g.label)) return g;
-  const targets = { ...g.targets };
-  if (targets.root !== undefined) targets.root = Math.max(-1, Math.min(1, targets.root + (v.artic.root || 0)));
-  if (nasal && targets.velum !== undefined) targets.velum = v.artic.velum;
-  return { ...g, targets };
-}
-
 export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan {
   const gestures: Gesture[] = [];
   const beat = beatSeconds(piece);
@@ -62,8 +51,8 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     if (!group.length) return;
     const syllables = phraseSyllables(track, group);
     const notes = group.map((e, i) => ({ midi: e.midi, beats: e.beats, syl: syllables[i] }));
-    const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: VIBRATO });
-    for (const g of plan.gestures) gestures.push(applyCharacter(g, v, nasal));
+    const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: PLAN_VIBRATO });
+    gestures.push(...plan.gestures);
     end = Math.max(end, plan.end + 0.3);
     group = [];
   };
@@ -73,6 +62,5 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     group.push(e);
   }
   flush();
-  gestures.push(characterGesture(v, 0, end, CHARACTER_TAG));
-  return { id: track.id, gestures, firstMidi: track.events[0].midi, end };
+  return { id: track.id, gestures, firstMidi: track.events[0].midi, end, nasal };
 }

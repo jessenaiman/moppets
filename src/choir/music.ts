@@ -11,8 +11,8 @@ export const SCALES: Record<ScaleMode, number[]> = { major: [0, 2, 4, 5, 7, 9, 1
 export const KEYS = { C: 0, "D♭": 1, D: 2, "E♭": 3, E: 4, F: 5, "F♯": 6, G: 7, "A♭": 8, A: 9, "B♭": 10, B: 11 } as const;
 export type KeyName = keyof typeof KEYS;
 const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
-export const RANGES: Record<string, [number, number]> = { vee: [50, 67], scribe: [62, 79], clank: [38, 50], pip: [57, 74], gruff: [45, 62], tabby: [65, 81] };
-export const CHIP_RANGE: [number, number] = [60, 76];
+/** The six parts in score order (Chip sings only his own song). */
+export const RANGES: Record<string, [number, number]> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.register]));
 export const ROUND_LINES = ["Who put the jam in my top hat", "Pass me the toast and hide the cat", "My socks can dance my shoes can squeak", "We sing in rounds all through the week"];
 
 export interface ScoreEvent {
@@ -169,7 +169,7 @@ export function compose({ seed = 404, key = "D" as KeyName, mode = "major" as Sc
 // The four phrases share the same eight-beat harmonic skeleton: I, IV, V, I.
 // Any eight-beat delay therefore preserves every vertical chord alignment.
 const ROUND_DEGREES = [[0, 2, 3, 5, 4, 6, 2, 0], [2, 4, 5, 7, 6, 8, 4, 2], [4, 2, 7, 5, 8, 6, 7, 4], [7, 4, 3, 7, 4, 8, 4, 7]];
-const ROUND_OCTAVES: Record<string, number> = { vee: -12, scribe: 0, clank: -24, pip: 0, gruff: -12, tabby: 0 };
+const ROUND_OCTAVES: Record<string, number> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.octave]));
 
 export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1 } = {}): Piece {
   if (!(key in KEYS) || ![1, 2].includes(repeats) || bpm < 60 || bpm > 180) throw Error("Invalid round settings");
@@ -193,7 +193,7 @@ export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1 } = {})
 /** The original verse tune, two eight-beat lines in D major (one beat per syllable). */
 const INTRO_MELODY = [[62, 66, 69, 66, 64, 62, 64, 62], [62, 64, 66, 69, 67, 66, 64, 62]];
 /** Which octave each singer's part sits in: a property of the arrangement, always whole octaves. */
-export const INTRO_OCTAVES: Record<string, number> = { vee: -12, scribe: 0, clank: -24, pip: 0, gruff: -12, tabby: 0 };
+export const INTRO_OCTAVES: Record<string, number> = ROUND_OCTAVES;
 const INTRO_CHORDS = [0, 3, 4, 0];
 const SECTION_BEATS = 20; // two lines (16 beats) and a bar for the next puppet to step up
 

@@ -22,7 +22,7 @@ for (const seed of [404, 7]) {
     const p = planTrack(t, piece, v);
     const frames = Math.ceil(pieceSeconds(piece) * FS);
     const x = new WebAssembly.Instance(wasmModule, {}).exports as never;
-    const core = new SingerCore(x, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, firstF0: midiToHz(p.firstMidi) });
+    const core = new SingerCore(x, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, nasal: p.nasal, firstF0: midiToHz(p.firstMidi) });
     while (core.rendered < frames) core.step();
     let peak = 0, sum = 0;
     for (const s of core.stem) (peak = Math.max(peak, Math.abs(s))), (sum += s * s);

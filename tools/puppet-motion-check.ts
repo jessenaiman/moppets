@@ -28,7 +28,7 @@ const v = voices.find((x) => x.id === id)!;
 const piece = makeSolo(v);
 const plan = planTrack(piece.tracks[0], piece, v);
 const frames = Math.ceil(pieceSeconds(piece) * FS);
-const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi) });
+const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi) });
 while (core.rendered < frames) core.step();
 
 const hop = hopFor(FS);

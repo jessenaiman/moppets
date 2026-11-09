@@ -29,7 +29,7 @@ for (const [name, piece] of Object.entries(pieces)) {
   for (const t of piece.tracks) {
     const v = voices.find((x) => x.id === t.id)!;
     const p = planTrack(t, piece, v);
-    const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, firstF0: midiToHz(p.firstMidi) });
+    const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, nasal: p.nasal, firstF0: midiToHz(p.firstMidi) });
     while (core.rendered < frames) core.step();
     let peak = 0, bad = 0;
     for (const s of core.stem) { if (!Number.isFinite(s)) bad++; peak = Math.max(peak, Math.abs(s)); }
