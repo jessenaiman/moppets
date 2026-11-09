@@ -10,7 +10,7 @@ import { singNoteOn, singNoteOff, stopSinging, ensureDictionary } from "./singin
 import { stopSpeaking } from "./speech.ts";
 import { connectMidi, disconnectMidi, type MidiStatus } from "./midi.ts";
 
-export type Mode = "play" | "speak" | "sing" | "bestiary" | "beatbox";
+export type Mode = "play" | "speak" | "sing" | "bestiary" | "beatbox" | "moppet";
 
 export interface BeatState {
   steps: (BeatStep | null)[];
@@ -85,6 +85,9 @@ interface State {
   setView: (v: Partial<ViewOptions>) => void;
 }
 
+/** Moppet mode's way out (set by src/choir, which imports this store and must not be imported here). */
+export const ensembleHooks: { leave?: () => void } = {};
+
 const midiToHz = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
 /**
@@ -137,6 +140,9 @@ export const useStore = create<State>((set, get) => ({
     const prev = get().mode;
     if (prev === m) return;
     session++;
+    // the choir's notes leave with it; a sustain or bass would drone under the stage
+    if (prev === "moppet") ensembleHooks.leave?.();
+    if (m === "moppet") set({ hold: false });
     // notes held across the switch would keep breathing into the other voice
     set({ mode: m, heldNotes: [] });
     // speech belongs to Speak: under a creature the human clock stops and it would resume later

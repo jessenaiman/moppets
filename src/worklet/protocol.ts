@@ -20,6 +20,8 @@ export type ToWorklet =
   | { type: "source"; values: Partial<VoiceSource> }
   | { type: "gate"; level: number }
   | { type: "telemetry"; enabled: boolean }
+  /** silence without running the engine (a silent airway decays into denormals, which are expensive) */
+  | { type: "bypass"; on: boolean }
   /** gestures planned on the main thread with times relative to "now" (the worklet adds its clock) */
   | { type: "schedule"; gestures: Gesture[]; segments: PlannedSegment[]; end: number; id: number; replace: boolean; lead?: number }
   | { type: "stopSpeech" }

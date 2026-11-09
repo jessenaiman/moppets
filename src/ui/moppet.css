@@ -1,0 +1,133 @@
+/* Moppet Choir: Studio 404's warm stage, set among CHIMERA's screens. Scoped to .warm and the mode. */
+.mode-moppet { height: auto; min-height: 100%; overflow: visible; }
+.wall-moppet { height: auto; align-items: start; }
+.wall-moppet > .left { position: sticky; top: 8px; height: calc(100vh - 92px); min-height: 480px; }
+.wall-moppet .right-moppet { display: grid; gap: 12px; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: auto; grid-template-areas: "stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "credit credit credit credit credit credit" "tube tube tube folds folds folds" "spec spec spec spec spec spec" "voice voice voice keys keys keys"; align-content: start; }
+.right-moppet > .s-stage { grid-area: stage; }
+.right-moppet > .s-score { grid-area: score; }
+.right-moppet > .s-cast { grid-area: cast; }
+.right-moppet > .moppet-credit { grid-area: credit; margin: 0; font-size: 12px; color: var(--text-secondary, #8b98a5); }
+.right-moppet > .s-tube { grid-area: tube; }
+.right-moppet > .s-folds { grid-area: folds; }
+.right-moppet > .s-spec { grid-area: spec; }
+.right-moppet > .s-voice { grid-area: voice; }
+.right-moppet > .s-keys { grid-area: keys; }
+.right-moppet .s-tube .screen-body, .right-moppet .s-folds .screen-body, .right-moppet .s-spec .screen-body { min-height: 150px; }
+.right-moppet .s-voice .screen-body { min-height: 150px; }
+.right-moppet .s-keys .screen-body { min-height: 120px; }
+
+.warm { --paper:#f1eee5; --ink:#26332f; --muted:#6e786f; --line:#d5d5c9; --orange:#ca6748; --green:#234b40; }
+.warm .screen-body { background: var(--paper); color: var(--ink); font: 14px "DM Sans", Archivo, system-ui, sans-serif; overflow: visible; flex: none; height: auto; min-height: 0; }
+.warm button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: transparent; color: inherit; border-radius: 5px; padding: 8px 12px; }
+.warm button:hover { background: #dce1d6; }
+.warm button:focus-visible, .warm input:focus-visible, .warm select:focus-visible, .warm summary:focus-visible { outline: 3px solid #d17a54; outline-offset: 2px; }
+.warm button:disabled { opacity: .5; cursor: wait; }
+.warm .screen-body h2 { font-family: Fraunces, Georgia, serif; font-weight: 500; margin: 0; letter-spacing: -.6px; font-size: 27px; color: var(--ink); text-shadow: none; text-transform: none; }
+.moppet-stage-wrap { display: flex; flex-direction: column; }
+.theatre-top { padding: 12px 20px; background: #23312d; color: #adbbb1; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.7px; }
+.theatre-top i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c88e50; margin-right: 8px; }
+.stage { position: relative; background: radial-gradient(ellipse at 50% 90%, #6b5a45 0, #2d2620 65%, #1e1a16 100%); height: 270px; overflow: hidden; display: flex; align-items: flex-end; }
+.string-lights { position: absolute; top: -7px; left: 2%; right: 2%; border-top: 1px solid #a99965; display: flex; justify-content: space-around; color: #e4b86a; font-size: 12px; padding-top: 19px; border-radius: 50%; text-shadow: 0 0 16px #ffe3a8; pointer-events: none; }
+.string-lights span { padding-top: 8px; color: #c48659; }
+.cast { display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 8px 24px; position: relative; z-index: 1; }
+.warm .puppet { position: relative; flex: 0 1 17.2%; margin: 0 -1.5%; height: auto; background: none; border: none; padding: 0; transition: filter .2s, transform .2s; filter: brightness(.92); }
+.warm .puppet:hover { background: none; filter: brightness(1.1); }
+.puppet.selected { filter: brightness(1); }
+.puppet.singing { filter: brightness(1.18); }
+.puppet .sprite { display: block; position: relative; width: 100%; aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; transform-origin: 50% 96%; transform: scale(calc(2 - var(--sy, 1)), var(--sy, 1)); }
+.puppet .solo-head { position: absolute; left: var(--hx, 25%); top: var(--hy, 0%); aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--head, 0% 0%); background-repeat: no-repeat; transform: rotate(var(--tilt, 0deg)); }
+.puppet .sprite-open { position: absolute; inset: 0; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; visibility: hidden; }
+.puppet.mouth-open .sprite-open { visibility: visible; }
+.puppet .name-tag { position: absolute; bottom: -21px; left: 0; right: 0; color: #f0e8d2; font-size: 11px; letter-spacing: 2px; text-shadow: 0 1px 2px #15251d; z-index: 2; }
+.puppet .felt { opacity: .2; }
+.puppet .selection-ring { opacity: 0; }
+.puppet.selected .selection-ring { opacity: 1; }
+.shelf { height: 19px; background: linear-gradient(#827458, #554b39); position: absolute; bottom: 0; width: 100%; box-shadow: 0 -5px 15px #15251d70; border-top: 2px solid #a08c62; }
+.caption { background: #1c2b25; color: #eceddf; text-align: center; min-height: 86px; padding: 14px 12px; }
+.caption span { font-size: 9px; color: #c6a365; letter-spacing: 2px; }
+.caption p { font-family: Fraunces, Georgia, serif; font-size: 20px; margin: 8px 0 0; line-height: 1.4; }
+.transport { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; background: #faf8f0; }
+.warm .primary, .warm .moppet-play { background: var(--orange); border-color: var(--orange); color: #fff; padding: 12px 18px; white-space: nowrap; font-size: 13px; }
+.warm .moppet-play:hover { background: #b95c41; }
+.square { padding: 11px; }
+.timeline { flex: 1; min-width: 120px; }
+.timeline input { width: 100%; accent-color: var(--green); display: block; margin: 4px 0 8px; }
+.timeline div { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.volume { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 1px; }
+.warm .volume input { width: 70px; accent-color: var(--green); }
+.render-mode { font-size: 10px; letter-spacing: 1px; display: flex; flex-direction: column; gap: 3px; color: var(--muted); }
+.how { font-size: 10px; color: var(--muted); min-width: 66px; }
+.moppet-score { padding: 14px 18px; }
+.lesson-tabs { display: flex; gap: 5px; border-bottom: 1px solid #cbd0c1; margin-bottom: 14px; flex-wrap: wrap; }
+.warm .lesson-tabs button { border: none; border-radius: 5px 5px 0 0; padding: 11px 18px; font-size: 13px; color: var(--muted); }
+.warm .lesson-tabs button[aria-selected=true] { background: #dce3d3; color: var(--green); box-shadow: inset 0 -3px var(--green); }
+.lesson-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.lesson-header p { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.lesson-header .eyebrow { font-size: 9px; letter-spacing: 1.8px; font-weight: 700; margin: 0 0 6px; }
+.seed-label { font-size: 11px; letter-spacing: 1.3px; border: 1px dashed #adb99e; padding: 10px; white-space: nowrap; }
+.music-settings { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 16px 0 8px; }
+.music-settings label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
+.soul-toggle { display: flex; align-items: center; gap: 6px; }
+.music-settings .soul-toggle input { display: inline; min-width: 0; margin: 0; }
+.music-settings select, .music-settings input { display: block; margin-top: 5px; min-width: 88px; background: #faf8f0; border: 1px solid #c9cfbf; padding: 9px 10px; border-radius: 4px; color: var(--ink); font-size: 13px; }
+.warm .invent { background: var(--green); border-color: var(--green); color: #fff; padding: 10px 16px; }
+.warm .invent:hover { background: #315d4e; }
+.moppet-status { font-size: 13px; line-height: 1.6; color: var(--muted); min-height: 20px; margin: 10px 0; }
+.chord-strip { display: flex; gap: 6px; margin: 10px 0 14px; align-items: center; flex-wrap: wrap; }
+.chord-strip > span { border: 1px solid #ccd2c0; background: #e9ecdf; padding: 7px 10px; min-width: 52px; text-align: center; border-radius: 4px; }
+.chord-strip b { font: 18px Fraunces, Georgia, serif; display: block; }
+.chord-strip small { display: block; font-size: 9px; color: var(--muted); margin-top: 3px; }
+.chord-strip em { font-style: normal; font-size: 12px; color: var(--muted); padding-left: 10px; }
+.round-words { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; margin: 0 0 12px; }
+.round-words p { font-family: Fraunces, Georgia, serif; font-size: 16px; margin: 4px 0; }
+.round-words b { font: 10px "DM Sans", sans-serif; color: var(--muted); margin-right: 10px; }
+.score { background: #20382e; border-radius: 5px; overflow: auto; }
+.score svg { display: block; width: 100%; min-width: 620px; }
+.score-header { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 8px; font-size: 11px; letter-spacing: 1px; }
+.score-header small { font-size: 11px; letter-spacing: 0; color: var(--muted); margin-left: 12px; }
+.score-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 4px; font-size: 11px; color: var(--muted); }
+.score-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.score-help { margin-left: auto; }
+.lyrics-sheet { margin: 6px 0 10px; font-size: 13px; }
+.lyrics-sheet > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 20px; padding: 10px 0; }
+.lyrics-sheet h3 { font-size: 13px; margin: 0 0 4px; }
+.lyrics-sheet p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.moppet-workbench { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; padding: 16px 18px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-content: start; }
+.warm .card { text-align: left; min-width: 0; overflow: hidden; min-height: 104px; padding: 14px; background: #f8f6ef; position: relative; }
+.warm .card.selected { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); background: #e8ecdf; }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.swatch { width: 16px; height: 16px; border-radius: 50%; border: 1px dashed #26332f66; }
+.card-num { font-size: 10px; color: var(--muted); }
+.card strong { font-family: Fraunces, Georgia, serif; font-size: 21px; font-weight: 500; display: block; margin-bottom: 3px; }
+.card small { color: var(--muted); font-size: 11px; }
+.voice-panel { background: #e5e7dc; border-radius: 7px; padding: 18px; border: 1px solid #cdd3c4; }
+.panel-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel-title span { font-size: 11px; color: var(--muted); }
+.panel-actions { display: flex; gap: 8px; margin: 14px 0; }
+.warm .panel-actions button:first-child { background: var(--green); color: #fff; border-color: var(--green); flex: 1; font-size: 12px; }
+.knob { margin: 12px 0; }
+.knob label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+.knob output { font-variant-numeric: tabular-nums; color: var(--muted); }
+.knob input { display: block; width: 100%; accent-color: #4d6d57; }
+.status { font-size: 11px; line-height: 1.6; color: var(--muted); margin: 10px 0 0; }
+.panel-footer { display: flex; justify-content: space-between; gap: 6px; border-top: 1px solid #ccd1c2; padding-top: 12px; margin-top: 14px; flex-wrap: wrap; }
+.warm .panel-footer button { border: none; font-size: 12px; padding: 6px 2px; }
+@media (max-width: 1100px) {
+  .wall-moppet > .left { position: static; height: auto; }
+  .wall-moppet .right-moppet { grid-template-areas: "stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "credit credit credit credit credit credit" "tube tube tube tube tube tube" "folds folds folds folds folds folds" "spec spec spec spec spec spec" "voice voice voice voice voice voice" "keys keys keys keys keys keys"; }
+  .moppet-workbench { grid-template-columns: 1fr; }
+}
+@media (max-width: 650px) {
+  .stage { height: 260px; }
+  .cast { padding: 0 3px 23px; }
+  .warm .puppet { height: auto; }
+  .puppet .name-tag { font-size: 9px; letter-spacing: 1px; bottom: -18px; }
+  .cards { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .warm .card { padding: 9px; min-height: 92px; }
+  .card strong { font-size: 18px; }
+  .caption p { font-size: 16px; }
+  .round-words { grid-template-columns: 1fr; }
+  .score-help { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .puppet .head, .puppet .jaw, .puppet .mouth-cave { transition: none; } }

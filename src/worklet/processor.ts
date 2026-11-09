@@ -42,6 +42,8 @@ class ChimeraProcessor extends AudioWorkletProcessor {
   private readonly h: number;
   private failed = false;
   private telemetryOn = true;
+  /** skip the engine and output silence (while a choir holds the audio thread) */
+  private bypass = false;
   private blocks = 0;
   private load = 0;
   private creature: CreatureInfo | null = null;
@@ -133,6 +135,9 @@ class ChimeraProcessor extends AudioWorkletProcessor {
       case "telemetry":
         this.telemetryOn = m.enabled;
         break;
+      case "bypass":
+        this.bypass = m.on;
+        break;
       case "schedule": {
         // planning happened on the main thread; the engine shifts the gestures onto its clock
         const n = writeGestures(this.mem, x.engine_records(h), m.gestures, MAX_GESTURES);
@@ -183,7 +188,7 @@ class ChimeraProcessor extends AudioWorkletProcessor {
     const out = outputs[0];
     if (!out || out.length === 0) return true;
     const ch0 = out[0];
-    if (this.failed) {
+    if (this.failed || this.bypass) {
       for (const ch of out) ch.fill(0);
       return true;
     }

@@ -30,6 +30,8 @@ export class AudioEngine {
   /** load of the most recent telemetry of either kind */
   load = 0;
   sampleRate = 48000;
+  /** while set, the views follow this telemetry (a choir singer) instead of the live voice's */
+  private telemetryOverride = false;
   private listeners = new Set<Listener>();
   private pendingArtic: Partial<HumanArtic> | null = null;
   private pendingTipFree: boolean | undefined;
@@ -107,6 +109,7 @@ export class AudioEngine {
     node.port.onmessage = (e: MessageEvent<FromWorklet>) => {
       const m = e.data;
       if (m.type === "telemetry") {
+        if (this.telemetryOverride) return;
         this.latest = m;
         this.latestAt = performance.now();
         this.latestCreature = null;
@@ -127,6 +130,45 @@ export class AudioEngine {
       }
     };
     await ctx.resume();
+  }
+
+  /**
+   * Feed the views from outside the worklet: the telemetry of the Moppet being inspected, at the
+   * moment now sounding. `m === null` hands the views back to the live voice.
+   */
+  overrideTelemetry(m: TelemetryMessage | null): void {
+    this.telemetryOverride = m !== null;
+    if (!m) return;
+    this.latest = m;
+    this.latestAt = performance.now();
+    this.latestCreature = null;
+    this.load = m.load;
+    for (const l of this.listeners) l(m);
+  }
+
+  /** While the choir sings, the live voice does not render at all: it shares the audio thread. */
+  setBypass(on: boolean): void {
+    this.send({ type: "bypass", on });
+  }
+
+  /** Mix a choir's output through the master volume, and show `solo` (not the mix) on the analysers. */
+  connectChoir(mix: AudioNode, solo: AudioNode): void {
+    if (!this.master) throw new Error("audio not started");
+    mix.connect(this.master);
+    for (const a of [this.analyser!, this.analyserFast!, this.analyserScope!]) solo.connect(a);
+  }
+
+  /** While a choir plays, the analysers listen to the inspected singer instead of the master bus. */
+  analysersOnChoir(on: boolean): void {
+    if (!this.master) return;
+    for (const a of [this.analyser!, this.analyserFast!, this.analyserScope!]) {
+      try {
+        if (on) this.master.disconnect(a);
+        else this.master.connect(a);
+      } catch {
+        // already in that state
+      }
+    }
   }
 
   onTelemetry(l: Listener): () => void {

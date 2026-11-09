@@ -21,6 +21,8 @@ import type { Mode } from "./store.ts";
 import type { BodyName } from "../worklet/protocol.ts";
 import { BodyPad } from "./components/BodyPad.tsx";
 import { bodyLabel, presetOf, PRESETS } from "./body.ts";
+import { MoppetRight } from "./components/MoppetPanel.tsx";
+import { useMoppet } from "../choir/store.ts";
 
 // three.js only loads when the 3D view is first shown
 const AnatomyView3D = lazy(() => import("./components/AnatomyView3D.tsx").then((m) => ({ default: m.AnatomyView3D })));
@@ -64,6 +66,7 @@ function TopBar() {
           { value: "sing", label: "Sing" },
           { value: "bestiary", label: "Bestiary" },
           { value: "beatbox", label: "Beatbox" },
+          { value: "moppet", label: "Moppet Choir" },
         ]}
       />
       {mode !== "bestiary" && (
@@ -137,9 +140,10 @@ function StartPrompt() {
   const copy = {
     bestiary: ["Each animal's sound comes from a simulation of its own sound source and airway.", "Start and hear a call", "Then play its calls, or hold the keys to sustain it at a pitch."],
     beatbox: ["Every drum here is a mouth sound: lips, tongue and larynx pushing, sealing and sucking air.", "Start the beat", "Then edit the pattern, tap the pads, or hum a bass note on the keys."],
+    moppet: ["Six felt Moppets, six simulated throats, one shared song.", "Start the choir stage", "Then pick a Moppet to inspect it, or press play on the stage."],
     speak: ["Every sound here is produced by simulating air moving through a throat, mouth and nose.", "Start the voice", "Then type something and press Speak, or tap a sound in the chart."],
     sing: ["Every sound here is produced by simulating air moving through a throat, mouth and nose.", "Start and hear a song", "Then play the keys: each note sings the next syllable of the lyrics."],
-  }[mode as "bestiary" | "beatbox" | "speak" | "sing"] ?? ["Every sound here is produced by simulating air moving through a throat, mouth and nose.", "Breathe in and start", "Then drag the tongue, lips or jaw, or play the keys."];
+  }[mode as "bestiary" | "beatbox" | "speak" | "sing" | "moppet"] ?? ["Every sound here is produced by simulating air moving through a throat, mouth and nose.", "Breathe in and start", "Then drag the tongue, lips or jaw, or play the keys."];
   return (
     <div className="start-prompt" data-layout="overlay">
       <p>{copy[0]}</p>
@@ -168,13 +172,14 @@ function LeftScreen() {
   const mode = useStore((s) => s.mode);
   const body = useStore((s) => s.body);
   const threeD = useStore((s) => s.view.threeD);
+  const moppetName = useMoppet((s) => s.voices[s.selected].name);
   const bestiary = mode === "bestiary";
   const Face = threeD ? AnatomyView3D : AnatomyView;
   return (
     <Screen
       className="left"
       focus
-      title={bestiary ? "Creature" : "Vocal tract"}
+      title={bestiary ? "Creature" : mode === "moppet" ? `Inspecting ${moppetName}: vocal tract` : "Vocal tract"}
       sub={bestiary ? "Airway / live" : `${bodyLabel(body)} / ${threeD ? "3D" : "midsagittal"}`}
       label={bestiary ? "Live creature airway" : "Live vocal tract"}
       tools={<ViewToggles />}
@@ -232,7 +237,7 @@ function Wall() {
       <TopBar />
       <main className={`wall wall-${mode}`}>
         <LeftScreen />
-        {mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}
+        {mode === "moppet" ? <MoppetRight /> : mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}
       </main>
     </div>
   );
