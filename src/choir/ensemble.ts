@@ -281,7 +281,9 @@ function tick(): void {
   if (!s) return;
   const st = get().status;
   if (st === "playing" || st === "buffering" || st === "paused") {
-    const frame = audibleFrame();
+    // paused, the timeline is where the pause (or a seek) put it: the mixer's last report runs on for
+    // a moment and isn't latency-corrected, so reading it moved a paused playhead by ~0.1 s
+    const frame = st === "paused" ? resumeAt : audibleFrame();
     const hop = Math.floor(frame / s.hop);
     const tele = s.telemetry(s.indexOf(soloId), hop);
     if (tele) engine.overrideTelemetry(tele);
@@ -422,7 +424,10 @@ export function pause(): void {
   if (get().status !== "playing" && get().status !== "buffering") return;
   post({ type: "pause" });
   set({ status: "paused", message: "Paused." });
-  if (session) resumeAt = Math.floor(audibleFrame());
+  if (session) {
+    resumeAt = Math.floor(audibleFrame());
+    set({ time: resumeAt / session.sampleRate });
+  }
 }
 
 function resume(): void {
