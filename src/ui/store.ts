@@ -135,7 +135,7 @@ export const useStore = create<State>((set, get) => ({
   hold: false,
   heldNotes: [],
   view: { pressure: true, particles: true, grid: false, calipers: true, threeD: false },
-  mode: "play",
+  mode: "moppet",
   setMode: (m) => {
     const prev = get().mode;
     if (prev === m) return;

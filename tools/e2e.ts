@@ -26,6 +26,23 @@ async function run(viewport: { width: number; height: number }, tag: string) {
   page.on("pageerror", (e) => errors.push(`[${tag}] pageerror: ${e.message}`));
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
+  const appView = page.getByRole("radiogroup", { name: "App view" });
+  const moppetsTab = appView.getByRole("radio", { name: "Moppets" });
+  const chimeraTab = appView.getByRole("radio", { name: "Chimera" });
+  if ((await appView.getByRole("radio").count()) !== 2) {
+    errors.push(`[${tag}] expected Moppets and Chimera tabs`);
+  } else {
+    if ((await moppetsTab.getAttribute("aria-checked")) !== "true") errors.push(`[${tag}] Moppets is not the default tab`);
+    if ((await page.locator(".puppet").count()) < 6) errors.push(`[${tag}] the default stage does not show the full cast`);
+    await chimeraTab.click();
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(200);
+    if ((await appView.getByRole("radio", { name: "Moppets" }).getAttribute("aria-checked")) !== "true") {
+      errors.push(`[${tag}] reloading did not return to the Moppets tab`);
+    }
+    await page.getByRole("radiogroup", { name: "App view" }).getByRole("radio", { name: "Chimera" }).click();
+  }
+  await page.waitForTimeout(200);
   await page.screenshot({ path: `${outDir}/${tag}-0-idle.png` });
   const startBtn = page.getByRole("button", { name: /breathe in and start/i });
   await startBtn.click();
@@ -182,6 +199,7 @@ async function run(viewport: { width: number; height: number }, tag: string) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.on("pageerror", (e) => errors.push(`[first-key] pageerror: ${e.message}`));
   await page.goto(url, { waitUntil: "networkidle" });
+  await page.getByRole("radiogroup", { name: "App view" }).getByRole("radio", { name: "Chimera" }).click();
   await page.getByRole("radio", { name: "Sing" }).click();
   await page.keyboard.down("d");
   await page.waitForTimeout(1200);

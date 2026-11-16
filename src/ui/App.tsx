@@ -44,6 +44,7 @@ function TopBar() {
   const volume = useStore((s) => s.volume);
   const setVolume = useStore((s) => s.setVolume);
   const mode = useStore((s) => s.mode);
+  const moppetView = useMoppet((s) => s.view);
   const setMode = useStore((s) => s.setMode);
   const [load, setLoad] = useState(0);
   useEffect(() => {
@@ -56,20 +57,30 @@ function TopBar() {
         <span className="wordmark">Chimera</span>
         <span className="tagline">A voice grown from a simulated airway</span>
       </div>
-      <Segmented<Mode>
-        label="Mode"
-        value={mode}
-        onChange={setMode}
+      <Segmented
+        label="App view"
+        value={mode === "moppet" ? "moppets" : "chimera"}
+        onChange={(view) => setMode(view === "moppets" ? "moppet" : "play")}
         options={[
-          { value: "play", label: "Play" },
-          { value: "speak", label: "Speak" },
-          { value: "sing", label: "Sing" },
-          { value: "bestiary", label: "Bestiary" },
-          { value: "beatbox", label: "Beatbox" },
-          { value: "moppet", label: "Moppet Choir" },
+          { value: "moppets", label: "Moppets" },
+          { value: "chimera", label: "Chimera" },
         ]}
       />
-      {mode !== "bestiary" && (
+      {mode !== "moppet" && (
+        <Segmented<Mode>
+          label="Mode"
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "play", label: "Play" },
+            { value: "speak", label: "Speak" },
+            { value: "sing", label: "Sing" },
+            { value: "bestiary", label: "Bestiary" },
+            { value: "beatbox", label: "Beatbox" },
+          ]}
+        />
+      )}
+      {mode !== "bestiary" && (mode !== "moppet" || moppetView === "inspect") && (
         <div className="body-control">
           <Segmented<BodyName>
             label="Body"
@@ -232,11 +243,14 @@ export function App() {
 
 function Wall() {
   const mode = useStore((s) => s.mode);
+  const moppetView = useMoppet((s) => s.view);
+  // the Moppets open on their stage; CHIMERA's face and instruments are the Inspect tab
+  const face = mode !== "moppet" || moppetView === "inspect";
   return (
     <div className={`app text-colors mode-${mode}`}>
       <TopBar />
-      <main className={`wall wall-${mode}`}>
-        <LeftScreen />
+      <main className={`wall wall-${mode}${mode === "moppet" ? ` view-${moppetView}` : ""}`}>
+        {face && <LeftScreen />}
         {mode === "moppet" ? <MoppetRight /> : mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}
       </main>
     </div>

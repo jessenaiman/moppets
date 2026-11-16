@@ -2,7 +2,13 @@
 .mode-moppet { height: auto; min-height: 100%; overflow: visible; }
 .wall-moppet { height: auto; align-items: start; }
 .wall-moppet > .left { position: sticky; top: 8px; height: calc(100vh - 92px); min-height: 480px; }
-.wall-moppet .right-moppet { display: grid; gap: 12px; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: auto; grid-template-areas: "stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "credit credit credit credit credit credit" "tube tube tube folds folds folds" "spec spec spec spec spec spec" "voice voice voice keys keys keys"; align-content: start; }
+.wall-moppet.view-stage { grid-template-columns: minmax(0, 1fr); }
+.wall-moppet .right-moppet { display: grid; gap: 12px; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: auto; align-content: start; }
+.wall-moppet .right-stage { grid-template-areas: "views views views views views views" "stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "credit credit credit credit credit credit"; }
+.wall-moppet .right-inspect { grid-template-areas: "views views views views views views" "cast cast cast cast cast cast" "tube tube tube folds folds folds" "spec spec spec spec spec spec" "voice voice voice keys keys keys" "credit credit credit credit credit credit"; }
+.right-moppet > .moppet-views { grid-area: views; display: flex; gap: 4px; border-bottom: 1px solid var(--line, #2a3a44); }
+.moppet-views button { background: none; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; padding: 8px 16px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary, #8b98a5); }
+.moppet-views button[aria-selected="true"] { border-color: var(--line, #2a3a44); background: var(--panel, #10181d); color: var(--text, #e6edf2); }
 .right-moppet > .s-stage { grid-area: stage; }
 .right-moppet > .s-score { grid-area: score; }
 .right-moppet > .s-cast { grid-area: cast; }
@@ -26,15 +32,15 @@
 .moppet-stage-wrap { display: flex; flex-direction: column; }
 .theatre-top { padding: 12px 20px; background: #23312d; color: #adbbb1; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.7px; }
 .theatre-top i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c88e50; margin-right: 8px; }
-.stage { position: relative; background: radial-gradient(ellipse at 50% 90%, #6b5a45 0, #2d2620 65%, #1e1a16 100%); height: 270px; overflow: hidden; display: flex; align-items: flex-end; }
+.stage { position: relative; background: radial-gradient(ellipse at 50% 90%, #6b5a45 0, #2d2620 65%, #1e1a16 100%); height: 320px; overflow: hidden; display: flex; align-items: flex-end; }
 .string-lights { position: absolute; top: -7px; left: 2%; right: 2%; border-top: 1px solid #a99965; display: flex; justify-content: space-around; color: #e4b86a; font-size: 12px; padding-top: 19px; border-radius: 50%; text-shadow: 0 0 16px #ffe3a8; pointer-events: none; }
 .string-lights span { padding-top: 8px; color: #c48659; }
 .cast { display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 8px 24px; position: relative; z-index: 1; }
-.warm .puppet { position: relative; flex: 0 1 17.2%; margin: 0 -1.5%; height: auto; background: none; border: none; padding: 0; transition: filter .2s, transform .2s; filter: brightness(.92); }
+.warm .puppet { position: relative; flex: 0 1 17.2%; margin: 0 -1.5%; height: auto; background: none; border: none; padding: 0; transition: filter .2s; transform-origin: 50% 100%; will-change: transform; filter: brightness(.92); }
 .warm .puppet:hover { background: none; filter: brightness(1.1); }
 .puppet.selected { filter: brightness(1); }
 .puppet.singing { filter: brightness(1.18); }
-.puppet .sprite { display: block; position: relative; width: 100%; aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; transform-origin: 50% 96%; transform: scale(calc(2 - var(--sy, 1)), var(--sy, 1)); }
+.puppet .sprite { display: block; position: relative; width: 100%; aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; transform-origin: 50% 96%; transform: scale(calc((2 - var(--sy, 1)) * var(--face, 1)), var(--sy, 1)); }
 .puppet .solo-head { position: absolute; left: var(--hx, 25%); top: var(--hy, 0%); aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--head, 0% 0%); background-repeat: no-repeat; transform: rotate(var(--tilt, 0deg)); }
 .puppet .sprite-open { position: absolute; inset: 0; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; visibility: hidden; }
 .puppet.mouth-open .sprite-open { visibility: visible; }
@@ -42,6 +48,9 @@
 .puppet .felt { opacity: .2; }
 .puppet .selection-ring { opacity: 0; }
 .puppet.selected .selection-ring { opacity: 1; }
+.stage-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.stage-fx.back { z-index: 0; }
+.stage-fx.front { z-index: 2; }
 .shelf { height: 19px; background: linear-gradient(#827458, #554b39); position: absolute; bottom: 0; width: 100%; box-shadow: 0 -5px 15px #15251d70; border-top: 2px solid #a08c62; }
 .caption { background: #1c2b25; color: #eceddf; text-align: center; min-height: 86px; padding: 14px 12px; }
 .caption span { font-size: 9px; color: #c6a365; letter-spacing: 2px; }
@@ -106,6 +115,7 @@
 .panel-title span { font-size: 11px; color: var(--muted); }
 .panel-actions { display: flex; gap: 8px; margin: 14px 0; }
 .warm .panel-actions button:first-child { background: var(--green); color: #fff; border-color: var(--green); flex: 1; font-size: 12px; }
+.knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); column-gap: 20px; }
 .knob { margin: 12px 0; }
 .knob label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
 .knob output { font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -115,11 +125,11 @@
 .warm .panel-footer button { border: none; font-size: 12px; padding: 6px 2px; }
 @media (max-width: 1100px) {
   .wall-moppet > .left { position: static; height: auto; }
-  .wall-moppet .right-moppet { grid-template-areas: "stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "credit credit credit credit credit credit" "tube tube tube tube tube tube" "folds folds folds folds folds folds" "spec spec spec spec spec spec" "voice voice voice voice voice voice" "keys keys keys keys keys keys"; }
+  .wall-moppet .right-inspect { grid-template-areas: "views views views views views views" "cast cast cast cast cast cast" "tube tube tube tube tube tube" "folds folds folds folds folds folds" "spec spec spec spec spec spec" "voice voice voice voice voice voice" "keys keys keys keys keys keys" "credit credit credit credit credit credit"; }
   .moppet-workbench { grid-template-columns: 1fr; }
 }
 @media (max-width: 650px) {
-  .stage { height: 260px; }
+  .stage { height: 290px; }
   .cast { padding: 0 3px 23px; }
   .warm .puppet { height: auto; }
   .puppet .name-tag { font-size: 9px; letter-spacing: 1px; bottom: -18px; }

@@ -299,7 +299,14 @@ async function main() {
       for (const p of [...errs, ...warns]) console.log(`  ${p.warn ? "warn " : "ERROR"} ${p.kind.padEnd(11)} ${p.detail}`);
       if (errs.length) await page.screenshot({ path: `${out}/${w}x${h}-${state.replace(/[^a-z0-9]+/gi, "-")}.png`, fullPage: true });
     };
-    const mode = (m: string) => page.getByRole("radio", { name: new RegExp(`^${m}$`, "i") }).click();
+    const mode = async (m: string) => {
+      if (m === "moppet choir") {
+        await page.getByRole("radio", { name: "Moppets", exact: true }).click();
+      } else {
+        await page.getByRole("radio", { name: "Chimera", exact: true }).click();
+        await page.getByRole("radiogroup", { name: "Mode" }).getByRole("radio", { name: new RegExp(`^${m}$`, "i") }).click();
+      }
+    };
     // every encoder page of the screens on the right (each page has its own labels)
     const pages = async (state: string) => {
       const tabs = page.locator(".right .enc-tab");
@@ -324,6 +331,7 @@ async function main() {
       continue;
     }
     await page.goto(url, { waitUntil: "networkidle" });
+    await page.getByRole("radio", { name: "Chimera", exact: true }).click();
     for (const m of modes) {
       await mode(m);
       await check(m);

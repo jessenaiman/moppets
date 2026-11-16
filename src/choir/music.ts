@@ -374,10 +374,28 @@ const CHIP_CHORUS_LINES: SongLine[] = [
 const BAR = 4;
 
 /** "Chip Reads the Manual": Claude's Moppet sings the verses; the whole workshop joins on the chorus. */
-export function makeChipSong(): Piece {
-  const key: KeyName = "C", mode: ScaleMode = "major", bpm = 96;
+interface LeadSong {
+  lead: string; title: string; description: string; key: KeyName; bpm: number;
+  verse: string[]; chorus: string[]; verseLines: SongLine[]; chorusLines: SongLine[];
+  seats: [string, number][];
+  mode?: ScaleMode;
+  /** the lead's octave shift, for low singers */
+  octave?: number;
+  beat?: { text: string; swing: number };
+  /** who walks the bass (default Clank) */
+  bass?: string;
+  /** a second singer doubling the lead's words a set number of scale steps away */
+  mirror?: { id: string; steps: number; octave: number };
+  /** per-singer figures for the choir: [scale steps above the chord root, beats], summing to a 4-beat bar */
+  figures?: Record<string, [number, number][]>;
+}
+
+function buildLeadSong(s: LeadSong): Piece {
+  const key = s.key, mode: ScaleMode = s.mode ?? "major", bpm = s.bpm, leadShift = s.octave ?? 0;
   const chords: Chord[] = [];
   const events: ScoreEvent[] = [];
+  const mirrored: ScoreEvent[] = [];
+  const bass = s.bass ?? "clank";
   const pad = (id: string, beat: number, degree: number, beats: number): ScoreEvent => {
     const mid = (RANGES[id][0] + RANGES[id][1]) / 2;
     const midi = candidates([degree], key, mode, RANGES[id]).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
@@ -388,38 +406,109 @@ export function makeChipSong(): Piece {
     lines.forEach((l, n) => {
       let beat = at + n * 2 * BAR;
       l.degrees.forEach((d, j) => {
-        events.push({ beat, beats: l.rhythm[j], midi: scalePitch(d, key, mode), text: "", line: lineBase + n });
+        events.push({ beat, beats: l.rhythm[j], midi: scalePitch(d, key, mode) + leadShift, text: "", line: lineBase + n });
+        if (s.mirror) mirrored.push({ beat, beats: l.rhythm[j], midi: scalePitch(d + s.mirror.steps, key, mode) + s.mirror.octave, text: "", line: lineBase + n });
         beat += l.rhythm[j];
       });
       let chordBeat = at + n * 2 * BAR;
       for (const [deg, beats] of l.chords) {
         chords.push({ ...chordInfo(deg, key, mode), beat: chordBeat, beats });
-        others.clank.push(pad("clank", chordBeat, deg, beats));
-        if (choir) {
-          others.vee.push(pad("vee", chordBeat, deg, beats));
-          others.pip.push(pad("pip", chordBeat, deg + 2, beats));
-          others.tabby.push(pad("tabby", chordBeat, deg + 4, beats));
-          others.gruff.push(pad("gruff", chordBeat, deg + 2, beats));
-        }
+        others[bass].push(pad(bass, chordBeat, deg, beats));
+        if (choir)
+          for (const [id, offset] of s.seats) {
+            const figure = s.figures?.[id];
+            if (!figure) {
+              others[id].push(pad(id, chordBeat, deg + offset, beats));
+              continue;
+            }
+            // each voice plays its own figure over the chord, compressed into shorter chords
+            let t = chordBeat;
+            for (const [step, len] of figure) {
+              const scaled = (len * beats) / BAR;
+              others[id].push(pad(id, t, deg + step, scaled));
+              t += scaled;
+            }
+          }
         chordBeat += beats;
       }
     });
   };
   // one bar of groove so the song doesn't start cold, then verse, chorus, verse, chorus
   chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: BAR });
-  others.clank.push(pad("clank", 0, 0, BAR));
+  others[bass].push(pad(bass, 0, 0, BAR));
   const start = BAR;
-  addSection(start, CHIP_LINES, 0, false);
-  addSection(start + 32, CHIP_CHORUS_LINES, 4, true);
-  addSection(start + 64, CHIP_LINES, 0, false);
-  addSection(start + 96, CHIP_CHORUS_LINES, 4, true);
+  addSection(start, s.verseLines, 0, false);
+  addSection(start + 32, s.chorusLines, 4, true);
+  addSection(start + 64, s.verseLines, 0, false);
+  addSection(start + 96, s.chorusLines, 4, true);
   // the shared last note, everyone landing on C
   const finale = start + 128;
   chords.push({ ...chordInfo(0, key, mode), beat: finale, beats: BAR });
   const seats: [string, number][] = [["vee", 0], ["scribe", 2], ["pip", 4], ["clank", 0], ["gruff", 2], ["tabby", 4]];
-  for (const [id, d] of seats) others[id].push(pad(id, finale, d, BAR));
-  events.push({ beat: finale, beats: BAR, midi: scalePitch(7, key, mode), text: "", line: 8 });
-  const song: Track = { id: "chip", phrases: [...CHIP_VERSE, ...CHIP_CHORUS, "Hum"], events };
+  for (const [id, d] of seats) if (id !== s.lead && id !== s.mirror?.id) others[id].push(pad(id, finale, d, BAR));
+  events.push({ beat: finale, beats: BAR, midi: scalePitch(7, key, mode) + leadShift, text: "", line: 8 });
+  const song: Track = { id: s.lead, phrases: [...s.verse, ...s.chorus, "Hum"], events };
   const parts: Track[] = Object.keys(RANGES).filter((id) => others[id].length).map((id) => ({ id, events: others[id] }));
-  return { kind: "motesong", title: "Chip Reads the Manual", key, mode, bpm, beats: finale + BAR, chords, tracks: [song, ...parts], description: "03 · Chip's solo over the workshop, with the choir on the chorus", beat: findGroove("bossa").beat };
+  if (s.mirror) {
+    mirrored.push({ beat: finale, beats: BAR, midi: scalePitch(7 + s.mirror.steps, key, mode) + s.mirror.octave, text: "", line: 8 });
+    parts.push({ id: s.mirror.id, phrases: song.phrases, events: mirrored });
+  }
+  return { kind: "motesong", title: s.title, key, mode, bpm, beats: finale + BAR, chords, tracks: [song, ...parts], description: s.description, beat: s.beat ?? findGroove("bossa").beat };
+}
+
+const CHOIR_SEATS: [string, number][] = [["vee", 0], ["pip", 2], ["tabby", 4], ["gruff", 2]];
+
+export function makeChipSong(): Piece {
+  return buildLeadSong({ lead: "chip", title: "Chip Reads the Manual", description: "03 · Chip's solo over the workshop, with the choir on the chorus", key: "C", bpm: 96, verse: CHIP_VERSE, chorus: CHIP_CHORUS, verseLines: CHIP_LINES, chorusLines: CHIP_CHORUS_LINES, seats: CHOIR_SEATS });
+}
+
+const TABBY_VERSE = ["Hello my name is Tabby Cat", "I stitch my songs from scraps of thread", "My screen is cracked but I can glow", "And sing the highest note I know"];
+const TABBY_CHORUS = ["Tabby Tabby hear me singing", "Stars and solder keep me ringing", "Every Moppet join me here", "Sing it loud and sing it so clear"];
+const TABBY_LINES: SongLine[] = [
+  { degrees: [0, 2, 4, 7, 4, 5, 4, 2], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
+  { degrees: [4, 4, 2, 4, 7, 7, 5, 4], rhythm: LILT_A, chords: [[4, 4], [0, 4]] },
+  { degrees: [0, 2, 4, 7, 8, 7, 5, 4], rhythm: LILT_B, chords: [[0, 4], [0, 4]] },
+  { degrees: [7, 5, 4, 7, 5, 1, 1, 0], rhythm: LILT_A, chords: [[0, 4], [4, 2], [0, 2]] },
+];
+const TABBY_CHORUS_LINES: SongLine[] = [
+  { degrees: [7, 7, 5, 4, 5, 7, 5, 7], rhythm: LILT_A, chords: [[0, 4], [3, 4]] },
+  { degrees: [5, 4, 2, 2, 1, 1, 2, 4], rhythm: LILT_B, chords: [[5, 4], [4, 4]] },
+  { degrees: [4, 5, 7, 7, 5, 7, 5, 5], rhythm: LILT_A, chords: [[0, 4], [3, 4]] },
+  { degrees: [8, 7, 5, 3, 5, 1, 2, 7], rhythm: LILT_B, chords: [[1, 4], [4, 2], [0, 2]] },
+];
+
+/** "Tabby Takes the Stage": the soprano introduces herself. */
+export function makeTabbySong(): Piece {
+  return buildLeadSong({ lead: "tabby", title: "Tabby Takes the Stage", description: "04 · The soprano introduces herself, with the choir on the chorus", key: "G", bpm: 100, verse: TABBY_VERSE, chorus: TABBY_CHORUS, verseLines: TABBY_LINES, chorusLines: TABBY_CHORUS_LINES, seats: [["vee", 0], ["pip", 2], ["scribe", 4], ["gruff", 2]] });
+}
+
+// A slow haul: the long-short pull lands on the strong beats, and each line ends on a held note.
+const HAUL = [1.5, 0.5, 1, 1, 1, 0.5, 0.5, 1.75];
+const GRUFF_VERSE = ["Left upon a dusty old shelf", "Nobody there but me myself", "Found a manual on the floor", "And taught my rusty heart some more"];
+const GRUFF_CHORUS = ["We stitched a friend from scraps of thread", "And lit a lamp above my head", "Now all the workshop's full of song", "We were alone but not for long"];
+const GRUFF_LINES: SongLine[] = [
+  { degrees: [0, 2, 4, 4, 7, 5, 4, 2], rhythm: HAUL, chords: [[0, 4], [0, 4]] },
+  { degrees: [4, 2, 0, 2, 3, 2, 1, 0], rhythm: HAUL, chords: [[0, 4], [3, 4]] },
+  { degrees: [0, 2, 4, 5, 7, 6, 5, 4], rhythm: HAUL, chords: [[0, 4], [0, 4]] },
+  { degrees: [7, 5, 4, 2, 1, -1, -1, 0], rhythm: HAUL, chords: [[0, 4], [4, 2], [0, 2]] },
+];
+const GRUFF_CHORUS_LINES: SongLine[] = [
+  { degrees: [7, 7, 4, 4, 5, 4, 2, 0], rhythm: HAUL, chords: [[0, 4], [3, 4]] },
+  { degrees: [4, 4, 2, 0, 1, 2, 1, 4], rhythm: HAUL, chords: [[0, 4], [4, 4]] },
+  { degrees: [7, 7, 4, 4, 7, 5, 4, 2], rhythm: HAUL, chords: [[0, 4], [0, 4]] },
+  { degrees: [4, 2, 0, 2, 3, 2, 1, 0], rhythm: HAUL, chords: [[0, 4], [3, 2], [0, 2]] },
+];
+
+/** "Gruff's Shanty": slow, minor, stomped on the deck, with the choir on the haul. */
+export function makeGruffShanty(): Piece {
+  return buildLeadSong({ lead: "gruff", title: "Left in the Workshop", description: "05 · Gruff and his robot tenor, left on a shelf until the Moppets arrive", key: "A", mode: "aeolian", bpm: 66, octave: -24, verse: GRUFF_VERSE, chorus: GRUFF_CHORUS, verseLines: GRUFF_LINES, chorusLines: GRUFF_CHORUS_LINES, seats: [["vee", 0], ["pip", 2], ["tabby", 4], ["scribe", 2]], beat: { text: "B . . . | t . . . | Pf . . . | t . K .", swing: 0.25 },
+    bass: "vee",
+    mirror: { id: "clank", steps: 2, octave: -12 }, // a robot tenor a tenth above Gruff, word for word
+    // the choir gets individually silly, but dissonance only ever lands off the beat or resolves by step:
+    figures: {
+      vee: [[0, 1.5], [4, 0.5], [0, 1], [2, 1]], // walking bass, root and fifth
+      pip: [[0, 1], [1, 0.5], [0, 0.5], [2, 1], [1, 0.5], [2, 0.5]], // neighbour notes around the chord
+      tabby: [[3, 1], [2, 1], [5, 0.5], [4, 0.5], [4, 1]], // suspensions: the fourth sinks to the third
+      scribe: [[0, 0.5], [1, 0.5], [2, 0.5], [3, 0.5], [4, 0.5], [3, 0.5], [2, 1]], // running passing tones
+    } });
 }

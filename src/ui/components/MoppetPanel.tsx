@@ -15,6 +15,7 @@ import { midiBytes } from "../../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds } from "../../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../../choir/voices.ts";
 import { makeIntroduction } from "../../choir/music.ts";
+import { Choreographer, featuredAt } from "../../choir/choreo.ts";
 import solo from "../../choir/vee-solo.json";
 import "../moppet.css";
 
@@ -37,8 +38,143 @@ function PlayLabel({ piece }: { piece: Piece }) {
   if (status === "paused") return <>▶&nbsp; Continue</>;
   if (status === "preparing" || status === "rendering") return <>Rendering…</>;
   const again = status === "ended" ? "↻ " : "▶ ";
-  const name = piece.kind === "intro" ? "Meet the whole choir" : piece.kind === "round" ? "Play the jam round" : piece.kind === "solo" ? `Sing ${piece.tracks[0].id}'s introduction` : piece.kind === "motesong" ? "Hear Chip’s song" : "Play the new invention";
+  const name = piece.kind === "intro" ? "Meet the whole choir" : piece.kind === "round" ? "Play the jam round" : piece.kind === "solo" ? `Sing ${piece.tracks[0].id}'s introduction` : piece.kind === "motesong" ? `Hear ${piece.tracks[0].id[0].toUpperCase()}${piece.tracks[0].id.slice(1)}’s song` : "Play the new invention";
   return <>{again}&nbsp;{name}</>;
+}
+
+/** One puppet as the stage effects see it, in stage pixels. */
+interface Mark {
+  x: number;
+  /** the floor line under it */
+  floor: number;
+  /** where its feet are (above the floor while hopping) */
+  feet: number;
+  /** drawn height */
+  h: number;
+  hop: number;
+  color: string;
+  singing: boolean;
+  level: number;
+  bubble: string | null;
+  spot: boolean;
+}
+/** A music note floating up from a singer. */
+interface Note {
+  x: number;
+  y: number;
+  age: number;
+  life: number;
+  seed: number;
+  color: string;
+  double: boolean;
+}
+
+function fitCanvas(c: HTMLCanvasElement, W: number, H: number): CanvasRenderingContext2D | null {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.round(W * dpr), h = Math.round(H * dpr);
+  if (c.width !== w || c.height !== h) {
+    c.width = w;
+    c.height = h;
+  }
+  const g = c.getContext("2d");
+  g?.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g?.clearRect(0, 0, W, H);
+  return g;
+}
+
+/** A note head with a stem and flag (drawn, not typed, so it is never text on the page). */
+function drawNote(g: CanvasRenderingContext2D, x: number, y: number, double: boolean) {
+  const head = (hx: number, hy: number) => {
+    g.beginPath();
+    g.ellipse(hx, hy, 4.2, 3.1, -0.4, 0, Math.PI * 2);
+    g.fill();
+    g.fillRect(hx + 3, hy - 14, 1.6, 14);
+  };
+  head(x, y);
+  if (double) {
+    head(x + 10, y - 3);
+    g.fillRect(x + 3, y - 15, 11.6, 3);
+  } else {
+    g.beginPath();
+    g.moveTo(x + 4.6, y - 14);
+    g.quadraticCurveTo(x + 12, y - 9, x + 9, y - 3);
+    g.quadraticCurveTo(x + 10, y - 9, x + 4.6, y - 10);
+    g.fill();
+  }
+}
+
+/** Behind the puppets: floor shadows and spotlights. In front: rising notes and chat bubbles. */
+function drawStage(back: HTMLCanvasElement | null, front: HTMLCanvasElement | null, W: number, H: number, marks: Mark[], notes: Note[], dt: number, still: boolean) {
+  if (!back || !front || W < 2 || H < 2) return;
+  const b = fitCanvas(back, W, H), f = fitCanvas(front, W, H);
+  if (!b || !f) return;
+  for (const m of marks) {
+    if (!m.spot) continue;
+    const r = m.h * 0.42;
+    const cone = b.createLinearGradient(0, 0, 0, m.floor);
+    cone.addColorStop(0, "rgba(255,236,190,0.02)");
+    cone.addColorStop(1, "rgba(255,236,190,0.16)");
+    b.fillStyle = cone;
+    b.beginPath();
+    b.moveTo(m.x - 18, 0);
+    b.lineTo(m.x + 18, 0);
+    b.lineTo(m.x + r, m.floor);
+    b.lineTo(m.x - r, m.floor);
+    b.fill();
+    const pool = b.createRadialGradient(m.x, m.floor, 0, m.x, m.floor, r * 1.2);
+    pool.addColorStop(0, "rgba(255,226,160,0.42)");
+    pool.addColorStop(1, "rgba(255,226,160,0)");
+    b.fillStyle = pool;
+    b.beginPath();
+    b.ellipse(m.x, m.floor, r * 1.2, 14, 0, 0, Math.PI * 2);
+    b.fill();
+  }
+  for (const m of [...marks].sort((p, q) => p.floor - q.floor)) {
+    // the shadow tightens as the puppet leaves the floor
+    const k = 1 - Math.min(1, m.hop) * 0.35;
+    b.fillStyle = `rgba(14,10,8,${(0.42 * k).toFixed(3)})`;
+    b.beginPath();
+    b.ellipse(m.x, m.floor - 2, m.h * 0.24 * k, Math.max(3, m.h * 0.025) * k, 0, 0, Math.PI * 2);
+    b.fill();
+  }
+  if (!still) {
+    for (const [i, m] of marks.entries()) {
+      if (!m.singing || Math.random() > dt * (1.2 + 5 * m.level)) continue;
+      notes.push({ x: m.x + (Math.random() - 0.5) * m.h * 0.2, y: m.feet - m.h * 0.72, age: 0, life: 1.6 + Math.random() * 0.8, seed: Math.random() * 6 + i, color: m.color, double: Math.random() < 0.35 });
+    }
+  }
+  for (let i = notes.length - 1; i >= 0; i--) {
+    const n = notes[i];
+    n.age += dt;
+    n.y -= dt * 46;
+    if (n.age > n.life || n.y < 24) notes.splice(i, 1);
+  }
+  for (const n of notes) {
+    const t = n.age / n.life;
+    f.globalAlpha = Math.min(1, n.age * 5) * (1 - t * t);
+    f.fillStyle = n.color;
+    drawNote(f, n.x + Math.sin(n.age * 3 + n.seed) * 9, n.y, n.double);
+  }
+  f.globalAlpha = 1;
+  f.font = `600 12px ${getComputedStyle(front).fontFamily}`;
+  f.textBaseline = "middle";
+  for (const m of marks) {
+    if (!m.bubble) continue;
+    const tw = f.measureText(m.bubble).width, bw = tw + 18, bh = 24;
+    const bx = Math.max(4, Math.min(W - bw - 4, m.x - bw / 2 + 14)), by = Math.max(4, m.feet - m.h * 0.92 - bh);
+    f.fillStyle = "#f6ecd2";
+    f.strokeStyle = "#2d2620";
+    f.lineWidth = 1.5;
+    f.beginPath();
+    f.roundRect(bx, by, bw, bh, 10);
+    f.moveTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) - 5, by + bh);
+    f.lineTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) - 9, by + bh + 8);
+    f.lineTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) + 3, by + bh);
+    f.fill();
+    f.stroke();
+    f.fillStyle = "#2d2620";
+    f.fillText(m.bubble, bx + 9, by + bh / 2 + 0.5);
+  }
 }
 
 function Stage() {
@@ -48,12 +184,19 @@ function Stage() {
   const piece = useMoppet((s) => s.piece);
   const status = useEnsemble((s) => s.status);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLCanvasElement>(null);
+  const frontRef = useRef<HTMLCanvasElement>(null);
+  const poke = useRef<{ index: number; at: number } | null>(null);
   const [lyric, setLyric] = useState({ label: "", text: "Six forgotten props. A brand new song." });
   const [stageLabel, setStageLabel] = useState("READY WHEN YOU ARE");
   useEffect(() => {
     let raf = 0;
     let lastText = "";
     let lastT = performance.now() / 1000;
+    let choreo: Choreographer | null = null;
+    const notes: Note[] = [];
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const tick = () => {
       raf = requestAnimationFrame(tick);
       const m = useMoppet.getState();
@@ -63,20 +206,37 @@ function Stage() {
       const dt = now - lastT;
       lastT = now;
       const dancing = e.status === "playing" || e.status === "buffering";
-      const beat = dancing ? beatNow(m.piece, e.time) : now * 1.1;
+      // a paused song holds its formation; only a stopped stage wanders
+      const performing = dancing || e.status === "paused";
+      const beat = performing ? beatNow(m.piece, e.time) : now * 1.1;
       const poses = m.voices.map((v) => pose(v.id));
-      let lookIndex = poses.findIndex((p) => p.singing);
-      poses.forEach((p, i) => {
-        if (p.level > (poses[lookIndex]?.level ?? -1)) lookIndex = i;
-      });
+      const ids = m.voices.map((v) => v.id);
+      if (!choreo || choreo.actors.length !== ids.length) choreo = new Choreographer(ids);
+      const featured = performing ? featuredAt(m.piece.tracks, ids, beat) : ids.map(() => false);
+      const actors = choreo.step({ playing: performing, beat, now, featured, singing: poses.map((p) => p.singing), poke: poke.current, still }, dt);
+      const spot = featured.filter(Boolean).length;
+      // spotlights only when a few are featured; the whole choir sings in the open
+      const stage = stageRef.current;
+      const W = stage?.clientWidth ?? 0, H = stage?.clientHeight ?? 0;
+      // read every puppet's resting slot before writing any transform
+      const homes = refs.current.map((el) => (el ? { x: el.offsetLeft + el.offsetWidth / 2, h: (el.offsetWidth * 512) / 384 } : null));
+      const marks: Mark[] = [];
       m.voices.forEach((v, i) => {
-        const el = refs.current[i];
-        if (!el) return;
+        const el = refs.current[i], home = homes[i], a = actors[i];
+        if (!el || !home) return;
         const p = poses[i];
-        void dt;
+        const lift = a.depth * 44 + a.hop * 34 + (a.walking && !dancing ? Math.abs(Math.sin(now * 12 + i)) * 4 : 0);
+        // never taller than the room left above it, so a hop or a step upstage stays on the stage
+        const scale = Math.min(0.96 - 0.24 * a.depth, (H - 28 - lift) / home.h);
+        el.style.transform = `translate(${(a.x * W - home.x).toFixed(1)}px, ${(-lift).toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`;
+        el.style.zIndex = String(Math.round(100 - a.depth * 60 + (p.singing ? 5 : 0)));
+        el.style.setProperty("--face", a.face.toFixed(3));
+        const floor = H - 24 - a.depth * 44;
+        marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
+        const walkFrame = Math.floor(now * 7 + i * 3) % 8;
         if (v.id === "vee") {
           // the fully animated Moppet: a dancing body with a viseme head riding its neck
-          const f = dancing ? Math.floor(beat * 2) % 8 : 7;
+          const f = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
           const [nx, ny] = solo.neck[f];
           const blink = p.viseme === 0 && (now * 0.31 + i) % 1 < 0.04;
           const cell = blink ? 7 : p.viseme;
@@ -93,7 +253,7 @@ function Stage() {
           return;
         }
         // the 8-frame dance cycle advances on the score's beat (two frames a beat); a rest holds the settle frame
-        const frame = dancing ? Math.floor(beat * 2) % 8 : 7;
+        const frame = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
         const open = p.singing && p.open > 0.2; // the mouth comes from the engine's lip telemetry
         const col = frame % 4, row = Math.floor(frame / 4);
         const pos = `${(col * 100) / 3}% ${row * 100}%`;
@@ -106,6 +266,7 @@ function Stage() {
         el.classList.toggle("singing", p.singing);
         if (p.singing) active.push(v.name);
       });
+      drawStage(backRef.current, frontRef.current, W, H, marks, notes, Math.min(dt, 0.05), still);
       const running = e.status === "playing" || e.status === "buffering";
       if (running) {
         const beat = beatNow(m.piece, e.time);
@@ -140,11 +301,12 @@ function Stage() {
         <span><i /> ON THE LITTLE STAGE</span>
         <span>{status === "playing" ? stageLabel : status === "rendering" ? "RENDERING" : stageLabel}</span>
       </div>
-      <div className="stage">
+      <div className="stage" ref={stageRef}>
+        <canvas ref={backRef} className="stage-fx back" data-layout="overlay" aria-hidden="true" />
         <div className="string-lights" data-layout="overlay" aria-hidden="true">●<span>●</span>●<span>●</span>●<span>●</span>●</div>
         <div className="cast" data-layout="layered">
           {voices.map((v: MoppetVoice, i: number) => (
-            <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}`} onClick={() => select(i)} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
+            <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}`} onClick={() => { select(i); poke.current = { index: i, at: performance.now() / 1000 }; }} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
               {v.id === "vee" ? (
                 <span className="sprite solo" style={{ backgroundImage: "url(/moppets/vee/body.webp)" }} aria-hidden="true">
                   <span className="solo-head" style={{ backgroundImage: "url(/moppets/vee/head.webp)", width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />
@@ -159,6 +321,7 @@ function Stage() {
           ))}
         </div>
         <div className="shelf" />
+        <canvas ref={frontRef} className="stage-fx front" data-layout="overlay" aria-hidden="true" />
       </div>
       <div className="caption">
         <span>{lyric.label}</span>
@@ -187,7 +350,7 @@ function Transport() {
     setWavBusy(true);
     try {
       const out = await exportWav(start);
-      download(new Blob([out.bytes], { type: "audio/wav" }), piece.kind === "round" ? "jam-in-my-top-hat.wav" : piece.kind === "intro" ? "studio-404-introduction.wav" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.wav` : piece.kind === "motesong" ? "chip-reads-the-manual.wav" : `moppet-invention-${piece.seed}.wav`);
+      download(new Blob([out.bytes], { type: "audio/wav" }), piece.kind === "round" ? "jam-in-my-top-hat.wav" : piece.kind === "intro" ? "studio-404-introduction.wav" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.wav` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.wav` : `moppet-invention-${piece.seed}.wav`);
     } catch (e) {
       useEnsemble.setState({ message: `WAV export: ${e instanceof Error ? e.message : String(e)}` });
     }
@@ -226,7 +389,7 @@ function LessonTabs() {
   const tab = (l: Lesson, label: string) => (
     <button role="tab" aria-selected={lesson === l && piece.kind !== "solo"} onClick={() => setLesson(l)}>{label}</button>
   );
-  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}</div>;
+  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}</div>;
 }
 
 function MusicSettings() {
@@ -244,7 +407,7 @@ function MusicSettings() {
   const invent = useMoppet((s) => s.invent);
   const rehearse = useMoppet((s) => s.rehearse);
   const busy = useEnsemble((s) => s.status === "preparing" || s.status === "rendering");
-  if (lesson === "intro" || lesson === "chip") return null;
+  if (lesson === "intro" || lesson === "chip" || lesson === "tabby" || lesson === "gruff") return null;
   return (
     <div className="music-settings">
       <label>Key<select value={key} disabled={busy} onChange={(e) => setSettings({ key: e.target.value as KeyName })}>{Object.keys(KEYS).map((k) => <option key={k}>{k}</option>)}</select></label>
@@ -310,7 +473,7 @@ function ScorePanel() {
   const message = useEnsemble((s) => s.message);
   const progress = useEnsemble((s) => s.progress);
   const harmonic = piece.kind === "round" ? piece.chords.slice(0, 4) : piece.chords.slice(0, 16);
-  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), piece.kind === "round" ? "jam-in-my-top-hat.mid" : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? "chip-reads-the-manual.mid" : `moppet-invention-${piece.seed}.mid`);
+  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), piece.kind === "round" ? "jam-in-my-top-hat.mid" : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.mid` : `moppet-invention-${piece.seed}.mid`);
   return (
     <div className="moppet-score">
       <LessonTabs />
@@ -334,12 +497,19 @@ function ScorePanel() {
   );
 }
 
+/** The voice recipe, grouped the way CHIMERA builds a voice: body, airway posture, then the folds. */
 const CONTROLS = [
+  ["child", "Body size: grown → small", 0, 1, 0.01, "", "body"],
+  ["female", "Body shape: male → female", 0, 1, 0.01, "", "body"],
   ["larynx", "Larynx height", -1.6, 1.6, 0.05, "cm", "artic"],
   ["velum", "Nasal opening", 0, 1.4, 0.02, "cm²", "artic"],
+  ["root", "Tongue root (back ↔ forward)", -1, 1, 0.05, "", "artic"],
   ["ventricular", "False-fold narrowing", 0, 1, 0.01, "", "artic"],
+  ["tension", "Fold tension", 0, 1, 0.01, "", "source"],
+  ["brightness", "Brightness", 0, 1, 0.01, "", "source"],
   ["roughness", "Gravel / roughness", 0, 1, 0.01, "", "source"],
   ["breathiness", "Breathiness", 0, 0.8, 0.01, "", "source"],
+  ["fry", "Vocal fry", 0, 1, 0.01, "", "source"],
 ] as const;
 
 function Workbench() {
@@ -353,14 +523,17 @@ function Workbench() {
   const start = useStore((s) => s.start);
   const setArtic = useStore((s) => s.setArtic);
   const setSource = useStore((s) => s.setSource);
+  const setBody = useStore((s) => s.setBody);
   const v = voices[selected];
   const [note, setNote] = useState("Controls act on this Moppet's own engine.");
   const file = useRef<HTMLInputElement>(null);
-  const change = (key: string, group: "artic" | "source", n: number) => {
+  const change = (key: string, group: "artic" | "source" | "body", n: number) => {
     if (group === "artic") setArtic({ [key]: n });
+    else if (group === "body") setBody({ ...v.body, [key]: n });
     else setSource({ [key]: n });
     const playing = useEnsemble.getState().status === "playing";
-    setNote(playing ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
+    // a body is built when the singer's engine is, so it waits for the next performance
+    setNote(playing && group !== "body" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
   };
   const solo = () => {
     singSolo();
@@ -397,9 +570,9 @@ function Workbench() {
         </div>
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
-            const value = group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : v.source[key as keyof MoppetVoice["source"]];
+            const value = group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
             return <div className="knob" key={key}>
-              <label htmlFor={`knob-${key}`}>{label}<output>{value} {unit}</output></label>
+              <label htmlFor={`knob-${key}`}>{label}<output>{Number(value).toFixed(2)} {unit}</output></label>
               <input id={`knob-${key}`} type="range" min={min} max={max} step={step} value={value} onChange={(e) => change(key, group, Number(e.target.value))} />
             </div>;
           })}
@@ -432,8 +605,33 @@ export function MoppetRight() {
     (window as unknown as { __choir: unknown }).__choir = { debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, engine, makeIntroduction, bench: () => import("../../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const view = useMoppet((s) => s.view);
+  const setView = useMoppet((s) => s.setView);
+  const tabs = (
+    <div className="moppet-views" role="tablist" aria-label="Moppets view">
+      <button role="tab" aria-selected={view === "stage"} onClick={() => setView("stage")}>The stage</button>
+      <button role="tab" aria-selected={view === "inspect"} onClick={() => setView("inspect")}>Inspect {name}’s voice in CHIMERA</button>
+    </div>
+  );
+  const credit = <p className="moppet-credit">Experimental character voices · Studio 404. Physical voice synthesis by <a href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer">CHIMERA</a>, MIT licensed.</p>;
+  if (view === "inspect")
+    return (
+      <div className="right right-moppet right-inspect">
+        {tabs}
+        <Screen className="s-cast warm" title={`Workbench: ${name}`} sub="Character">
+          <Workbench />
+        </Screen>
+        <Screen className="s-tube" title="Tube" sub={`${name} / glottis to lips`}><TubeView /></Screen>
+        <Screen className="s-folds" title="Vocal folds" sub={`${name} / slowed 100×`}><Stroboscope /></Screen>
+        <Screen className="s-spec" title="Spectrum" sub={`${name} / alone`}><SpectrumView /></Screen>
+        <Screen className="s-voice" title="Voice" sub={name} tools={<VoiceToggles />}><VoiceControls /></Screen>
+        <Screen className="s-keys" title="Keys" sub={`Workbench voice / ${Math.round(f0)} Hz`}><Keys /></Screen>
+        {credit}
+      </div>
+    );
   return (
-    <div className="right right-moppet">
+    <div className="right right-moppet right-stage">
+      {tabs}
       <Screen className="s-stage warm" title="The Moppet Choir" sub="Studio 404">
         <Stage />
       </Screen>
@@ -443,12 +641,7 @@ export function MoppetRight() {
       <Screen className="s-cast warm" title={`Workbench: ${name}`} sub="Character">
         <Workbench />
       </Screen>
-      <p className="moppet-credit">Experimental character voices · Studio 404. Physical voice synthesis by <a href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer">CHIMERA</a>, MIT licensed.</p>
-      <Screen className="s-tube" title="Tube" sub={`${name} / glottis to lips`}><TubeView /></Screen>
-      <Screen className="s-folds" title="Vocal folds" sub={`${name} / slowed 100×`}><Stroboscope /></Screen>
-      <Screen className="s-spec" title="Spectrum" sub={`${name} / alone`}><SpectrumView /></Screen>
-      <Screen className="s-voice" title="Voice" sub={name} tools={<VoiceToggles />}><VoiceControls /></Screen>
-      <Screen className="s-keys" title="Keys" sub={`Workbench voice / ${Math.round(f0)} Hz`}><Keys /></Screen>
+      {credit}
     </div>
   );
 }

@@ -230,7 +230,8 @@ test("a voice's vibrato and vowel posture reach only the notes still to come", (
   const tp = plan.planTrack(piece.tracks.find((t) => t.id === "vee")!, piece, v);
   const vib = tp.gestures.find((g) => g.targets.vibrato !== undefined)!;
   const before = vib.targets.vibrato!;
-  expect(shapeGesture(vib, { ...v, vibrato: v.vibrato * 2 }, false).targets.vibrato).toBeCloseTo(before * 2, 6);
+  // the planned depth scales with the voice's own (twice the voice, twice the depth, whatever Vee's tuning)
+  expect(shapeGesture(vib, { ...v, vibrato: v.vibrato * 2 }, false).targets.vibrato).toBeCloseTo(shapeGesture(vib, v, false).targets.vibrato! * 2, 6);
   expect(vib.targets.vibrato).toBe(before); // the score itself is never edited
   const seconds = 2.2, cut = 90;
   const run = (edit?: (s: InstanceType<typeof SingerCore>) => void) => renderTrack("vee", piece, seconds, (core) => {

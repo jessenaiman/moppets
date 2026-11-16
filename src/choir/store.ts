@@ -7,19 +7,23 @@ import { create } from "zustand";
 import { useStore } from "../ui/store.ts";
 import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } from "../wasm/engine.ts";
 import { sameBody, type BodyMix } from "../ui/body.ts";
-import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type ScaleMode } from "./music.ts";
+import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type ScaleMode } from "./music.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { ensembleHooks } from "../ui/store.ts";
 
-export type Lesson = "intro" | "school" | "round" | "chip";
+export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff";
+/** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
+export type MoppetView = "stage" | "inspect";
 const STORAGE_KEY = "moppet-voices";
 const CHARACTER_KEYS = ["larynx", "velum", "root", "epilarynx", "ventricular"] as const;
 
 function loadSaved(): MoppetVoice[] {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body)) return defaults.map((d, i) => ({ ...structuredClone(d), ...saved[i], artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source } })) as MoppetVoice[];
+    // only the voice recipe is the user's: names, roles, lyrics and parts always come from the cast
+    if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body))
+      return defaults.map((d, i) => ({ ...structuredClone(d), body: { ...d.body, ...saved[i]?.body }, artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source }, vibrato: saved[i]?.vibrato ?? d.vibrato })) as MoppetVoice[];
   } catch {
     // no saved voices
   }
@@ -42,6 +46,8 @@ interface MoppetState {
   soul: boolean;
   /** the score drawn differs from what would play (settings moved, nothing rendered yet) */
   status: string;
+  view: MoppetView;
+  setView: (v: MoppetView) => void;
   select: (i: number) => void;
   setLesson: (l: Lesson) => void;
   setSettings: (s: Partial<Pick<MoppetState, "key" | "mode" | "bpm" | "repeats" | "seed" | "progression" | "groove" | "palette" | "soul">>) => void;
@@ -58,6 +64,8 @@ const SCHOOL_BPM = 112, ROUND_BPM = 108;
 
 function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "seed" | "progression" | "groove" | "palette" | "soul">): Piece {
   if (s.lesson === "chip") return makeChipSong();
+  if (s.lesson === "tabby") return makeTabbySong();
+  if (s.lesson === "gruff") return makeGruffShanty();
   if (s.lesson === "intro") return makeIntroduction(useMoppet.getState?.().voices ?? defaults);
   if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats });
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });
@@ -103,6 +111,8 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   repeats: 1,
   seed: 404,
   status: "",
+  view: "stage",
+  setView: (view) => set({ view }),
   select: (i) => {
     set({ selected: i });
     applyToWorkbench(get().voices[i]);
@@ -171,7 +181,7 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     const i = get().voices.findIndex((x) => x.id === v.id);
     if (i < 0 || !v.artic || !v.source || !v.body) throw new Error("Not a Moppet preset");
     const voices = structuredClone(get().voices);
-    voices[i] = { ...voices[i], ...v };
+    voices[i] = { ...voices[i], body: { ...voices[i].body, ...v.body }, artic: { ...voices[i].artic, ...v.artic }, source: { ...voices[i].source, ...v.source }, vibrato: v.vibrato ?? voices[i].vibrato };
     set({ voices, selected: i });
     persist(voices);
     applyToWorkbench(voices[i]);

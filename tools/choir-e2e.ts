@@ -36,6 +36,7 @@ await page.waitForTimeout(300);
 type W = Window & { __choir: { debug(): { workersAlive: number; sessionsMade: number; hasSession: boolean; singers: { id: string; rendered: number; frames: number; rtf: number }[] }; ensemble: { getState(): { status: string; time: number; duration: number; underruns: number; message: string; howPlaying: string; peak: number; limited: number; rtf: number; progress: number } }; moppet: { getState(): Record<string, never> }; engine: { latest: { body: { female: number; child: number }; t: { outRms: number; f0: number; artic: Float32Array } } | null; analyser: AnalyserNode | null; ctx: AudioContext | null; load: number; overrideTelemetry: (m: unknown) => void }; bench(): Promise<unknown> } };
 
 // ---- every upstream mode still loads and starts
+await page.getByRole("radio", { name: "Chimera", exact: true }).click();
 for (const mode of ["Play", "Speak", "Sing", "Bestiary", "Beatbox"]) {
   await page.getByRole("radio", { name: mode, exact: true }).click().catch(() => page.getByRole("button", { name: mode, exact: true }).click());
   await page.waitForTimeout(300);
@@ -49,7 +50,7 @@ for (const mode of ["Play", "Speak", "Sing", "Bestiary", "Beatbox"]) {
 const upstreamOk = await page.evaluate(() => (window as unknown as W).__choir === undefined);
 report.upstreamModes = upstreamOk ? "loaded all five before choir mode existed" : "choir loaded early";
 
-await page.getByRole("radio", { name: "Moppet Choir", exact: true }).click().catch(() => page.getByRole("button", { name: "Moppet Choir", exact: true }).click());
+await page.getByRole("radio", { name: "Moppets", exact: true }).click();
 await page.waitForTimeout(600);
 const start = page.getByRole("button", { name: /start the choir stage/i });
 if (await start.count()) await start.click();
@@ -301,6 +302,7 @@ await page.screenshot({ path: `${outDir}/moppet-phone.png`, fullPage: true });
 const hscroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 ok(!hscroll, "no sideways scrolling on a phone");
 await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByRole("radio", { name: "Chimera", exact: true }).click();
 await page.getByRole("radio", { name: "Play", exact: true }).click().catch(() => page.getByRole("button", { name: "Play", exact: true }).click());
 await page.waitForTimeout(300);
 ok((await dbg()).workersAlive === 0, "leaving Moppet mode ends every worker");
