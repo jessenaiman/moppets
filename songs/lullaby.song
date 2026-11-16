@@ -1,0 +1,32 @@
+title: Static Lullaby
+id: lullaby
+tab: 10 · Static Lullaby
+about: 10 · Tabby fills in the snow on her screen, and tells you when she's guessing
+lead: tabby
+key: F
+bpm: 72
+beat: B . . . | . . . . | t . . . | . . . . (swing 0)
+backing: vee +0, pip +2, scribe +4, gruff +2
+finale: "Sleep" on 7
+
+tune a = 4/1.5 2/.5 0 2 4/1.5 5/.5 4 4 | I 4, IV 4
+
+[verse 1]
+"Hush now the screen is soft and gray" = a
+"The signal wanders far away" = 4/1.5 5/.5 7 7 5/1.5 4/.5 2 1 | I 4, V 4
+"I see a horse or just a chair" = a
+"I'll paint it in but check it's there" = 5/1.5 4/.5 2 4 2/1.5 1/.5 1 0 | II 4, V 2, I 2
+
+[chorus, choir]
+"Sleep sleep the snow will fall" = 7/2 4/2 5 4 2 4 | I 4, VI 4
+"I might be dreaming ask again" = 4/.5 5/.5 7 5 4 2 4 2/2 | IV 4, V 4 ; do tilt
+"Sleep sleep I'll tell you true" = 7/2 4/2 5 4 2 4 | I 4, VI 4
+"When I'm not sure I'll say so too" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2 ; do shrug
+
+[verse 2]
+"I filled the gaps in purple light" = a
+"A moon a sheep a kite at night" = 4/1.5 5/.5 7 7 5/1.5 4/.5 2 1 | I 4, V 4
+"Some are real and some I made" = 4/1.5 2/.5 0 2 4/1.5 5/.5 4/2 | I 4, IV 4
+"So check the sky before I fade" = 5/1.5 4/.5 2 4 2/1.5 1/.5 1 0 | II 4, V 2, I 2
+
+[repeat chorus]

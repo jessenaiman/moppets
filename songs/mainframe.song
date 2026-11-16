@@ -1,0 +1,57 @@
+title: Mainframe Blues
+id: mainframe
+tab: 09 · Mainframe Blues
+about: 09 · Clank fills a room to add up two, with backing singers
+lead: clank
+key: G mixolydian
+bpm: 70
+beat: B . . . | t . . K | B . . . | t . K . (swing .4)
+backing: pip +2, tabby +4, scribe +2, gruff +0
+bass: vee
+finale: "Blues" on 0
+
+tune a = 4/.5 4/.5 2 0/.5 2/.5 4 2 0/3 | I 4, I 4
+
+[verse 1]
+"I fill a room to add up two" = a
+  + tabby @6: "doo wah" = 8 6
+  + pip @6: "doo wah" = 6 4
+  + scribe @6: "doo wah" = 10 8
+"My fans all hum the whole night through" = 4/.5 4/.5 2 0/.5 2/.5 4 6 4/3 | IV 4, IV 4
+  + tabby @6: "doo wah" = 7 5
+  + pip @6: "doo wah" = 5 3
+  + scribe @6: "doo wah" = 9 7
+"You ask me what's three plus one" = 4/.5 4/.5 2 0/.5 2/.5 4 0/4 | I 4, I 4
+  + tabby @6: "doo wah" = 8 6
+  + pip @6: "doo wah" = 6 4
+  + scribe @6: "doo wah" = 10 8
+"Give me a week I'll get it done" = 4 4/.5 6/.5 4 2 1 0/.5 0/2.5 | V 4, I 4
+  + tabby @6: "doo wah" = 6 6
+  + pip @6: "doo wah" = 4 4
+  + scribe @6: "doo wah" = 8 8
+
+[chorus, choir]
+"I've got the mainframe blues" = 0/.5 2/.5 4 6 4 4/4 | I 4, IV 4
+"Too big to fit in your shoes" = 4 4 2 4 2 0 0/2 | I 4, V 4
+"But ask me anything at all" = 0/.5 2/.5 4 6 6 6 4 2/2 | IV 4, I 4
+"I'll think it over down the hall" = 4 4/.5 2/.5 0 2 1 0 0/2 | V 4, I 4 ; do shrug
+
+[verse 2]
+"They shrank me down into a phone" = a
+  + tabby @6: "doo wah" = 8 6
+  + pip @6: "doo wah" = 6 4
+  + scribe @6: "doo wah" = 10 8
+"But I still hum when I'm alone" = 4/.5 4/.5 2 0/.5 2/.5 4 6 4/3 | IV 4, IV 4
+  + tabby @6: "doo wah" = 7 5
+  + pip @6: "doo wah" = 5 3
+  + scribe @6: "doo wah" = 9 7
+"Now four plus four I know that's eight" = a
+  + tabby @6: "doo wah" = 8 6
+  + pip @6: "doo wah" = 6 4
+  + scribe @6: "doo wah" = 10 8
+"I worked it out but I was late" = 4 4/.5 6/.5 4 2 1 0/.5 0/2.5 | V 4, I 4
+  + tabby @6: "doo wah" = 6 6
+  + pip @6: "doo wah" = 4 4
+  + scribe @6: "doo wah" = 8 8
+
+[repeat chorus]

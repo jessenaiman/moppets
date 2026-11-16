@@ -1,0 +1,39 @@
+title: Autocomplete
+id: autocomplete
+tab: 07 · Autocomplete
+about: 07 · The Moppets start a sentence, Scribe types the ending
+lead: scribe
+key: G
+bpm: 120
+beat: B . t K | . t B . | t B . K | . B t . (swing .12)
+backing: vee +0, pip +2, tabby +4, gruff +2
+finale: "Ding" on 7
+
+[verse 1]
+pip: "Good morning how are" = 4/.5 4/.5 5 4 2 | I 4
+"pancakes made" = 7 6 4/2 | V 4 ; react gasp
+gruff: "Once upon a" = 0 2 4 5 | IV 4
+"tax return" = 7 7 0/2 | I 4 ; react shrug
+tabby: "Twinkle twinkle little" = 0/.5 0/.5 4/.5 4/.5 5 5 | I 2, IV 2
+"spreadsheet" = 1 1/3 | V 4 ; react gasp
+clank: "Beep boop please reboot my" = 0/.5 0/.5 0/.5 0/.5 0 0 | V 4
+"grandma's cat" = 2 1 0/2 | I 4 ; react laugh
+
+[chorus, choir]
+"Ding I know just what you mean" = 7/1.5 4/.5 4 5 4 2 4/2 | I 4, VI 4 ; do nod
+"Tap tap tap the guessing machine" = 2/.5 2/.5 2 1/.5 2/.5 4 5 4/3 | IV 4, V 4
+"Ding I'm very very sure" = 7/1.5 4/.5 4 5 4 5 7/2 | I 4, VI 4 ; do nod
+"Then let me check and type once more" = 8 7 5 4 2 1/.5 1/.5 0/2 | II 4, V 2, I 2 ; do shrug
+
+[verse 2]
+vee: "Rock and" = 4/2 4/2 | I 4
+"potted plant" = 5 4 2/2 | V 4 ; react shrug
+pip: "Ribbit means I'm" = 4 5 4 2 | IV 4
+"out of soup" = 7 7 4/2 | I 4 ; react gasp
+gruff: "Roses are red and my fur is" = 4/.5 4/.5 4/.5 2/.5 5/.5 5/.5 5/.5 4/.5 | I 2, V 2
+"lemonade" = 7 5 4/2 | I 4 ; react laugh
+tabby: "Thank you so much you're" = 4/.5 4/.5 5 7 5 | II 4
+"welcome" = 1/2 0/2 | V 2, I 2 ; react nod
+rest 4
+
+[repeat chorus]

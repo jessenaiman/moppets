@@ -88,6 +88,16 @@ Fixes the editor offers when counts differ:
 - **More syllables than notes:** split a note in two (written `4/.5+.5`), or suggest a shorter
   word.
 
+## Status
+
+- **Format:** the text lead sheet, chosen. Edits save into `songs/`; melismas will be allowed.
+- **Phase 1 is done for the 8 songbook originals, the 3 skits and the round's words**: they are
+  `songs/*.song`, proven to build identical scores before the old code was deleted, and
+  `tests/songs.test.ts` plans every song. The tunes are the songbook model (`degree/beats`, roman
+  chords, named tunes, `[repeat …]`). Still in code: the lead songs (Chip, Tabby, Gruff, built by
+  `buildLeadSong`) and the introduction; they need their own `kind:` or a move onto the songbook
+  model. The guide is `docs/writing-songs.md`.
+
 ## Phases
 
 1. **Extract, change nothing (about a day).** Write the parser and printer. Move the 8 songbook

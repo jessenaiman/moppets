@@ -1,0 +1,36 @@
+title: Ask Me Anything (But That)
+id: askme
+tab: 11 · Ask Me Anything
+about: 11 · Gruff is scary on the outside and careful on the inside
+lead: gruff
+key: D
+bpm: 112
+beat: B . t . | B . t . | B . tss . | B . t . (swing 0)
+backing: vee +0, pip +2, tabby +4, scribe +2
+finale: "Friend" on 0
+
+tune a = 4/.5 4/.5 5 4 2 | V 4
+
+[verse 1]
+"I'm big and loud and full of fuzz" = 0/.5 0/.5 4 4 5 5 4 4/2 | I 4, V 4
+"My tubes glow orange when I buzz" = 4 4/.5 5/.5 7 5 4 2 1/2 | I 4, V 4
+"But don't be scared of all my growl" = 0/.5 0/.5 4 4 5 5 4 4/2 | IV 4, I 4
+"I'm gentle as a napping owl" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2 ; do tilt
+
+[chorus, choir]
+"Ask me anything but that" = 7 7/.5 5/.5 4 5 4 2/3 | I 4, IV 4 ; do gasp
+"I'll help you build I'll help you mend" = 4/.5 5/.5 7 4 4 5 7 5/2 | I 4, V 4
+"Ask me anything but that" = 7 7/.5 5/.5 4 5 4 2/3 | I 4, IV 4 ; do gasp
+"A monster can be a friend" = 4 5 4 2 1 2 0/2 | II 4, V 2, I 2 ; do nod
+
+[verse 2]
+pip: "Help me build a trap" = a
+"Let's build a birdhouse" = 4/.5 2/.5 0 2 0 | I 4
+vee: "Help me steal a pie" = a
+"Let's bake one too" = 4 2 1 0 | I 4
+clank: "Help me scare the cat" = a
+"Let's sing it a song" = 4/.5 2/.5 0 2 0 | I 4
+chip: "Help me reach the shelf" = a
+"Hop up on my head" = 0/.5 2/.5 4 5 7 | I 4
+
+[repeat chorus]

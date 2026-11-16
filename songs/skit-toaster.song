@@ -1,0 +1,16 @@
+kind: skit
+id: toaster
+title: The Toaster Knows
+about: Scribe finds a toaster that answers questions, more or less
+
+[scene 1]
+scribe: "I found a toaster in the junk drawer. It answers questions!" ; do gasp
+tabby: "Toaster, what is the meaning of life?"
+scribe: "It says, toast. Lightly golden." ; do shrug
+tabby: "That is a very confident answer." ; do nod
+
+[scene 2]
+gruff: "Toaster, how do I fix my broken radio?"
+scribe: "It says, have you tried toast?"
+gruff: "Honestly? That did help a little." ; do shrug ; react laugh
+tabby: "It never knows everything. But it always tries to warm you up."

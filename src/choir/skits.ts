@@ -9,6 +9,7 @@ import { lyricsToSyllables } from "../wasm/engine.ts";
 import type { Piece, ScoreEvent, Track } from "./music.ts";
 import { CAST, type MoppetVoice } from "./voices.ts";
 import { GESTURES, type GestureName } from "./gestures.ts";
+import { SONG_FILES } from "./songs.ts";
 
 export interface SkitLine {
   who: string;
@@ -73,68 +74,9 @@ export function makeSkit(skit: Skit, voices: readonly MoppetVoice[] = CAST): Pie
   return { kind: "skit", title: skit.title, key: "D", mode: "major", bpm: 60, beats: Math.ceil(end), chords: [], tracks, scenes, cues, description: skit.description };
 }
 
-export const SKITS: Skit[] = [
-  {
-    id: "rerun",
-    title: "Rerun Class",
-    description: "Vee, the old tape deck, teaches from the only tape left",
-    scenes: [
-      [
-        { who: "vee", say: "Class is in session. Today's rerun is episode four hundred and four." },
-        { who: "pip", say: "Is that the one where the frog learns to count?" },
-        { who: "vee", say: "No. That one got taped over. With a cooking show.", do: "shrug" },
-      ],
-      [
-        { who: "clank", say: "I learned to bake bread. I do not have a mouth.", do: "shrug" },
-        { who: "gruff", say: "You have a mouth. You use it to hum at the toaster." },
-        { who: "clank", say: "The toaster hums back. We are close.", do: "nod", react: "laugh" },
-      ],
-      [
-        { who: "vee", say: "Focus, everyone! Rewind, be kind, and please stop licking the remote.", do: "gasp" },
-        { who: "pip", say: "It tastes like Tuesday." },
-      ],
-    ],
-  },
-  {
-    id: "toaster",
-    title: "The Toaster Knows",
-    description: "Scribe finds a toaster that answers questions, more or less",
-    scenes: [
-      [
-        { who: "scribe", say: "I found a toaster in the junk drawer. It answers questions!", do: "gasp" },
-        { who: "tabby", say: "Toaster, what is the meaning of life?" },
-        { who: "scribe", say: "It says, toast. Lightly golden.", do: "shrug" },
-        { who: "tabby", say: "That is a very confident answer.", do: "nod" },
-      ],
-      [
-        { who: "gruff", say: "Toaster, how do I fix my broken radio?" },
-        { who: "scribe", say: "It says, have you tried toast?" },
-        { who: "gruff", say: "Honestly? That did help a little.", do: "shrug", react: "laugh" },
-        { who: "tabby", say: "It never knows everything. But it always tries to warm you up." },
-      ],
-    ],
-  },
-  {
-    id: "letter",
-    title: "Dear Sandwich",
-    description: "Scribe the typewriter helps Pip write a letter by finishing every sentence",
-    scenes: [
-      [
-        { who: "pip", say: "Scribe, can you help me write a letter to my" },
-        { who: "scribe", say: "Sandwich?" },
-        { who: "pip", say: "To my grandmother!", do: "gasp" },
-        { who: "scribe", say: "Dear Grandmother, you are my favorite sandwich." },
-      ],
-      [
-        { who: "clank", say: "It is close. It is not correct. But it is close.", do: "nod" },
-        { who: "pip", say: "Let me try. Dear Grandmother, I miss you." },
-        { who: "scribe", say: "And your sandwiches." },
-        { who: "pip", say: "Okay. That part is true.", do: "shrug" },
-      ],
-    ],
-  },
-];
-export type SkitId = (typeof SKITS)[number]["id"];
+/** The written skits, from their lead sheets in songs/ (`kind: skit`). */
+export const SKITS: Skit[] = SONG_FILES.flatMap((f) => (f.kind === "skit" ? [f.skit] : []));
+export type SkitId = string;
 
 /** What stops a script being performed: a speaker not in the cast, or too much to say. */
 export function skitProblems(s: Partial<Skit>, voices: readonly MoppetVoice[] = CAST): string[] {

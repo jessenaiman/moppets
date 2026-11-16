@@ -1,0 +1,18 @@
+kind: skit
+id: rerun
+title: Rerun Class
+about: Vee, the old tape deck, teaches from the only tape left
+
+[scene 1]
+vee: "Class is in session. Today's rerun is episode four hundred and four."
+pip: "Is that the one where the frog learns to count?"
+vee: "No. That one got taped over. With a cooking show." ; do shrug
+
+[scene 2]
+clank: "I learned to bake bread. I do not have a mouth." ; do shrug
+gruff: "You have a mouth. You use it to hum at the toaster."
+clank: "The toaster hums back. We are close." ; do nod ; react laugh
+
+[scene 3]
+vee: "Focus, everyone! Rewind, be kind, and please stop licking the remote." ; do gasp
+pip: "It tastes like Tuesday."

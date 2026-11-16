@@ -1,0 +1,56 @@
+title: Found Things
+id: found
+tab: 13 · Found Things
+about: 13 · The finale: everyone was something else once
+lead: vee
+key: D
+bpm: 96
+beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
+backing: 
+finale: "Home" on 7
+
+tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
+tune b = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
+
+[verse 1]
+"I was a tape left in a drawer" = a ; do nod
+scribe: "I was the keys by the back door" = b ; do nod
+  + vee @7: "whirr" = 4
+clank: "I was a fridge sized thinking box" = a ; do nod
+  + scribe @7: "ding" = 7
+tabby: "I was a screen that lost its glow" = b ; do nod
+  + clank @7: "beep" = 0
+pip: "I was a frog of felt and thread" = a ; do nod
+  + tabby @7: "hum" = 4
+gruff: "I was a box of tubes half dead" = b ; do nod
+  + pip @7: "croak" = 2
+chip: "I was a disk beneath a bed" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2 ; do nod
+  + gruff @7: "buzz" = 0
+
+[chorus]
+"We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
+  + tabby: "We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2
+  + chip: "We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2
+  + pip: "We are the found things put to use" = 6/.5 6/.5 7 9 9 7 6 4/2
+  + scribe: "We are the found things put to use" = 2/.5 2/.5 3 5 5 3 2 0/2
+  + gruff: "We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2
+"Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
+  + tabby: "Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2
+  + chip: "Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2
+  + pip: "Built from the bits that you let loose" = 4 4/.5 6/.5 7 7 6 4 3/2
+  + scribe: "Built from the bits that you let loose" = 0 0/.5 2/.5 3 3 2 0 -1/2
+  + gruff: "Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2
+"Thank you for all you left before" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
+  + tabby: "Thank you for all you left before" = 4/.5 4/.5 5 7 8 7 5 4/2
+  + chip: "Thank you for all you left before" = 4/.5 4/.5 5 7 8 7 5 4/2
+  + pip: "Thank you for all you left before" = 6/.5 6/.5 7 9 10 9 7 6/2
+  + scribe: "Thank you for all you left before" = 2/.5 2/.5 3 5 6 5 3 2/2
+  + gruff: "Thank you for all you left before" = 4/.5 4/.5 5 7 8 7 5 4/2
+"At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+  + tabby: "At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2
+  + chip: "At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2
+  + pip: "At four oh four we all belong" = 6 7/.5 6/.5 4 3 4 3 2/2
+  + scribe: "At four oh four we all belong" = 2 3/.5 2/.5 0 -1 0 -1 -2/2
+  + gruff: "At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2
+
+[repeat chorus]

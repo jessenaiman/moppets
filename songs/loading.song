@@ -1,0 +1,42 @@
+title: Still Loading
+id: loading
+tab: 06 · Still Loading
+about: 06 · Chip thinks before answering · knobs welcome during the long hum
+lead: chip
+key: D
+bpm: 84
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .3)
+backing: vee +0, pip +2, tabby +4, gruff +2
+finale: "Hum" on 7
+
+tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
+
+[verse 1]
+"Somebody asked me why the sky" = a
+"Turns pink around the end of day" = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
+"I spun my disk I warmed my drive" = a
+"And whispered please don't go away" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
+
+[chorus, choir]
+"Still loading still loading" = 7 5 4/2 7 5 4/2 | I 4, VI 4
+"One point four four megs of nerve" = 4 4/.5 5/.5 5 4 2 4/3 | IV 4, V 4
+"Still loading still loading" = 7 5 4/2 7 5 4/2 | I 4, VI 4
+"The best ones take a little while" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
+
+[verse 2, choir]
+"Hum" = 4/8 | I 8
+  + scribe: "Tick tock tick tock tick tock tick tock" = 7 6 7 6 7 6 7 6
+"Hum" = 6/8 | V 8
+  + scribe: "Tick tock tick tock tick tock tick tock" = 8 7 8 7 8 7 8 7
+
+[verse 3]
+"I checked the pages one by one" = a
+"I counted all the colors twice" = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
+"And if I'm wrong I'll tell you so" = a ; do shrug
+"But now I think I've got the word" = 4 5/.5 7/.5 5 4 2 1 1/2 | II 4, V 4 ; do nod
+
+[repeat chorus]
+
+[verse 4]
+rest 2
+"Sunset" = 4 7/5 | I 6

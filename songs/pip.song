@@ -1,0 +1,40 @@
+title: Pip Repeats
+id: pip
+tab: 12 · Pip Repeats
+about: 12 · Pip learns by copying, until the others copy Pip
+lead: pip
+key: A
+bpm: 108
+beat: B . t K | . t B . | t B . K | . B t . (swing .05)
+backing: vee +0, tabby +4, scribe +2, gruff +2
+finale: "Croak" on 7
+
+tune a = 7 5 4 2 | V 4
+
+[verse 1]
+tabby: "Hello there" = 4 5 4/2 | I 4
+pip: "Jello there" = 4 5 4/2 | I 4
+vee: "Nice to meet you" = 2 4 5 4 | IV 4
+pip: "Ice to eat you" = 2 4 5 4 | IV 4
+scribe: "Pass the butter" = a
+pip: "Pass the butter" = a
+gruff: "Excellent frog" = 0 2 4 7 | I 4
+pip: "Excellent frog" = 0 2 4 7 | I 4
+
+[chorus, choir]
+"Ribbit ribbit copy me" = 4/.5 2/.5 4/.5 2/.5 5 4 2/4 | I 4, V 4
+"Watch and listen try again" = 2 4/.5 5/.5 7 5 4 2/3 | IV 4, V 4 ; do nod
+"Ribbit ribbit one more time" = 4/.5 2/.5 4/.5 2/.5 5 4 2/4 | I 4, V 4
+"Now I've got it now it's mine" = 4 5/.5 4/.5 2 1 1 0/3 | II 4, V 2, I 2 ; do gasp
+
+[verse 2]
+pip: "Lily pad" = 4 5 7/2 | I 4
+vee: "Lily pad" = 4 5 7/2 | I 4
+pip: "Splish splash splosh" = 7 5 4/2 | V 4
+clank: "Splish splash splosh" = 7 5 4/2 | V 4
+pip: "Moppets rule" = 4 5 7/2 | IV 4
+tabby: "Moppets rule" = 4 5 7/2 | IV 4
+pip: "Thank you teachers" = a
+gruff: "You're welcome Pip" = 4 2 1 0 | I 4
+
+[repeat chorus]

@@ -4,6 +4,7 @@
  * calls is the seed contract: changing it changes what every saved seed sounds like.
  */
 import { CHORUS, INTRO_BPM, voices as defaultVoices } from "./voices.ts";
+import { SONG_FILES } from "./songs.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
 
 export type ScaleMode = "major" | "minor" | "aeolian" | "dorian" | "mixolydian" | "lydian" | "phrygian";
@@ -17,12 +18,6 @@ export const RANGES: Record<string, [number, number]> = Object.fromEntries(defau
  * Words for the round: four lines of eight one-syllable words (one per note), and the word everyone
  * lands on together. Any set fits the tune, so the Moppets can each sing a different one at once.
  */
-export const ROUND_LYRICS = [
-  { id: "jam", title: "Who Put the Jam in My Top Hat?", lines: ["Who put the jam in my top hat", "Pass me the toast and hide the cat", "My socks can dance my shoes can squeak", "We sing in rounds all through the week"], last: "Jam" },
-  { id: "key", title: "I Found a Key", lines: ["I found a key that fits no door", "It hums a tune it learned from you", "So ask it twice and ask it nice", "It turns the lock and lets us through"], last: "Click" },
-  { id: "toast", title: "The Toast Knows a Thing", lines: ["Toast pops up with a fact or two", "Warm and kind and a smidge burnt through", "Ask the old lamp to light the way", "Not quite wise but it tries all day"], last: "Ding" },
-] as const;
-export type RoundLyricsId = (typeof ROUND_LYRICS)[number]["id"] | "mixed";
 export interface RoundLyrics {
   id: string;
   title: string;
@@ -31,6 +26,9 @@ export interface RoundLyrics {
 }
 /** A round's words as the notes sing them: no punctuation, so each word is one syllable to plan. */
 export const roundWords = (line: string) => line.replace(/[^A-Za-z' ]+/g, " ").trim().split(/\s+/);
+/** The round's written word sets, from songs/round.song; "mixed" gives each part the next set. */
+export const ROUND_LYRICS: readonly RoundLyrics[] = SONG_FILES.flatMap((f) => (f.kind === "round" ? f.sets : []));
+export type RoundLyricsId = string;
 export const ROUND_LINES = ROUND_LYRICS[0].lines;
 
 export interface ScoreEvent {
