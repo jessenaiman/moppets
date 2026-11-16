@@ -16,6 +16,9 @@ export interface MoppetArtic {
   epilarynx: number;
   ventricular: number;
 }
+/** Fry is left out of sung recipes: the engine's fry pulls the folds toward 45 Hz (creaky speech), so
+ * every 0.1 of it sings about 1.6 semitones flat (measured on Pip, Vee and Tabby). Croak comes from
+ * roughness and the false folds, which leave the pitch alone. */
 export interface MoppetSource {
   tension: number;
   breathiness: number;
@@ -55,7 +58,7 @@ export const voices: readonly MoppetVoice[] = [
   { id: "vee", name: "Vee", role: "The tape-deck fox", color: "#c9662e", body: { female: 0, child: 0 }, artic: { larynx: -0.1, velum: 0.05, root: 0.05, epilarynx: 0.15, ventricular: 0 }, source: { tension: 0.5, breathiness: 0.14, roughness: 0.08, brightness: 0.35, pressure: 9, glide: 0.05, drift: 14 }, vibrato: 10, register: [50, 67], octave: -12, level: 0.91, lyrics: ["I am Vee my teeth keep the beat", "I bite the tape and tap my feet"] },
   { id: "scribe", name: "Scribe", role: "The typewriter rabbit", color: "#c98a8e", body: { female: 0.3, child: 0.9 }, size: 0.95, artic: { larynx: 0.5, velum: 0.5, root: 0.2, epilarynx: 0.55, ventricular: 0 }, source: { tension: 0.78, breathiness: 0.04, roughness: 0.06, brightness: 0.85, pressure: 10, glide: 0.008, drift: 1 }, vibrato: 3, register: [62, 79], octave: 0, level: 0.91, lyrics: ["I am Scribe I type what you say", "Then pass the page and hop away"] },
   { id: "clank", name: "Clank", role: "The robot tenor", color: "#7f9a8c", body: { female: 0, child: 0 }, size: 1.5, artic: { larynx: 0, velum: 0.03, root: 0, epilarynx: 0.65, ventricular: 0 }, source: { tension: 0.92, breathiness: 0, roughness: 0, brightness: 0.7, pressure: 10, glide: 0.002, drift: 0 }, vibrato: 0, register: [38, 50], octave: -24, level: 1, lyrics: ["I am Clank I hold the whole room", "My big old heart is made of boom"] },
-  { id: "pip", name: "Pip", role: "The felted frog", color: "#8bbb83", body: { female: 0.55, child: 0.3 }, size: 0.92, artic: { larynx: -0.6, velum: 0.6, root: -0.5, epilarynx: 0.4, ventricular: 0.2 }, source: { tension: 0.6, breathiness: 0.1, roughness: 0.4, brightness: 0.4, pressure: 9, glide: 0.07, drift: 8, fry: 0.45 }, vibrato: 12, register: [57, 74], octave: 0, level: 1.2, lyrics: ["I am Flash I catch the bright glow", "I wink at all the stars I know"] },
+  { id: "pip", name: "Pip", role: "The felted frog", color: "#8bbb83", body: { female: 0.55, child: 0.3 }, size: 0.92, artic: { larynx: -0.6, velum: 0.6, root: -0.5, epilarynx: 0.4, ventricular: 0.35 }, source: { tension: 0.6, breathiness: 0.1, roughness: 0.5, brightness: 0.4, pressure: 9, glide: 0.07, drift: 8 }, vibrato: 12, register: [57, 74], octave: 0, level: 1.2, lyrics: ["I am Flash I catch the bright glow", "I wink at all the stars I know"] },
   { id: "gruff", name: "Gruff", role: "The gravelly monster", color: "#9c9bc9", body: { female: 0, child: 0 }, size: 1.5, artic: { larynx: -1, velum: 0.1, root: -0.2, epilarynx: 0.3, ventricular: 0.75 }, source: { tension: 0.3, breathiness: 0.28, roughness: 0.72, brightness: 0.25, pressure: 10, glide: 0.04, drift: 5 }, vibrato: 12, register: [45, 62], octave: -12, level: 0.85, lyrics: ["I am Babel I speak all tongues", "My radio warms up my lungs"] },
   { id: "tabby", name: "Tabby", role: "The patchwork soprano", color: "#2fbfa0", body: { female: 0.9, child: 0.1 }, artic: { larynx: 0.3, velum: 0.05, root: 0.1, epilarynx: 0.15, ventricular: 0 }, source: { tension: 0.55, breathiness: 0.22, roughness: 0.04, brightness: 0.6, pressure: 10, glide: 0.03, drift: 4, vibratoRate: 6.5 }, vibrato: 30, register: [65, 81], octave: 0, level: 1.3, lyrics: ["I am Tabby stitched from old cloth", "My screen purrs soft and keeps you warm"] },
 ];

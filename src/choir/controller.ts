@@ -3,7 +3,8 @@
  *
  *  - knobs  turn the selected Moppet's voice controls. Out of the box, controllers 21..28 (the
  *           Launchkey Mini's eight knobs) drive size, larynx, nasal, tension, brightness, gravel,
- *           breath and fry; Learn reassigns any control to whatever knob moves next. The map is
+ *           breath and false-fold rasp: all of them leave the sung pitch alone (fry does not, so it
+ *           has no knob by default); Learn reassigns any control to whatever knob moves next. The map is
  *           kept in this browser.
  *  - pads   on MIDI channel 10 (the Launchkey's drum pads): notes 36..42 pick Moppets 1..7 and
  *           43 sings the picked Moppet's introduction. Pads never play the voice.
@@ -31,7 +32,7 @@ export const CONTROLS = [
   ["brightness", "Brightness", 0, 1, 0.01, "", "source"],
   ["roughness", "Gravel / roughness", 0, 1, 0.01, "", "source"],
   ["breathiness", "Breathiness", 0, 0.8, 0.01, "", "source"],
-  ["fry", "Vocal fry", 0, 1, 0.01, "", "source"],
+  ["fry", "Vocal fry (drops the pitch)", 0, 1, 0.01, "", "source"],
 ] as const;
 export type ControlKey = (typeof CONTROLS)[number][0];
 export type ControlGroup = (typeof CONTROLS)[number][6];
@@ -79,10 +80,10 @@ function rebuildLater(key: ControlKey, n: number): void {
 }
 
 /** Launchkey Mini's eight knobs send controllers 21..28 in its default mode. */
-export const DEFAULT_MAP: Record<number, ControlKey> = { 21: "size", 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "fry" };
+export const DEFAULT_MAP: Record<number, ControlKey> = { 21: "size", 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "ventricular" };
 /** Drum pads: MIDI channel 10, notes 36..43. */
 export const PAD_CHANNEL = 9, PAD_FIRST = 36, PAD_AUDITION = 43;
-const MAP_STORAGE = "moppet-midi-map-v1";
+const MAP_STORAGE = "moppet-midi-map-v2"; // v2: knob 8 is rasp, not fry
 
 function loadMap(): Record<number, ControlKey> {
   try {

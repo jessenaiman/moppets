@@ -90,7 +90,7 @@ export function noteName(n: number, key: KeyName = "C", mode: ScaleMode = "major
   return (degree >= 0 ? scaleName(degree, key, mode) : NAMES[((n % 12) + 12) % 12]) + (Math.floor(n / 12) - 1);
 }
 
-function candidates(degrees: number[], key: KeyName, mode: ScaleMode, range: [number, number]): number[] {
+export function candidates(degrees: number[], key: KeyName, mode: ScaleMode, range: [number, number]): number[] {
   const pcs = new Set(degrees.map((d) => scalePitch(d, key, mode) % 12));
   return Array.from({ length: range[1] - range[0] + 1 }, (_, i) => range[0] + i).filter((n) => pcs.has(n % 12));
 }
@@ -103,7 +103,7 @@ function pickNear(choices: number[], prev: number, random: () => number, maxLeap
   return pool.find((_, i) => (x -= weights[i]) <= 0) ?? pool[pool.length - 1];
 }
 
-function chordInfo(degree: number, key: KeyName, mode: ScaleMode): Omit<Chord, "beat" | "beats"> {
+export function chordInfo(degree: number, key: KeyName, mode: ScaleMode): Omit<Chord, "beat" | "beats"> {
   const midi = [degree, degree + 2, degree + 4].map((d) => scalePitch(d, key, mode));
   const a = midi[1] - midi[0], b = midi[2] - midi[0];
   const quality = b === 6 ? "dim" : b === 8 ? "aug" : a === 3 ? "m" : "";

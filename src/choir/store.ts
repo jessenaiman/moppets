@@ -8,11 +8,12 @@ import { useStore } from "../ui/store.ts";
 import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } from "../wasm/engine.ts";
 import { sameBody, type BodyMix } from "../ui/body.ts";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type ScaleMode } from "./music.ts";
+import { makeAutocomplete, makeStillLoading } from "./songbook.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { ensembleHooks } from "../ui/store.ts";
 
-export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff";
+export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff" | "loading" | "autocomplete";
 /** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
 export type MoppetView = "stage" | "inspect";
 /**
@@ -71,6 +72,8 @@ function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repe
   if (s.lesson === "chip") return makeChipSong();
   if (s.lesson === "tabby") return makeTabbySong();
   if (s.lesson === "gruff") return makeGruffShanty();
+  if (s.lesson === "loading") return makeStillLoading();
+  if (s.lesson === "autocomplete") return makeAutocomplete();
   if (s.lesson === "intro") return makeIntroduction(useMoppet.getState?.().voices ?? defaults);
   if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats });
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });

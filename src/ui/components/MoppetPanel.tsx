@@ -391,7 +391,7 @@ function LessonTabs() {
   const tab = (l: Lesson, label: string) => (
     <button role="tab" aria-selected={lesson === l && piece.kind !== "solo"} onClick={() => setLesson(l)}>{label}</button>
   );
-  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}</div>;
+  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}{tab("loading", "06 · Still Loading")}{tab("autocomplete", "07 · Autocomplete")}</div>;
 }
 
 function MusicSettings() {
@@ -409,7 +409,7 @@ function MusicSettings() {
   const invent = useMoppet((s) => s.invent);
   const rehearse = useMoppet((s) => s.rehearse);
   const busy = useEnsemble((s) => s.status === "preparing" || s.status === "rendering");
-  if (lesson === "intro" || lesson === "chip" || lesson === "tabby" || lesson === "gruff") return null;
+  if (lesson !== "school" && lesson !== "round") return null;
   return (
     <div className="music-settings">
       <label>Key<select value={key} disabled={busy} onChange={(e) => setSettings({ key: e.target.value as KeyName })}>{Object.keys(KEYS).map((k) => <option key={k}>{k}</option>)}</select></label>
@@ -481,11 +481,11 @@ function ScorePanel() {
       <LessonTabs />
       <div className="lesson-header">
         <div>
-          <p className="eyebrow">{piece.kind === "round" ? "SAME TUNE. ONE VERY STICKY HAT." : piece.kind === "intro" ? "SIX VERSES, ONE CHORUS" : piece.kind === "solo" ? "ONE MOPPET, ALONE" : piece.kind === "motesong" ? "THE NEW ONE TAKES A SOLO" : "AN INVENTION, NOT A REPEAT"}</p>
+          <p className="eyebrow">{piece.kind === "round" ? "SAME TUNE. ONE VERY STICKY HAT." : piece.kind === "intro" ? "SIX VERSES, ONE CHORUS" : piece.kind === "solo" ? "ONE MOPPET, ALONE" : piece.kind === "motesong" ? "A MOPPET ORIGINAL" : "AN INVENTION, NOT A REPEAT"}</p>
           <h2>{piece.title}</h2>
           <p>{piece.description}</p>
         </div>
-        <span className="seed-label">{piece.kind === "round" ? `${piece.tracks.length} ENTRANCES` : piece.kind === "school" ? `SEED ${piece.seed}` : `D MAJOR · ${piece.bpm} BPM`}</span>
+        <span className="seed-label">{piece.kind === "round" ? `${piece.tracks.length} ENTRANCES` : piece.kind === "school" ? `SEED ${piece.seed}` : `${piece.key} ${piece.mode === "major" ? "MAJOR" : piece.mode.toUpperCase()} · ${piece.bpm} BPM`}</span>
       </div>
       <MusicSettings />
       <p className="moppet-status" role="status">{message || status || (eStatus === "idle" ? "Ready. Press play." : "")}{eStatus === "rendering" ? ` (${Math.round(progress * 100)} %)` : ""}</p>
