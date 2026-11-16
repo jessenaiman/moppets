@@ -8,7 +8,7 @@ import { SpectrumView } from "./SpectrumView.tsx";
 import { VoiceControls, VoiceToggles } from "./VoiceControls.tsx";
 import { Keys } from "./Keys.tsx";
 import { useMoppet, type Lesson } from "../../choir/store.ts";
-import { cancel, ensembleDebug, exportWav, loadPiece, pause, play, pose, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../../choir/ensemble.ts";
+import { cancel, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode } from "../../choir/music.ts";
 import { midiBytes } from "../../choir/midi.ts";
@@ -19,6 +19,7 @@ import { Choreographer, featuredAt, sceneFeatured } from "../../choir/choreo.ts"
 import { SKITS } from "../../choir/skits.ts";
 import { gestureAt, type GesturePose } from "../../choir/gestures.ts";
 import { cuesFor } from "../../choir/cues.ts";
+import { captionsFor, type Caption } from "../../choir/captions.ts";
 import { SONGBOOK } from "../../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
 import { midiSupported } from "../midi.ts";
@@ -47,6 +48,41 @@ function PlayLabel({ piece }: { piece: Piece }) {
   const name = piece.kind === "intro" ? "Meet the whole choir" : piece.kind === "round" ? "Play the jam round" : piece.kind === "solo" ? `Sing ${piece.tracks[0].id}'s introduction` : piece.kind === "motesong" || piece.kind === "skit" ? `Play “${piece.title}”` : "Play the new invention";
   return <>{again}&nbsp;{name}</>;
 }
+
+/** Video capture (tools/moppet-video.ts): while on, the stage draws only when a frame is asked for. */
+let capturing = false;
+let drawCaptureFrame: ((time: number, dt: number) => void) | null = null;
+
+/**
+ * The video export's handle (tools/moppet-video.ts drives it through window.__choir.capture):
+ * render a performance to the end, then draw any frame of it on demand.
+ */
+const captureApi = {
+  /** Load a lesson, render it all, and return its WAV (base64), length and captions. */
+  async prepare(lesson: string): Promise<{ wav: string; seconds: number; title: string; kind: string; captions: Caption[] }> {
+    const m = useMoppet.getState();
+    m.setLesson(lesson as Lesson);
+    const piece = useMoppet.getState().piece;
+    const out = await exportWav(useStore.getState().start);
+    let bin = "";
+    const bytes = new Uint8Array(out.bytes);
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const names = Object.fromEntries(useMoppet.getState().voices.map((v) => [v.id, v.name]));
+    return { wav: btoa(bin), seconds: pieceSeconds(piece), title: piece.title, kind: piece.kind, captions: captionsFor(piece, names) };
+  },
+  /** Take over the stage's clock: from now on it draws only frames asked for. */
+  begin(): void {
+    capturing = true;
+    document.querySelector(".stage")?.classList.add("capturing");
+  },
+  frame(time: number, dt: number): void {
+    drawCaptureFrame?.(time, dt);
+  },
+  end(): void {
+    capturing = false;
+    document.querySelector(".stage")?.classList.remove("capturing");
+  },
+};
 
 /** Room kept above a front-row puppet's cel for gestures to stretch and lean into (px). */
 const HEADROOM = 40;
@@ -235,24 +271,28 @@ function Stage() {
     let choreo: Choreographer | null = null;
     const notes: Note[] = [];
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tick = () => {
-      raf = requestAnimationFrame(tick);
+    /**
+     * One frame of the stage. Live, the clock is the wall and the audio; capturing a video
+     * (`time` set), it is the song's own clock, a fixed step per frame, and the rendered session's
+     * telemetry at that moment, so every frame matches the WAV exactly.
+     */
+    const draw = (clock: { now: number; dt: number; time: number | null }) => {
       const m = useMoppet.getState();
       const e = useEnsemble.getState();
       const active: string[] = [];
-      const now = performance.now() / 1000;
-      const dt = now - lastT;
-      lastT = now;
-      const dancing = e.status === "playing" || e.status === "buffering";
+      const { now, dt } = clock;
+      const capturing = clock.time !== null;
+      const songTime = clock.time ?? e.time;
+      const dancing = capturing || e.status === "playing" || e.status === "buffering";
       // a paused song holds its formation; only a stopped stage wanders
       const performing = dancing || e.status === "paused";
-      const beat = performing ? beatNow(m.piece, e.time) : now * 1.1;
-      const poses = m.voices.map((v) => pose(v.id));
+      const beat = performing ? beatNow(m.piece, songTime) : now * 1.1;
+      const poses = m.voices.map((v) => (capturing ? poseAt(v.id, songTime) : pose(v.id)));
       const ids = m.voices.map((v) => v.id);
       if (!choreo || choreo.actors.length !== ids.length) choreo = new Choreographer(ids);
       const featured = !performing ? ids.map(() => false) : m.piece.scenes ? sceneFeatured(m.piece.scenes, ids, beat) : featuredAt(m.piece.tracks, ids, beat);
       const talk = m.piece.kind === "skit" && performing ? ids.map((id) => m.piece.tracks.find((t) => t.id === id)?.events.find((x) => beat >= x.beat - 0.15 && beat < x.beat + x.beats + 0.3)?.text ?? null) : undefined;
-      const actors = choreo.step({ playing: performing, beat, now, featured, singing: poses.map((p) => p.singing), poke: poke.current, still, talk }, dt);
+      const actors = choreo.step({ playing: performing, beat, now, featured, singing: poses.map((p) => p.singing), poke: capturing ? null : poke.current, still, talk }, dt);
       const spot = featured.filter(Boolean).length;
       // spotlights only when a few are featured; the whole choir sings in the open
       const stage = stageRef.current;
@@ -314,7 +354,7 @@ function Stage() {
         if (p.singing) active.push(v.name);
       });
       drawStage(backRef.current, frontRef.current, W, H, marks, notes, Math.min(dt, 0.05), still);
-      const running = e.status === "playing" || e.status === "buffering";
+      const running = !capturing && (e.status === "playing" || e.status === "buffering");
       if (running) {
         const beat = beatNow(m.piece, e.time);
         const lines = m.piece.tracks.flatMap((t) => {
@@ -336,8 +376,20 @@ function Stage() {
         setStageLabel("READY WHEN YOU ARE");
       }
     };
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      if (capturing) return; // a video capture draws each frame itself
+      const now = performance.now() / 1000;
+      const dt = now - lastT;
+      lastT = now;
+      draw({ now, dt, time: null });
+    };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    drawCaptureFrame = (time, dt) => draw({ now: time, dt, time });
+    return () => {
+      cancelAnimationFrame(raf);
+      drawCaptureFrame = null;
+    };
   }, []);
   useEffect(() => {
     setLyric({ label: piece.title.toUpperCase(), text: piece.description });
@@ -804,7 +856,7 @@ export function MoppetRight() {
       loadPiece(piece);
       useMoppet.getState().select(useMoppet.getState().selected);
     }
-    (window as unknown as { __choir: unknown }).__choir = { debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, engine, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../../choir/bench.ts").then((m) => m.benchChoir()) };
+    (window as unknown as { __choir: unknown }).__choir = { capture: captureApi, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, engine, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const view = useMoppet((s) => s.view);

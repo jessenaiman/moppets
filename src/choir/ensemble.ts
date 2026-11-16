@@ -483,6 +483,13 @@ export function editVoice(id: string, edit: { source?: Partial<MoppetSource>; ar
   s.edited = true;
 }
 
+/** A singer's pose at a time of the rendered session, whatever is playing (video capture). */
+export function poseAt(id: string, seconds: number): Pose {
+  const s = session;
+  if (!s) return SILENT_POSE;
+  return s.pose(s.indexOf(id), Math.floor((seconds * s.sampleRate) / s.hop));
+}
+
 export function pose(id: string): Pose {
   const s = session;
   const st = get().status;

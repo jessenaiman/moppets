@@ -158,3 +158,8 @@
 .skit-script h3 { margin: 0 0 4px; font: 600 10px "DM Sans", sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .skit-script p { display: grid; grid-template-columns: 70px 1fr; gap: 10px; margin: 3px 0; font-family: Fraunces, Georgia, serif; font-size: 16px; }
 .skit-script b { font: 700 10px "DM Sans", sans-serif; letter-spacing: 1px; padding-top: 4px; }
+
+/* video capture: frames are drawn on the song's clock, so no wall-clock transitions, and the
+   selected Moppet looks like the rest */
+.stage.capturing *, .stage.capturing { transition: none !important; }
+.stage.capturing .puppet.selected:not(.singing) { filter: brightness(.92); }

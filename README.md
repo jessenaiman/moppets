@@ -22,6 +22,10 @@ Moppet's voice in CHIMERA's instruments; the Chimera tab holds the original voic
 The Moppets also perform talking skits, spoken through CHIMERA's speech planner, and act them out
 with gesture clips (laugh, shrug, gasp, nod, tilt, bow) animated in AniCraft: edit
 `tools/moppets/gestures.anicraft` in AniCraft, then `bun tools/gen-gestures.ts` brings the clips in.
+To share a performance, `bun tools/moppet-video.ts autocomplete toaster` (against `bun run preview`)
+renders each one frame-exact to `out/video/<title>/` as `stage.mp4`, `mix.wav` and `captions.srt`;
+`bun tools/moppet-edit.ts` then builds a FilmCraft project (vertical 9:16 and landscape 16:9 sequences
+with an editable caption track; tick "Burn captions" when exporting) and an EffectCraft project.
 Male, female and child bodies blend continuously. Everything on screen animates from live
 engine state: pressure in the airway, airflow, the vocal folds, spectra and formants.
 

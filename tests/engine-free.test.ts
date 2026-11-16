@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
  * tools/choir-e2e.ts in plain bun) must not import the engine facade, which calls into the engine as
  * it loads. music.ts once gained an engine import and the choir e2e stopped running unnoticed.
  */
-const ENGINE_FREE = ["src/choir/music.ts", "src/choir/band.ts", "src/choir/bandSynth.ts", "src/choir/mix.ts", "src/choir/midi.ts", "src/choir/timeline.ts", "src/choir/pluck.ts", "src/choir/singer.worker.ts", "src/worklet/mixer.ts"];
+const ENGINE_FREE = ["src/choir/music.ts", "src/choir/band.ts", "src/choir/bandSynth.ts", "src/choir/mix.ts", "src/choir/midi.ts", "src/choir/timeline.ts", "src/choir/pluck.ts", "src/choir/captions.ts", "src/choir/singer.worker.ts", "src/worklet/mixer.ts"];
 const FACADE = resolve("src/wasm/engine.ts");
 
 /** Every module a file imports at run time (type-only imports are erased), transitively. */
