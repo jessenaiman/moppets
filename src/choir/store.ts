@@ -9,6 +9,7 @@ import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } f
 import { sameBody, type BodyMix } from "../ui/body.ts";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type ScaleMode } from "./music.ts";
 import { SONGBOOK, type SongId } from "./songbook.ts";
+import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { ensembleHooks } from "../ui/store.ts";
@@ -64,6 +65,8 @@ interface MoppetState {
   reset: () => void;
   savePreset: () => void;
   loadPreset: (file: File) => Promise<void>;
+  /** sing the current score on a MIDI file's notes (edited in SoundCraft, say); words stay */
+  singMidi: (bytes: Uint8Array) => void;
 }
 
 const SCHOOL_BPM = 112, ROUND_BPM = 108;
@@ -195,6 +198,13 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     persist(voices);
     applyToWorkbench(voices[i]);
     loadPiece(scoreFor(get()));
+  },
+  singMidi: (bytes) => {
+    const { piece, changed, kept } = scoreFromMidi(get().piece, parseMidi(bytes));
+    const name = (id: string) => get().voices.find((v) => v.id === id)?.name ?? id;
+    const msg = [changed.length ? `Singing your notes for ${changed.map(name).join(", ")}.` : "No notes moved.", kept.length ? `Kept the old notes for ${kept.map((k) => k.replace(/^\w+/, name)).join("; ")}: each syllable needs one note.` : ""];
+    set({ piece, status: msg.filter(Boolean).join(" ") });
+    loadPiece(piece);
   },
 }));
 

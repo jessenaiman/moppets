@@ -476,7 +476,8 @@ function ScorePanel() {
   const message = useEnsemble((s) => s.message);
   const progress = useEnsemble((s) => s.progress);
   const harmonic = piece.kind === "round" ? piece.chords.slice(0, 4) : piece.chords.slice(0, 16);
-  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), piece.kind === "round" ? "jam-in-my-top-hat.mid" : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.mid` : `moppet-invention-${piece.seed}.mid`);
+  const midiName = piece.kind === "round" ? "jam-in-my-top-hat.mid" : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
+  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
   return (
     <div className="moppet-score">
       <LessonTabs />
@@ -493,13 +494,72 @@ function ScorePanel() {
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <div className="round-words">{ROUND_LINES.map((l, i) => <p key={i}><b>{String(i + 1).padStart(2, "0")}</b>{l}</p>)}</div>}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
-      <div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><button onClick={midi}>↓ MIDI</button></div>
+      <div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools"><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
       <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} /></div>
       <div className="score-legend">{voices.map((v) => <span key={v.id}><i style={{ background: v.color }} />{v.name}</span>)}<span className="score-help">Higher on the page = higher pitch</span></div>
     </div>
   );
 }
 
+
+/** Does the dev server have the SoundCraft bridge (tools/soundcraft-bridge.ts)? */
+let bridge: Promise<boolean> | null = null;
+const hasBridge = () => (bridge ??= import.meta.env.DEV ? fetch("/__soundcraft/ping").then((r) => r.status === 204, () => false) : Promise.resolve(false));
+
+/**
+ * Edit the notes in SoundCraft: open the score there (one track per Moppet), move notes, then sing
+ * SoundCraft's notes back with the same words. Without the dev bridge, load an exported .mid file.
+ */
+function SoundCraftButtons({ name }: { name: string }) {
+  const piece = useMoppet((s) => s.piece);
+  const singMidi = useMoppet((s) => s.singMidi);
+  const [linked, setLinked] = useState(false);
+  const [opened, setOpened] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const file = useRef<HTMLInputElement>(null);
+  useEffect(() => void hasBridge().then(setLinked), []);
+  const say = (message: string) => useEnsemble.setState({ message });
+  const call = async (path: string, body?: BlobPart) => {
+    setBusy(true);
+    try {
+      const r = await fetch(path, { method: "POST", body });
+      if (!r.ok) throw new Error(await r.text());
+      return r;
+    } catch (e) {
+      say(`SoundCraft: ${e instanceof Error ? e.message : e}`);
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
+  const open = async () => {
+    say("Opening SoundCraft…");
+    if (await call(`/__soundcraft/open?name=${encodeURIComponent(name)}`, midiBytes(piece) as BlobPart)) {
+      setOpened(true);
+      say("In SoundCraft: move, stretch or transpose notes (keep one note per syllable), then press “Sing SoundCraft’s notes”.");
+    }
+  };
+  const pull = async () => {
+    const r = await call("/__soundcraft/pull");
+    if (r) singMidi(new Uint8Array(await r.arrayBuffer()));
+  };
+  const load = async (f: File | undefined) => {
+    if (!f) return;
+    try {
+      singMidi(new Uint8Array(await f.arrayBuffer()));
+    } catch (e) {
+      say(`${f.name}: ${e instanceof Error ? e.message : e}`);
+    }
+  };
+  return (
+    <>
+      {linked && <button onClick={() => void open()} disabled={busy}>Open in SoundCraft</button>}
+      {linked && opened && <button onClick={() => void pull()} disabled={busy}>Sing SoundCraft’s notes</button>}
+      <button onClick={() => file.current?.click()} title="Sing the score on an edited .mid file's notes">Load MIDI…</button>
+      <input ref={file} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => (void load(e.target.files?.[0]), (e.target.value = ""))} />
+    </>
+  );
+}
 
 /** Connect a MIDI controller to the workbench; shows what it did last. */
 function MidiStrip() {

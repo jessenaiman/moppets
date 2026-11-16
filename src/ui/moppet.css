@@ -93,6 +93,7 @@
 .score { background: #20382e; border-radius: 5px; overflow: auto; }
 .score svg { display: block; width: 100%; min-width: 620px; }
 .score-header { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 8px; font-size: 11px; letter-spacing: 1px; }
+.score-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .score-header small { font-size: 11px; letter-spacing: 0; color: var(--muted); margin-left: 12px; }
 .score-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 4px; font-size: 11px; color: var(--muted); }
 .score-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
