@@ -18,6 +18,7 @@ import { makeIntroduction } from "../../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured } from "../../choir/choreo.ts";
 import { SKITS } from "../../choir/skits.ts";
 import { gestureAt, type GesturePose } from "../../choir/gestures.ts";
+import { cuesFor } from "../../choir/cues.ts";
 import { SONGBOOK } from "../../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
 import { midiSupported } from "../midi.ts";
@@ -49,9 +50,8 @@ function PlayLabel({ piece }: { piece: Piece }) {
 
 /** The AniCraft clip a Moppet is playing at this beat (the latest cue that hasn't finished). */
 function gestureNow(piece: Piece, id: string, beat: number): GesturePose | null {
-  if (!piece.cues) return null;
   let pose: GesturePose | null = null;
-  for (const c of piece.cues) {
+  for (const c of cuesFor(piece)) {
     if (c.who !== id || c.beat > beat) continue;
     pose = gestureAt(c.gesture, (beat - c.beat) * beatSeconds(piece)) ?? pose;
   }

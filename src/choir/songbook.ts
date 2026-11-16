@@ -8,6 +8,7 @@
  * own register: a singer's whole part moves by octaves together, so its contour stays as written.
  * Every syllable gets one note; the lyric planner checks the count.
  */
+import type { GestureName } from "./gestures.ts";
 import { candidates, chordInfo, scalePitch, type Chord, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "./music.ts";
 import { CAST } from "./voices.ts";
 
@@ -19,6 +20,10 @@ export interface Sung {
   rhythm: number[];
   /** beats into the line before this phrase starts (for a phrase sung `with` a line: an answer) */
   offset?: number;
+  /** a gesture the singer makes as the phrase starts (see gestures.ts) */
+  do?: GestureName;
+  /** a gesture the previous phrase's singer makes as this one ends: a reaction to a punchline */
+  react?: GestureName;
 }
 /** A line: a phrase, the chords under it (beats summing to its length), and phrases sung at the same time. */
 export interface Line extends Sung {
@@ -100,7 +105,12 @@ export function buildSong(s: Song): Piece {
     if (!p) parts.set(id, (p = { phrases: [], events: [], pads: [] }));
     return p;
   };
+  const cues: NonNullable<Piece["cues"]> = [];
+  let previous: string | null = null;
   const sing = (who: string, sung: Sung, at: number, spans: Span[]) => {
+    if (sung.do) cues.push({ beat: at, who, gesture: sung.do });
+    if (sung.react && previous && previous !== who) cues.push({ beat: at + sum(sung.rhythm) - 0.25, who: previous, gesture: sung.react });
+    previous = who;
     if (sung.degrees.length !== sung.rhythm.length) throw new Error(`${s.title}: "${sung.words}" has ${sung.degrees.length} notes and ${sung.rhythm.length} lengths`);
     const p = part(who), line = p.phrases.push(sung.words) - 1;
     let beat = at;
@@ -165,7 +175,7 @@ export function buildSong(s: Song): Piece {
     tracks.push({ id, events, ...(p.phrases.length ? { phrases: p.phrases } : {}) });
   }
   tracks.sort((a, b) => (a.id === s.lead ? -1 : b.id === s.lead ? 1 : 0));
-  return { kind: "motesong", title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat };
+  return { kind: "motesong", title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues };
 }
 
 // ---------------------------------------------------------------------------------- the songs
@@ -218,8 +228,8 @@ export function makeStillLoading(): Piece {
         lines: [
           { words: "I checked the pages one by one", degrees: [0, 2, 4, 4, 5, 4, 2, 4], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
           { words: "I counted all the colors twice", degrees: [4, 5, 7, 7, 5, 4, 2, 1], rhythm: LILT_A, chords: [[3, 4], [4, 4]] },
-          { words: "And if I'm wrong I'll tell you so", degrees: [0, 2, 4, 4, 5, 4, 2, 4], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
-          { words: "But now I think I've got the word", degrees: [4, 5, 7, 5, 4, 2, 1, 1], rhythm: LILT_A, chords: [[1, 4], [4, 4]] },
+          { words: "And if I'm wrong I'll tell you so", do: "shrug", degrees: [0, 2, 4, 4, 5, 4, 2, 4], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
+          { words: "But now I think I've got the word", do: "nod", degrees: [4, 5, 7, 5, 4, 2, 1, 1], rhythm: LILT_A, chords: [[1, 4], [4, 4]] },
         ],
       },
       chorus,
@@ -241,10 +251,10 @@ export function makeAutocomplete(): Piece {
   const chorus: Section = {
     choir: true,
     lines: [
-      { words: "Ding I know just what you mean", degrees: [7, 4, 4, 5, 4, 2, 4], rhythm: [1.5, 0.5, 1, 1, 1, 1, 2], chords: [[0, 4], [5, 4]] },
+      { words: "Ding I know just what you mean", do: "nod", degrees: [7, 4, 4, 5, 4, 2, 4], rhythm: [1.5, 0.5, 1, 1, 1, 1, 2], chords: [[0, 4], [5, 4]] },
       { words: "Tap tap tap the guessing machine", degrees: [2, 2, 2, 1, 2, 4, 5, 4], rhythm: [0.5, 0.5, 1, 0.5, 0.5, 1, 1, 3], chords: [[3, 4], [4, 4]] },
-      { words: "Ding I'm very very sure", degrees: [7, 4, 4, 5, 4, 5, 7], rhythm: [1.5, 0.5, 1, 1, 1, 1, 2], chords: [[0, 4], [5, 4]] },
-      { words: "Then let me check and type once more", degrees: [8, 7, 5, 4, 2, 1, 1, 0], rhythm: [1, 1, 1, 1, 1, 0.5, 0.5, 2], chords: [[1, 4], [4, 2], [0, 2]] },
+      { words: "Ding I'm very very sure", do: "nod", degrees: [7, 4, 4, 5, 4, 5, 7], rhythm: [1.5, 0.5, 1, 1, 1, 1, 2], chords: [[0, 4], [5, 4]] },
+      { words: "Then let me check and type once more", do: "shrug", degrees: [8, 7, 5, 4, 2, 1, 1, 0], rhythm: [1, 1, 1, 1, 1, 0.5, 0.5, 2], chords: [[1, 4], [4, 2], [0, 2]] },
     ],
   };
   return buildSong({
@@ -259,27 +269,27 @@ export function makeAutocomplete(): Piece {
       {
         lines: [
           { who: "pip", words: "Good morning how are", degrees: [4, 4, 5, 4, 2], rhythm: TAP, chords: [[0, 4]] },
-          { words: "pancakes made", degrees: [7, 6, 4], rhythm: [1, 1, 2], chords: [[4, 4]] },
+          { words: "pancakes made", react: "gasp", degrees: [7, 6, 4], rhythm: [1, 1, 2], chords: [[4, 4]] },
           { who: "gruff", words: "Once upon a", degrees: [0, 2, 4, 5], rhythm: [1, 1, 1, 1], chords: [[3, 4]] },
-          { words: "tax return", degrees: [7, 7, 0], rhythm: [1, 1, 2], chords: [[0, 4]] },
+          { words: "tax return", react: "shrug", degrees: [7, 7, 0], rhythm: [1, 1, 2], chords: [[0, 4]] },
           { who: "tabby", words: "Twinkle twinkle little", degrees: [0, 0, 4, 4, 5, 5], rhythm: [0.5, 0.5, 0.5, 0.5, 1, 1], chords: [[0, 2], [3, 2]] },
-          { words: "spreadsheet", degrees: [1, 1], rhythm: [1, 3], chords: [[4, 4]] },
+          { words: "spreadsheet", react: "gasp", degrees: [1, 1], rhythm: [1, 3], chords: [[4, 4]] },
           { who: "clank", words: "Beep boop please reboot my", degrees: [0, 0, 0, 0, 0, 0], rhythm: [0.5, 0.5, 0.5, 0.5, 1, 1], chords: [[4, 4]] },
-          { words: "grandma's cat", degrees: [2, 1, 0], rhythm: [1, 1, 2], chords: [[0, 4]] },
+          { words: "grandma's cat", react: "laugh", degrees: [2, 1, 0], rhythm: [1, 1, 2], chords: [[0, 4]] },
         ],
       },
       chorus,
       {
         lines: [
           { who: "vee", words: "Rock and", degrees: [4, 4], rhythm: [2, 2], chords: [[0, 4]] },
-          { words: "potted plant", degrees: [5, 4, 2], rhythm: [1, 1, 2], chords: [[4, 4]] },
+          { words: "potted plant", react: "shrug", degrees: [5, 4, 2], rhythm: [1, 1, 2], chords: [[4, 4]] },
           { who: "pip", words: "Ribbit means I'm", degrees: [4, 5, 4, 2], rhythm: [1, 1, 1, 1], chords: [[3, 4]] },
-          { words: "out of soup", degrees: [7, 7, 4], rhythm: [1, 1, 2], chords: [[0, 4]] },
+          { words: "out of soup", react: "gasp", degrees: [7, 7, 4], rhythm: [1, 1, 2], chords: [[0, 4]] },
           { who: "gruff", words: "Roses are red and my fur is", degrees: [4, 4, 4, 2, 5, 5, 5, 4], rhythm: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], chords: [[0, 2], [4, 2]] },
-          { words: "lemonade", degrees: [7, 5, 4], rhythm: [1, 1, 2], chords: [[0, 4]] },
+          { words: "lemonade", react: "laugh", degrees: [7, 5, 4], rhythm: [1, 1, 2], chords: [[0, 4]] },
           { who: "tabby", words: "Thank you so much you're", degrees: [4, 4, 5, 7, 5], rhythm: TAP, chords: [[1, 4]] },
           // the one Scribe gets right; the band stops to stare
-          { words: "welcome", degrees: [1, 0], rhythm: [2, 2], chords: [[4, 2], [0, 2]] },
+          { words: "welcome", react: "nod", degrees: [1, 0], rhythm: [2, 2], chords: [[4, 2], [0, 2]] },
           { rest: 4 },
         ],
       },
@@ -338,7 +348,7 @@ export function makeRewind(): Piece {
           { rest: 2 },
           { words: "Wub wub wub wub", degrees: [4, 3, 1, -1], rhythm: [1, 1, 2, 2], chords: [[0, 6]] },
           call("tabby", "Oh no the tape", [7, 5, 4, 2], [1, 1, 1, 1], [[5, 4]]),
-          { words: "Hang on rewinding", degrees: [-1, 0, 2, 4, 7], rhythm: [0.5, 0.5, 0.5, 0.5, 2], chords: [[4, 4]] },
+          { words: "Hang on rewinding", do: "shrug", degrees: [-1, 0, 2, 4, 7], rhythm: [0.5, 0.5, 0.5, 0.5, 2], chords: [[4, 4]] },
         ],
       },
       verse(["You told me that you like the blue", "You told me that you have a cat", "And way back when you said your name", "I think it might have been a spoon"]),
@@ -373,7 +383,7 @@ export function makeMainframeBlues(): Piece {
       { words: "I've got the mainframe blues", degrees: [0, 2, 4, 6, 4, 4], rhythm: [0.5, 0.5, 1, 1, 1, 4], chords: [[0, 4], [3, 4]] },
       { words: "Too big to fit in your shoes", degrees: [4, 4, 2, 4, 2, 0, 0], rhythm: [1, 1, 1, 1, 1, 1, 2], chords: [[0, 4], [4, 4]] },
       { words: "But ask me anything at all", degrees: [0, 2, 4, 6, 6, 6, 4, 2], rhythm: LILT_B, chords: [[3, 4], [0, 4]] },
-      { words: "I'll think it over down the hall", degrees: [4, 4, 2, 0, 2, 1, 0, 0], rhythm: LILT_A, chords: [[4, 4], [0, 4]] },
+      { words: "I'll think it over down the hall", do: "shrug", degrees: [4, 4, 2, 0, 2, 1, 0, 0], rhythm: LILT_A, chords: [[4, 4], [0, 4]] },
     ],
   };
   return buildSong({
@@ -415,9 +425,9 @@ export function makeStaticLullaby(): Piece {
     choir: true,
     lines: [
       { words: "Sleep sleep the snow will fall", ...sleep, chords: [[0, 4], [5, 4]] },
-      { words: "I might be dreaming ask again", degrees: [4, 5, 7, 5, 4, 2, 4, 2], rhythm: LILT_B, chords: [[3, 4], [4, 4]] },
+      { words: "I might be dreaming ask again", do: "tilt", degrees: [4, 5, 7, 5, 4, 2, 4, 2], rhythm: LILT_B, chords: [[3, 4], [4, 4]] },
       { words: "Sleep sleep I'll tell you true", ...sleep, chords: [[0, 4], [5, 4]] },
-      { words: "When I'm not sure I'll say so too", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+      { words: "When I'm not sure I'll say so too", do: "shrug", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
     ],
   };
   return buildSong({
@@ -445,14 +455,14 @@ export function makeStaticLullaby(): Piece {
  */
 export function makeAskMeAnything(): Piece {
   const ask = [4, 4, 5, 4, 2], yes: [number, number][] = [[0, 4]], hm: [number, number][] = [[4, 4]];
-  const chorusHook = { words: "Ask me anything but that", degrees: [7, 7, 5, 4, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3] };
+  const chorusHook: Sung = { words: "Ask me anything but that", do: "gasp", degrees: [7, 7, 5, 4, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3] };
   const chorus: Section = {
     choir: true,
     lines: [
       { ...chorusHook, chords: [[0, 4], [3, 4]] },
       { words: "I'll help you build I'll help you mend", degrees: [4, 5, 7, 4, 4, 5, 7, 5], rhythm: LILT_B, chords: [[0, 4], [4, 4]] },
       { ...chorusHook, chords: [[0, 4], [3, 4]] },
-      { words: "A monster can be a friend", degrees: [4, 5, 4, 2, 1, 2, 0], rhythm: [1, 1, 1, 1, 1, 1, 2], chords: [[1, 4], [4, 2], [0, 2]] },
+      { words: "A monster can be a friend", do: "nod", degrees: [4, 5, 4, 2, 1, 2, 0], rhythm: [1, 1, 1, 1, 1, 1, 2], chords: [[1, 4], [4, 2], [0, 2]] },
     ],
   };
   return buildSong({
@@ -469,7 +479,7 @@ export function makeAskMeAnything(): Piece {
           { words: "I'm big and loud and full of fuzz", degrees: [0, 0, 4, 4, 5, 5, 4, 4], rhythm: LILT_B, chords: [[0, 4], [4, 4]] },
           { words: "My tubes glow orange when I buzz", degrees: [4, 4, 5, 7, 5, 4, 2, 1], rhythm: LILT_A, chords: [[0, 4], [4, 4]] },
           { words: "But don't be scared of all my growl", degrees: [0, 0, 4, 4, 5, 5, 4, 4], rhythm: LILT_B, chords: [[3, 4], [0, 4]] },
-          { words: "I'm gentle as a napping owl", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+          { words: "I'm gentle as a napping owl", do: "tilt", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
         ],
       },
       chorus,
@@ -504,9 +514,9 @@ export function makePipRepeats(): Piece {
     choir: true,
     lines: [
       { words: "Ribbit ribbit copy me", ...ribbit, chords: [[0, 4], [4, 4]] },
-      { words: "Watch and listen try again", degrees: [2, 4, 5, 7, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[3, 4], [4, 4]] },
+      { words: "Watch and listen try again", do: "nod", degrees: [2, 4, 5, 7, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[3, 4], [4, 4]] },
       { words: "Ribbit ribbit one more time", ...ribbit, chords: [[0, 4], [4, 4]] },
-      { words: "Now I've got it now it's mine", degrees: [4, 5, 4, 2, 1, 1, 0], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[1, 4], [4, 2], [0, 2]] },
+      { words: "Now I've got it now it's mine", do: "gasp", degrees: [4, 5, 4, 2, 1, 1, 0], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[1, 4], [4, 2], [0, 2]] },
     ],
   };
   return buildSong({
@@ -572,13 +582,13 @@ export function makeFoundThings(): Piece {
     sections: [
       {
         lines: [
-          { words: "I was a tape left in a drawer", ...A },
-          { who: "scribe", words: "I was the keys by the back door", ...B, with: [sound("vee", "whirr", 4)] },
-          { who: "clank", words: "I was a fridge sized thinking box", ...A, with: [sound("scribe", "ding", 7)] },
-          { who: "tabby", words: "I was a screen that lost its glow", ...B, with: [sound("clank", "beep", 0)] },
-          { who: "pip", words: "I was a frog of felt and thread", ...A, with: [sound("tabby", "hum", 4)] },
-          { who: "gruff", words: "I was a box of tubes half dead", ...B, with: [sound("pip", "croak", 2)] },
-          { who: "chip", words: "I was a disk beneath a bed", degrees: [4, 5, 7, 5, 4, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]], with: [sound("gruff", "buzz", 0)] },
+          { words: "I was a tape left in a drawer", do: "nod", ...A },
+          { who: "scribe", words: "I was the keys by the back door", do: "nod", ...B, with: [sound("vee", "whirr", 4)] },
+          { who: "clank", words: "I was a fridge sized thinking box", do: "nod", ...A, with: [sound("scribe", "ding", 7)] },
+          { who: "tabby", words: "I was a screen that lost its glow", do: "nod", ...B, with: [sound("clank", "beep", 0)] },
+          { who: "pip", words: "I was a frog of felt and thread", do: "nod", ...A, with: [sound("tabby", "hum", 4)] },
+          { who: "gruff", words: "I was a box of tubes half dead", do: "nod", ...B, with: [sound("pip", "croak", 2)] },
+          { who: "chip", words: "I was a disk beneath a bed", do: "nod", degrees: [4, 5, 7, 5, 4, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]], with: [sound("gruff", "buzz", 0)] },
         ],
       },
       chorus,
