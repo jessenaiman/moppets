@@ -90,6 +90,7 @@
 .round-words { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; margin: 0 0 12px; }
 .round-words p { font-family: Fraunces, Georgia, serif; font-size: 16px; margin: 4px 0; }
 .round-words b { font: 10px "DM Sans", sans-serif; color: var(--muted); margin-right: 10px; }
+.round-words h3 { grid-column: 1 / -1; margin: 8px 0 0; font: 600 10px "DM Sans", sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .score { background: #20382e; border-radius: 5px; overflow: auto; }
 .score svg { display: block; width: 100%; min-width: 620px; }
 .score-header { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 8px; font-size: 11px; letter-spacing: 1px; }

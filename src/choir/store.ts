@@ -7,12 +7,13 @@ import { create } from "zustand";
 import { useStore } from "../ui/store.ts";
 import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } from "../wasm/engine.ts";
 import { sameBody, type BodyMix } from "../ui/body.ts";
-import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type ScaleMode } from "./music.ts";
+import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, roundProblems, type ScaleMode } from "./music.ts";
 import { SONGBOOK, type SongId } from "./songbook.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { ensembleHooks } from "../ui/store.ts";
+import { g2p } from "../ui/speech.ts";
 
 export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff" | SongId;
 /** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
@@ -46,6 +47,13 @@ interface MoppetState {
   mode: ScaleMode;
   bpm: number;
   repeats: number;
+  /** which words the round sings: a written set, all three at once, or Claude's latest */
+  roundLyrics: RoundLyricsId | "fresh";
+  /** the words Claude wrote last (dev server only) */
+  freshRound: RoundLyrics | null;
+  writing: boolean;
+  /** have Claude write a new round, check it fits the tune, and sing it */
+  writeRound: () => Promise<void>;
   seed: number;
   progression: string;
   groove: string;
@@ -57,7 +65,7 @@ interface MoppetState {
   setView: (v: MoppetView) => void;
   select: (i: number) => void;
   setLesson: (l: Lesson) => void;
-  setSettings: (s: Partial<Pick<MoppetState, "key" | "mode" | "bpm" | "repeats" | "seed" | "progression" | "groove" | "palette" | "soul">>) => void;
+  setSettings: (s: Partial<Pick<MoppetState, "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "seed" | "progression" | "groove" | "palette" | "soul">>) => void;
   invent: () => void;
   rehearse: () => void;
   singSolo: () => void;
@@ -71,14 +79,14 @@ interface MoppetState {
 
 const SCHOOL_BPM = 112, ROUND_BPM = 108;
 
-function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "seed" | "progression" | "groove" | "palette" | "soul">): Piece {
+function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "freshRound" | "seed" | "progression" | "groove" | "palette" | "soul">): Piece {
   if (s.lesson === "chip") return makeChipSong();
   if (s.lesson === "tabby") return makeTabbySong();
   if (s.lesson === "gruff") return makeGruffShanty();
   const original = SONGBOOK.find((x) => x.id === s.lesson);
   if (original) return original.make();
   if (s.lesson === "intro") return makeIntroduction(useMoppet.getState?.().voices ?? defaults);
-  if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats });
+  if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });
 }
 
@@ -121,6 +129,37 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   mode: "major",
   bpm: SCHOOL_BPM,
   repeats: 1,
+  roundLyrics: "jam",
+  freshRound: null,
+  writing: false,
+  writeRound: async () => {
+    set({ writing: true, status: "Claude is writing a new round…" });
+    let feedback: string | undefined;
+    try {
+      await g2p.load(); // the syllable check needs the dictionary, not just the letter rules
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const r = await fetch("/__claude/round", { method: "POST", body: JSON.stringify({ feedback }) });
+        if (!r.ok) throw new Error(await r.text());
+        const w = (await r.json()) as RoundLyrics & { object?: string };
+        const problems = roundProblems(w);
+        if (!problems.length) {
+          const freshRound = { id: "fresh", title: w.title, lines: w.lines.map((l) => l.trim()), last: w.last };
+          set({ freshRound, roundLyrics: "fresh", lesson: "round" });
+          const piece = scoreFor(get());
+          set({ piece, status: `New round${w.object ? ` about ${w.object}` : ""}, written by Claude${attempt ? ` (try ${attempt + 1})` : ""}.` });
+          loadPiece(piece);
+          return;
+        }
+        feedback = problems.join("; ");
+        set({ status: `Claude's words didn't fit the tune (${feedback}). Asking again…` });
+      }
+      set({ status: `Claude couldn't fit the tune in three tries (${feedback}). Kept the old words.` });
+    } catch (e) {
+      set({ status: `Couldn't write a round: ${e instanceof Error ? e.message : e}` });
+    } finally {
+      set({ writing: false });
+    }
+  },
   seed: 404,
   status: "",
   view: "stage",

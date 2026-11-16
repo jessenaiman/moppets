@@ -207,6 +207,10 @@ test("every sung word in a generated song is one syllable, and every song 03 lin
   const { GROOVES } = await import("../src/choir/theory.ts");
   const { lyricsToSyllables } = await import("../src/wasm/engine.ts");
   for (const g of GROOVES) for (const w of g.scat) expect(lyricsToSyllables(w).length).toBe(1);
+  // the round sings one note per word: every written set, and the check Claude's words must pass
+  for (const set of music.ROUND_LYRICS) expect(music.roundProblems(set)).toEqual([]);
+  expect(music.roundProblems({ title: "x", lines: ["The jar is full of odd old bits", "a", "b", "c"], last: "Clink!" }).length).toBeGreaterThan(0);
+  expect(music.roundProblems({ title: "x", lines: ["We find the way with one small light", "la la la la la la la la", "la la la la la la la la", "la la la la la la la la"], last: "pop" })).toEqual([]);
   for (const w of ["jam", "hat", "sock", "toast", "stitch", "felt", "thread", "lamp", "key", "spool", "bow", "star", "friend", "song", "red", "door", "squeak", "hum", "dust", "shine", "oo", "bom", "doo"]) expect(lyricsToSyllables(w).length).toBe(1);
   const chip = music.makeChipSong();
   const moteVoice = (await import("../src/choir/voices.ts")).CHIP;

@@ -5,6 +5,7 @@
  */
 import { CHORUS, INTRO_BPM, voices as defaultVoices } from "./voices.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
+import { lyricsToSyllables } from "../wasm/engine.ts";
 
 export type ScaleMode = "major" | "minor" | "aeolian" | "dorian" | "mixolydian" | "lydian" | "phrygian";
 export const SCALES: Record<ScaleMode, number[]> = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 11], aeolian: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], mixolydian: [0, 2, 4, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], phrygian: [0, 1, 3, 5, 7, 8, 10] };
@@ -13,7 +14,25 @@ export type KeyName = keyof typeof KEYS;
 const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
 /** The six parts in score order (Chip sings only his own song). */
 export const RANGES: Record<string, [number, number]> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.register]));
-export const ROUND_LINES = ["Who put the jam in my top hat", "Pass me the toast and hide the cat", "My socks can dance my shoes can squeak", "We sing in rounds all through the week"];
+/**
+ * Words for the round: four lines of eight one-syllable words (one per note), and the word everyone
+ * lands on together. Any set fits the tune, so the Moppets can each sing a different one at once.
+ */
+export const ROUND_LYRICS = [
+  { id: "jam", title: "Who Put the Jam in My Top Hat?", lines: ["Who put the jam in my top hat", "Pass me the toast and hide the cat", "My socks can dance my shoes can squeak", "We sing in rounds all through the week"], last: "Jam" },
+  { id: "key", title: "I Found a Key", lines: ["I found a key that fits no door", "It hums a tune it learned from you", "So ask it twice and ask it nice", "It turns the lock and lets us through"], last: "Click" },
+  { id: "toast", title: "The Toast Knows a Thing", lines: ["Toast pops up with a fact or two", "Warm and kind and a smidge burnt through", "Ask the old lamp to light the way", "Not quite wise but it tries all day"], last: "Ding" },
+] as const;
+export type RoundLyricsId = (typeof ROUND_LYRICS)[number]["id"] | "mixed";
+export interface RoundLyrics {
+  id: string;
+  title: string;
+  lines: readonly string[];
+  last: string;
+}
+/** A round's words as the notes sing them: no punctuation, so each word is one syllable to plan. */
+export const roundWords = (line: string) => line.replace(/[^A-Za-z' ]+/g, " ").trim().split(/\s+/);
+export const ROUND_LINES = ROUND_LYRICS[0].lines;
 
 export interface ScoreEvent {
   beat: number;
@@ -31,6 +50,8 @@ export interface Track {
   events: ScoreEvent[];
   /** whole lyric lines, sung through the lyric planner so words keep their stress and syllables */
   phrases?: string[];
+  /** lyric lines for display only, by event `line`, when the notes carry their own words (the round) */
+  lines?: string[];
 }
 export interface Chord {
   degree: number;
@@ -171,23 +192,44 @@ export function compose({ seed = 404, key = "D" as KeyName, mode = "major" as Sc
 const ROUND_DEGREES = [[0, 2, 3, 5, 4, 6, 2, 0], [2, 4, 5, 7, 6, 8, 4, 2], [4, 2, 7, 5, 8, 6, 7, 4], [7, 4, 3, 7, 4, 8, 4, 7]];
 const ROUND_OCTAVES: Record<string, number> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.octave]));
 
-export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1 } = {}): Piece {
+/** What stops a set of words being sung on the round's tune: one note per syllable, eight to a line. Load the dictionary first. */
+export function roundProblems(w: Partial<RoundLyrics>): string[] {
+  if (!Array.isArray(w.lines) || w.lines.length !== 4 || typeof w.last !== "string" || typeof w.title !== "string") return ["it needs a title, four lines and a last word"];
+  const out: string[] = [];
+  w.lines.forEach((l, i) => {
+    const words = roundWords(String(l));
+    if (words.length !== 8) out.push(`line ${i + 1} has ${words.length} words, not 8`);
+  });
+  const multi = [...w.lines.flatMap((l) => roundWords(String(l))), ...roundWords(w.last)].filter((x) => lyricsToSyllables(x).length !== 1);
+  if (multi.length) out.push(`these are not one syllable: ${[...new Set(multi)].join(", ")}`);
+  if (roundWords(w.last).length !== 1) out.push("the last word must be one word");
+  return out;
+}
+
+/** `lyrics`: one set for everyone (by id, or new words), or "mixed": each entrance takes the next set in turn. */
+export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1, lyrics = "jam" as RoundLyricsId | RoundLyrics } = {}): Piece {
   if (!(key in KEYS) || ![1, 2].includes(repeats) || bpm < 60 || bpm > 180) throw Error("Invalid round settings");
+  const chosen: RoundLyrics | undefined = typeof lyrics === "object" ? lyrics : ROUND_LYRICS.find((l) => l.id === lyrics);
+  if (!chosen && lyrics !== "mixed") throw Error("Invalid round lyrics");
+  if (chosen && (chosen.lines.length !== 4 || chosen.lines.some((l) => roundWords(l).length !== 8))) throw Error("A round needs four lines of eight words");
   const ids = Object.keys(RANGES), lastEnd = (ids.length - 1) * 8 + 32 * repeats, finale = lastEnd + 2;
   const tracks: Track[] = ids.map((id, i) => {
+    const set: RoundLyrics = chosen ?? ROUND_LYRICS[i % ROUND_LYRICS.length];
     const events: ScoreEvent[] = [];
     for (let r = 0; r < repeats; r++)
       for (let phrase = 0; phrase < 4; phrase++) {
-        const words = ROUND_LINES[phrase].split(" ");
+        const words = roundWords(set.lines[phrase]);
         for (let j = 0; j < 8; j++) events.push({ beat: i * 8 + r * 32 + phrase * 8 + j, beats: 1, midi: scalePitch(ROUND_DEGREES[phrase][j], key, "major") + ROUND_OCTAVES[id], text: words[j], line: phrase });
       }
-    events.push({ beat: finale, beats: 4, midi: scalePitch([0, 2, 0, 4, 0, 2][i], key, "major") + ROUND_OCTAVES[id], text: "Jam", line: 4 });
-    return { id, entrance: i * 8, events };
+    events.push({ beat: finale, beats: 4, midi: scalePitch([0, 2, 0, 4, 0, 2][i], key, "major") + ROUND_OCTAVES[id], text: roundWords(set.last)[0], line: 4 });
+    return { id, entrance: i * 8, events, lines: [...set.lines, `${roundWords(set.last)[0]}!`] };
   });
   const chords: Chord[] = [];
   for (let b = 0; b < lastEnd; b += 2) chords.push({ ...chordInfo([0, 3, 4, 0][Math.floor(b / 2) % 4], key, "major"), beat: b, beats: 2 });
   chords.push({ ...chordInfo(0, key, "major"), beat: finale, beats: 4 });
-  return { kind: "round", title: "Who Put the Jam in My Top Hat?", key, mode: "major", bpm, repeats, beats: finale + 4, chords, tracks, description: "A true six-voice round · same tune · entrances eight beats apart · I–IV–V–I" };
+  const title = chosen ? chosen.title : "Three Rounds at Once";
+  const description = chosen ? "A true six-voice round · same tune · entrances eight beats apart · I–IV–V–I" : "Same tune, three sets of words: each entrance sings the next set, and everyone lands on their own last word together";
+  return { kind: "round", title, key, mode: "major", bpm, repeats, beats: finale + 4, chords, tracks, description };
 }
 
 /** The original verse tune, two eight-beat lines in D major (one beat per syllable). */

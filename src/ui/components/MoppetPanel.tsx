@@ -10,7 +10,7 @@ import { Keys } from "./Keys.tsx";
 import { useMoppet, type Lesson } from "../../choir/store.ts";
 import { cancel, ensembleDebug, exportWav, loadPiece, pause, play, pose, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../../choir/theory.ts";
-import { KEYS, noteName, ROUND_LINES, type KeyName, type Piece, type ScaleMode } from "../../choir/music.ts";
+import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode } from "../../choir/music.ts";
 import { midiBytes } from "../../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds } from "../../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../../choir/voices.ts";
@@ -277,7 +277,7 @@ function Stage() {
           const ev = t.events.find((x) => beat >= x.beat && beat < x.beat + x.beats);
           if (!ev) return [];
           const name = m.voices.find((v) => v.id === t.id)?.name ?? t.id;
-          const line = t.phrases && ev.line !== undefined ? t.phrases[ev.line] : m.piece.kind === "round" && ev.line !== undefined ? (ROUND_LINES[ev.line] ?? "Jam!") : ev.text;
+          const line = t.phrases && ev.line !== undefined ? t.phrases[ev.line] : t.lines && ev.line !== undefined ? t.lines[ev.line] : ev.text;
           return [{ id: name, text: line }];
         });
         const names = active.length === 6 ? "ALL TOGETHER" : active.length > 1 ? `${active.length} VOICES IN HARMONY` : active[0] ? `${active[0].toUpperCase()} IS SINGING` : "A LITTLE BREATH";
@@ -353,7 +353,7 @@ function Transport() {
     setWavBusy(true);
     try {
       const out = await exportWav(start);
-      download(new Blob([out.bytes], { type: "audio/wav" }), piece.kind === "round" ? "jam-in-my-top-hat.wav" : piece.kind === "intro" ? "studio-404-introduction.wav" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.wav` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.wav` : `moppet-invention-${piece.seed}.wav`);
+      download(new Blob([out.bytes], { type: "audio/wav" }), piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.wav` : piece.kind === "intro" ? "studio-404-introduction.wav" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.wav` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.wav` : `moppet-invention-${piece.seed}.wav`);
     } catch (e) {
       useEnsemble.setState({ message: `WAV export: ${e instanceof Error ? e.message : String(e)}` });
     }
@@ -421,11 +421,53 @@ function MusicSettings() {
         <label>Sounds<select value={palette} disabled={busy} onChange={(e) => setSettings({ palette: e.target.value })}>{PALETTES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>
         <label className="soul-toggle"><input type="checkbox" checked={soul} disabled={busy} onChange={(e) => setSettings({ soul: e.target.checked })} /> Moppet soul</label>
       </>}
+      {lesson === "round" && <RoundLyricsPicker busy={busy} />}
       {lesson === "round" ? <label>Cycles<select value={repeats} disabled={busy} onChange={(e) => setSettings({ repeats: Number(e.target.value) })}><option value={1}>One each</option><option value={2}>Two each</option></select></label> : <label>Seed<input type="number" value={seed} disabled={busy} onChange={(e) => setSettings({ seed: Number(e.target.value) >>> 0 })} /></label>}
       <button className="invent" disabled={busy} onClick={lesson === "round" ? rehearse : invent}>{lesson === "round" ? "↻ Rehearse this round" : "✦ Invent another melody"}</button>
     </div>
   );
 }
+
+/** The round's words: one set, or each set with the Moppets singing it. */
+function RoundWords({ piece }: { piece: Piece }) {
+  const voices = useMoppet((s) => s.voices);
+  const sets = new Map<string, string[]>();
+  for (const t of piece.tracks) if (t.lines) sets.set(t.lines.join("|"), [...(sets.get(t.lines.join("|")) ?? []), voices.find((v) => v.id === t.id)?.name ?? t.id]);
+  return (
+    <div className="round-words">
+      {[...sets].map(([key, who]) => (
+        <Fragment key={key}>
+          {sets.size > 1 && <h3>{who.join(", ")}</h3>}
+          {key.split("|").slice(0, 4).map((l, i) => <p key={i}><b>{String(i + 1).padStart(2, "0")}</b>{l}</p>)}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+/** Pick the round's words, or have Claude write new ones (dev server only). */
+function RoundLyricsPicker({ busy }: { busy: boolean }) {
+  const roundLyrics = useMoppet((s) => s.roundLyrics);
+  const fresh = useMoppet((s) => s.freshRound);
+  const writing = useMoppet((s) => s.writing);
+  const setSettings = useMoppet((s) => s.setSettings);
+  const writeRound = useMoppet((s) => s.writeRound);
+  const [writer, setWriter] = useState(false);
+  useEffect(() => void hasWriter().then(setWriter), []);
+  return (
+    <>
+      <label>Words<select value={roundLyrics} disabled={busy || writing} onChange={(e) => setSettings({ roundLyrics: e.target.value as typeof roundLyrics })}>
+        {ROUND_LYRICS.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}
+        <option value="mixed">All three at once</option>
+        {fresh && <option value="fresh">New: {fresh.title}</option>}
+      </select></label>
+      {writer && <button className="invent" disabled={busy || writing} onClick={() => void writeRound()}>{writing ? "Claude is writing…" : "✎ Write a new round"}</button>}
+    </>
+  );
+}
+
+let writerProbe: Promise<boolean> | null = null;
+const hasWriter = () => (writerProbe ??= import.meta.env.DEV ? fetch("/__claude/ping").then((r) => r.status === 204, () => false) : Promise.resolve(false));
 
 function ScoreSvg({ piece }: { piece: Piece }) {
   const voices = useMoppet((s) => s.voices);
@@ -476,14 +518,14 @@ function ScorePanel() {
   const message = useEnsemble((s) => s.message);
   const progress = useEnsemble((s) => s.progress);
   const harmonic = piece.kind === "round" ? piece.chords.slice(0, 4) : piece.chords.slice(0, 16);
-  const midiName = piece.kind === "round" ? "jam-in-my-top-hat.mid" : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
+  const midiName = piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
   const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
   return (
     <div className="moppet-score">
       <LessonTabs />
       <div className="lesson-header">
         <div>
-          <p className="eyebrow">{piece.kind === "round" ? "SAME TUNE. ONE VERY STICKY HAT." : piece.kind === "intro" ? "SIX VERSES, ONE CHORUS" : piece.kind === "solo" ? "ONE MOPPET, ALONE" : piece.kind === "motesong" ? "A MOPPET ORIGINAL" : "AN INVENTION, NOT A REPEAT"}</p>
+          <p className="eyebrow">{piece.kind === "round" ? (piece.title.includes("Jam") ? "SAME TUNE. ONE VERY STICKY HAT." : "SAME TUNE. NEW WORDS.") : piece.kind === "intro" ? "SIX VERSES, ONE CHORUS" : piece.kind === "solo" ? "ONE MOPPET, ALONE" : piece.kind === "motesong" ? "A MOPPET ORIGINAL" : "AN INVENTION, NOT A REPEAT"}</p>
           <h2>{piece.title}</h2>
           <p>{piece.description}</p>
         </div>
@@ -492,7 +534,7 @@ function ScorePanel() {
       <MusicSettings />
       <p className="moppet-status" role="status">{message || status || (eStatus === "idle" ? "Ready. Press play." : "")}{eStatus === "rendering" ? ` (${Math.round(progress * 100)} %)` : ""}</p>
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
-      {piece.kind === "round" && <div className="round-words">{ROUND_LINES.map((l, i) => <p key={i}><b>{String(i + 1).padStart(2, "0")}</b>{l}</p>)}</div>}
+      {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
       <div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools"><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
       <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} /></div>
