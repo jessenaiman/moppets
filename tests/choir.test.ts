@@ -252,3 +252,23 @@ test("a voice's vibrato and vowel posture reach only the notes still to come", (
   plain.dispose();
   edited.dispose();
 });
+
+test("a loud singer's mouth still closes on a consonant, and a held \"oo\" shows open", async () => {
+  const { TELE_HEADER } = await import("../src/choir/singerCore.ts");
+  // telemetry records as Scribe sang them: loud (stem RMS 0.17), lips 1.94 on a vowel, 0.32 on a
+  // consonant; Tabby's "oo" pad: lips 0.23 apart, protruded 1.27
+  const record = (rms: number, lipAp: number, lipProt: number) => {
+    const r = new Float32Array(TELE_HEADER + 16);
+    r[TELE.outRms] = rms;
+    r[TELE_HEADER + 0] = 1;
+    r[TELE_HEADER + 7] = lipAp;
+    r[TELE_HEADER + 8] = lipProt;
+    return r;
+  };
+  const OPEN = 0.2; // the stage's sprite threshold (MoppetPanel)
+  expect(poseFromRecord(record(0.17, 1.94, 0.32)).open).toBeGreaterThan(OPEN);
+  // a floor of 0.12 + 0.18 × level held this at 0.30, so loud voices never closed their mouths
+  expect(poseFromRecord(record(0.17, 0.32, 0.31)).open).toBeLessThan(OPEN);
+  expect(poseFromRecord(record(0.17, 0.23, 1.27)).open).toBeGreaterThan(OPEN);
+  expect(poseFromRecord(record(0.17, 0, 1.27)).open).toBe(0); // a closure always shuts it
+});

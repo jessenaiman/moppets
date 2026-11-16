@@ -44,9 +44,14 @@ export function poseFromRecord(rec: Float32Array, at = 0): Pose {
   const jaw = rec[at + JAW], lipAp = rec[at + LIP_AP], lipProt = rec[at + LIP_PROT], rms = rec[at + TELE.outRms];
   const singing = rms > SINGING_RMS;
   const level = clamp(rms * 5);
-  // Lip aperture is the visible opening; the output level shapes each vowel, so held notes still
-  // breathe. A closure (lip aperture at or below zero) always shuts the mouth, even while voiced.
-  const lip = lipAp <= 0.02 ? 0 : Math.max(clamp(lipAp / 2.2) * (0.55 + 0.45 * level), 0.12 + 0.18 * level);
+  // Lip aperture is the visible opening; the output level scales it, so held notes still breathe.
+  // A closure (lip aperture at or below zero) always shuts the mouth, even while voiced. There is no
+  // floor: one (0.12 + 0.18 × level) sat above the stage's open threshold for loud voices, holding
+  // Scribe's and Tabby's mouths open through every consonant.
+  // A rounded vowel ("oo", lip protrusion ~1.1 to 1.3) has a small opening, about as wide as a
+  // consonant's (~0.3) but still a sung mouth: rounding, not width, tells them apart.
+  const rounded = lipProt > 0.9 && lipAp > 0.1;
+  const lip = lipAp <= 0.02 ? 0 : Math.max(clamp(lipAp / 2.2) * (0.55 + 0.45 * level), rounded ? 0.25 : 0);
   const open = singing ? lip : 0;
   const round = clamp(lipProt);
   return { open, jaw: singing ? clamp(jaw / 1.9) : 0, round, level, singing, viseme: visemeFrom(lipAp, rec[at + LABIO], round, jaw, singing) };

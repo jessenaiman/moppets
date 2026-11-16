@@ -102,9 +102,11 @@ ok(measures.analyserRms > 1e-4, `analyser is hearing a singer (rms ${measures.an
 ok(measures.telemetryBody !== undefined, "instrument views are on engine telemetry");
 
 // the lead's sprite must really change: dance frames on the beat, mouth from engine telemetry
+// sampled until the mouth has opened and closed (up to 8 s): a window of legato "da da da" keeps the
+// lips honestly open (/d/ is the tongue), so a fixed 2.4 s window could land where nothing closes
 const cels = new Set<string>();
 let mouthChanges = 0, lastMouth: boolean | null = null;
-for (let i = 0; i < 40; i++) {
+for (let i = 0, t0 = Date.now(); i < 40 || (mouthChanges < 2 && Date.now() - t0 < 8000); i++) {
   const state = await page.evaluate(() => {
     const el = document.querySelectorAll<HTMLElement>(".puppet")[1]; // Scribe, the lead
     return { cel: el.style.getPropertyValue("--cel"), open: el.classList.contains("mouth-open") };
