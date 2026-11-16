@@ -563,12 +563,12 @@
                           },
                           {
                             "frame": 3,
-                            "value": 552.0,
+                            "value": 562.0,
                             "ease": "CubicOut"
                           },
                           {
                             "frame": 10,
-                            "value": 562.0,
+                            "value": 566.0,
                             "ease": "CubicOut"
                           },
                           {
@@ -587,12 +587,12 @@
                           },
                           {
                             "frame": 3,
-                            "value": 92.0,
+                            "value": 95.0,
                             "ease": "CubicOut"
                           },
                           {
                             "frame": 10,
-                            "value": 96.0,
+                            "value": 97.0,
                             "ease": "CubicOut"
                           },
                           {
@@ -611,12 +611,12 @@
                           },
                           {
                             "frame": 3,
-                            "value": 112.0,
+                            "value": 105.0,
                             "ease": "CubicOut"
                           },
                           {
                             "frame": 10,
-                            "value": 105.0,
+                            "value": 103.0,
                             "ease": "CubicOut"
                           },
                           {

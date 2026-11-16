@@ -10,12 +10,16 @@
  *                                        and a GIF of each clip in out/gestures/ to look at
  *   bun tools/gen-gestures.ts --author   rebuilds the first draft of the document (overwrites it)
  *
+ * Keep every clip inside the stage's headroom (HEADROOM in MoppetPanel.tsx, 40 px above a front-row
+ * puppet's cel): stretch × height plus lift plus the lean. The stage scales puppets for their leans but not for gestures, so a gesture never
+ * shrinks its Moppet mid-move.
+ *
  * The symbol's registration point is the Moppet's feet, so rotation and scale pivot where it
  * stands, as the stage's puppets do. The JSON stores each frame's offset from rest: x and y as a
  * fraction of the puppet's height (+y down), scale as a factor, rotation in degrees (+ clockwise).
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const DOC = "tools/moppets/gestures.anicraft";
 const OUT = "src/choir/gestures.generated.json";
@@ -33,8 +37,9 @@ const DRAFT: { name: string; frames: number; ease: string; keys: Key[] }[] = [
   { name: "laugh", frames: 26, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0], [3, 0, -14, 96, 106, -4], [6, 0, 0, 106, 92, 0], [9, 0, -12, 96, 105, 4], [12, 0, 0, 105, 93, 0], [15, 0, -10, 97, 104, -3], [18, 0, 0, 104, 95, 0], [25, 0, 0, 100, 100, 0]] },
   // a shrug: shoulders up and a little head tilt, held, then a drop
   { name: "shrug", frames: 22, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0], [5, 0, -6, 97, 107, -5], [13, 0, -6, 97, 107, -5], [17, 0, 2, 103, 96, 0], [21, 0, 0, 100, 100, 0]] },
-  // a gasp: a jolt upward and a lean back, then it settles
-  { name: "gasp", frames: 20, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0], [3, 0, -18, 92, 112, -9], [10, 0, -8, 96, 105, -6], [19, 0, 0, 100, 100, 0]] },
+  // a gasp: a jolt upward and a lean back, then it settles. Kept inside the stage's headroom
+  // (a 112 % stretch with an 18 px lift put the head ~45 px above the cel on a front-row puppet)
+  { name: "gasp", frames: 20, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0], [3, 0, -8, 95, 105, -9], [10, 0, -4, 97, 103, -6], [19, 0, 0, 100, 100, 0]] },
   // a nod: two dips forward
   { name: "nod", frames: 18, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0], [4, 0, 3, 101, 98, 7], [8, 0, 0, 100, 100, 0], [12, 0, 3, 101, 98, 7], [17, 0, 0, 100, 100, 0]] },
   // a question: a slow head-cock, held while it waits
@@ -60,6 +65,7 @@ async function author(): Promise<void> {
   // Pip's resting cel (the last of the eight): the stand-in every clip is drawn on
   const py = spawnSync("python3", ["-c", `from PIL import Image; Image.open('public/moppets/pip/closed.webp').convert('RGBA').crop((${3 * CEL.w},${CEL.h},${4 * CEL.w},${2 * CEL.h})).save('${cel}')`], { encoding: "utf8" });
   if (py.status !== 0) throw new Error(`cropping the cel needs Pillow: ${py.stderr}`);
+  rmSync(DOC, { force: true }); // `new` won't replace a file, and --author means start over
   cli(["new", "--out", DOC, "--width", String(W), "--height", String(H), "--fps", String(FPS)]);
   const total = DRAFT.reduce((n, g) => n + g.frames, 0);
   const made = run(DOC, [

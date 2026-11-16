@@ -48,6 +48,9 @@ function PlayLabel({ piece }: { piece: Piece }) {
   return <>{again}&nbsp;{name}</>;
 }
 
+/** Room kept above a front-row puppet's cel for gestures to stretch and lean into (px). */
+const HEADROOM = 40;
+
 /** The AniCraft clip a Moppet is playing at this beat (the latest cue that hasn't finished). */
 function gestureNow(piece: Piece, id: string, beat: number): GesturePose | null {
   let pose: GesturePose | null = null;
@@ -255,19 +258,26 @@ function Stage() {
       const stage = stageRef.current;
       const W = stage?.clientWidth ?? 0, H = stage?.clientHeight ?? 0;
       // read every puppet's resting slot before writing any transform
-      const homes = refs.current.map((el) => (el ? { x: el.offsetLeft + el.offsetWidth / 2, h: (el.offsetWidth * 512) / 384 } : null));
+      const homes = refs.current.map((el) => (el ? { x: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth, h: (el.offsetWidth * 512) / 384 } : null));
       const marks: Mark[] = [];
       m.voices.forEach((v, i) => {
         const el = refs.current[i], home = homes[i], a = actors[i];
         if (!el || !home) return;
         const p = poses[i];
         const lift = a.depth * 44 + a.hop * 34 + (a.walking && !dancing ? Math.abs(Math.sin(now * 12 + i)) * 4 : 0);
-        // never taller than the room left above it, so a hop or a step upstage stays on the stage
-        const scale = Math.min(0.96 - 0.24 * a.depth, (H - 28 - lift) / home.h);
+        // never taller than the room left above it, so a hop, a step upstage or a lean stays on the
+        // stage: a lean rotates the puppet from its feet, raising a top corner by half its width × sin.
+        // The 40 px margin is the gestures' headroom (a laugh's stretch and lean reach ~29 px above the
+        // cel on a front-row puppet; the art's transparent top covers the rest), so a gesture never
+        // shrinks its Moppet mid-move.
+        const g = performing ? gestureNow(m.piece, v.id, beat) : null;
+        const tilt = (Math.abs(a.lean) * Math.PI) / 180;
+        const reach = home.h * Math.cos(tilt) + (home.w / 2) * Math.sin(tilt);
+        const scale = Math.min(0.96 - 0.24 * a.depth, (H - HEADROOM - lift) / reach);
         el.style.transform = `translate(${(a.x * W - home.x).toFixed(1)}px, ${(-lift).toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`;
         el.style.zIndex = String(Math.round(100 - a.depth * 60 + (p.singing ? 5 : 0)));
         el.style.setProperty("--face", a.face.toFixed(3));
-        setGesture(el, performing ? gestureNow(m.piece, v.id, beat) : null, home.h, a.face);
+        setGesture(el, g, home.h, a.face);
         const floor = H - 24 - a.depth * 44;
         marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, talking: m.piece.kind === "skit", spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
         const walkFrame = Math.floor(now * 7 + i * 3) % 8;

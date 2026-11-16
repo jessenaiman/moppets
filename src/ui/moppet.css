@@ -32,7 +32,7 @@
 .moppet-stage-wrap { display: flex; flex-direction: column; }
 .theatre-top { padding: 12px 20px; background: #23312d; color: #adbbb1; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.7px; }
 .theatre-top i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c88e50; margin-right: 8px; }
-.stage { position: relative; background: radial-gradient(ellipse at 50% 90%, #6b5a45 0, #2d2620 65%, #1e1a16 100%); height: 320px; overflow: hidden; display: flex; align-items: flex-end; }
+.stage { position: relative; background: radial-gradient(ellipse at 50% 90%, #6b5a45 0, #2d2620 65%, #1e1a16 100%); height: 332px; overflow: hidden; display: flex; align-items: flex-end; }
 .string-lights { position: absolute; top: -7px; left: 2%; right: 2%; border-top: 1px solid #a99965; display: flex; justify-content: space-around; color: #e4b86a; font-size: 12px; padding-top: 19px; border-radius: 50%; text-shadow: 0 0 16px #ffe3a8; pointer-events: none; }
 .string-lights span { padding-top: 8px; color: #c48659; }
 .cast { display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 8px 24px; position: relative; z-index: 1; }
@@ -140,7 +140,7 @@
   .moppet-workbench { grid-template-columns: 1fr; }
 }
 @media (max-width: 650px) {
-  .stage { height: 290px; }
+  .stage { height: 302px; }
   .cast { padding: 0 3px 23px; }
   .warm .puppet { height: auto; }
   .puppet .name-tag { font-size: 9px; letter-spacing: 1px; bottom: -18px; }
