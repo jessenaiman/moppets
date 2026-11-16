@@ -78,36 +78,36 @@ This is how the stage works now:
 - Cues come from `src/choir/cues.ts` (every song), a songbook phrase's `do` and `react`
   (`src/choir/songbook.ts`), and a skit line's `do` and `react` (`src/choir/skits.ts`).
 
+Already fixed, so don't redo them:
+- puppets clipped at the top of the stage (the scale cap counts a lean's rotated corner, and
+  `HEADROOM` in `MoppetPanel.tsx` keeps 40 px above a front-row puppet for gestures; keep any new
+  or retimed clip inside it);
+- the vowel map's label overlap;
+- Moppet mouths stuck open (loud voices) or shut (quiet ones);
+- the paused playhead drifting.
+Every check passes as of this brief; keep it that way.
+
 These are observed problems. Fix the ones that matter most, and measure before and after where
 you can:
 
-1. **Puppets get clipped at the top of the stage.** The layout lint (`bun run lint:layout`)
-   reports `button.puppet … is cut off by div.stage` at 1366–1920 px widths, mid-hop and mid-gesture,
-   and has done so across several commits. The scale cap is in `Stage`
-   (`Math.min(0.96 - 0.24 * a.depth, (H - 28 - lift) / home.h)`); gestures add a translation and
-   scale on top of it without being counted. Make the lint clean at every size.
-2. **Every gesture moves the whole body.** "Tilt" (a sung or spoken question) and "nod" rotate the
+1. **Every gesture moves the whole body.** "Tilt" (a sung or spoken question) and "nod" rotate the
    whole puppet from its feet, so they read as leaning, not as a head moving. Vee has a separate head
    that could carry them. Decide per Moppet whether splitting off a head (as `tools/moppets/solo.py`
    did for Vee) is worth it, or retime the clips so a whole-body move reads right.
-3. **Too many nods.** Mainframe Blues cues 28 nods, because the backing "doo wah"s re-enter after
+2. **Too many nods.** Mainframe Blues cues 28 nods, because the backing "doo wah"s re-enter after
    every rest (the entrance rule in `cues.ts`, `REST = 6`). Throttle it, for example one nod per
    Moppet per section, or no nods on short answer phrases.
-4. **Clicking a puppet still runs its own code.** The poke (`Choreographer.step`) has a hand-coded
+3. **Clicking a puppet still runs its own code.** The poke (`Choreographer.step`) has a hand-coded
    spin and hop. Use the gesture clips instead, picked per Moppet's personality.
-5. **The downstage spot gets crowded.** Autocomplete can bring four Moppets downstage at once. The
+4. **The downstage spot gets crowded.** Autocomplete can bring four Moppets downstage at once. The
    featured window (`LOOKAHEAD`/`LINGER` in `choreo.ts`) overlaps call-and-response lines. Keep the
    formation readable.
-6. **Speech bubbles.** They wrap to as many as three rows at 190 px. Narrow widths, and bubbles over
+5. **Speech bubbles.** They wrap to as many as three rows at 190 px. Narrow widths, and bubbles over
    upstage Moppets, haven't been checked. Bubbles must not cover another speaker's face or leave the
    stage.
-7. **Vee under a bow.** Vee's head is placed per dance frame from `vee-solo.json`. Check that the
+6. **Vee under a bow.** Vee's head is placed per dance frame from `vee-solo.json`. Check that the
    gesture transform on the sprite keeps the head attached through a 24° bow.
-8. **The "lead's mouth" e2e check.** `tools/choir-e2e.ts` fails "the lead's mouth opens and closes"
-   because Scribe's mouth stays open through the sampled window of the default invention (the mouth
-   comes from engine lip telemetry: `p.open > 0.2` while singing). Find out whether the mouth
-   threshold or Scribe's posture keeps it open, and fix the cause, not the check.
-9. **Skit staging.** A scene's whole cast walks downstage together and talks facing each other;
+7. **Skit staging.** A scene's whole cast walks downstage together and talks facing each other;
    listeners only react through cued gestures. Give listeners small, idle-looking reactions (a
    glance at the speaker, a blink), and make the speaker's mouth follow speech as well as it follows
    song.
@@ -117,8 +117,7 @@ you can:
 - Three band members exist, with art in the cast's format, standing on the stage. Each is animated
   from `bandFor(piece)` notes, rests when the band is off, and reacts to the beatbox when the drums
   sit out.
-- The layout lint has no puppet-clipping errors. The one pre-existing error left out of scope is
-  the Vowels label overlap in Play mode.
+- The layout lint stays at 0 errors, and band members fit inside the stage like the cast.
 - The observations you fixed are each in their own small commit, with numbers (lint errors before
   and after, nod counts, screenshots or measured positions). The ones you didn't fix are listed with
   the reason.
