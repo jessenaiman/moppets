@@ -37,6 +37,8 @@ export interface Cue {
   poke: { index: number; at: number } | null;
   /** prefers-reduced-motion: stand in a line and never wander */
   still: boolean;
+  /** per actor: the line it is saying now (a skit), shown in its bubble */
+  talk?: (string | null)[];
 }
 
 /** Beats ahead a singer starts walking forward, and beats it stays after its last note. */
@@ -102,7 +104,7 @@ function onStage(c: Cue, ids: readonly string[], current: readonly Actor[]): Tar
     if (c.featured[i]) {
       const x = front[f++];
       const face = k === 2 ? (f === 1 ? 1 : -1) : k === 1 ? 1 : x <= centre ? 1 : -1;
-      return { x, depth: 0, face, hop: 0, lean: c.singing[i] ? face * 3 : 0, bubble: null };
+      return { x, depth: 0, face, hop: 0, lean: c.singing[i] ? face * 3 : 0, bubble: c.talk?.[i] ?? null };
     }
     const x = back[b++];
     // each watcher looks at the nearest singer, as it actually stands now
@@ -191,4 +193,10 @@ export function featuredAt(tracks: readonly { id: string; events: readonly { bea
     const t = tracks.find((x) => x.id === id);
     return !!t && t.events.some((e) => e.beat < beat + LOOKAHEAD && e.beat + e.beats > beat - LINGER);
   });
+}
+
+/** A skit's featured Moppets: the whole cast of the scene under way, from just before it starts. */
+export function sceneFeatured(scenes: readonly { beat: number; beats: number; cast: readonly string[] }[], ids: readonly string[], beat: number): boolean[] {
+  const scene = scenes.find((s) => beat >= s.beat - LOOKAHEAD && beat < s.beat + s.beats + LINGER);
+  return ids.map((id) => !!scene?.cast.includes(id));
 }

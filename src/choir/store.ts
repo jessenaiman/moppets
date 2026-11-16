@@ -10,12 +10,13 @@ import { sameBody, type BodyMix } from "../ui/body.ts";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, roundProblems, type ScaleMode } from "./music.ts";
 import { SONGBOOK, type SongId } from "./songbook.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
+import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { ensembleHooks } from "../ui/store.ts";
 import { g2p } from "../ui/speech.ts";
 
-export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff" | SongId;
+export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff" | SongId | SkitId | "newskit";
 /** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
 export type MoppetView = "stage" | "inspect";
 /**
@@ -51,7 +52,11 @@ interface MoppetState {
   roundLyrics: RoundLyricsId | "fresh";
   /** the words Claude wrote last (dev server only) */
   freshRound: RoundLyrics | null;
+  /** the skit Claude wrote last (dev server only) */
+  freshSkit: Skit | null;
   writing: boolean;
+  /** have Claude write a new skit for the cast, check it, and stage it */
+  writeSkit: () => Promise<void>;
   /** have Claude write a new round, check it fits the tune, and sing it */
   writeRound: () => Promise<void>;
   seed: number;
@@ -79,10 +84,12 @@ interface MoppetState {
 
 const SCHOOL_BPM = 112, ROUND_BPM = 108;
 
-function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "freshRound" | "seed" | "progression" | "groove" | "palette" | "soul">): Piece {
+function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "freshRound" | "freshSkit" | "seed" | "progression" | "groove" | "palette" | "soul">): Piece {
   if (s.lesson === "chip") return makeChipSong();
   if (s.lesson === "tabby") return makeTabbySong();
   if (s.lesson === "gruff") return makeGruffShanty();
+  const skit = s.lesson === "newskit" ? s.freshSkit : SKITS.find((x) => x.id === s.lesson);
+  if (skit) return makeSkit(skit, useMoppet.getState?.().voices ?? defaults);
   const original = SONGBOOK.find((x) => x.id === s.lesson);
   if (original) return original.make();
   if (s.lesson === "intro") return makeIntroduction(useMoppet.getState?.().voices ?? defaults);
@@ -131,7 +138,36 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   repeats: 1,
   roundLyrics: "jam",
   freshRound: null,
+  freshSkit: null,
   writing: false,
+  writeSkit: async () => {
+    set({ writing: true, status: "Claude is writing a new skit…" });
+    let feedback: string | undefined;
+    try {
+      await g2p.load(); // line lengths are timed from the dictionary's syllables
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const r = await fetch("/__claude/skit", { method: "POST", body: JSON.stringify({ feedback, cast: get().voices.map((v) => ({ id: v.id, name: v.name, role: v.role })) }) });
+        if (!r.ok) throw new Error(await r.text());
+        const w = (await r.json()) as Skit & { object?: string };
+        const problems = skitProblems(w, get().voices);
+        if (!problems.length) {
+          const freshSkit: Skit = { id: "newskit", title: w.title, description: w.description || "Written by Claude", scenes: w.scenes };
+          set({ freshSkit, lesson: "newskit" });
+          const piece = scoreFor(get());
+          set({ piece, status: `New skit${w.object ? ` about ${w.object}` : ""}, written by Claude${attempt ? ` (try ${attempt + 1})` : ""}.` });
+          loadPiece(piece);
+          return;
+        }
+        feedback = problems.join("; ");
+        set({ status: `Claude's skit didn't fit (${feedback}). Asking again…` });
+      }
+      set({ status: `Claude couldn't write a usable skit in three tries (${feedback}).` });
+    } catch (e) {
+      set({ status: `Couldn't write a skit: ${e instanceof Error ? e.message : e}` });
+    } finally {
+      set({ writing: false });
+    }
+  },
   writeRound: async () => {
     set({ writing: true, status: "Claude is writing a new round…" });
     let feedback: string | undefined;

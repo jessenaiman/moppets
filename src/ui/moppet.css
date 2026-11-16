@@ -152,3 +152,9 @@
   .score-help { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .puppet .head, .puppet .jaw, .puppet .mouth-cave { transition: none; } }
+
+/* a skit's script */
+.skit-script { display: grid; gap: 10px; margin: 12px 0; }
+.skit-script h3 { margin: 0 0 4px; font: 600 10px "DM Sans", sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.skit-script p { display: grid; grid-template-columns: 70px 1fr; gap: 10px; margin: 3px 0; font-family: Fraunces, Georgia, serif; font-size: 16px; }
+.skit-script b { font: 700 10px "DM Sans", sans-serif; letter-spacing: 1px; padding-top: 4px; }

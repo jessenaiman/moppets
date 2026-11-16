@@ -1,18 +1,19 @@
 /**
- * Dev-server bridge that has Claude write new words for the Moppet round, through the local
- * `claude` CLI (the developer's own Claude Code sign-in; no API key in the page or the repo):
+ * Dev-server bridge that has Claude write new words for the Moppets, through the local `claude`
+ * CLI (the developer's own Claude Code sign-in; no API key in the page or the repo):
  *
  *  GET  /__claude/ping   204 when the CLI is installed
- *  POST /__claude/round  body {feedback?: string}  →  {title, lines: [4], last}
+ *  POST /__claude/round  body {feedback?}        →  {title, lines: [4], last}
+ *  POST /__claude/skit   body {feedback?, cast}  →  {title, description, scenes: [[{who, say}]]}
  *
- * Each call costs about half a cent on Haiku and takes 15 to 40 s. The page checks every word
- * against the dictionary (one syllable per note) and asks again with the problems as `feedback`.
- * Only `vite` dev serves this; a build has no writer and the page keeps its written rounds.
+ * Each call costs about half a cent on Haiku and takes 15 to 40 s. The page checks the result
+ * (a round: one syllable per note; a skit: real Moppets, sayable lines) and asks again with the
+ * problems as `feedback`. Only `vite` dev serves this; a build keeps the written rounds and skits.
  */
 import { spawn, spawnSync } from "node:child_process";
 import type { Plugin } from "vite";
 
-/** Haiku: about half a cent a round. Set MOPPET_ROUND_MODEL=claude-sonnet-5-5 to try another (about 4 cents). */
+/** Haiku: about half a cent a call. Set MOPPET_ROUND_MODEL=claude-sonnet-5-5 to try another (about 4 cents). */
 export const MODEL = process.env.MOPPET_ROUND_MODEL || "claude-haiku-5-5";
 
 /** Found objects to start from, so each round is about something new. */
@@ -43,10 +44,38 @@ function prompt(object: string, feedback?: string): string {
   ].join("\n");
 }
 
-function write(feedback?: string): Promise<unknown> {
+const SKIT_SCHEMA = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    description: { type: "string" },
+    scenes: { type: "array", minItems: 1, maxItems: 3, items: { type: "array", items: { type: "object", properties: { who: { type: "string" }, say: { type: "string" } }, required: ["who", "say"] } } },
+  },
+  required: ["title", "description", "scenes"],
+};
+
+type Cast = { id: string; name: string; role: string }[];
+
+function skitPrompt(object: string, cast: Cast, feedback?: string): string {
+  return [
+    "Write a short comedy skit for the Moppets, puppets built from discarded gadgets of old TV puppetry. They assembled themselves, and everything they know comes from reruns that Vee (a VCR) and Tabby (an old TV set) show and lecture them on.",
+    `The cast (use the id in "who"): ${cast.map((c) => `${c.id} = ${c.name}, ${c.role}`).join("; ")}.`,
+    `The premise: someone found ${object} in a junk drawer, and it turns out to be a helpful assistant (a metaphor for a helpful AI: good at something, funny-wrong about something, warm in the end). Never mention AI, robots or computers by name.`,
+    "Rules:",
+    "- 2 or 3 scenes; each scene 2 to 4 lines between 2 or 3 Moppets; 6 to 12 lines in all;",
+    "- each line is spoken aloud by a speech synthesizer: under 100 characters, plain words, no stage directions, no parentheses, no emoji, numbers spelled out;",
+    "- a clear setup, a running joke that builds, and a last line that lands the punchline;",
+    "- each Moppet sounds like itself (a fox, a rabbit, a robot, a frog, a monster, a soprano);",
+    "- `description`: one short sentence; `title`: 2 to 5 words.",
+    feedback ? `Your previous try broke these rules: ${feedback}. Fix them.` : "",
+  ].join("\n");
+}
+
+function write(kind: "round" | "skit", feedback?: string, cast?: Cast): Promise<unknown> {
   const object = OBJECTS[Math.floor(Math.random() * OBJECTS.length)];
+  const text = kind === "skit" ? skitPrompt(object, cast ?? [], feedback) : prompt(object, feedback);
   return new Promise((ok, no) => {
-    const cli = spawn("claude", ["-p", "--model", MODEL, "--tools", "", "--strict-mcp-config", "--no-session-persistence", "--output-format", "json", "--json-schema", JSON.stringify(SCHEMA), prompt(object, feedback)], { stdio: ["ignore", "pipe", "pipe"] });
+    const cli = spawn("claude", ["-p", "--model", MODEL, "--tools", "", "--strict-mcp-config", "--no-session-persistence", "--output-format", "json", "--json-schema", JSON.stringify(kind === "skit" ? SKIT_SCHEMA : SCHEMA), text], { stdio: ["ignore", "pipe", "pipe"] });
     let out = "", err = "";
     const timer = setTimeout(() => (cli.kill(), no(new Error("Claude took longer than 60 s"))), 60000);
     cli.stdout.on("data", (b: Buffer) => (out += b));
@@ -65,25 +94,27 @@ function write(feedback?: string): Promise<unknown> {
   });
 }
 
-export function roundWriter(): Plugin {
+export function claudeWriter(): Plugin {
   return {
-    name: "round-writer",
+    name: "claude-writer",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use("/__claude", (req, res) => {
         const reply = (code: number, body: string, type = "text/plain") => ((res.statusCode = code), res.setHeader("content-type", type), res.end(body));
         if (req.url === "/ping") return reply(spawnSync("sh", ["-c", "command -v claude"]).status === 0 ? 204 : 404, "");
-        if (req.url !== "/round" || req.method !== "POST") return reply(404, "no such call");
+        const kind = req.url === "/round" ? "round" : req.url === "/skit" ? "skit" : null;
+        if (!kind || req.method !== "POST") return reply(404, "no such call");
         let body = "";
         req.on("data", (c: Buffer) => (body += c));
         req.on("end", () => {
-          let feedback: string | undefined;
+          let feedback: string | undefined, cast: Cast | undefined;
           try {
-            feedback = JSON.parse(body || "{}").feedback;
+            ({ feedback, cast } = JSON.parse(body || "{}"));
           } catch {
             // no feedback
           }
-          write(typeof feedback === "string" ? feedback.slice(0, 600) : undefined).then(
+          const castOk = Array.isArray(cast) ? cast.slice(0, 8).map((c) => ({ id: String(c.id).slice(0, 20), name: String(c.name).slice(0, 30), role: String(c.role).slice(0, 60) })) : undefined;
+          write(kind, typeof feedback === "string" ? feedback.slice(0, 600) : undefined, castOk).then(
             (r) => reply(200, JSON.stringify(r), "application/json"),
             (e: Error) => reply(502, e.message),
           );

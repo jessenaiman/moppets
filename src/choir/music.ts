@@ -61,7 +61,7 @@ export interface Chord {
   beat: number;
   beats: number;
 }
-export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong";
+export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong" | "skit";
 export interface Piece {
   kind: PieceKind;
   title: string;
@@ -78,6 +78,8 @@ export interface Piece {
   pluck?: (number | null)[];
   /** CHIMERA's beatbox stem for this piece */
   beat?: { text: string; swing: number };
+  /** a skit's scenes: who is downstage together, in beats */
+  scenes?: { beat: number; beats: number; cast: string[] }[];
   /** creature calls answering the singers, on the beat grid */
   cameos?: { creature: string; call: string; beat: number }[];
 }
