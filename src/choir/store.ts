@@ -140,7 +140,7 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   key: "D",
   mode: "major",
   bpm: SCHOOL_BPM,
-  repeats: 1,
+  repeats: 2,
   roundLyrics: "jam",
   freshRound: null,
   freshSkit: null,

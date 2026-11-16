@@ -519,7 +519,7 @@ function MusicSettings() {
         <label className="soul-toggle"><input type="checkbox" checked={soul} disabled={busy} onChange={(e) => setSettings({ soul: e.target.checked })} /> Moppet soul</label>
       </>}
       {lesson === "round" && <RoundLyricsPicker busy={busy} />}
-      {lesson === "round" ? <label>Cycles<select value={repeats} disabled={busy} onChange={(e) => setSettings({ repeats: Number(e.target.value) })}><option value={1}>One each</option><option value={2}>Two each</option></select></label> : <label>Seed<input type="number" value={seed} disabled={busy} onChange={(e) => setSettings({ seed: Number(e.target.value) >>> 0 })} /></label>}
+      {lesson === "round" ? <label>Cycles<select value={repeats} disabled={busy} onChange={(e) => setSettings({ repeats: Number(e.target.value) })}><option value={1}>Once through</option><option value={2}>Twice through</option><option value={3}>Three times</option></select></label> : <label>Seed<input type="number" value={seed} disabled={busy} onChange={(e) => setSettings({ seed: Number(e.target.value) >>> 0 })} /></label>}
       <button className="invent" disabled={busy} onClick={lesson === "round" ? rehearse : invent}>{lesson === "round" ? "↻ Rehearse this round" : "✦ Invent another melody"}</button>
     </div>
   );
@@ -659,7 +659,7 @@ function ScorePanel() {
           <h2>{piece.title}</h2>
           <p>{piece.description}</p>
         </div>
-        <span className="seed-label">{piece.kind === "skit" ? `${piece.tracks.reduce((n, t) => n + t.events.length, 0)} LINES · ${piece.beats} S` : piece.kind === "round" ? `${piece.tracks.length} ENTRANCES` : piece.kind === "school" ? `SEED ${piece.seed}` : `${piece.key} ${piece.mode === "major" ? "MAJOR" : piece.mode.toUpperCase()} · ${piece.bpm} BPM`}</span>
+        <span className="seed-label">{piece.kind === "skit" ? `${piece.tracks.reduce((n, t) => n + t.events.length, 0)} LINES · ${piece.beats} S` : piece.kind === "round" ? `3 PARTS · ${piece.tracks.length} VOICES` : piece.kind === "school" ? `SEED ${piece.seed}` : `${piece.key} ${piece.mode === "major" ? "MAJOR" : piece.mode.toUpperCase()} · ${piece.bpm} BPM`}</span>
       </div>
       <MusicSettings />
       {piece.kind === "skit" && <SkitTools />}

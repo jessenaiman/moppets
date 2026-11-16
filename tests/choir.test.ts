@@ -156,7 +156,7 @@ test("a singer resting before its entrance costs nothing and stays exactly silen
   core.dispose();
 });
 
-test("every voice of the round enters on its written beat, eight beats apart", () => {
+test("every voice of the round enters on its written beat, its part eight beats after the last", () => {
   const round = music.makeRound();
   const beat = plan.beatSeconds(round);
   const entries: number[] = [];
@@ -178,7 +178,8 @@ test("every voice of the round enters on its written beat, eight beats apart", (
     expect(Math.abs(onset - want)).toBeLessThan(0.15); // consonants land just before the beat; nothing drifts
     core.dispose();
   }
-  for (let i = 1; i < entries.length; i++) expect(Math.abs(entries[i] - entries[i - 1] - 8 * beat)).toBeLessThan(0.12);
+  // three parts: partners enter together, each part eight beats after the last
+  round.tracks.forEach((t, i) => expect(Math.abs(entries[i] - entries[0] - t.entrance! * beat)).toBeLessThan(0.12));
 });
 
 test("every cameo names a real CHIMERA call, and palette stems render", async () => {

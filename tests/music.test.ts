@@ -1,7 +1,7 @@
 /** Ported from Studio 404's music.test.mjs: the score rules that make the choir musical. */
 import { expect, test } from "bun:test";
 import { bandFor } from "../src/choir/band.ts";
-import { compose, invent, makeIntroduction, makeChipSong, makeRound, KEYS, RANGES, ROUND_LINES, SCALES, type KeyName, type Piece, type ScaleMode } from "../src/choir/music.ts";
+import { compose, invent, makeIntroduction, makeChipSong, makeRound, KEYS, RANGES, ROUND_GROUPS, ROUND_LINES, SCALES, type KeyName, type Piece, type ScaleMode } from "../src/choir/music.ts";
 import { midiBytes, PPQ } from "../src/choir/midi.ts";
 import { findMode, GROOVES, MODES, PROGRESSIONS, PALETTES } from "../src/choir/theory.ts";
 
@@ -43,25 +43,31 @@ test("seeds are reproducible", () => {
   expect(compose({ seed: 404 }).tracks).not.toEqual(compose({ seed: 405 }).tracks);
 });
 
-test("the round is exact imitation entering every eight beats, with consonant overlaps", () => {
+test("the round is three parts, each a pair singing together, entering eight beats apart with consonant overlaps", () => {
   for (const key of keys)
-    for (const repeats of [1, 2]) {
+    for (const repeats of [1, 2, 3]) {
       const p = makeRound({ key, repeats });
+      expect(p.tracks.length).toBe(6);
       const original = p.tracks[0].events.slice(0, -1);
-      for (let i = 0; i < 6; i++) {
-        const t = p.tracks[i];
-        expect(t.entrance).toBe(8 * i);
-        expect(t.events.length).toBe(32 * repeats + 1);
-        const copy = t.events.slice(0, -1);
-        const delta = copy[0].midi - original[0].midi;
-        expect(Math.abs(delta % 12)).toBe(0);
-        copy.forEach((e, j) => {
-          expect(e.beat - original[j].beat).toBe(8 * i);
-          expect(e.midi - original[j].midi).toBe(delta);
-          expect(e.text).toBe(original[j].text);
-        });
-      }
-      for (let b = 0; b < 5 * 8 + 32 * repeats; b += 0.5) {
+      const parts = new Set(p.tracks.map((t) => t.entrance));
+      expect([...parts].sort((a, b) => a! - b!)).toEqual([0, 8, 16]);
+      ROUND_GROUPS.forEach((group, g) => {
+        expect(group.length).toBe(2);
+        for (const id of group) {
+          const t = p.tracks.find((x) => x.id === id)!;
+          expect(t.entrance).toBe(8 * g);
+          expect(t.events.length).toBe(32 * repeats + 1);
+          const copy = t.events.slice(0, -1);
+          const delta = copy[0].midi - original[0].midi;
+          expect(Math.abs(delta % 12)).toBe(0); // the same tune, in this Moppet's octave
+          copy.forEach((e, j) => {
+            expect(e.beat - original[j].beat).toBe(8 * g);
+            expect(e.midi - original[j].midi).toBe(delta);
+            expect(e.text).toBe(original[j].text);
+          });
+        }
+      });
+      for (let b = 0; b < 2 * 8 + 32 * repeats; b += 0.5) {
         const chord = p.chords.find((c) => b >= c.beat && b < c.beat + c.beats)!;
         for (const t of p.tracks) for (const e of t.events) if (b >= e.beat && b < e.beat + e.beats && !chord.tones.includes(e.midi % 12)) throw Error(`canon collision ${key} ${b}`);
       }

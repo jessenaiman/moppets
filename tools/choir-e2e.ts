@@ -278,7 +278,7 @@ const midi = await midiPromise;
 const midiPath = `${outDir}/${midi.suggestedFilename()}`;
 await midi.saveAs(midiPath);
 const bytes = new Uint8Array(await Bun.file(midiPath).arrayBuffer());
-const expected = midiBytes(makeRound({ key: "D", bpm: 108, repeats: 1 }));
+const expected = midiBytes(makeRound({ key: "D", bpm: 108, repeats: 2 }));
 ok(bytes.length === expected.length && bytes.every((b, i) => b === expected[i]), "downloaded MIDI is byte-identical to the score");
 
 // ---- the WAV is real, finite, and not clipped

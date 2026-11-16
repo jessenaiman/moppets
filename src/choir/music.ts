@@ -197,29 +197,42 @@ export function compose({ seed = 404, key = "D" as KeyName, mode = "major" as Sc
 const ROUND_DEGREES = [[0, 2, 3, 5, 4, 6, 2, 0], [2, 4, 5, 7, 6, 8, 4, 2], [4, 2, 7, 5, 8, 6, 7, 4], [7, 4, 3, 7, 4, 8, 4, 7]];
 const ROUND_OCTAVES: Record<string, number> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.octave]));
 
-/** `lyrics`: one set for everyone (by id, or new words), or "mixed": each entrance takes the next set in turn. */
-export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1, lyrics = "jam" as RoundLyricsId | RoundLyrics } = {}): Piece {
-  if (!(key in KEYS) || ![1, 2].includes(repeats) || bpm < 60 || bpm > 180) throw Error("Invalid round settings");
+/**
+ * The round's three parts: each a pair of Moppets singing the tune together (in their own octaves),
+ * the parts entering eight beats apart, as a three-part round is sung by three groups.
+ */
+export const ROUND_GROUPS: readonly (readonly string[])[] = [["vee", "clank"], ["scribe", "gruff"], ["pip", "tabby"]];
+
+/**
+ * `lyrics`: one set for everyone (by id, or new words), or "mixed": each group sings the next set.
+ * `repeats`: times through the tune per group.
+ */
+export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 2, lyrics = "jam" as RoundLyricsId | RoundLyrics } = {}): Piece {
+  if (!(key in KEYS) || ![1, 2, 3].includes(repeats) || bpm < 60 || bpm > 180) throw Error("Invalid round settings");
   const chosen: RoundLyrics | undefined = typeof lyrics === "object" ? lyrics : ROUND_LYRICS.find((l) => l.id === lyrics);
   if (!chosen && lyrics !== "mixed") throw Error("Invalid round lyrics");
   if (chosen && (chosen.lines.length !== 4 || chosen.lines.some((l) => roundWords(l).length !== 8))) throw Error("A round needs four lines of eight words");
-  const ids = Object.keys(RANGES), lastEnd = (ids.length - 1) * 8 + 32 * repeats, finale = lastEnd + 2;
-  const tracks: Track[] = ids.map((id, i) => {
-    const set: RoundLyrics = chosen ?? ROUND_LYRICS[i % ROUND_LYRICS.length];
-    const events: ScoreEvent[] = [];
-    for (let r = 0; r < repeats; r++)
-      for (let phrase = 0; phrase < 4; phrase++) {
-        const words = roundWords(set.lines[phrase]);
-        for (let j = 0; j < 8; j++) events.push({ beat: i * 8 + r * 32 + phrase * 8 + j, beats: 1, midi: scalePitch(ROUND_DEGREES[phrase][j], key, "major") + ROUND_OCTAVES[id], text: words[j], line: phrase });
-      }
-    events.push({ beat: finale, beats: 4, midi: scalePitch([0, 2, 0, 4, 0, 2][i], key, "major") + ROUND_OCTAVES[id], text: roundWords(set.last)[0], line: 4 });
-    return { id, entrance: i * 8, events, lines: [...set.lines, `${roundWords(set.last)[0]}!`] };
-  });
+  const lastEnd = (ROUND_GROUPS.length - 1) * 8 + 32 * repeats, finale = lastEnd + 2;
+  // everyone lands together on the last word, spread over the tonic chord
+  const FINAL_DEGREE: Record<string, number> = { vee: 0, scribe: 2, clank: 0, pip: 4, gruff: 0, tabby: 2 };
+  const tracks: Track[] = ROUND_GROUPS.flatMap((group, g) =>
+    group.map((id) => {
+      const set: RoundLyrics = chosen ?? ROUND_LYRICS[g % ROUND_LYRICS.length];
+      const events: ScoreEvent[] = [];
+      for (let r = 0; r < repeats; r++)
+        for (let phrase = 0; phrase < 4; phrase++) {
+          const words = roundWords(set.lines[phrase]);
+          for (let j = 0; j < 8; j++) events.push({ beat: g * 8 + r * 32 + phrase * 8 + j, beats: 1, midi: scalePitch(ROUND_DEGREES[phrase][j], key, "major") + ROUND_OCTAVES[id], text: words[j], line: phrase });
+        }
+      events.push({ beat: finale, beats: 4, midi: scalePitch(FINAL_DEGREE[id] ?? 0, key, "major") + ROUND_OCTAVES[id], text: roundWords(set.last)[0], line: 4 });
+      return { id, entrance: g * 8, events, lines: [...set.lines, `${roundWords(set.last)[0]}!`] };
+    }),
+  );
   const chords: Chord[] = [];
   for (let b = 0; b < lastEnd; b += 2) chords.push({ ...chordInfo([0, 3, 4, 0][Math.floor(b / 2) % 4], key, "major"), beat: b, beats: 2 });
   chords.push({ ...chordInfo(0, key, "major"), beat: finale, beats: 4 });
   const title = chosen ? chosen.title : "Three Rounds at Once";
-  const description = chosen ? "A true six-voice round · same tune · entrances eight beats apart · I–IV–V–I" : "Same tune, three sets of words: each entrance sings the next set, and everyone lands on their own last word together";
+  const description = chosen ? "A three-part round · three pairs of Moppets · each pair enters eight beats after the last · I–IV–V–I" : "A three-part round with three sets of words: each pair sings its own, and everyone lands on their own last word together";
   return { kind: "round", title, key, mode: "major", bpm, repeats, beats: finale + 4, chords, tracks, description };
 }
 
