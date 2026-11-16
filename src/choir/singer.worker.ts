@@ -6,9 +6,18 @@
 import { CueCore, SingerCore, type CueConfig, type EngineExports, type SingerConfig } from "./singerCore.ts";
 import type { MoppetArtic, MoppetSource } from "./voices.ts";
 import type { MixerIn } from "../worklet/mixerProtocol.ts";
+import type { Piece } from "./music.ts";
+import { renderAccompaniment } from "./bandSynth.ts";
+
+/** The backing band to render in this worker (band already resolved; see band.ts). */
+export interface Backing {
+  piece: Piece;
+  sampleRate: number;
+  frames: number;
+}
 
 export type ToSinger =
-  | { type: "init"; module: WebAssembly.Module | null; port: MessagePort; voiceIndex: number; config: SingerConfig | null; cue?: CueConfig; pluck?: Float32Array; paced: boolean; lookahead: number }
+  | { type: "init"; module: WebAssembly.Module | null; port: MessagePort; voiceIndex: number; config: SingerConfig | null; cue?: CueConfig; pluck?: Float32Array; backing?: Backing; paced: boolean; lookahead: number }
   | { type: "pace"; paced: boolean }
   | { type: "seek"; frame: number; generation: number }
   | { type: "source"; values: Partial<MoppetSource> }
@@ -136,6 +145,11 @@ scope.onmessage = (e: MessageEvent<ToSinger>) => {
           frames = m.cue.frames;
           hop = m.cue.hop;
           sampleRate = m.cue.sampleRate;
+        } else if (m.backing) {
+          // the band renders here, off the main thread (a ballad's piano is a few hundred ms of work)
+          sampleRate = m.backing.sampleRate;
+          pluck = renderAccompaniment(m.backing.piece, sampleRate, m.backing.frames) ?? new Float32Array(m.backing.frames);
+          frames = pluck.length;
         } else {
           pluck = m.pluck!;
           frames = pluck.length;

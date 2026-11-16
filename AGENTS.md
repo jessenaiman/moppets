@@ -42,6 +42,10 @@ and the CLI) under a React UI. See the README.
   `src/wasm/wire.ts`. Change both and bump `LAYOUT_VERSION`.
 - **The wasm loads before the UI.** A module that calls the engine at import must not be reachable
   from `src/main.tsx`'s static imports. Check: `bun tools/e2e.ts` against `bun run preview`.
+- **Worker, worklet and tool modules stay engine-free** (`music.ts`, `band.ts`, `bandSynth.ts`,
+  `mix.ts`, `midi.ts`, `timeline.ts`, the singer worker, the mixer worklet): they load where the
+  engine isn't. Engine-calling helpers go in their own module (`roundCheck.ts`, `plan.ts`). Check:
+  `tests/engine-free.test.ts`.
 - **DOM content flows in `.screen-body`, never absolutely positioned.** Check: `bun run lint:layout`.
 - **Nothing copyrighted goes in git.** `public/shows/` is gitignored; never ship CSD audio or
   anything derived from it.

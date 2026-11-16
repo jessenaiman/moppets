@@ -12,12 +12,12 @@ import { chimeraModule } from "../wasm/chimera.ts";
 import { g2p } from "../ui/speech.ts";
 import type { TelemetryMessage } from "../worklet/protocol.ts";
 import type { MixerIn, MixerOut } from "../worklet/mixerProtocol.ts";
-import type { FromSinger, ToSinger } from "./singer.worker.ts";
+import type { Backing, FromSinger, ToSinger } from "./singer.worker.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
-import { renderPluck } from "./pluck.ts";
 import { hopFor, midiToHz, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
 import { beatReady, parseBeat } from "../wasm/engine.ts";
-import { extraStems, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
+import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
+import { bandFor } from "./band.ts";
 import { poseFromRecord, SILENT_POSE, type Pose } from "./pose.ts";
 import { MIX_LEVEL, type MoppetArtic, type MoppetSource, type MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
@@ -117,12 +117,12 @@ class Session {
     const module = chimeraModule();
     const ports: MessagePort[] = [];
     const ends: number[] = [];
-    const spawn = (i: number, cfg: SingerConfig | null, voice: MoppetVoice | null, pluck?: Float32Array, cue?: CueConfig) => {
+    const spawn = (i: number, cfg: SingerConfig | null, voice: MoppetVoice | null, pluck?: Float32Array, cue?: CueConfig, backing?: Backing) => {
       const worker = new Worker(new URL("./singer.worker.ts", import.meta.url), { type: "module" });
       workersAlive++;
       const channel = new MessageChannel();
       ports.push(channel.port1);
-      const init: ToSinger = { type: "init", module: cfg || cue ? module : null, port: channel.port2, voiceIndex: i, config: cfg, cue, pluck, paced, lookahead: LOOKAHEAD };
+      const init: ToSinger = { type: "init", module: cfg || cue ? module : null, port: channel.port2, voiceIndex: i, config: cfg, cue, pluck, backing, paced, lookahead: LOOKAHEAD };
       worker.onmessage = (e: MessageEvent<FromSinger>) => this.onSinger(e.data);
       worker.onerror = (e) => fail(`Singer ${voice?.name ?? "accompaniment"}: ${e.message}`);
       worker.postMessage(init, pluck ? [channel.port2, pluck.buffer] : [channel.port2]);
@@ -138,10 +138,8 @@ class Session {
     plans.forEach(({ voice, plan }, i) => {
       spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice, gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi) }, voice);
     });
-    if (piece.pluck) {
-      const p = renderPluck(piece, this.sampleRate, this.frames);
-      spawn(piece.tracks.length, null, null, p);
-    }
+    // the backing renders in its own worker; the band is resolved here, where the band switch lives
+    if (hasAccompaniment(piece)) spawn(piece.tracks.length, null, null, undefined, undefined, { piece: { ...piece, band: bandFor(piece) }, sampleRate: this.sampleRate, frames: this.frames });
     {
       const hop = this.hop, sampleRate = this.sampleRate, frames = this.frames, start = LEAD_IN;
       let index = this.singers.length;

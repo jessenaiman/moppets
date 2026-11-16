@@ -1,5 +1,12 @@
 /** Mix-bus arithmetic shared by the live mixer worklet and WAV export, so a download is what was heard. */
 import type { Piece } from "./music.ts";
+import { bandFor } from "./band.ts";
+
+/** Is there an accompaniment stem: the band (band.ts), or the original pluck when a piece has no band. */
+const hasBand = (piece: Piece) => bandFor(piece).some((p) => p.notes.length > 0);
+export const hasAccompaniment = (piece: Piece) => hasBand(piece) || !!piece.pluck;
+/** The band sits under the voices: about 12 dB below the whole mix in an up-tempo song (measured with tools/choir-render.ts). */
+export const BAND_LEVEL = 0.55;
 
 export const BUS_GAIN = 0.34;
 /** Stems beyond the singers and accompaniment: the beatbox, then each cameo creature, in spawn order. */
@@ -12,12 +19,12 @@ export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: nu
   const solo = piece.kind === "intro" || piece.kind === "solo";
   const level = (id: string) => (solo ? 0.8 / BUS_GAIN : 1) * (levels[id] ?? 1);
   const gains = piece.tracks.map((t) => level(t.id));
-  const pluckGain = 1 / BUS_GAIN;
-  if (piece.pluck) gains.push(pluckGain);
+  const pluckGain = (hasBand(piece) ? BAND_LEVEL : 1) / BUS_GAIN;
+  if (hasAccompaniment(piece)) gains.push(pluckGain);
   const extras = extraStems(piece);
   for (const e of extras) gains.push(e === "beat" ? 1 : 0.32);
   let section: GainSection | undefined;
-  if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => (0.19 / BUS_GAIN) * (levels[t.id] ?? 1)), ...(piece.pluck ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 1 : 0.32))] };
+  if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => (0.19 / BUS_GAIN) * (levels[t.id] ?? 1)), ...(hasAccompaniment(piece) ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 1 : 0.32))] };
   return { gains, section };
 }
 

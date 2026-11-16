@@ -1,5 +1,6 @@
 /** Ported from Studio 404's music.test.mjs: the score rules that make the choir musical. */
 import { expect, test } from "bun:test";
+import { bandFor } from "../src/choir/band.ts";
 import { compose, invent, makeIntroduction, makeChipSong, makeRound, KEYS, RANGES, ROUND_LINES, SCALES, type KeyName, type Piece, type ScaleMode } from "../src/choir/music.ts";
 import { midiBytes, PPQ } from "../src/choir/midi.ts";
 import { findMode, GROOVES, MODES, PROGRESSIONS, PALETTES } from "../src/choir/theory.ts";
@@ -122,6 +123,10 @@ function readMidi(bytes: Uint8Array) {
         pos += len;
         continue;
       }
+      if ((status & 240) === 192) {
+        pos++; // a program change: the band's General MIDI instrument
+        continue;
+      }
       const note = bytes[pos++], velocity = bytes[pos++];
       if ((status & 240) === 144 && velocity) held.set(note, tick);
       else if ((status & 240) === 128) {
@@ -142,8 +147,15 @@ test("exported MIDI reproduces every score pitch, start time and duration", () =
   const pieces: Piece[] = [compose(), compose({ seed: 12, mode: "minor", key: "E" }), makeRound(), makeRound({ repeats: 2 }), makeIntroduction()];
   for (const piece of pieces) {
     const tracks = readMidi(midiBytes(piece));
-    expect(tracks.length).toBe(7);
+    const band = bandFor(piece);
+    expect(band.length).toBeGreaterThan(0);
+    expect(tracks.length).toBe(1 + piece.tracks.length + band.length);
     piece.tracks.forEach((t, i) => expect(tracks[i + 1]).toEqual(t.events.map(({ midi, beat, beats }) => ({ midi, beat, beats }))));
+    // the band's parts follow, in time order (notes sharing a tick sort by their off/on order)
+    band.forEach((b, i) => {
+      const ticks = (n: { midi: number; beat: number; beats: number }[]) => n.map((x) => [Math.round(x.beat * PPQ), Math.round((x.beat + x.beats) * PPQ), x.midi]).sort((x, y) => x[0] - y[0] || x[2] - y[2]);
+      expect(ticks(tracks[1 + piece.tracks.length + i])).toEqual(ticks(b.notes));
+    });
   }
 });
 

@@ -1,6 +1,6 @@
 /** The original quiet plucked accompaniment (sine partials), one per beat, on the shared timeline. */
 import type { Piece } from "./music.ts";
-import { LEAD_IN, beatSeconds } from "./plan.ts";
+import { LEAD_IN, beatSeconds } from "./timeline.ts";
 
 export function renderPluck(piece: Piece, sampleRate: number, frames: number): Float32Array {
   const out = new Float32Array(frames);

@@ -14,7 +14,7 @@ const { makeSkit, SKITS } = await import("../src/choir/skits.ts");
 const { beatSeconds, LEAD_IN, pieceSeconds, planTrack } = await import("../src/choir/plan.ts");
 const { CAST: voices, MIX_LEVEL } = await import("../src/choir/voices.ts");
 const { extraStems, mixStems, pieceGains, wavBytes } = await import("../src/choir/mix.ts");
-const { renderPluck } = await import("../src/choir/pluck.ts");
+const { renderAccompaniment } = await import("../src/choir/bandSynth.ts");
 const { beatReady, EnglishG2P, parseBeat } = await import("../src/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 const out = process.argv[2] ?? "out/listen";
@@ -41,7 +41,8 @@ for (const [name, piece] of Object.entries(pieces)) {
     stems.push(core.stem);
     core.dispose();
   }
-  if (piece.pluck) stems.push(renderPluck(piece, FS, frames));
+  const backing = renderAccompaniment(piece, FS, frames);
+  if (backing) stems.push(backing);
   for (const e of extraStems(piece)) {
     const x = new WebAssembly.Instance(wasmModule, {}).exports as never;
     const core = e === "beat" ? new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), beat: { steps: parseBeat(piece.beat!.text), bpm: piece.bpm, swing: piece.beat!.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } }) : new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), creature: { id: e, calls: piece.cameos!.filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) })) } });

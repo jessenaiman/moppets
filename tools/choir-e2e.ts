@@ -268,7 +268,7 @@ await page.getByRole("button", { name: /round wav/i }).click();
 const wav = await wavPromise;
 const wavPath = `${outDir}/${wav.suggestedFilename()}`;
 await wav.saveAs(wavPath);
-ok(wav.suggestedFilename() === "jam-in-my-top-hat.wav", `WAV filename ${wav.suggestedFilename()}`);
+ok(wav.suggestedFilename() === "who-put-the-jam-in-my-top-hat.wav", `WAV filename ${wav.suggestedFilename()}`);
 await page.locator('select').filter({ hasText: "Pre-render" }).selectOption("auto");
 const midiPromise = page.waitForEvent("download", { timeout: 5000 });
 await page.getByRole("button", { name: "↓ MIDI" }).click();

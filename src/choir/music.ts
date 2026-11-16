@@ -5,7 +5,6 @@
  */
 import { CHORUS, INTRO_BPM, voices as defaultVoices } from "./voices.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
-import { lyricsToSyllables } from "../wasm/engine.ts";
 
 export type ScaleMode = "major" | "minor" | "aeolian" | "dorian" | "mixolydian" | "lydian" | "phrygian";
 export const SCALES: Record<ScaleMode, number[]> = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 11], aeolian: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], mixolydian: [0, 2, 4, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], phrygian: [0, 1, 3, 5, 7, 8, 10] };
@@ -76,6 +75,8 @@ export interface Piece {
   description: string;
   /** MIDI roots of the plucked accompaniment, one per beat (null: none) */
   pluck?: (number | null)[];
+  /** the backing band's own parts (otherwise band.ts arranges one from the chords) */
+  band?: import("./band.ts").BandPart[];
   /** CHIMERA's beatbox stem for this piece */
   beat?: { text: string; swing: number };
   /** gestures on the stage (AniCraft clips, see gestures.ts): who does what, from which beat */
@@ -195,20 +196,6 @@ export function compose({ seed = 404, key = "D" as KeyName, mode = "major" as Sc
 // Any eight-beat delay therefore preserves every vertical chord alignment.
 const ROUND_DEGREES = [[0, 2, 3, 5, 4, 6, 2, 0], [2, 4, 5, 7, 6, 8, 4, 2], [4, 2, 7, 5, 8, 6, 7, 4], [7, 4, 3, 7, 4, 8, 4, 7]];
 const ROUND_OCTAVES: Record<string, number> = Object.fromEntries(defaultVoices.map((v) => [v.id, v.octave]));
-
-/** What stops a set of words being sung on the round's tune: one note per syllable, eight to a line. Load the dictionary first. */
-export function roundProblems(w: Partial<RoundLyrics>): string[] {
-  if (!Array.isArray(w.lines) || w.lines.length !== 4 || typeof w.last !== "string" || typeof w.title !== "string") return ["it needs a title, four lines and a last word"];
-  const out: string[] = [];
-  w.lines.forEach((l, i) => {
-    const words = roundWords(String(l));
-    if (words.length !== 8) out.push(`line ${i + 1} has ${words.length} words, not 8`);
-  });
-  const multi = [...w.lines.flatMap((l) => roundWords(String(l))), ...roundWords(w.last)].filter((x) => lyricsToSyllables(x).length !== 1);
-  if (multi.length) out.push(`these are not one syllable: ${[...new Set(multi)].join(", ")}`);
-  if (roundWords(w.last).length !== 1) out.push("the last word must be one word");
-  return out;
-}
 
 /** `lyrics`: one set for everyone (by id, or new words), or "mixed": each entrance takes the next set in turn. */
 export function makeRound({ key = "D" as KeyName, bpm = 108, repeats = 1, lyrics = "jam" as RoundLyricsId | RoundLyrics } = {}): Piece {

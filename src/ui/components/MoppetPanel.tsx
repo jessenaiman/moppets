@@ -605,13 +605,21 @@ function ScorePanel() {
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
-      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools"><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
+      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools"><BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
       <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} /></div>
       <div className="score-legend">{voices.map((v) => <span key={v.id}><i style={{ background: v.color }} />{v.name}</span>)}<span className="score-help">Higher on the page = higher pitch</span></div></>}
     </div>
   );
 }
 
+
+/** The backing band (bass, electric piano, and drums unless the beatbox plays): background music, in the MIDI too. */
+function BandToggle() {
+  const band = useMoppet((s) => s.band);
+  const setBand = useMoppet((s) => s.setBand);
+  const busy = useEnsemble((s) => s.status === "preparing" || s.status === "rendering");
+  return <button className={band ? "on" : ""} aria-pressed={band} disabled={busy} onClick={() => setBand(!band)} title="Bass, electric piano and drums under the voices">{band ? "Band on" : "Band off"}</button>;
+}
 
 /** Does the dev server have the SoundCraft bridge (tools/soundcraft-bridge.ts)? */
 let bridge: Promise<boolean> | null = null;

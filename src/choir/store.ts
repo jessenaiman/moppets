@@ -7,9 +7,11 @@ import { create } from "zustand";
 import { useStore } from "../ui/store.ts";
 import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } from "../wasm/engine.ts";
 import { sameBody, type BodyMix } from "../ui/body.ts";
-import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, roundProblems, type ScaleMode } from "./music.ts";
+import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
+import { roundProblems } from "./roundCheck.ts";
 import { SONGBOOK, type SongId } from "./songbook.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
+import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
 import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
@@ -52,6 +54,9 @@ interface MoppetState {
   roundLyrics: RoundLyricsId | "fresh";
   /** the words Claude wrote last (dev server only) */
   freshRound: RoundLyrics | null;
+  /** the backing band (bass, electric piano, drums) under every song */
+  band: boolean;
+  setBand: (on: boolean) => void;
   /** the skit Claude wrote last (dev server only) */
   freshSkit: Skit | null;
   writing: boolean;
@@ -139,6 +144,12 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   roundLyrics: "jam",
   freshRound: null,
   freshSkit: null,
+  band: true,
+  setBand: (band) => {
+    setBandEnabled(band);
+    set({ band, status: band ? "The band is in." : "The band sits this one out." });
+    loadPiece(get().piece); // re-render with or without it
+  },
   writing: false,
   writeSkit: async () => {
     set({ writing: true, status: "Claude is writing a new skit…" });

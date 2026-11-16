@@ -9,13 +9,8 @@ import type { Piece, ScoreEvent, Track } from "./music.ts";
 import { PLAN_VIBRATO } from "./character.ts";
 import type { MoppetVoice } from "./voices.ts";
 
-/** Silence on the timeline before beat 0, so the first onset's consonant has room. */
-export const LEAD_IN = 0.4;
-/** Tail after the last beat for the final release to ring out. */
-export const TAIL = 0.6;
-
-export const beatSeconds = (piece: Piece) => 60 / piece.bpm;
-export const pieceSeconds = (piece: Piece) => LEAD_IN + piece.beats * beatSeconds(piece) + TAIL;
+import { beatSeconds, LEAD_IN } from "./timeline.ts";
+export { beatSeconds, LEAD_IN, pieceSeconds, TAIL } from "./timeline.ts";
 
 export interface TrackPlan {
   id: string;
