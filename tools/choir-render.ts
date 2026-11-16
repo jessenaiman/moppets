@@ -9,7 +9,7 @@ import { initEngine, wasmModule } from "../tests/harness.ts";
 await initEngine();
 const { CueCore, hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.ts");
 const { invent, makeIntroduction, makeChipSong, makeRound } = await import("../src/choir/music.ts");
-const { makeStillLoading, makeAutocomplete } = await import("../src/choir/songbook.ts");
+const { SONGBOOK } = await import("../src/choir/songbook.ts");
 const { beatSeconds, LEAD_IN, pieceSeconds, planTrack } = await import("../src/choir/plan.ts");
 const { CAST: voices, MIX_LEVEL } = await import("../src/choir/voices.ts");
 const { extraStems, mixStems, pieceGains, wavBytes } = await import("../src/choir/mix.ts");
@@ -19,7 +19,7 @@ new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/da
 const out = process.argv[2] ?? "out/listen";
 mkdirSync(out, { recursive: true });
 const FS = 48000;
-const pieces = { "1-introduction": makeIntroduction(), "2-invention-major-bossa-beatband": invent({ seed: 404, key: "D", mode: "major", progression: "doowop", groove: "bossa", palette: "beatband", soul: true }), "3-invention-dorian-funk-menagerie": invent({ seed: 88, key: "A", mode: "dorian", progression: "vamp", groove: "funk", palette: "menagerie", soul: true }), "4-jam-round": makeRound({ key: "D", bpm: 108 }), "5-chip-reads-the-manual": makeChipSong(), "6-still-loading": makeStillLoading(), "7-autocomplete": makeAutocomplete() };
+const pieces = { "1-introduction": makeIntroduction(), "2-invention-major-bossa-beatband": invent({ seed: 404, key: "D", mode: "major", progression: "doowop", groove: "bossa", palette: "beatband", soul: true }), "3-invention-dorian-funk-menagerie": invent({ seed: 88, key: "A", mode: "dorian", progression: "vamp", groove: "funk", palette: "menagerie", soul: true }), "4-jam-round": makeRound({ key: "D", bpm: 108 }), "5-chip-reads-the-manual": makeChipSong(), ...Object.fromEntries(SONGBOOK.map((x, i) => [`${6 + i}-${x.id}`, x.make()])) };
 const only = process.env.ONLY;
 for (const [name, piece] of Object.entries(pieces)) {
   if (only && !name.includes(only)) continue;

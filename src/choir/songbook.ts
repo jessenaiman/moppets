@@ -17,6 +17,8 @@ export interface Sung {
   words: string;
   degrees: number[];
   rhythm: number[];
+  /** beats into the line before this phrase starts (for a phrase sung `with` a line: an answer) */
+  offset?: number;
 }
 /** A line: a phrase, the chords under it (beats summing to its length), and phrases sung at the same time. */
 export interface Line extends Sung {
@@ -49,6 +51,39 @@ export interface Song {
   finale: { word: string; degree: number };
 }
 
+/** A chord under a line, in absolute beats. */
+interface Span {
+  start: number;
+  end: number;
+  deg: number;
+}
+const chordTones = (deg: number) => new Set([0, 2, 4].map((k) => (((deg + k) % 7) + 7) % 7));
+
+/**
+ * A sung note on a strong beat (1 or 3 of the bar), one that lands on any beat and lasts one, or
+ * one that is held, must be a tone of the chord under it; one held across a chord change must also fit the chords it lasts a beat into, where some
+ * tone fits them all. Otherwise it moves a scale step (down first) to the nearest that does.
+ * Shorter off-beat notes stay as written: they are the passing tones that make a melody move.
+ * (The first hand-written songs held non-chord notes on the downbeat, 26 times in "Still
+ * Loading" against none in "Chip Reads the Manual", and it sounded wrong.)
+ */
+function fitChord(d: number, beat: number, beats: number, spans: Span[]): number {
+  const onBeat = Math.abs(beat - Math.round(beat)) < 1e-9, strong = onBeat && Math.round(beat) % 2 === 0;
+  if (!strong && !(onBeat && beats >= 1) && beats < 1.5) return d;
+  const covering = spans.filter((sp) => sp.end > beat + 1e-9 && sp.start < beat + beats - 1e-9);
+  if (!covering.length) return d;
+  const first = covering.find((sp) => sp.start <= beat + 1e-9) ?? covering[0];
+  let allowed = chordTones(first.deg);
+  for (const sp of covering) {
+    if (sp === first || Math.min(sp.end, beat + beats) - Math.max(sp.start, beat) < 1) continue;
+    const common = [...allowed].filter((x) => chordTones(sp.deg).has(x));
+    if (common.length) allowed = new Set(common);
+  }
+  const fits = (x: number) => allowed.has(((x % 7) + 7) % 7);
+  for (const step of [0, -1, 1, -2, 2]) if (fits(d + step)) return d + step;
+  return d;
+}
+
 const REGISTER: Record<string, [number, number]> = Object.fromEntries(CAST.map((v) => [v.id, v.register]));
 const BAR = 4;
 const isRest = (l: Line | Rest): l is Rest => "rest" in l;
@@ -65,12 +100,12 @@ export function buildSong(s: Song): Piece {
     if (!p) parts.set(id, (p = { phrases: [], events: [], pads: [] }));
     return p;
   };
-  const sing = (who: string, sung: Sung, at: number) => {
+  const sing = (who: string, sung: Sung, at: number, spans: Span[]) => {
     if (sung.degrees.length !== sung.rhythm.length) throw new Error(`${s.title}: "${sung.words}" has ${sung.degrees.length} notes and ${sung.rhythm.length} lengths`);
     const p = part(who), line = p.phrases.push(sung.words) - 1;
     let beat = at;
     sung.degrees.forEach((d, j) => {
-      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(d, key, mode), text: "", line });
+      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(fitChord(d, beat, sung.rhythm[j], spans), key, mode), text: "", line });
       beat += sung.rhythm[j];
     });
     return beat - at;
@@ -91,12 +126,14 @@ export function buildSong(s: Song): Piece {
         at += l.rest;
         continue;
       }
-      const length = sing(l.who ?? s.lead, l, at);
+      const spans: Span[] = [];
+      for (const [deg, beats] of l.chords) spans.push({ start: spans.length ? spans[spans.length - 1].end : at, end: (spans.length ? spans[spans.length - 1].end : at) + beats, deg });
+      const length = sing(l.who ?? s.lead, l, at, spans);
       const busy = new Set([l.who ?? s.lead]);
       for (const w of l.with ?? []) {
         busy.add(w.who ?? s.lead);
-        if (sum(w.rhythm) > length + 1e-9) throw new Error(`${s.title}: "${w.words}" runs past its line`);
-        sing(w.who ?? s.lead, w, at);
+        if ((w.offset ?? 0) + sum(w.rhythm) > length + 1e-9) throw new Error(`${s.title}: "${w.words}" runs past its line`);
+        sing(w.who ?? s.lead, w, at + (w.offset ?? 0), spans);
       }
       if (Math.abs(sum(l.chords.map((c) => c[1])) - length) > 1e-9) throw new Error(`${s.title}: the chords under "${l.words}" last ${sum(l.chords.map((c) => c[1]))} beats, the line ${length}`);
       let t = at;
@@ -112,7 +149,7 @@ export function buildSong(s: Song): Piece {
   // everyone lands on the home chord; the lead holds the last word
   chords.push({ ...chordInfo(0, key, mode), beat: at, beats: BAR });
   for (const [id, d] of [["vee", 0], ["scribe", 2], ["pip", 4], ["clank", 0], ["gruff", 2], ["tabby", 4]] as const) if (id !== s.lead) pad(id, at, d, BAR);
-  sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [BAR] }, at);
+  sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [BAR] }, at, [{ start: at, end: at + BAR, deg: 0 }]);
 
   // each singer's sung part moves by whole octaves into its register, keeping its contour
   const tracks: Track[] = [];
@@ -173,8 +210,8 @@ export function makeStillLoading(): Piece {
         // the long think: Chip hums while Scribe ticks off the seconds and the choir rises
         choir: true,
         lines: [
-          { words: "Hum", degrees: [4], rhythm: [8], chords: [[0, 4], [3, 4]], with: [{ who: "scribe", words: "Tick tock tick tock tick tock tick tock", degrees: [7, 6, 7, 6, 7, 6, 7, 6], rhythm: [1, 1, 1, 1, 1, 1, 1, 1] }] },
-          { words: "Hum", degrees: [6], rhythm: [8], chords: [[4, 4], [4, 4]], with: [{ who: "scribe", words: "Tick tock tick tock tick tock tick tock", degrees: [8, 7, 8, 7, 8, 7, 8, 7], rhythm: [1, 1, 1, 1, 1, 1, 1, 1] }] },
+          { words: "Hum", degrees: [4], rhythm: [8], chords: [[0, 8]], with: [{ who: "scribe", words: "Tick tock tick tock tick tock tick tock", degrees: [7, 6, 7, 6, 7, 6, 7, 6], rhythm: [1, 1, 1, 1, 1, 1, 1, 1] }] },
+          { words: "Hum", degrees: [6], rhythm: [8], chords: [[4, 8]], with: [{ who: "scribe", words: "Tick tock tick tock tick tock tick tock", degrees: [8, 7, 8, 7, 8, 7, 8, 7], rhythm: [1, 1, 1, 1, 1, 1, 1, 1] }] },
         ],
       },
       {
@@ -251,3 +288,315 @@ export function makeAutocomplete(): Piece {
     finale: { word: "Ding", degree: 7 },
   });
 }
+
+const SWING_BEAT = { text: "B . t . | Pf . t K | B . t . | Pf . t K", swing: 0.45 };
+const MARCH_BEAT = { text: "B . t . | B . t . | B . tss . | B . t .", swing: 0 };
+const BOSSA_BEAT = { text: "B . t K | . t B . | t B . K | . B t .", swing: 0.05 };
+/** A line sung by several Moppets at once: `parts` are [who, scale steps from the melody]. */
+const together = (l: Line, parts: [string, number][]): Line => ({ ...l, with: [...(l.with ?? []), ...parts.map(([who, steps]) => ({ who, words: l.words, degrees: l.degrees.map((d) => d + steps), rhythm: l.rhythm }))] });
+/** A call and its answer: one line, the answer coming in partway through. */
+const call = (who: string, words: string, degrees: number[], rhythm: number[], chords: [number, number][]): Line => ({ who, words, degrees, rhythm, chords });
+
+/**
+ * "Rewind, Be Kind": Vee the tape deck keeps the last few minutes crisp and chews up anything
+ * older. A helper holds only so much: say the important parts again. In the bridge the tape gets
+ * eaten, the band stops, and Vee wobbles back.
+ */
+export function makeRewind(): Piece {
+  const verse = (w: string[]): Section => ({
+    lines: [
+      { words: w[0], degrees: [0, 0, 2, 4, 4, 5, 4, 2], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
+      { words: w[1], degrees: [4, 4, 5, 7, 7, 5, 4, 4], rhythm: LILT_A, chords: [[3, 4], [4, 4]] },
+      { words: w[2], degrees: [0, 0, 2, 4, 4, 5, 4, 2], rhythm: LILT_B, chords: [[0, 4], [5, 4]] },
+      { words: w[3], degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  });
+  const hook = { words: "Rewind be kind rewind", degrees: [2, 4, 5, 7, 5, 4], rhythm: [0.5, 1.5, 0.5, 1.5, 0.5, 3.5] };
+  const chorus: Section = {
+    choir: true,
+    lines: [
+      { ...hook, chords: [[0, 4], [4, 4]] },
+      { words: "I hold what fits upon my reel", degrees: [4, 4, 5, 7, 5, 4, 2, 4], rhythm: LILT_B, chords: [[3, 4], [0, 4]] },
+      { ...hook, chords: [[0, 4], [5, 4]] },
+      { words: "Repeat the parts that matter most", degrees: [4, 5, 7, 5, 4, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  };
+  return buildSong({
+    lead: "vee",
+    title: "Rewind, Be Kind",
+    description: "08 · Vee remembers the last ten minutes perfectly, and the rest not at all",
+    key: "F",
+    bpm: 104,
+    beat: SWING_BEAT,
+    seats: [["pip", 2], ["tabby", 4], ["scribe", 0], ["gruff", 2]],
+    sections: [
+      verse(["I keep the last ten minutes near", "I play them back so crisp and clear", "But Tuesday's tape got wound too tight", "It sounds like soup and socks and night"]),
+      chorus,
+      // the tape gets eaten: everything stops, Vee slows to a groan, Tabby notices, Vee rewinds
+      {
+        lines: [
+          { rest: 2 },
+          { words: "Wub wub wub wub", degrees: [4, 3, 1, -1], rhythm: [1, 1, 2, 2], chords: [[0, 6]] },
+          call("tabby", "Oh no the tape", [7, 5, 4, 2], [1, 1, 1, 1], [[5, 4]]),
+          { words: "Hang on rewinding", degrees: [-1, 0, 2, 4, 7], rhythm: [0.5, 0.5, 0.5, 0.5, 2], chords: [[4, 4]] },
+        ],
+      },
+      verse(["You told me that you like the blue", "You told me that you have a cat", "And way back when you said your name", "I think it might have been a spoon"]),
+      chorus,
+    ],
+    finale: { word: "Kind", degree: 7 },
+  });
+}
+
+/**
+ * "Mainframe Blues": Clank fills a room to add up two. Huge, slow, glad to help; the choir answers
+ * like backing singers. Mixolydian, so the seventh is flat and bluesy.
+ */
+export function makeMainframeBlues(): Piece {
+  const ROLL = [0.5, 0.5, 1, 0.5, 0.5, 1, 1, 3];
+  const doowah = (degrees: number[]): Sung[] => [
+    { who: "tabby", words: "doo wah", degrees: degrees.map((d) => d + 2), rhythm: [1, 1], offset: 6 },
+    { who: "pip", words: "doo wah", degrees, rhythm: [1, 1], offset: 6 },
+    { who: "scribe", words: "doo wah", degrees: degrees.map((d) => d + 4), rhythm: [1, 1], offset: 6 },
+  ];
+  const verse = (w: string[]): Section => ({
+    lines: [
+      { words: w[0], degrees: [4, 4, 2, 0, 2, 4, 2, 0], rhythm: ROLL, chords: [[0, 4], [0, 4]], with: doowah([6, 4]) },
+      { words: w[1], degrees: [4, 4, 2, 0, 2, 4, 6, 4], rhythm: ROLL, chords: [[3, 4], [3, 4]], with: doowah([5, 3]) },
+      { words: w[2], degrees: w[2].split(" ").length === 7 ? [4, 4, 2, 0, 2, 4, 0] : [4, 4, 2, 0, 2, 4, 2, 0], rhythm: w[2].split(" ").length === 7 ? [0.5, 0.5, 1, 0.5, 0.5, 1, 4] : ROLL, chords: [[0, 4], [0, 4]], with: doowah([6, 4]) },
+      { words: w[3], degrees: [4, 4, 6, 4, 2, 1, 0, 0], rhythm: [1, 0.5, 0.5, 1, 1, 1, 0.5, 2.5], chords: [[4, 4], [0, 4]], with: doowah([4, 4]) },
+    ],
+  });
+  const chorus: Section = {
+    choir: true,
+    lines: [
+      { words: "I've got the mainframe blues", degrees: [0, 2, 4, 6, 4, 4], rhythm: [0.5, 0.5, 1, 1, 1, 4], chords: [[0, 4], [3, 4]] },
+      { words: "Too big to fit in your shoes", degrees: [4, 4, 2, 4, 2, 0, 0], rhythm: [1, 1, 1, 1, 1, 1, 2], chords: [[0, 4], [4, 4]] },
+      { words: "But ask me anything at all", degrees: [0, 2, 4, 6, 6, 6, 4, 2], rhythm: LILT_B, chords: [[3, 4], [0, 4]] },
+      { words: "I'll think it over down the hall", degrees: [4, 4, 2, 0, 2, 1, 0, 0], rhythm: LILT_A, chords: [[4, 4], [0, 4]] },
+    ],
+  };
+  return buildSong({
+    lead: "clank",
+    title: "Mainframe Blues",
+    description: "09 · Clank fills a room to add up two, with backing singers",
+    key: "G",
+    mode: "mixolydian",
+    bpm: 70,
+    beat: { text: "B . . . | t . . K | B . . . | t . K .", swing: 0.4 },
+    bass: "vee",
+    seats: [["pip", 2], ["tabby", 4], ["scribe", 2], ["gruff", 0]],
+    sections: [
+      verse(["I fill a room to add up two", "My fans all hum the whole night through", "You ask me what's three plus one", "Give me a week I'll get it done"]),
+      chorus,
+      verse(["They shrank me down into a phone", "But I still hum when I'm alone", "Now four plus four I know that's eight", "I worked it out but I was late"]),
+      chorus,
+    ],
+    finale: { word: "Blues", degree: 0 },
+  });
+}
+
+/**
+ * "Static Lullaby": when Tabby's signal is weak she paints in what she thinks is there, and says
+ * so. Honest uncertainty, as a lullaby.
+ */
+export function makeStaticLullaby(): Piece {
+  const ROCK = [1.5, 0.5, 1, 1, 1.5, 0.5, 1, 1];
+  const verse = (w: string[]): Section => ({
+    lines: [
+      { words: w[0], degrees: [4, 2, 0, 2, 4, 5, 4, 4], rhythm: ROCK, chords: [[0, 4], [3, 4]] },
+      { words: w[1], degrees: [4, 5, 7, 7, 5, 4, 2, 1], rhythm: ROCK, chords: [[0, 4], [4, 4]] },
+      { words: w[2], degrees: w[2].split(" ").length === 7 ? [4, 2, 0, 2, 4, 5, 4] : [4, 2, 0, 2, 4, 5, 4, 4], rhythm: w[2].split(" ").length === 7 ? [1.5, 0.5, 1, 1, 1.5, 0.5, 2] : ROCK, chords: [[0, 4], [3, 4]] },
+      { words: w[3], degrees: [5, 4, 2, 4, 2, 1, 1, 0], rhythm: ROCK, chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  });
+  const sleep = { degrees: [7, 4, 5, 4, 2, 4], rhythm: [2, 2, 1, 1, 1, 1] };
+  const chorus: Section = {
+    choir: true,
+    lines: [
+      { words: "Sleep sleep the snow will fall", ...sleep, chords: [[0, 4], [5, 4]] },
+      { words: "I might be dreaming ask again", degrees: [4, 5, 7, 5, 4, 2, 4, 2], rhythm: LILT_B, chords: [[3, 4], [4, 4]] },
+      { words: "Sleep sleep I'll tell you true", ...sleep, chords: [[0, 4], [5, 4]] },
+      { words: "When I'm not sure I'll say so too", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  };
+  return buildSong({
+    lead: "tabby",
+    title: "Static Lullaby",
+    description: "10 · Tabby fills in the snow on her screen, and tells you when she's guessing",
+    key: "F",
+    bpm: 72,
+    beat: { text: "B . . . | . . . . | t . . . | . . . .", swing: 0 },
+    seats: [["vee", 0], ["pip", 2], ["scribe", 4], ["gruff", 2]],
+    sections: [
+      verse(["Hush now the screen is soft and gray", "The signal wanders far away", "I see a horse or just a chair", "I'll paint it in but check it's there"]),
+      chorus,
+      verse(["I filled the gaps in purple light", "A moon a sheep a kite at night", "Some are real and some I made", "So check the sky before I fade"]),
+      chorus,
+    ],
+    finale: { word: "Sleep", degree: 7 },
+  });
+}
+
+/**
+ * "Ask Me Anything (But That)": Gruff the monster radio is big and scary outside, careful inside.
+ * The others try silly requests; he turns each one into something kind, and says yes to the one
+ * that is.
+ */
+export function makeAskMeAnything(): Piece {
+  const ask = [4, 4, 5, 4, 2], yes: [number, number][] = [[0, 4]], hm: [number, number][] = [[4, 4]];
+  const chorusHook = { words: "Ask me anything but that", degrees: [7, 7, 5, 4, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3] };
+  const chorus: Section = {
+    choir: true,
+    lines: [
+      { ...chorusHook, chords: [[0, 4], [3, 4]] },
+      { words: "I'll help you build I'll help you mend", degrees: [4, 5, 7, 4, 4, 5, 7, 5], rhythm: LILT_B, chords: [[0, 4], [4, 4]] },
+      { ...chorusHook, chords: [[0, 4], [3, 4]] },
+      { words: "A monster can be a friend", degrees: [4, 5, 4, 2, 1, 2, 0], rhythm: [1, 1, 1, 1, 1, 1, 2], chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  };
+  return buildSong({
+    lead: "gruff",
+    title: "Ask Me Anything (But That)",
+    description: "11 · Gruff is scary on the outside and careful on the inside",
+    key: "D",
+    bpm: 112,
+    beat: MARCH_BEAT,
+    seats: [["vee", 0], ["pip", 2], ["tabby", 4], ["scribe", 2]],
+    sections: [
+      {
+        lines: [
+          { words: "I'm big and loud and full of fuzz", degrees: [0, 0, 4, 4, 5, 5, 4, 4], rhythm: LILT_B, chords: [[0, 4], [4, 4]] },
+          { words: "My tubes glow orange when I buzz", degrees: [4, 4, 5, 7, 5, 4, 2, 1], rhythm: LILT_A, chords: [[0, 4], [4, 4]] },
+          { words: "But don't be scared of all my growl", degrees: [0, 0, 4, 4, 5, 5, 4, 4], rhythm: LILT_B, chords: [[3, 4], [0, 4]] },
+          { words: "I'm gentle as a napping owl", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] },
+        ],
+      },
+      chorus,
+      {
+        // the requests: each one hangs on the dominant, Gruff's answer comes home
+        lines: [
+          call("pip", "Help me build a trap", ask, TAP, hm),
+          { words: "Let's build a birdhouse", degrees: [4, 2, 0, 2, 0], rhythm: TAP, chords: yes },
+          call("vee", "Help me steal a pie", ask, TAP, hm),
+          { words: "Let's bake one too", degrees: [4, 2, 1, 0], rhythm: [1, 1, 1, 1], chords: yes },
+          call("clank", "Help me scare the cat", ask, TAP, hm),
+          { words: "Let's sing it a song", degrees: [4, 2, 0, 2, 0], rhythm: TAP, chords: yes },
+          call("chip", "Help me reach the shelf", ask, TAP, hm),
+          // the one he can do: rising, yes
+          { words: "Hop up on my head", degrees: [0, 2, 4, 5, 7], rhythm: TAP, chords: yes },
+        ],
+      },
+      chorus,
+    ],
+    finale: { word: "Friend", degree: 0 },
+  });
+}
+
+/**
+ * "Pip Repeats": Pip learns by echo. First the others call and Pip copies, badly, then better;
+ * by the end Pip calls and the others echo. Learning from examples.
+ */
+export function makePipRepeats(): Piece {
+  const echo = (who: string, words: string, degrees: number[], rhythm: number[], chords: [number, number][], by: string, as = words): Line[] => [call(who, words, degrees, rhythm, chords), call(by, as, degrees, rhythm, chords)];
+  const ribbit = { degrees: [4, 2, 4, 2, 5, 4, 2], rhythm: [0.5, 0.5, 0.5, 0.5, 1, 1, 4] };
+  const chorus: Section = {
+    choir: true,
+    lines: [
+      { words: "Ribbit ribbit copy me", ...ribbit, chords: [[0, 4], [4, 4]] },
+      { words: "Watch and listen try again", degrees: [2, 4, 5, 7, 5, 4, 2], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[3, 4], [4, 4]] },
+      { words: "Ribbit ribbit one more time", ...ribbit, chords: [[0, 4], [4, 4]] },
+      { words: "Now I've got it now it's mine", degrees: [4, 5, 4, 2, 1, 1, 0], rhythm: [1, 0.5, 0.5, 1, 1, 1, 3], chords: [[1, 4], [4, 2], [0, 2]] },
+    ],
+  };
+  return buildSong({
+    lead: "pip",
+    title: "Pip Repeats",
+    description: "12 · Pip learns by copying, until the others copy Pip",
+    key: "A",
+    bpm: 108,
+    beat: BOSSA_BEAT,
+    seats: [["vee", 0], ["tabby", 4], ["scribe", 2], ["gruff", 2]],
+    sections: [
+      {
+        lines: [
+          ...echo("tabby", "Hello there", [4, 5, 4], [1, 1, 2], [[0, 4]], "pip", "Jello there"),
+          ...echo("vee", "Nice to meet you", [2, 4, 5, 4], [1, 1, 1, 1], [[3, 4]], "pip", "Ice to eat you"),
+          ...echo("scribe", "Pass the butter", [7, 5, 4, 2], [1, 1, 1, 1], [[4, 4]], "pip"),
+          ...echo("gruff", "Excellent frog", [0, 2, 4, 7], [1, 1, 1, 1], [[0, 4]], "pip"),
+        ],
+      },
+      chorus,
+      {
+        lines: [
+          ...echo("pip", "Lily pad", [4, 5, 7], [1, 1, 2], [[0, 4]], "vee"),
+          ...echo("pip", "Splish splash splosh", [7, 5, 4], [1, 1, 2], [[4, 4]], "clank"),
+          ...echo("pip", "Moppets rule", [4, 5, 7], [1, 1, 2], [[3, 4]], "tabby"),
+          call("pip", "Thank you teachers", [7, 5, 4, 2], [1, 1, 1, 1], [[4, 4]]),
+          call("gruff", "You're welcome Pip", [4, 2, 1, 0], [1, 1, 1, 1], [[0, 4]]),
+        ],
+      },
+      chorus,
+    ],
+    finale: { word: "Croak", degree: 7 },
+  });
+}
+
+/**
+ * "Found Things": the finale. Each Moppet sings what it was before it was found, and as the next
+ * one sings, the last adds its own sound; then everyone sings the chorus together, built from what
+ * others left behind and thankful for it.
+ */
+export function makeFoundThings(): Piece {
+  const A = { degrees: [0, 2, 4, 4, 5, 4, 2, 4], rhythm: LILT_B, chords: [[0, 4], [5, 4]] as [number, number][] };
+  const B = { degrees: [4, 5, 7, 7, 5, 4, 2, 1], rhythm: LILT_A, chords: [[3, 4], [4, 4]] as [number, number][] };
+  const sound = (who: string, words: string, degree: number): Sung => ({ who, words, degrees: [degree], rhythm: [1], offset: 7 });
+  const sing = (parts: [string, number][], l: Line) => together(l, parts);
+  const everyone: [string, number][] = [["tabby", 0], ["chip", 0], ["pip", 2], ["scribe", -2], ["gruff", 0]];
+  const chorus: Section = {
+    lines: [
+      sing(everyone, { words: "We are the found things put to use", degrees: [4, 4, 5, 7, 7, 5, 4, 2], rhythm: LILT_B, chords: [[0, 4], [4, 4]] }),
+      sing(everyone, { words: "Built from the bits that you let loose", degrees: [2, 2, 4, 5, 5, 4, 2, 1], rhythm: LILT_A, chords: [[5, 4], [4, 4]] }),
+      sing(everyone, { words: "Thank you for all you left before", degrees: [4, 4, 5, 7, 8, 7, 5, 4], rhythm: LILT_B, chords: [[3, 4], [0, 4]] }),
+      sing(everyone, { words: "At four oh four we all belong", degrees: [4, 5, 4, 2, 1, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]] }),
+    ],
+  };
+  return buildSong({
+    lead: "vee",
+    title: "Found Things",
+    description: "13 · The finale: everyone was something else once",
+    key: "D",
+    bpm: 96,
+    beat: { text: "B . t . | Pf . t . | B . t . | Pf . t K", swing: 0.1 },
+    seats: [],
+    sections: [
+      {
+        lines: [
+          { words: "I was a tape left in a drawer", ...A },
+          { who: "scribe", words: "I was the keys by the back door", ...B, with: [sound("vee", "whirr", 4)] },
+          { who: "clank", words: "I was a fridge sized thinking box", ...A, with: [sound("scribe", "ding", 7)] },
+          { who: "tabby", words: "I was a screen that lost its glow", ...B, with: [sound("clank", "beep", 0)] },
+          { who: "pip", words: "I was a frog of felt and thread", ...A, with: [sound("tabby", "hum", 4)] },
+          { who: "gruff", words: "I was a box of tubes half dead", ...B, with: [sound("pip", "croak", 2)] },
+          { who: "chip", words: "I was a disk beneath a bed", degrees: [4, 5, 7, 5, 4, 2, 1, 0], rhythm: LILT_A, chords: [[1, 4], [4, 2], [0, 2]], with: [sound("gruff", "buzz", 0)] },
+        ],
+      },
+      chorus,
+      chorus,
+    ],
+    finale: { word: "Home", degree: 7 },
+  });
+}
+
+/** Every Moppet original, in songbook order: the lesson id, the tab's label, and the score. */
+export const SONGBOOK = [
+  { id: "loading", tab: "06 · Still Loading", make: makeStillLoading },
+  { id: "autocomplete", tab: "07 · Autocomplete", make: makeAutocomplete },
+  { id: "rewind", tab: "08 · Rewind, Be Kind", make: makeRewind },
+  { id: "mainframe", tab: "09 · Mainframe Blues", make: makeMainframeBlues },
+  { id: "lullaby", tab: "10 · Static Lullaby", make: makeStaticLullaby },
+  { id: "askme", tab: "11 · Ask Me Anything", make: makeAskMeAnything },
+  { id: "pip", tab: "12 · Pip Repeats", make: makePipRepeats },
+  { id: "found", tab: "13 · Found Things", make: makeFoundThings },
+] as const;
+export type SongId = (typeof SONGBOOK)[number]["id"];

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useStore } from "../store.ts";
 import { engine } from "../../audio/AudioEngine.ts";
 import { Screen } from "./Screen.tsx";
@@ -16,6 +16,7 @@ import { beatSeconds, LEAD_IN, pieceSeconds } from "../../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../../choir/voices.ts";
 import { makeIntroduction } from "../../choir/music.ts";
 import { Choreographer, featuredAt } from "../../choir/choreo.ts";
+import { SONGBOOK } from "../../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
 import { midiSupported } from "../midi.ts";
 import solo from "../../choir/vee-solo.json";
@@ -40,7 +41,7 @@ function PlayLabel({ piece }: { piece: Piece }) {
   if (status === "paused") return <>▶&nbsp; Continue</>;
   if (status === "preparing" || status === "rendering") return <>Rendering…</>;
   const again = status === "ended" ? "↻ " : "▶ ";
-  const name = piece.kind === "intro" ? "Meet the whole choir" : piece.kind === "round" ? "Play the jam round" : piece.kind === "solo" ? `Sing ${piece.tracks[0].id}'s introduction` : piece.kind === "motesong" ? `Hear ${piece.tracks[0].id[0].toUpperCase()}${piece.tracks[0].id.slice(1)}’s song` : "Play the new invention";
+  const name = piece.kind === "intro" ? "Meet the whole choir" : piece.kind === "round" ? "Play the jam round" : piece.kind === "solo" ? `Sing ${piece.tracks[0].id}'s introduction` : piece.kind === "motesong" ? `Play “${piece.title}”` : "Play the new invention";
   return <>{again}&nbsp;{name}</>;
 }
 
@@ -391,7 +392,7 @@ function LessonTabs() {
   const tab = (l: Lesson, label: string) => (
     <button role="tab" aria-selected={lesson === l && piece.kind !== "solo"} onClick={() => setLesson(l)}>{label}</button>
   );
-  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}{tab("loading", "06 · Still Loading")}{tab("autocomplete", "07 · Autocomplete")}</div>;
+  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => <Fragment key={x.id}>{tab(x.id, x.tab)}</Fragment>)}</div>;
 }
 
 function MusicSettings() {
