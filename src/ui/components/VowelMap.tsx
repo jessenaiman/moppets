@@ -52,9 +52,16 @@ export function VowelMap() {
     const fm = m.transfer(a).formants;
     const live = fm.length >= 2 ? toXY(fm[0], fm[1], w, h) : null;
     const near = fm.length >= 2 ? nearestVowel(m, fm[0], fm[1]) : "";
+    // vowel symbols that land nearly on top of each other or of the live label (/o/ beside /ɔ/ on a
+    // small map) are nudged apart sideways, keeping their height (F1) honest
+    // the live vowel's own label (drawn last, beside the ring) is placed first, so the others move instead
+    const placed: { x: number; y: number }[] = live ? [{ x: live.x + 20, y: live.y - 13 }] : [];
+    const GAP = 10;
     for (const v of m.vowels) {
       if (v.ipa === near && live) continue;
       const p = toXY(v.F1, v.F2, w, h);
+      for (const q of placed) if (Math.abs(q.y - p.y) < GAP && Math.abs(q.x - p.x) < GAP) p.x = q.x + (p.x >= q.x ? GAP : -GAP);
+      placed.push(p);
       ipaGlyph(ctx, p.x, p.y + 5, v.ipa, 15, TEXT.secondary);
     }
     if (live) {
