@@ -40,7 +40,7 @@
 .warm .puppet:hover { background: none; filter: brightness(1.1); }
 .puppet.selected { filter: brightness(1); }
 .puppet.singing { filter: brightness(1.18); }
-.puppet .sprite { display: block; position: relative; width: 100%; aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; transform-origin: 50% 96%; transform: scale(calc((2 - var(--sy, 1)) * var(--face, 1)), var(--sy, 1)); }
+.puppet .sprite { display: block; position: relative; width: 100%; aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; transform-origin: 50% 96%; transform: translate(var(--gx, 0px), var(--gy, 0px)) rotate(var(--grot, 0deg)) scale(calc((2 - var(--sy, 1)) * var(--face, 1) * var(--gsx, 1)), calc(var(--sy, 1) * var(--gsy, 1))); }
 .puppet .solo-head { position: absolute; left: var(--hx, 25%); top: var(--hy, 0%); aspect-ratio: 384 / 512; background-size: 400% 200%; background-position: var(--head, 0% 0%); background-repeat: no-repeat; transform: rotate(var(--tilt, 0deg)); }
 .puppet .sprite-open { position: absolute; inset: 0; background-size: 400% 200%; background-position: var(--cel, 100% 100%); background-repeat: no-repeat; visibility: hidden; }
 .puppet.mouth-open .sprite-open { visibility: visible; }

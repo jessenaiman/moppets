@@ -11,6 +11,7 @@
  * problems as `feedback`. Only `vite` dev serves this; a build keeps the written rounds and skits.
  */
 import { spawn, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import type { Plugin } from "vite";
 
 /** Haiku: about half a cent a call. Set MOPPET_ROUND_MODEL=claude-sonnet-5-5 to try another (about 4 cents). */
@@ -44,12 +45,15 @@ function prompt(object: string, feedback?: string): string {
   ].join("\n");
 }
 
+/** The stage's gesture clips (src/choir/gestures.generated.json), for a skit's `do` and `react`. */
+const GESTURES = Object.keys(JSON.parse(readFileSync("src/choir/gestures.generated.json", "utf8")).clips);
+
 const SKIT_SCHEMA = {
   type: "object",
   properties: {
     title: { type: "string" },
     description: { type: "string" },
-    scenes: { type: "array", minItems: 1, maxItems: 3, items: { type: "array", items: { type: "object", properties: { who: { type: "string" }, say: { type: "string" } }, required: ["who", "say"] } } },
+    scenes: { type: "array", minItems: 1, maxItems: 3, items: { type: "array", items: { type: "object", properties: { who: { type: "string" }, say: { type: "string" }, do: { enum: GESTURES }, react: { enum: GESTURES } }, required: ["who", "say"] } } },
   },
   required: ["title", "description", "scenes"],
 };
@@ -66,6 +70,7 @@ function skitPrompt(object: string, cast: Cast, feedback?: string): string {
     "- each line is spoken aloud by a speech synthesizer: under 100 characters, plain words, no stage directions, no parentheses, no emoji, numbers spelled out;",
     "- a clear setup, a running joke that builds, and a last line that lands the punchline;",
     "- each Moppet sounds like itself (a fox, a rabbit, a robot, a frog, a monster, a soprano);",
+    `- the puppets can act: \`do\` is a gesture the speaker makes as the line starts, \`react\` one everyone else in the scene makes as it ends (${GESTURES.join(", ")}); use them on the lines where they land a joke, not on every line;`,
     "- `description`: one short sentence; `title`: 2 to 5 words.",
     feedback ? `Your previous try broke these rules: ${feedback}. Fix them.` : "",
   ].join("\n");

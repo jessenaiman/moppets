@@ -78,6 +78,8 @@ export interface Piece {
   pluck?: (number | null)[];
   /** CHIMERA's beatbox stem for this piece */
   beat?: { text: string; swing: number };
+  /** gestures on the stage (AniCraft clips, see gestures.ts): who does what, from which beat */
+  cues?: { beat: number; who: string; gesture: import("./gestures.ts").GestureName }[];
   /** a skit's scenes: who is downstage together, in beats */
   scenes?: { beat: number; beats: number; cast: string[] }[];
   /** creature calls answering the singers, on the beat grid */

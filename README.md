@@ -19,6 +19,9 @@ for tests and the `chimera` CLI.
 The app opens on the Moppet Choir: an animated stage where each Moppet is its own CHIMERA voice
 (its own body, airway posture and vocal folds) singing a shared score. Its Inspect tab opens one
 Moppet's voice in CHIMERA's instruments; the Chimera tab holds the original voice modes.
+The Moppets also perform talking skits, spoken through CHIMERA's speech planner, and act them out
+with gesture clips (laugh, shrug, gasp, nod, tilt, bow) animated in AniCraft: edit
+`tools/moppets/gestures.anicraft` in AniCraft, then `bun tools/gen-gestures.ts` brings the clips in.
 Male, female and child bodies blend continuously. Everything on screen animates from live
 engine state: pressure in the airway, airflow, the vocal folds, spectra and formants.
 

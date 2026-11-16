@@ -17,6 +17,7 @@ import { CHORUS, type MoppetVoice } from "../../choir/voices.ts";
 import { makeIntroduction } from "../../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured } from "../../choir/choreo.ts";
 import { SKITS } from "../../choir/skits.ts";
+import { gestureAt, type GesturePose } from "../../choir/gestures.ts";
 import { SONGBOOK } from "../../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
 import { midiSupported } from "../midi.ts";
@@ -46,6 +47,27 @@ function PlayLabel({ piece }: { piece: Piece }) {
   return <>{again}&nbsp;{name}</>;
 }
 
+/** The AniCraft clip a Moppet is playing at this beat (the latest cue that hasn't finished). */
+function gestureNow(piece: Piece, id: string, beat: number): GesturePose | null {
+  if (!piece.cues) return null;
+  let pose: GesturePose | null = null;
+  for (const c of piece.cues) {
+    if (c.who !== id || c.beat > beat) continue;
+    pose = gestureAt(c.gesture, (beat - c.beat) * beatSeconds(piece)) ?? pose;
+  }
+  return pose;
+}
+
+/** A clip's pose on the puppet's sprite, pivoting at its feet and mirrored when it faces left. */
+function setGesture(el: HTMLElement, g: GesturePose | null, h: number, face: number): void {
+  const side = face < 0 ? -1 : 1;
+  el.style.setProperty("--gx", `${((g?.dx ?? 0) * h * side).toFixed(1)}px`);
+  el.style.setProperty("--gy", `${((g?.dy ?? 0) * h).toFixed(1)}px`);
+  el.style.setProperty("--grot", `${((g?.rot ?? 0) * side).toFixed(2)}deg`);
+  el.style.setProperty("--gsx", (g?.sx ?? 1).toFixed(3));
+  el.style.setProperty("--gsy", (g?.sy ?? 1).toFixed(3));
+}
+
 /** One puppet as the stage effects see it, in stage pixels. */
 interface Mark {
   x: number;
@@ -58,6 +80,8 @@ interface Mark {
   hop: number;
   color: string;
   singing: boolean;
+  /** speaking a skit line: a voice, but no musical notes rise */
+  talking?: boolean;
   level: number;
   bubble: string | null;
   spot: boolean;
@@ -143,7 +167,7 @@ function drawStage(back: HTMLCanvasElement | null, front: HTMLCanvasElement | nu
   }
   if (!still) {
     for (const [i, m] of marks.entries()) {
-      if (!m.singing || Math.random() > dt * (1.2 + 5 * m.level)) continue;
+      if (!m.singing || m.talking || Math.random() > dt * (1.2 + 5 * m.level)) continue;
       notes.push({ x: m.x + (Math.random() - 0.5) * m.h * 0.2, y: m.feet - m.h * 0.72, age: 0, life: 1.6 + Math.random() * 0.8, seed: Math.random() * 6 + i, color: m.color, double: Math.random() < 0.35 });
     }
   }
@@ -243,8 +267,9 @@ function Stage() {
         el.style.transform = `translate(${(a.x * W - home.x).toFixed(1)}px, ${(-lift).toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`;
         el.style.zIndex = String(Math.round(100 - a.depth * 60 + (p.singing ? 5 : 0)));
         el.style.setProperty("--face", a.face.toFixed(3));
+        setGesture(el, performing ? gestureNow(m.piece, v.id, beat) : null, home.h, a.face);
         const floor = H - 24 - a.depth * 44;
-        marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
+        marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, talking: m.piece.kind === "skit", spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
         const walkFrame = Math.floor(now * 7 + i * 3) % 8;
         if (v.id === "vee") {
           // the fully animated Moppet: a dancing body with a viseme head riding its neck
