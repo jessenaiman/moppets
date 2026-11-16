@@ -1,6 +1,6 @@
 /**
  * Web MIDI keyboards: note on/off (with velocity) from every connected input, including ones
- * plugged in later. The voice hears one note per pitch: a pitch held on several keyboards or
+ * plugged in later; knobs and pads go to control listeners (the Moppet workbench). The voice hears one note per pitch: a pitch held on several keyboards or
  * channels sounds until the last of them lets go. All-notes-off and unplugging release what
  * that input (channel) was holding.
  */
@@ -11,6 +11,32 @@ export interface MidiHandlers {
   noteOff: (note: number) => void;
   /** names of the connected inputs (on every change) */
   inputs: (names: string[]) => void;
+}
+
+/** A knob or fader (control change), or a note offered to the controller before it plays. */
+export interface MidiControl {
+  kind: "cc" | "note";
+  /** 0-based channel (a Launchkey's pads arrive on 9, MIDI channel 10) */
+  channel: number;
+  /** controller number, or note number */
+  number: number;
+  /** 0..127: the controller's value, or the note's velocity (0 for a release) */
+  value: number;
+}
+/** Listeners see every control change, and every note first: returning true claims the note, so it doesn't play. */
+const controlListeners = new Set<(c: MidiControl) => boolean | void>();
+/** notes a listener claimed, by "owner \0 note", so their release is claimed too */
+const claimed = new Set<string>();
+
+export function onMidiControl(fn: (c: MidiControl) => boolean | void): () => void {
+  controlListeners.add(fn);
+  return () => void controlListeners.delete(fn);
+}
+
+function offer(c: MidiControl): boolean {
+  let taken = false;
+  for (const fn of controlListeners) if (fn(c)) taken = true;
+  return taken;
 }
 
 export const midiSupported = (): boolean => typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function";
@@ -57,9 +83,15 @@ function attach(a: MIDIAccess): void {
       if (!d || d.length < 2) return;
       const kind = d[0] & 0xf0;
       const owner = input.id + SEP + (d[0] & 0x0f);
-      if (kind === 0x90 && d.length > 2 && d[2] > 0) press(owner, d[1], d[2]);
-      else if (kind === 0x80 || kind === 0x90) lift(owner, d[1]);
-      else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
+      const channel = d[0] & 0x0f;
+      if (kind === 0x90 && d.length > 2 && d[2] > 0) {
+        if (offer({ kind: "note", channel, number: d[1], value: d[2] })) claimed.add(owner + SEP + d[1]);
+        else press(owner, d[1], d[2]);
+      } else if (kind === 0x80 || kind === 0x90) {
+        if (claimed.delete(owner + SEP + d[1])) offer({ kind: "note", channel, number: d[1], value: 0 });
+        else lift(owner, d[1]);
+      } else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
+      else if (kind === 0xb0 && d.length > 2) offer({ kind: "cc", channel, number: d[1], value: d[2] });
     };
   });
   // unplugged inputs release what they held

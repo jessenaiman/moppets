@@ -16,6 +16,8 @@ import { beatSeconds, LEAD_IN, pieceSeconds } from "../../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../../choir/voices.ts";
 import { makeIntroduction } from "../../choir/music.ts";
 import { Choreographer, featuredAt } from "../../choir/choreo.ts";
+import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
+import { midiSupported } from "../midi.ts";
 import solo from "../../choir/vee-solo.json";
 import "../moppet.css";
 
@@ -497,21 +499,26 @@ function ScorePanel() {
   );
 }
 
-/** The voice recipe, grouped the way CHIMERA builds a voice: body, airway posture, then the folds. */
-const CONTROLS = [
-  ["size", "Airway size: tiny → giant", 0.6, 1.6, 0.01, "×", "size"],
-  ["child", "Body: grown → child", 0, 1, 0.01, "", "body"],
-  ["female", "Body shape: male → female", 0, 1, 0.01, "", "body"],
-  ["larynx", "Larynx height", -1.6, 1.6, 0.05, "cm", "artic"],
-  ["velum", "Nasal opening", 0, 1.4, 0.02, "cm²", "artic"],
-  ["root", "Tongue root (back ↔ forward)", -1, 1, 0.05, "", "artic"],
-  ["ventricular", "False-fold narrowing", 0, 1, 0.01, "", "artic"],
-  ["tension", "Fold tension", 0, 1, 0.01, "", "source"],
-  ["brightness", "Brightness", 0, 1, 0.01, "", "source"],
-  ["roughness", "Gravel / roughness", 0, 1, 0.01, "", "source"],
-  ["breathiness", "Breathiness", 0, 0.8, 0.01, "", "source"],
-  ["fry", "Vocal fry", 0, 1, 0.01, "", "source"],
-] as const;
+
+/** Connect a MIDI controller to the workbench; shows what it did last. */
+function MidiStrip() {
+  const midi = useStore((s) => s.midi);
+  const setMidi = useStore((s) => s.setMidi);
+  const last = useController((s) => s.last);
+  const learning = useController((s) => s.learning);
+  const resetMap = useController((s) => s.resetMap);
+  if (!midiSupported()) return null;
+  const on = midi.status === "on";
+  const status = midi.status === "connecting" ? "Connecting…" : midi.status === "denied" ? "Blocked by the browser" : on ? (midi.inputs.length ? midi.inputs.join(", ") : "Plug one in") : "Off";
+  return (
+    <div className="midi-strip">
+      <button className={on ? "on" : ""} aria-pressed={on} onClick={() => setMidi(!on)}>{on ? "MIDI on" : "Connect MIDI controller"}</button>
+      <span className="midi-what">{learning ? "Turn the knob to use" : last || status}</span>
+      <span className="midi-help">Knobs shape the voice · pads 1–7 pick a Moppet, pad 8 sings · keys play it</span>
+      <button className="link" onClick={resetMap}>Launchkey layout</button>
+    </div>
+  );
+}
 
 function Workbench() {
   const voices = useMoppet((s) => s.voices);
@@ -522,21 +529,14 @@ function Workbench() {
   const loadPreset = useMoppet((s) => s.loadPreset);
   const singSolo = useMoppet((s) => s.singSolo);
   const start = useStore((s) => s.start);
-  const setArtic = useStore((s) => s.setArtic);
-  const setSource = useStore((s) => s.setSource);
-  const setBody = useStore((s) => s.setBody);
+  const ccMap = useController((s) => s.map);
+  const learning = useController((s) => s.learning);
+  const learn = useController((s) => s.learn);
   const v = voices[selected];
   const [note, setNote] = useState("Controls act on this Moppet's own engine.");
   const file = useRef<HTMLInputElement>(null);
-  const change = (key: string, group: "artic" | "source" | "body" | "size", n: number) => {
-    if (group === "artic") setArtic({ [key]: n });
-    else if (group === "body") setBody({ ...v.body, [key]: n });
-    else if (group === "size") {
-      // the airway is built with the singer's engine; the inspected voice resizes now
-      useMoppet.getState().edit((x) => void (x.size = n));
-      useStore.getState().setSize(n);
-    }
-    else setSource({ [key]: n });
+  const change = (key: ControlKey, group: ControlGroup, n: number) => {
+    applyControl(key, n);
     const playing = useEnsemble.getState().status === "playing";
     // a body is built when the singer's engine is, so it waits for the next performance
     setNote(playing && group !== "body" && group !== "size" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
@@ -574,11 +574,17 @@ function Workbench() {
           <button onClick={solo}>▶ Sing my introduction</button>
           <button className="download" onClick={() => void wav()}>↓ WAV</button>
         </div>
+        <MidiStrip />
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
+            const cc = ccFor(ccMap, key);
             return <div className="knob" key={key}>
-              <label htmlFor={`knob-${key}`}>{label}<output>{Number(value).toFixed(2)} {unit}</output></label>
+              <div className="knob-head">
+                <label htmlFor={`knob-${key}`}>{label}</label>
+                <output>{Number(value).toFixed(2)} {unit}</output>
+                {midiSupported() && <button className={`cc${learning === key ? " learning" : ""}`} onClick={() => learn(key)} aria-pressed={learning === key} title={learning === key ? "Turn a knob on your controller (click again to cancel)" : `Assign a controller knob to ${label}`}>{learning === key ? "turn a knob" : cc !== undefined ? `CC ${cc}` : "learn"}</button>}
+              </div>
               <input id={`knob-${key}`} type="range" min={min} max={max} step={step} value={value} onChange={(e) => change(key, group, Number(e.target.value))} />
             </div>;
           })}
@@ -608,7 +614,7 @@ export function MoppetRight() {
       loadPiece(piece);
       useMoppet.getState().select(useMoppet.getState().selected);
     }
-    (window as unknown as { __choir: unknown }).__choir = { debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, engine, makeIntroduction, bench: () => import("../../choir/bench.ts").then((m) => m.benchChoir()) };
+    (window as unknown as { __choir: unknown }).__choir = { debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, engine, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const view = useMoppet((s) => s.view);

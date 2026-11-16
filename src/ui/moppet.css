@@ -117,7 +117,16 @@
 .warm .panel-actions button:first-child { background: var(--green); color: #fff; border-color: var(--green); flex: 1; font-size: 12px; }
 .knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); column-gap: 20px; }
 .knob { margin: 12px 0; }
-.knob label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+.knob-head { display: flex; align-items: baseline; gap: 8px; font-size: 11px; margin-bottom: 6px; }
+.knob-head label { flex: 1; min-width: 0; }
+.warm .knob-head .cc { font-size: 9px; letter-spacing: .5px; padding: 1px 6px; border: 1px solid #ccd1c2; border-radius: 9px; background: none; color: var(--muted); white-space: nowrap; }
+.warm .knob-head .cc.learning { background: #c88e50; border-color: #c88e50; color: #fff; }
+.midi-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 4px 0 6px; padding: 8px 10px; border: 1px solid #ccd1c2; border-radius: 8px; font-size: 11px; }
+.warm .midi-strip button { font-size: 11px; padding: 4px 10px; }
+.warm .midi-strip button.on { background: var(--green); color: #fff; border-color: var(--green); }
+.warm .midi-strip button.link { border: none; background: none; text-decoration: underline; padding: 4px 0; }
+.midi-what { font-weight: 600; }
+.midi-help { color: var(--muted); flex-basis: 100%; }
 .knob output { font-variant-numeric: tabular-nums; color: var(--muted); }
 .knob input { display: block; width: 100%; accent-color: #4d6d57; }
 .status { font-size: 11px; line-height: 1.6; color: var(--muted); margin: 10px 0 0; }
