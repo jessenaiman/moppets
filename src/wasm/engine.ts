@@ -230,8 +230,9 @@ export interface AirwayModel {
   glottisPort: number;
 }
 
-export function airwayModel(body: BodyMix, sampleRate: number): AirwayModel {
-  return call("model", { body, sampleRate });
+/** `size`: a Moppet's airway size against its body (1 = the calibrated body). */
+export function airwayModel(body: BodyMix, sampleRate: number, size = 1): AirwayModel {
+  return call("model", { body, sampleRate, size });
 }
 
 /** Free a model (its id is invalid afterwards). */

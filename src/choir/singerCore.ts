@@ -81,6 +81,7 @@ export class SingerCore {
     this.voice = cfg.voice;
     this.stem = new Float32Array(cfg.frames);
     x.engine_set_body(h, cfg.voice.body.female, cfg.voice.body.child);
+    if ((cfg.voice.size ?? 1) !== 1) x.engine_set_size(h, cfg.voice.size!);
     this.patch(ARTIC_KEYS, { ...cfg.voice.artic } as Record<string, number>);
     x.engine_set_artic(h, 2);
     this.setSource(cfg.voice.source);

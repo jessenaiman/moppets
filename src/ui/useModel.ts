@@ -12,11 +12,11 @@ import { bodyKey, type BodyMix } from "./body.ts";
 const cache = new Map<string, VoiceModel>();
 const KEEP = 8;
 
-export function getModel(body: BodyMix, sampleRate: number): VoiceModel {
-  const key = `${bodyKey(body)}@${sampleRate}`;
+export function getModel(body: BodyMix, sampleRate: number, size = 1): VoiceModel {
+  const key = `${bodyKey(body)}×${size}@${sampleRate}`;
   let m = cache.get(key);
   if (m) cache.delete(key);
-  else m = new VoiceModel(body, sampleRate);
+  else m = new VoiceModel(body, sampleRate, size);
   cache.set(key, m);
   if (cache.size > KEEP) {
     const [oldest, old] = cache.entries().next().value!;
@@ -28,11 +28,12 @@ export function getModel(body: BodyMix, sampleRate: number): VoiceModel {
 
 export function useModel(): React.MutableRefObject<VoiceModel | null> {
   const body = useStore((s) => s.body);
+  const size = useStore((s) => s.size);
   const started = useStore((s) => s.started);
   const ref = useRef<VoiceModel | null>(null);
-  ref.current = getModel(body, started ? engine.sampleRate : 48000);
+  ref.current = getModel(body, started ? engine.sampleRate : 48000, size);
   useEffect(() => {
-    ref.current = getModel(body, started ? engine.sampleRate : 48000);
-  }, [body, started]);
+    ref.current = getModel(body, started ? engine.sampleRate : 48000, size);
+  }, [body, size, started]);
   return ref;
 }

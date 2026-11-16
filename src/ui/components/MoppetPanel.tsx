@@ -499,7 +499,8 @@ function ScorePanel() {
 
 /** The voice recipe, grouped the way CHIMERA builds a voice: body, airway posture, then the folds. */
 const CONTROLS = [
-  ["child", "Body size: grown → small", 0, 1, 0.01, "", "body"],
+  ["size", "Airway size: tiny → giant", 0.6, 1.6, 0.01, "×", "size"],
+  ["child", "Body: grown → child", 0, 1, 0.01, "", "body"],
   ["female", "Body shape: male → female", 0, 1, 0.01, "", "body"],
   ["larynx", "Larynx height", -1.6, 1.6, 0.05, "cm", "artic"],
   ["velum", "Nasal opening", 0, 1.4, 0.02, "cm²", "artic"],
@@ -527,13 +528,18 @@ function Workbench() {
   const v = voices[selected];
   const [note, setNote] = useState("Controls act on this Moppet's own engine.");
   const file = useRef<HTMLInputElement>(null);
-  const change = (key: string, group: "artic" | "source" | "body", n: number) => {
+  const change = (key: string, group: "artic" | "source" | "body" | "size", n: number) => {
     if (group === "artic") setArtic({ [key]: n });
     else if (group === "body") setBody({ ...v.body, [key]: n });
+    else if (group === "size") {
+      // the airway is built with the singer's engine; the inspected voice resizes now
+      useMoppet.getState().edit((x) => void (x.size = n));
+      useStore.getState().setSize(n);
+    }
     else setSource({ [key]: n });
     const playing = useEnsemble.getState().status === "playing";
     // a body is built when the singer's engine is, so it waits for the next performance
-    setNote(playing && group !== "body" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
+    setNote(playing && group !== "body" && group !== "size" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
   };
   const solo = () => {
     singSolo();
@@ -570,7 +576,7 @@ function Workbench() {
         </div>
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
-            const value = group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
+            const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
             return <div className="knob" key={key}>
               <label htmlFor={`knob-${key}`}>{label}<output>{Number(value).toFixed(2)} {unit}</output></label>
               <input id={`knob-${key}`} type="range" min={min} max={max} step={step} value={value} onChange={(e) => change(key, group, Number(e.target.value))} />

@@ -252,8 +252,21 @@ export class AudioEngine {
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02);
   }
 
+  /** The last body and airway size asked for (a Moppet's size rides along with every body). */
+  private body: BodyMix | null = null;
+  private size = 1;
+
   setBody(body: BodyMix): void {
-    this.send({ type: "body", body });
+    this.body = body;
+    this.send({ type: "body", body, size: this.size });
+  }
+
+  /** Resize the live voice's airway (a Moppet's `size`; 1 for every other mode). */
+  setSize(size: number): void {
+    if (size === this.size) return;
+    this.size = size;
+    // before any body was sent the worklet plays its default, the adult male
+    this.send({ type: "body", body: this.body ?? { female: 0, child: 0 }, size });
   }
 
   gate(level: number): void {

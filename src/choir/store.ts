@@ -15,7 +15,12 @@ import { ensembleHooks } from "../ui/store.ts";
 export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff";
 /** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
 export type MoppetView = "stage" | "inspect";
-const STORAGE_KEY = "moppet-voices";
+/**
+ * Saved recipes override the cast, and an edit saves every Moppet. Bump the version when the cast
+ * itself is retuned, or anyone who once touched a knob keeps hearing the old voices.
+ * v2: the cartoon-range cast (airway size).
+ */
+const STORAGE_KEY = "moppet-voices-v2";
 const CHARACTER_KEYS = ["larynx", "velum", "root", "epilarynx", "ventricular"] as const;
 
 function loadSaved(): MoppetVoice[] {
@@ -23,7 +28,7 @@ function loadSaved(): MoppetVoice[] {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     // only the voice recipe is the user's: names, roles, lyrics and parts always come from the cast
     if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body))
-      return defaults.map((d, i) => ({ ...structuredClone(d), body: { ...d.body, ...saved[i]?.body }, artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source }, vibrato: saved[i]?.vibrato ?? d.vibrato })) as MoppetVoice[];
+      return defaults.map((d, i) => ({ ...structuredClone(d), body: { ...d.body, ...saved[i]?.body }, artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source }, vibrato: saved[i]?.vibrato ?? d.vibrato, size: saved[i]?.size ?? d.size })) as MoppetVoice[];
   } catch {
     // no saved voices
   }
@@ -85,6 +90,7 @@ let applying = false;
 function applyToWorkbench(v: MoppetVoice): void {
   applying = true;
   const st = useStore.getState();
+  st.setSize(v.size ?? 1);
   if (!sameBody(st.body, v.body)) st.setBody(v.body);
   const artic: Partial<HumanArtic> = { ...v.artic };
   const tip = restTip(NEUTRAL.jaw, NEUTRAL.tbX, NEUTRAL.tbY);
@@ -181,7 +187,7 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     const i = get().voices.findIndex((x) => x.id === v.id);
     if (i < 0 || !v.artic || !v.source || !v.body) throw new Error("Not a Moppet preset");
     const voices = structuredClone(get().voices);
-    voices[i] = { ...voices[i], body: { ...voices[i].body, ...v.body }, artic: { ...voices[i].artic, ...v.artic }, source: { ...voices[i].source, ...v.source }, vibrato: v.vibrato ?? voices[i].vibrato };
+    voices[i] = { ...voices[i], body: { ...voices[i].body, ...v.body }, artic: { ...voices[i].artic, ...v.artic }, source: { ...voices[i].source, ...v.source }, vibrato: v.vibrato ?? voices[i].vibrato, size: v.size ?? voices[i].size };
     set({ voices, selected: i });
     persist(voices);
     applyToWorkbench(voices[i]);
@@ -233,4 +239,7 @@ useStore.subscribe((st) => {
   }
 });
 
-ensembleHooks.leave = () => leaveEnsemble();
+ensembleHooks.leave = () => {
+  leaveEnsemble();
+  useStore.getState().setSize(1); // the other modes play the calibrated bodies
+};

@@ -15,7 +15,8 @@ export interface PhraseMsg {
 export type BodyName = "male" | "female" | "child";
 
 export type ToWorklet =
-  | { type: "body"; body: BodyMix }
+  /** `size`: the whole airway against the body (a Moppet's; 1 when absent) */
+  | { type: "body"; body: BodyMix; size?: number }
   | { type: "artic"; values: Partial<HumanArtic>; tipFree?: boolean }
   | { type: "source"; values: Partial<VoiceSource> }
   | { type: "gate"; level: number }

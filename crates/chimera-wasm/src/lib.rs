@@ -279,6 +279,18 @@ pub unsafe extern "C" fn engine_set_body(h: *mut Handle, female: f64, child: f64
     h.engine.telemetry(&mut h.tele); // resize the telemetry buffers for the new voice
 }
 
+/// Resize the whole airway by `size` (1 = the body as calibrated; the resulting scale against an
+/// adult male is clamped to 0.65 tiny … 1.6 giant, see `SCALE_RANGE`).
+///
+/// # Safety
+/// `h` must be a live handle.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn engine_set_size(h: *mut Handle, size: f64) {
+    let h = handle!(h);
+    h.engine.set_size(size);
+    h.engine.telemetry(&mut h.tele); // a resized airway has a different number of sections
+}
+
 /// # Safety
 /// `h` must be a live handle.
 #[unsafe(no_mangle)]

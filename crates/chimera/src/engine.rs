@@ -9,7 +9,7 @@
 //! - Rendering, gestures, releases, artic/source/gate changes and beat edits allocate nothing once
 //!   warm. A body or creature switch builds a new airway network (it allocates).
 
-use crate::anatomy::human::{ArticPatch, BodyMix, BodyName};
+use crate::anatomy::human::{ArticPatch, BodyMix, BodyName, HumanBody};
 use crate::control::beat_player::BeatPlayer;
 use crate::control::score::{Gesture, GestureScore};
 use crate::creatures::types::CreatureDef;
@@ -44,9 +44,28 @@ pub struct VoiceInfo {
     pub n_or: usize,
 }
 
+/// Smallest and largest airway a character may have, as its overall scale against the adult male
+/// (body scale × size): the human bodies span 0.74 (child) to 1; a cartoon cast needs more. Below
+/// about 0.65 the running voice stops phonating cleanly (the static airway still resonates
+/// right, the folds don't), so the scale is clamped here, whatever the body.
+pub const SCALE_RANGE: (f64, f64) = (0.65, 1.6);
+
+/// A body's anatomy at a character's size. Every length and area of the airway and the glottis
+/// follows the body's scale, so one factor makes a giant or a tiny one; at 1 this is exactly the
+/// calibrated body. The engine and the main-thread airway model both build from this.
+pub fn sized_anatomy(body: BodyMix, size: f64) -> HumanBody {
+    let anatomy = body.body();
+    if size == 1.0 || !size.is_finite() || size <= 0.0 {
+        return anatomy;
+    }
+    HumanBody { scale: crate::math::clamp(anatomy.scale * size, SCALE_RANGE.0, SCALE_RANGE.1), ..anatomy }
+}
+
 pub struct Engine {
     pub sample_rate: f64,
     body: BodyMix,
+    /// the whole airway's size relative to the body's own (1 = the calibrated body)
+    size: f64,
     voice: HumanVoice,
     /// the performer's breath (the voice's own gate also follows the score)
     gate_level: f64,
@@ -62,11 +81,11 @@ impl Engine {
     pub fn new(sample_rate: f64) -> Engine {
         crate::init();
         let body = BodyMix::MALE;
-        Engine { sample_rate, body, voice: Self::make_voice(sample_rate, body), gate_level: 0.0, pos: 0, scratch: Vec::with_capacity(MAX_SCHEDULE), beat: BeatPlayer::new(), creature: None }
+        Engine { sample_rate, body, size: 1.0, voice: Self::make_voice(sample_rate, body, 1.0), gate_level: 0.0, pos: 0, scratch: Vec::with_capacity(MAX_SCHEDULE), beat: BeatPlayer::new(), creature: None }
     }
 
-    fn make_voice(fs: f64, body: BodyMix) -> HumanVoice {
-        let mut v = HumanVoice::new(fs, body.body(), if fs > 60000.0 { 1 } else { 2 });
+    fn make_voice(fs: f64, body: BodyMix, size: f64) -> HumanVoice {
+        let mut v = HumanVoice::new(fs, sized_anatomy(body, size), if fs > 60000.0 { 1 } else { 2 });
         v.set_source(&SourcePatch::f0(default_f0(body)));
         v
     }
@@ -88,7 +107,7 @@ impl Engine {
     pub fn set_body(&mut self, body: impl Into<BodyMix>) -> VoiceInfo {
         let body: BodyMix = body.into();
         let body = BodyMix::new(body.female, body.child);
-        let prev = core::mem::replace(&mut self.voice, Self::make_voice(self.sample_rate, body));
+        let prev = core::mem::replace(&mut self.voice, Self::make_voice(self.sample_rate, body, self.size));
         self.body = body;
         let mut src = SourcePatch::from_source(&prev.source);
         src.f0 = Some(default_f0(body));
@@ -106,6 +125,18 @@ impl Engine {
         self.beat.rebase(self.voice.clock - prev.clock);
         self.beat.rewind(self.voice.clock);
         self.info()
+    }
+
+    /// Resize the airway (the resulting scale clamped to SCALE_RANGE; non-finite or non-positive
+    /// counts as 1) and rebuild the voice as `set_body` does. Pitch is not touched: a giant sings
+    /// the notes it is given.
+    pub fn set_size(&mut self, size: f64) -> VoiceInfo {
+        self.size = if size.is_finite() && size > 0.0 { size } else { 1.0 };
+        self.set_body(self.body)
+    }
+
+    pub fn size(&self) -> f64 {
+        self.size
     }
 
     pub fn set_artic(&mut self, values: &ArticPatch, tip_free: Option<bool>) {

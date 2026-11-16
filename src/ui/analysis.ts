@@ -29,9 +29,9 @@ export class VoiceModel {
   private tfKey = "";
   private tf: { freqs: number[]; db: number[]; formants: number[] } | null = null;
 
-  constructor(body: BodyMix, sampleRate: number) {
+  constructor(body: BodyMix, sampleRate: number, size = 1) {
     this.body = body;
-    this.model = airwayModel(body, sampleRate);
+    this.model = airwayModel(body, sampleRate, size);
     this.bodyParams = this.model.body;
     this.tract = new TractMap(this.bodyParams);
     this.nPh = this.model.nPh;

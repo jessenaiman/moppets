@@ -109,6 +109,8 @@ class ChimeraProcessor extends AudioWorkletProcessor {
     switch (m.type) {
       case "body":
         x.engine_set_body(h, m.body.female, m.body.child);
+        // always sent, so a Moppet's size never outlives it in the other modes
+        x.engine_set_size(h, m.size ?? 1);
         this.postReady();
         break;
       case "artic": {

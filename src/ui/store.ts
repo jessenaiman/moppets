@@ -36,6 +36,8 @@ interface State {
   startError: string | null;
   /** the body shown; while the body pad is dragged it runs ahead of the voice (see previewBody) */
   body: BodyMix;
+  /** the live voice's airway size against its body (a Moppet's; 1 everywhere else) */
+  size: number;
   source: VoiceSource;
   artic: HumanArtic;
   tipFree: boolean;
@@ -71,6 +73,7 @@ interface State {
   start: () => Promise<void>;
   /** switch the voice to this body (rebuilds its airway) */
   setBody: (b: BodyMix) => void;
+  setSize: (size: number) => void;
   /** show this body without rebuilding the voice yet (a drag in progress; setBody commits it) */
   previewBody: (b: BodyMix) => void;
   setSource: (v: Partial<VoiceSource>) => void;
@@ -125,6 +128,7 @@ export const useStore = create<State>((set, get) => ({
   starting: false,
   startError: null,
   body: PRESETS.male,
+  size: 1,
   source: { ...DEFAULT_SOURCE },
   artic: (() => {
     const tip = restTip(NEUTRAL.jaw, NEUTRAL.tbX, NEUTRAL.tbY);
@@ -251,7 +255,8 @@ export const useStore = create<State>((set, get) => ({
         // anything set before audio existed was not delivered: send the whole state now
         const s = get();
         engine.setVolume(s.volume);
-        if (!sameBody(s.body, PRESETS.male)) engine.setBody(s.body);
+        // a sized male (Gruff, Clank) needs the body message too: it carries the size
+        if (!sameBody(s.body, PRESETS.male) || s.size !== 1) engine.setBody(s.body);
         engine.setSource(s.source);
         engine.setArtic(s.artic, s.tipFree);
         if (s.mode === "bestiary") engine.setCreature(s.creature, s.cparams[s.creature]);
@@ -278,6 +283,11 @@ export const useStore = create<State>((set, get) => ({
     if (get().mode === "speak") stopSpeaking();
     set((s) => ({ body: b, source: { ...s.source, f0 } }));
     engine.setBody(b);
+  },
+  setSize: (size) => {
+    if (size === get().size) return;
+    set({ size });
+    engine.setSize(size);
   },
   previewBody: (b) => set({ body: b }),
   setSource: (v) => {

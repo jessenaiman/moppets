@@ -20,6 +20,8 @@ use std::cell::RefCell;
 struct Model {
     id: usize,
     body: BodyMix,
+    /// a character's airway size (see `chimera::engine::sized_anatomy`)
+    size: f64,
     fs: f64,
     airway: HumanAirway,
 }
@@ -64,11 +66,12 @@ fn dispatch(st: &mut State, req: &Value) -> Res {
             // the main-thread mirror of the worklet's airway: same topology and node counts
             let body: BodyMix = arg(req, "body")?;
             let fs: f64 = arg(req, "sampleRate")?;
+            let size: f64 = req.get("size").and_then(Value::as_f64).unwrap_or(1.0);
             let m = if fs > 60000.0 { 1.0 } else { 2.0 };
-            let i = match st.models.iter().position(|x| x.body == body && x.fs == fs * m) {
+            let i = match st.models.iter().position(|x| x.body == body && x.size == size && x.fs == fs * m) {
                 Some(i) => i,
                 None => {
-                    st.models.push(Model { id: st.next_model, body, fs: fs * m, airway: HumanAirway::new(fs * m, body.body()) });
+                    st.models.push(Model { id: st.next_model, body, size, fs: fs * m, airway: HumanAirway::new(fs * m, chimera::engine::sized_anatomy(body, size)) });
                     st.next_model += 1;
                     st.models.len() - 1
                 }
