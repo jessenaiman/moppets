@@ -38,9 +38,10 @@ bun run test       # wasm build, cargo test, bun test ./tests
 
 ## How it uses CHIMERA
 
-- **`chimera/`** is CHIMERA at an exact commit. To take a newer CHIMERA:
-  `git -C chimera fetch && git -C chimera checkout <commit>`, then `bun run test` and commit the new
-  pin. Nothing is merged.
+- **`chimera/`** is CHIMERA at an exact commit. To take the newest CHIMERA, `bun run
+  chimera:update` (fetches it, moves the pin to its `main`, rebuilds the engine), try the app, then
+  commit the new pin (`git add chimera`). Nothing is merged. Hosting the app (Vercel and the like)
+  needs the submodule fetched in its build, issue #13; that's separate from updating.
 - **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
   plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
   itself doesn't offer (Gruff and Clank are giants).
