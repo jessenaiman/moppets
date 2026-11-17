@@ -8,9 +8,9 @@ import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
 import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
-import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode } from "../choir/music.ts";
+import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
-import { beatSeconds, LEAD_IN, pieceSeconds } from "../choir/plan.ts";
+import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured } from "../choir/choreo.ts";
@@ -575,8 +575,8 @@ function WordsEditor() {
     <div className="words-bar">
       <button className={open ? "on" : ""} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "Done editing" : "✎ Edit words"}</button>
       {cur.edited && <span className="words-edited">Edited, not saved</span>}
-      {open && cur.edited && <button onClick={() => void save()}>{import.meta.env.DEV ? `Save to songs/${cur.file}` : `Download ${cur.file}`}</button>}
-      {open && cur.edited && <button className="link" onClick={revert}>Revert</button>}
+      {cur.edited && <button onClick={() => void save()}>{import.meta.env.DEV ? `Save to songs/${cur.file}` : `Download ${cur.file}`}</button>}
+      {cur.edited && <button className="link" onClick={revert}>Revert</button>}
     </div>
   );
   if (!open) return head;
@@ -730,9 +730,43 @@ function SkitTools() {
 let writerProbe: Promise<boolean> | null = null;
 const hasWriter = () => (writerProbe ??= import.meta.env.DEV ? fetch("/__claude/ping").then((r) => r.status === 204, () => false) : Promise.resolve(false));
 
-function ScoreSvg({ piece }: { piece: Piece }) {
+/** Editing one Moppet's notes on the score (a lead-sheet song): what the drags change. */
+interface NoteEdit {
+  id: string;
+  /** move a note this many scale steps */
+  pitch: (src: NonNullable<ScoreEvent["src"]>, steps: number) => void;
+  /** lengthen a note by `beats` (negative: shorten), taken from the next note of its phrase */
+  length: (src: NonNullable<ScoreEvent["src"]>, beats: number) => void;
+}
+/** A scale step is about 12/7 semitones on the score. */
+const STEP = 12 / 7;
+const SNAP = 0.25;
+
+/** Each sung note's syllable, for a track with lyric lines (holds show as "–"). */
+function syllablesOf(t: Track): (string | null)[] {
+  const byLine = new Map<number, string[]>();
+  const seen = new Map<number, number>();
+  return t.events.map((e) => {
+    if (e.line === undefined || !t.phrases) return null;
+    if (!byLine.has(e.line)) {
+      try {
+        byLine.set(e.line, sungSyllables(t.phrases[e.line]).map((x) => (x.melisma ? "–" : x.text)));
+      } catch {
+        byLine.set(e.line, []);
+      }
+    }
+    const k = seen.get(e.line) ?? 0;
+    seen.set(e.line, k + 1);
+    return byLine.get(e.line)![k] ?? null;
+  });
+}
+
+function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   const voices = useMoppet((s) => s.voices);
   const cursor = useRef<SVGPathElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+  /** the note being dragged: its event, how, and how far so far (in score units) */
+  const [drag, setDrag] = useState<{ track: string; i: number; how: "pitch" | "length"; x0: number; y0: number; dx: number; dy: number } | null>(null);
   const w = 1100, h = 245, left = 38, top = 20;
   const midis = piece.tracks.flatMap((t) => t.events.map((e) => e.midi));
   const range = [Math.min(...midis) - 2, Math.max(...midis) + 2];
@@ -748,22 +782,63 @@ function ScoreSvg({ piece }: { piece: Piece }) {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [piece, sx]);
+  // a drag in viewBox units, whatever size the score is drawn at
+  const scale = () => w / (svg.current?.getBoundingClientRect().width || w);
+  const start = (ev: React.PointerEvent, track: string, i: number, how: "pitch" | "length") => {
+    ev.stopPropagation();
+    try {
+      (ev.target as Element).setPointerCapture(ev.pointerId); // keeps the drag when the pointer leaves the note
+    } catch {
+      // no live pointer to capture (a synthetic event): the score still follows it
+    }
+    setDrag({ track, i, how, x0: ev.clientX, y0: ev.clientY, dx: 0, dy: 0 });
+  };
+  const move = (ev: React.PointerEvent) => drag && setDrag({ ...drag, dx: (ev.clientX - drag.x0) * scale(), dy: (ev.clientY - drag.y0) * scale() });
+  const end = () => {
+    if (!drag || !edit) return setDrag(null);
+    const e = piece.tracks.find((t) => t.id === drag.track)?.events[drag.i];
+    setDrag(null);
+    if (!e?.src) return;
+    if (drag.how === "pitch") {
+      const steps = Math.round(-drag.dy / (STEP * sy));
+      if (steps) edit.pitch(e.src, steps);
+    } else {
+      const beats = Math.round(drag.dx / sx / SNAP) * SNAP;
+      if (beats) edit.length(e.src, beats);
+    }
+  };
   const octaves: number[] = [];
   for (let n = Math.ceil(range[0] / 12) * 12; n <= range[1]; n += 12) octaves.push(n);
   const bars: number[] = [];
   for (let b = 0; b <= piece.beats; b += 4) bars.push(b);
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`}>
+    <svg ref={svg} className={edit ? "editing" : undefined} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
       <rect width={w} height={h} fill="#20382e" />
       {octaves.map((n) => <g key={n}><path d={`M${left} ${top + (range[1] - n) * sy}H${w}`} stroke="#ffffff18" /><text x={5} y={top + (range[1] - n) * sy + 3} fill="#bbccba" fontSize={9}>{noteName(n)}</text></g>)}
       {bars.map((b) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff16" /><text x={left + b * sx + 3} y={h - 4} fill="#8caa94" fontSize={8}>{b / 4 + 1}</text></g>)}
       {piece.tracks.map((t) => {
         const color = voices.find((v) => v.id === t.id)?.color ?? "#fff";
-        return t.events.map((e, i) => (
-          <rect key={`${t.id}${i}`} x={left + e.beat * sx} y={top + (range[1] - e.midi) * sy - 2.5} width={Math.max(1.5, e.beats * sx - 1.5)} height={5} rx={1.5} fill={color} opacity={0.85}>
-            <title>{`${t.id}: ${noteName(e.midi, piece.key, piece.mode)}, beat ${e.beat + 1}${e.text ? `, ${e.text}` : ""}`}</title>
-          </rect>
-        ));
+        const mine = edit?.id === t.id;
+        const words = mine ? syllablesOf(t) : null;
+        // a syllable is labelled only where it doesn't run into the one before (about 5 units a letter)
+        let free = -Infinity;
+        return t.events.map((e, i) => {
+          const editable = mine && !!e.src;
+          const d = drag && drag.track === t.id && drag.i === i ? drag : null;
+          const steps = d?.how === "pitch" ? Math.round(-d.dy / (STEP * sy)) : 0;
+          const grow = d?.how === "length" ? Math.round(d.dx / sx / SNAP) * SNAP : 0;
+          const x = left + e.beat * sx, y = top + (range[1] - e.midi - steps * STEP) * sy;
+          const width = Math.max(1.5, (e.beats + grow) * sx - 1.5);
+          return (
+            <g key={`${t.id}${i}`} className={editable ? "note-edit" : undefined} opacity={edit && !mine ? 0.25 : 1}>
+              <rect x={x} y={y - (editable ? 4 : 2.5)} width={width} height={editable ? 8 : 5} rx={1.5} fill={color} opacity={0.85} onPointerDown={editable ? (ev) => start(ev, t.id, i, "pitch") : undefined}>
+                <title>{`${t.id}: ${noteName(e.midi, piece.key, piece.mode)}, beat ${e.beat + 1}${e.text ? `, ${e.text}` : ""}`}</title>
+              </rect>
+              {editable && <rect className="note-end" x={x + width - 4} y={y - 6} width={6} height={12} fill="transparent" onPointerDown={(ev) => start(ev, t.id, i, "length")} />}
+              {words?.[i] && x >= free && (free = x + words[i]!.length * 5 + 3) && <text x={x + 1} y={y - 7} fill="#fff4d6" fontSize={9} pointerEvents="none">{words[i]}</text>}
+            </g>
+          );
+        });
       })}
       <path ref={cursor} d={`M${left} 12V${h - 18}`} stroke="#fff2c4" strokeWidth={1.5} />
     </svg>
@@ -781,6 +856,32 @@ function ScorePanel() {
   const harmonic = piece.kind === "round" ? piece.chords.slice(0, 4) : piece.chords.slice(0, 16);
   const midiName = piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" || piece.kind === "skit" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
   const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
+  const selected = useMoppet((s) => s.voices[s.selected]);
+  const editSongFile = useMoppet((s) => s.editSongFile);
+  const [editing, setEditing] = useState(false);
+  // notes can be edited where a lead sheet wrote them: the songbook songs
+  const editable = piece.kind === "motesong" && !!lessonFile(lesson);
+  const sung = (x: SongFile, [si, li, ai]: number[]): Sung | null => {
+    if (x.kind !== "song") return null;
+    const l = [...new Set(x.song.sections)][si]?.lines[li];
+    return !l || "rest" in l ? null : ai < 0 ? l : (l.with?.[ai] ?? null);
+  };
+  const noteEdit: NoteEdit | null = editing && editable ? {
+    id: selected.id,
+    pitch: (src, steps) => editSongFile((x) => {
+      const s = sung(x, src);
+      if (s) s.degrees[src[3]] += steps;
+    }),
+    length: (src, beats) => editSongFile((x) => {
+      const s = sung(x, src), n = src[3];
+      // the line keeps its length: the next note gives (or takes) the beats
+      if (!s || n + 1 >= s.rhythm.length) return;
+      const a = s.rhythm[n] + beats, b = s.rhythm[n + 1] - beats;
+      if (a < SNAP || b < SNAP) return;
+      s.rhythm[n] = a;
+      s.rhythm[n + 1] = b;
+    }),
+  } : null;
   return (
     <div className="moppet-score">
       <LessonTabs />
@@ -799,8 +900,9 @@ function ScorePanel() {
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
-      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools"><BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
-      <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} /></div>
+      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools">{editable && <button className={editing ? "on" : ""} aria-pressed={editing} onClick={() => setEditing(!editing)} title={`Drag ${selected.name}'s notes up or down; drag a note's right edge to lengthen it`}>{editing ? `Done editing ${selected.name}` : `✎ Edit ${selected.name}'s notes`}</button>}<BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
+      <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} edit={noteEdit} /></div>
+      {noteEdit && <p className="score-help">Drag {selected.name}’s notes up or down a scale step at a time, or a note’s right edge to lengthen it (the next note gives up the time, so the line keeps its length). Pick another Moppet on the stage to edit its part. Notes on strong beats move to fit the chord. Saving works as for words: Save to songs/… above.</p>}
       <div className="score-legend">{voices.map((v) => <span key={v.id}><i style={{ background: v.color }} />{v.name}</span>)}<span className="score-help">Higher on the page = higher pitch</span></div></>}
     </div>
   );

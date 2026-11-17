@@ -39,6 +39,12 @@ export interface ScoreEvent {
   strong?: boolean;
   /** lyric line this note belongs to (a key into the track's `phrases`) */
   line?: number;
+  /**
+   * Where a lead sheet wrote this note: [section (each distinct section once, in order), line,
+   * answer (-1: the line itself), note]. A repeated section's notes share it. The note editor
+   * edits the lead sheet through it.
+   */
+  src?: [number, number, number, number];
 }
 export interface Track {
   id: string;

@@ -220,3 +220,8 @@
 .live-keys button.white { background: #fffaf2; border: 1px solid #b9ad99; }
 .live-keys button.black { background: #2b2622; border: 1px solid #000; flex: 0.7 1 0; height: 62%; margin: 0 -1.6%; z-index: 1; }
 .live-keys button:active { background: #f0c7a8; }
+
+/* Editing a Moppet's notes on the score */
+.score .note-edit rect:first-child { cursor: ns-resize; }
+.score .note-edit .note-end { cursor: ew-resize; }
+.score svg.editing { touch-action: none; }

@@ -108,7 +108,7 @@ export function buildSong(s: Song): Piece {
   };
   const cues: NonNullable<Piece["cues"]> = [];
   let previous: string | null = null;
-  const sing = (who: string, sung: Sung, at: number, spans: Span[]) => {
+  const sing = (who: string, sung: Sung, at: number, spans: Span[], src?: [number, number, number]) => {
     if (sung.do) cues.push({ beat: at, who, gesture: sung.do });
     if (sung.react && previous && previous !== who) cues.push({ beat: at + sum(sung.rhythm) - 0.25, who: previous, gesture: sung.react });
     previous = who;
@@ -116,7 +116,7 @@ export function buildSong(s: Song): Piece {
     const p = part(who), line = p.phrases.push(sung.words) - 1;
     let beat = at;
     sung.degrees.forEach((d, j) => {
-      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(fitChord(d, beat, sung.rhythm[j], spans), key, mode), text: "", line });
+      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(fitChord(d, beat, sung.rhythm[j], spans), key, mode), text: "", line, ...(src ? { src: [...src, j] as [number, number, number, number] } : {}) });
       beat += sung.rhythm[j];
     });
     return beat - at;
@@ -131,20 +131,22 @@ export function buildSong(s: Song): Piece {
   chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: BAR });
   pad(bass, 0, 0, BAR);
   let at = BAR;
+  const distinct = [...new Set(s.sections)];
   for (const section of s.sections) {
-    for (const l of section.lines) {
+    const si = distinct.indexOf(section);
+    for (const [li, l] of section.lines.entries()) {
       if (isRest(l)) {
         at += l.rest;
         continue;
       }
       const spans: Span[] = [];
       for (const [deg, beats] of l.chords) spans.push({ start: spans.length ? spans[spans.length - 1].end : at, end: (spans.length ? spans[spans.length - 1].end : at) + beats, deg });
-      const length = sing(l.who ?? s.lead, l, at, spans);
+      const length = sing(l.who ?? s.lead, l, at, spans, [si, li, -1]);
       const busy = new Set([l.who ?? s.lead]);
-      for (const w of l.with ?? []) {
+      for (const [ai, w] of (l.with ?? []).entries()) {
         busy.add(w.who ?? s.lead);
         if ((w.offset ?? 0) + sum(w.rhythm) > length + 1e-9) throw new Error(`${s.title}: "${w.words}" runs past its line`);
-        sing(w.who ?? s.lead, w, at + (w.offset ?? 0), spans);
+        sing(w.who ?? s.lead, w, at + (w.offset ?? 0), spans, [si, li, ai]);
       }
       if (Math.abs(sum(l.chords.map((c) => c[1])) - length) > 1e-9) throw new Error(`${s.title}: the chords under "${l.words}" last ${sum(l.chords.map((c) => c[1]))} beats, the line ${length}`);
       let t = at;
