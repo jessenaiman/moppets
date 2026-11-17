@@ -31,4 +31,12 @@ const FILES: [string, string][] = [
   ["round.song", round],
 ];
 
+/** Each lead sheet's file name and text as loaded (updated in place when the app saves one). */
+export const SONG_SOURCES = new Map<string, string>(FILES);
+
 export const SONG_FILES: SongFile[] = FILES.map(([name, text]) => parseSongFile(text, `songs/${name}`));
+
+/** The file a song, skit or the round's words came from. */
+export function fileOf(id: string, kind: SongFile["kind"]): string {
+  return kind === "skit" ? `skit-${id}.song` : `${id}.song`;
+}

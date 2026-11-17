@@ -53,3 +53,15 @@ test("a lead-sheet mistake names its file and line", () => {
   const bad = 'title: X\nid: x\nlead: pip\nkey: G\nbpm: 100\nfinale: "Hm" on 0\n\n[verse]\n"two words" = 1 2 | Z 4\n';
   expect(() => songFile.parseSongFile(bad, "songs/x.song")).toThrow('songs/x.song:9: "Z" is not a chord (I to VII)');
 });
+
+test("the words check counts syllables against notes and spots a word sung against its stress", async () => {
+  const { checkSung, songProblems } = await import("../src/choir/songCheck.ts");
+  const { SONGBOOK } = await import("../src/choir/songbook.ts");
+  const long = checkSung({ words: "pancakes were made", rhythm: [1, 1, 2] });
+  expect(long.syllables).toEqual(["pan", "cakes", "were", "made"]);
+  expect(long.problem).toBe("1 syllable too many: 4 for 3 notes");
+  expect(checkSung({ words: "made", rhythm: [1, 1] }).problem).toBe("1 syllable short: 1 for 2 notes");
+  expect(checkSung({ words: "banana", rhythm: [1, 0.5, 0.5] }, 0).hint).toBe(""); // NA on the beat
+  expect(checkSung({ words: "banana", rhythm: [0.5, 1, 1] }, 0).hint).toContain("ba·NA·na"); // NA between beats
+  for (const s of SONGBOOK) expect(songProblems(s.song)).toEqual([]);
+});

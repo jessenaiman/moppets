@@ -7,7 +7,10 @@ import { Stroboscope } from "./Stroboscope.tsx";
 import { SpectrumView } from "./SpectrumView.tsx";
 import { VoiceControls, VoiceToggles } from "./VoiceControls.tsx";
 import { Keys } from "./Keys.tsx";
-import { useMoppet, type Lesson } from "../../choir/store.ts";
+import { currentFile, lessonFile, useMoppet, type Lesson } from "../../choir/store.ts";
+import { checkSung, lineStarts } from "../../choir/songCheck.ts";
+import type { Line, Section } from "../../choir/songbook.ts";
+import { g2p } from "../speech.ts";
 import { cancel, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode } from "../../choir/music.ts";
@@ -525,6 +528,90 @@ function MusicSettings() {
   );
 }
 
+/**
+ * Edit the words of the open song or skit, line by line. Each sung line shows how the dictionary
+ * splits it and whether that fits its notes; the score follows once every line fits. Edits stay in
+ * this browser until saved into songs/ (dev server) or downloaded, or reverted.
+ */
+function WordsEditor() {
+  const lesson = useMoppet((s) => s.lesson);
+  const edits = useMoppet((s) => s.songEdits);
+  const editSongFile = useMoppet((s) => s.editSongFile);
+  const revert = useMoppet((s) => s.revertSongFile);
+  const save = useMoppet((s) => s.saveSongFile);
+  const voices = useMoppet((s) => s.voices);
+  const [open, setOpen] = useState(false);
+  const [dictionary, setDictionary] = useState(g2p.loaded);
+  useEffect(() => {
+    if (open && !dictionary) void g2p.load().then(() => setDictionary(true), () => setDictionary(true));
+  }, [open, dictionary]);
+  const cur = currentFile(lesson);
+  if (!cur) return null;
+  const name = (id: string | undefined, fallback: string) => voices.find((v) => v.id === (id ?? fallback))?.name ?? id ?? fallback;
+  const head = (
+    <div className="words-bar">
+      <button className={open ? "on" : ""} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "Done editing" : "✎ Edit words"}</button>
+      {cur.edited && <span className="words-edited">Edited, not saved</span>}
+      {open && cur.edited && <button onClick={() => void save()}>{import.meta.env.DEV ? `Save to songs/${cur.file}` : `Download ${cur.file}`}</button>}
+      {open && cur.edited && <button className="link" onClick={revert}>Revert</button>}
+    </div>
+  );
+  if (!open) return head;
+  const f = cur.parsed;
+  if (f.kind === "skit") {
+    return (
+      <div className="words-editor">
+        {head}
+        {f.skit.scenes.map((scene, si) => (
+          <section key={si}>
+            <h3>Scene {si + 1}</h3>
+            {scene.map((l, li) => (
+              <label key={li} className="words-line">
+                <b>{name(l.who, l.who)}</b>
+                <input value={l.say} onChange={(e) => editSongFile((x) => void (x.kind === "skit" && (x.skit.scenes[si][li].say = e.target.value)))} />
+              </label>
+            ))}
+          </section>
+        ))}
+      </div>
+    );
+  }
+  if (f.kind !== "song") return head;
+  const song = f.song;
+  const starts = lineStarts(song);
+  const sections = [...new Set(song.sections)];
+  const repeats = (sec: Section) => song.sections.filter((x) => x === sec).length;
+  const line = (words: string, who: string | undefined, check: ReturnType<typeof checkSung> | null, set: (w: string) => void, key: string, answer = false) => (
+    <div key={key} className={`words-line${answer ? " answer" : ""}`}>
+      <b>{answer ? "+ " : ""}{name(who, song.lead)}</b>
+      <input value={words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => set(e.target.value)} />
+      {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.syllables.join("·") || "—"} · {check.ok ? `${check.notes} ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
+    </div>
+  );
+  return (
+    <div className="words-editor">
+      {head}
+      {!dictionary && <p className="words-note">Loading the pronouncing dictionary…</p>}
+      <p className="words-note">One syllable per note: the dots show how the dictionary splits each line. A repeated section is edited once.</p>
+      {sections.map((sec, si) => (
+        <section key={si}>
+          <h3>Section {si + 1}{sec.choir ? " · choir" : ""}{repeats(sec) > 1 ? ` · sung ${repeats(sec)} times` : ""}</h3>
+          {sec.lines.map((l, li) =>
+            "rest" in l ? (
+              <p key={li} className="words-rest">rest {l.rest} beats</p>
+            ) : (
+              <Fragment key={li}>
+                {line(l.words, l.who, dictionary ? checkSung(l, starts.get(l)) : null, (w) => editSongFile((x) => void (x.kind === "song" && ((([...new Set(x.song.sections)][si].lines[li] as Line).words = w)))), `${li}`)}
+                {(l.with ?? []).map((a, ai) => line(a.words, a.who, dictionary ? checkSung(a) : null, (w) => editSongFile((x) => void (x.kind === "song" && (((([...new Set(x.song.sections)][si].lines[li] as Line).with ?? [])[ai].words = w)))), `${li}-${ai}`, true))}
+              </Fragment>
+            ),
+          )}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 /** A skit's script, scene by scene, each line in its speaker's colour. */
 function Script({ piece }: { piece: Piece }) {
   const voices = useMoppet((s) => s.voices);
@@ -664,6 +751,7 @@ function ScorePanel() {
       <MusicSettings />
       {piece.kind === "skit" && <SkitTools />}
       <p className="moppet-status" role="status">{message || status || (eStatus === "idle" ? "Ready. Press play." : "")}{eStatus === "rendering" ? ` (${Math.round(progress * 100)} %)` : ""}</p>
+      {lessonFile(lesson) && <WordsEditor key={lesson} />}
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}

@@ -5,7 +5,14 @@ in any editor. The app, the tests and the video tools read these files; no code 
 
 ## Change a song's words
 
-Open the song (e.g. `songs/autocomplete.song`) and edit the words in quotes. Keep **one syllable
+**In the app:** open the song's (or skit's) tab and press **✎ Edit words**. Each line shows how the
+pronouncing dictionary splits it (`waf·fles·made · 3 ✓`). A line that doesn't fit its notes turns
+red and says by how much. A word sung against its stress gets a gentle hint ("MOR·ning"). The score
+follows your words as soon as every line fits; press play to hear them. Edits stay in this browser
+until you press **Save to songs/…** (in `bun run dev` it writes the file, ready to commit; a built
+app downloads it instead) or **Revert**.
+
+**In a text editor:** open the song (e.g. `songs/autocomplete.song`) and edit the words in quotes. Keep **one syllable
 per note**: the line `"pancakes made" = 7 6 4/2 | V 4` has three notes (`7`, `6`, `4/2`), so its
 words need three syllables. Then:
 

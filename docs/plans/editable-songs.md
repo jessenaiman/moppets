@@ -98,6 +98,12 @@ Fixes the editor offers when counts differ:
   `buildLeadSong`) and the introduction; they need their own `kind:` or a move onto the songbook
   model. The guide is `docs/writing-songs.md`.
 
+- **Phase 2 is done except the fix buttons**: the "Edit words" panel checks every line as you
+  type (`src/choir/songCheck.ts`: syllables against notes, words sung against their stress), plays
+  the new words once they fit, keeps edits in the browser, and saves into `songs/` from the dev
+  server (`tools/song-bridge.ts`) or downloads. Not yet: melismas and note splits as fixes (they need
+  the planner to hold one syllable over several notes), and editing the round's word sets there.
+
 ## Phases
 
 1. **Extract, change nothing (about a day).** Write the parser and printer. Move the 8 songbook

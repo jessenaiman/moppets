@@ -9,7 +9,10 @@ import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } f
 import { sameBody, type BodyMix } from "../ui/body.ts";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
 import { roundProblems } from "./roundCheck.ts";
-import { SONGBOOK, type SongId } from "./songbook.ts";
+import { buildSong, SONGBOOK, type SongId } from "./songbook.ts";
+import { fileOf, SONG_SOURCES } from "./songs.ts";
+import { parseSongFile, printSongFile, type SongFile } from "./songFile.ts";
+import { songProblems } from "./songCheck.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
@@ -54,6 +57,13 @@ interface MoppetState {
   roundLyrics: RoundLyricsId | "fresh";
   /** the words Claude wrote last (dev server only) */
   freshRound: RoundLyrics | null;
+  /** edited lead sheets by file name (the words editor), kept until saved or reverted */
+  songEdits: Record<string, string>;
+  /** change the open song's or skit's lead sheet; the score follows once every line can be sung */
+  editSongFile: (change: (f: SongFile) => void) => void;
+  revertSongFile: () => void;
+  /** write the open lead sheet into songs/ (dev server), or download it */
+  saveSongFile: () => Promise<void>;
   /** the backing band (bass, electric piano, drums) under every song */
   band: boolean;
   setBand: (on: boolean) => void;
@@ -93,6 +103,10 @@ function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repe
   if (s.lesson === "chip") return makeChipSong();
   if (s.lesson === "tabby") return makeTabbySong();
   if (s.lesson === "gruff") return makeGruffShanty();
+  // an edited song or skit (words editor) plays as edited, once every line can be sung
+  const edited = editedFile(s.lesson);
+  if (edited?.kind === "skit") return makeSkit(edited.skit, useMoppet.getState?.().voices ?? defaults);
+  if (edited?.kind === "song" && !songProblems(edited.song).length) return buildSong(edited.song);
   const skit = s.lesson === "newskit" ? s.freshSkit : SKITS.find((x) => x.id === s.lesson);
   if (skit) return makeSkit(skit, useMoppet.getState?.().voices ?? defaults);
   const original = SONGBOOK.find((x) => x.id === s.lesson);
@@ -100,6 +114,55 @@ function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repe
   if (s.lesson === "intro") return makeIntroduction(useMoppet.getState?.().voices ?? defaults);
   if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });
+}
+
+// ------------------------------------------------------------------------- the words editor
+
+/** Edited lead sheets, by file name (songs/<file>), kept in this browser until saved or reverted. */
+const EDITS_KEY = "moppet-song-edits-v1";
+function loadEdits(): Record<string, string> {
+  try {
+    const saved = JSON.parse(localStorage.getItem(EDITS_KEY) ?? "{}") as Record<string, string>;
+    // an edit that now matches its file (saved since) is no edit
+    return Object.fromEntries(Object.entries(saved).filter(([f, t]) => SONG_SOURCES.has(f) && SONG_SOURCES.get(f) !== t));
+  } catch {
+    return {};
+  }
+}
+function persistEdits(edits: Record<string, string>): void {
+  try {
+    localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
+  } catch {
+    // private window
+  }
+}
+
+/** The lead-sheet file behind a lesson, if it has one. */
+export function lessonFile(lesson: string): string | null {
+  if (SONGBOOK.some((x) => x.id === lesson)) return fileOf(lesson, "song");
+  if (SKITS.some((x) => x.id === lesson)) return fileOf(lesson, "skit");
+  return null;
+}
+
+/** A lesson's lead sheet as edited, or null when it has no edits. */
+function editedFile(lesson: string): SongFile | null {
+  const file = lessonFile(lesson);
+  const text = file ? useMoppet.getState?.()?.songEdits[file] : undefined;
+  if (!file || text === undefined) return null;
+  try {
+    return parseSongFile(text, `songs/${file}`);
+  } catch {
+    return null;
+  }
+}
+
+/** A lesson's lead sheet as it stands: edited, or as loaded from songs/. */
+export function currentFile(lesson: string): { file: string; parsed: SongFile; text: string; edited: boolean } | null {
+  const file = lessonFile(lesson);
+  if (!file) return null;
+  const edits = useMoppet.getState().songEdits;
+  const text = edits[file] ?? SONG_SOURCES.get(file)!;
+  return { file, parsed: parseSongFile(text, `songs/${file}`), text, edited: file in edits };
 }
 
 function persist(voices: MoppetVoice[]): void {
@@ -144,6 +207,60 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   roundLyrics: "jam",
   freshRound: null,
   freshSkit: null,
+  songEdits: loadEdits(),
+  editSongFile: (change) => {
+    const cur = currentFile(get().lesson);
+    if (!cur) return;
+    change(cur.parsed);
+    const text = printSongFile(cur.parsed);
+    const songEdits = { ...get().songEdits };
+    if (text === SONG_SOURCES.get(cur.file)) delete songEdits[cur.file];
+    else songEdits[cur.file] = text;
+    persistEdits(songEdits);
+    set({ songEdits });
+    const problems = cur.parsed.kind === "song" ? songProblems(cur.parsed.song) : [];
+    if (problems.length) return set({ status: `Not singable yet: ${problems[0]}${problems.length > 1 ? ` (and ${problems.length - 1} more)` : ""}. The score keeps the last version that fits.` });
+    const piece = scoreFor(get());
+    set({ piece, status: cur.parsed.kind === "song" ? "Edited: every line fits its notes." : "Edited." });
+    loadPiece(piece);
+  },
+  revertSongFile: () => {
+    const file = lessonFile(get().lesson);
+    if (!file) return;
+    const songEdits = { ...get().songEdits };
+    delete songEdits[file];
+    persistEdits(songEdits);
+    set({ songEdits });
+    const piece = scoreFor(get());
+    set({ piece, status: `Back to songs/${file} as it was.` });
+    loadPiece(piece);
+  },
+  saveSongFile: async () => {
+    const cur = currentFile(get().lesson);
+    if (!cur) return;
+    if (cur.parsed.kind === "song" && songProblems(cur.parsed.song).length) return set({ status: "Fix the lines that don't fit before saving." });
+    let saved = false;
+    if (import.meta.env.DEV) {
+      const r = await fetch("/__songs/save", { method: "POST", body: JSON.stringify({ file: cur.file, text: cur.text }) }).catch(() => null);
+      if (r?.ok) saved = true;
+      else if (r) return set({ status: `Couldn't save: ${await r.text()}` });
+    }
+    if (!saved) {
+      const a = document.createElement("a");
+      const u = URL.createObjectURL(new Blob([cur.text], { type: "text/plain" }));
+      a.href = u;
+      a.download = cur.file;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(u), 1000);
+    }
+    if (!saved) return set({ status: `Downloaded ${cur.file}: put it in songs/ to keep it (the edit stays in this browser until then).` });
+    // the file now holds this text: it is no longer an edit
+    SONG_SOURCES.set(cur.file, cur.text);
+    const songEdits = { ...get().songEdits };
+    delete songEdits[cur.file];
+    persistEdits(songEdits);
+    set({ songEdits, status: `Saved songs/${cur.file}. Commit it to keep it.` });
+  },
   band: true,
   setBand: (band) => {
     setBandEnabled(band);
