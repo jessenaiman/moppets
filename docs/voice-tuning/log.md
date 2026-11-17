@@ -99,3 +99,35 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
 - Hypothesis (lead 2): Scribe's half-open velum makes every stop a nasal ("Moo! Moo! Moo!").
 - Measured (`out/clarity/e5`, Scribe only): 94.7 → **102.0** WORSE. Reverted. Scribe sits at the
   floor (Whisper invents whole sentences); its velum isn't what's in the way.
+
+### 6. Skits speak lower: register's low note + 1 semitone instead of + 4 (kept)
+
+- Hypothesis: a speaking voice sits near the bottom of its range; at + 4 the higher Moppets
+  (Scribe 370 Hz, Chip, Tabby) space their harmonics too widely to trace the formants, and the
+  deep ones speak above their comfortable pitch.
+- Change: `speakingMidi` in `src/choir/skits.ts`, `register[0] + 4` → `register[0] + 1` (every
+  Moppet, skits only; songs keep their notes).
+- Measured (`out/clarity/e6`, full run), training: plain 37.8 → **35.8**, Vee 41.1 → **38.4**,
+  Clank 62.9 → **58.9**, Pip 88.1 → **83.4**, Gruff 78.2 → **70.2**, Tabby 64.9 → **58.9**, Chip
+  75.5 → **72.2**: all BETTER. Scribe 94.7 → 107.3, called WORSE. Cast still distinct.
+- Scribe's WORSE is Whisper, not the voice. Found while checking it:
+  - Whisper isn't repeatable on identical audio: the same `best` Scribe WAVs (bit for bit) score
+    94.7 % in a full run and **141.7 %** alone (`--only scribe`, or re-scored alone: 3 times,
+    deterministic). What it transcribed earlier in the same process changes what it hears;
+    16 of 40 Scribe transcripts differ between the two.
+  - At the floor, one runaway loop ("Moo-Moo-Moo-…", 67 inserted words on one sentence) moves
+    Scribe 47 points. Alone, experiment 6 scores Scribe 141.7 → 107.3 (BETTER); in the full
+    run 94.7 → 107.3 (WORSE).
+  - With each sentence's errors capped at its word count (analysis only, not the judge):
+    Scribe 94.0 (best, full run), 94.7 (best, alone), 95.4 (e6, both). No change.
+  - So kept, with Scribe's verdict judged noise. Your ear decides; revert this commit if Scribe
+    sounds worse.
+- Consequence for later runs: compare full runs with full runs (the `--only` context scores
+  differently), and read Scribe and other Moppets near 100 % on capped errors too.
+- Listen, before → after: Gruff `out/clarity/e2/gruff/12.wav` → `out/clarity/e6/gruff/12.wav`
+  ("The thin road hears a loud milk", 10 → 6 errors), Tabby `out/clarity/e2/tabby/14.wav` →
+  `out/clarity/e6/tabby/14.wav`, Pip `out/clarity/e2/pip/14.wav` → `out/clarity/e6/pip/14.wav`
+  ("The wet bird pushes a heavy number"), Clank `out/clarity/e2/clank/13.wav` →
+  `out/clarity/e6/clank/13.wav`, Scribe `out/clarity/e2/scribe/00.wav` →
+  `out/clarity/e6/scribe/00.wav`.
+- `out/clarity/best` is now `e6`.
