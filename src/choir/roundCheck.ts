@@ -1,5 +1,5 @@
 /** The round's words check (needs the engine's syllable splitter, so it lives apart from music.ts, which stays engine-free). */
-import { lyricsToSyllables } from "../wasm/engine.ts";
+import { lyricsToSyllables } from "@chimera/wasm/engine.ts";
 import { roundWords, type RoundLyrics } from "./music.ts";
 
 /** What stops a set of words being sung on the round's tune: one note per syllable, eight to a line. Load the dictionary first. */

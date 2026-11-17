@@ -17,7 +17,7 @@ per note**: the line `"pancakes made" = 7 6 4/2 | V 4` has three notes (`7`, `6`
 words need three syllables. Then:
 
 ```bash
-bun test tests/songs.test.ts
+bun test ./tests/songs.test.ts
 ```
 
 It fails if a line's syllables don't match its notes, and says which song and singer. Syllables

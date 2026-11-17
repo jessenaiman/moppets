@@ -5,7 +5,7 @@
  * second), so the ensemble, mixer and stage play it like any song: one track per speaking Moppet,
  * one event per line, at a speaking pitch inside the Moppet's register.
  */
-import { lyricsToSyllables } from "../wasm/engine.ts";
+import { lyricsToSyllables } from "@chimera/wasm/engine.ts";
 import type { Piece, ScoreEvent, Track } from "./music.ts";
 import { CAST, type MoppetVoice } from "./voices.ts";
 import { GESTURES, type GestureName } from "./gestures.ts";

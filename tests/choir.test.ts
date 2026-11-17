@@ -24,7 +24,7 @@ beforeAll(async () => {
   plan = await import("../src/choir/plan.ts");
   ({ voices } = await import("../src/choir/voices.ts"));
   ({ poseFromRecord } = await import("../src/choir/pose.ts"));
-  const { EnglishG2P } = await import("../src/wasm/engine.ts");
+  const { EnglishG2P } = await import("@chimera/wasm/engine.ts");
   new EnglishG2P().setDictionaryText(new TextDecoder().decode(Bun.gunzipSync(await Bun.file(new URL("../public/data/cmudict.txt.gz", import.meta.url)).bytes())));
 });
 
@@ -184,7 +184,7 @@ test("every voice of the round enters on its written beat, its part eight beats 
 
 test("every cameo names a real CHIMERA call, and palette stems render", async () => {
   const { CREATURE_CALLS } = await import("../src/choir/theory.ts");
-  const { CREATURES, parseBeat, beatReady } = await import("../src/wasm/engine.ts");
+  const { CREATURES, parseBeat, beatReady } = await import("@chimera/wasm/engine.ts");
   const { CueCore } = await import("../src/choir/singerCore.ts");
   for (const [id, calls] of Object.entries(CREATURE_CALLS)) {
     const c = CREATURES.find((x) => x.id === id)!;
@@ -206,7 +206,7 @@ test("every cameo names a real CHIMERA call, and palette stems render", async ()
 
 test("every sung word in a generated song is one syllable, and every song 03 line is eight", async () => {
   const { GROOVES } = await import("../src/choir/theory.ts");
-  const { lyricsToSyllables } = await import("../src/wasm/engine.ts");
+  const { lyricsToSyllables } = await import("@chimera/wasm/engine.ts");
   for (const g of GROOVES) for (const w of g.scat) expect(lyricsToSyllables(w).length).toBe(1);
   const roundCheck = await import("../src/choir/roundCheck.ts");
   // the round sings one note per word: every written set, and the check Claude's words must pass

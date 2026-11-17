@@ -3,15 +3,17 @@
  * facade, and runs separate engine instances the way the AudioWorklet does.
  */
 import { readFileSync } from "node:fs";
-import { initChimera } from "../src/wasm/chimera.ts";
-import { writeGestures, fromUtf8 } from "../src/wasm/wire.ts";
-import type { Gesture } from "../src/wasm/types.ts";
+import { fileURLToPath } from "node:url";
+import { initChimera } from "@chimera/wasm/chimera.ts";
+import { writeGestures, fromUtf8 } from "@chimera/wasm/wire.ts";
+import type { Gesture } from "@chimera/wasm/types.ts";
 
-export const WASM_PATH = new URL("../src/wasm/chimera.wasm", import.meta.url).pathname;
+/** our engine build (`bun run wasm`): CHIMERA's C ABI plus the Moppet voices */
+export const WASM_PATH = fileURLToPath(new URL("../src/audio/moppet.wasm", import.meta.url));
 const bytes = readFileSync(WASM_PATH);
 export const wasmModule = new WebAssembly.Module(bytes);
 
-/** Load the engine for the main-thread facade (src/wasm/engine.ts can be imported after this). */
+/** Load the engine for the main-thread facade (@chimera/wasm/engine.ts can be imported after this). */
 export function initEngine(): Promise<void> {
   return initChimera(bytes);
 }

@@ -1,8 +1,8 @@
 /**
- * Layout lint: a smoke test of the layout. Loads every mode at phone, tablet and desktop sizes in
- * headless Chromium, before and after audio starts, then some alternate states (every encoder page,
- * every creature, the 3D face, a phrase being spoken) and the duet page (`?show=`, with a short
- * duet it renders first), and fails on mistakes screenshot reviews kept missing:
+ * Layout lint: a smoke test of the Moppets' layout. Loads the app at phone, tablet and desktop
+ * sizes in headless Chromium (idle, playing, a song with its words editor open, a skit), and fails
+ * on mistakes screenshot reviews kept missing. The checks (inspect, hookCanvasText) are CHIMERA's
+ * own (chimera/tools/layout-lint.ts, which runs its own modes when imported, so they are copied):
  *
  *  - overlap     two pieces of text or controls drawn over each other (DOM text, buttons, inputs,
  *                dials, and text drawn on canvases, which the page reports by wrapping fillText)
@@ -24,13 +24,12 @@
  *  - label(..., { moving: true }) on canvas text in flight (a word flying off the lips)
  *  Text truncated with an ellipsis or a line clamp is reported as a warning, not an error.
  *
- * Usage: bun tools/layout-lint.ts [--url http://...] [--out out/layout] [--only 1440x900] [--mode play|duet]
+ * Usage: bun tools/layout-lint.ts [--url http://...] [--out out/layout] [--only 1440x900]
  * Without --url it starts its own Vite dev server (build the wasm first: bun run wasm).
  * Screenshots of every failing view are saved under --out.
  */
 import { chromium } from "playwright-core";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { basename } from "node:path";
 
 const arg = (name: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -47,7 +46,6 @@ export const VIEWPORTS: { w: number; h: number }[] = [
   { w: 1920, h: 1080 },
   { w: 2560, h: 1440 },
 ];
-const MODES = ["play", "speak", "sing", "bestiary", "beatbox", "moppet choir"] as const;
 
 interface Problem {
   kind: string;
@@ -239,20 +237,13 @@ function hookCanvasText() {
   };
 }
 
-/** A two-voice show for the duet page, rendered by the CLI now (shows are never kept in git). The
- *  lint serves it at shows/lint-duet/ itself, so it needs no files under public/. */
-function makeDuet(dir: string): void {
-  mkdirSync(dir, { recursive: true });
-  const melody = (notes: number[][]) => JSON.stringify({ bpm: 120, t0: 0, lyrics: "la la la la", notes });
-  writeFileSync(`${dir}/low.json`, melody([[0, 1], [55, 1], [57, 1], [59, 1], [60, 2]]));
-  writeFileSync(`${dir}/high.json`, melody([[0, 1], [64, 1], [65, 1], [67, 1], [67, 2]]));
-  for (const [v, body] of [["low", "male"], ["high", "female"]]) {
-    const r = Bun.spawnSync(["cargo", "run", "--quiet", "--release", "-p", "chimera-cli", "--", "render", "notes", `${dir}/${v}.json`, `${dir}/${v}`, body, "--tele", `${dir}/${v}.tele`]);
-    if (r.exitCode) throw new Error(`rendering the lint duet: ${r.stderr.toString()}`);
-  }
-  // a long title, to see it trimmed on a phone
-  const voices = [{ name: "Lower", tele: "low.tele", melody: "low.json" }, { name: "Upper", tele: "high.tele", melody: "high.json" }];
-  writeFileSync(`${dir}/show.json`, JSON.stringify({ title: "A duet with a title long enough to need trimming", audio: "low.wav", bpm: 120, voices }));
+/** Pick a performance by (part of) its name, from the tabs or the menu. */
+async function choose(page: import("playwright-core").Page, name: string): Promise<void> {
+  const select = page.locator("select.lesson-select");
+  if (await select.count()) {
+    const value = await select.locator("option", { hasText: name }).first().getAttribute("value");
+    await select.selectOption(value!);
+  } else await page.getByRole("tab", { name: new RegExp(name) }).first().click();
 }
 
 async function main() {
@@ -269,13 +260,7 @@ async function main() {
     url = s.resolvedUrls!.local[0];
   }
   const only = arg("only");
-  const onlyMode = arg("mode");
   const viewports = only ? VIEWPORTS.filter((v) => `${v.w}x${v.h}` === only).concat(VIEWPORTS.some((v) => `${v.w}x${v.h}` === only) ? [] : [{ w: +only.split("x")[0], h: +only.split("x")[1] }]) : VIEWPORTS;
-  const duet = !onlyMode || onlyMode === "duet";
-  const modes = onlyMode ? (onlyMode === "duet" ? [] : [onlyMode]) : MODES;
-  const duetDir = `${out}/duet-show`;
-  if (duet) makeDuet(duetDir);
-
   // WebGL through SwiftShader, for the 3D face
   const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   let errors = 0, warnings = 0, views = 0;
@@ -299,72 +284,23 @@ async function main() {
       for (const p of [...errs, ...warns]) console.log(`  ${p.warn ? "warn " : "ERROR"} ${p.kind.padEnd(11)} ${p.detail}`);
       if (errs.length) await page.screenshot({ path: `${out}/${w}x${h}-${state.replace(/[^a-z0-9]+/gi, "-")}.png`, fullPage: true });
     };
-    const mode = async (m: string) => {
-      if (m === "moppet choir") {
-        await page.getByRole("radio", { name: "Moppets", exact: true }).click();
-      } else {
-        await page.getByRole("radio", { name: "Chimera", exact: true }).click();
-        await page.getByRole("radiogroup", { name: "Mode" }).getByRole("radio", { name: new RegExp(`^${m}$`, "i") }).click();
-      }
-    };
-    // every encoder page of the screens on the right (each page has its own labels)
-    const pages = async (state: string) => {
-      const tabs = page.locator(".right .enc-tab");
-      for (let i = 1; i < (await tabs.count()); i++) {
-        await tabs.nth(i).click();
-        await check(`${state}, controls page ${(await tabs.nth(i).textContent())?.trim()}`);
-      }
-      if (await tabs.count()) await tabs.first().click();
-    };
-    if (duet) {
-      // the duet page: two 3D heads, loaded and then playing
-      await page.route("**/shows/lint-duet/*", (route) => route.fulfill({ path: `${duetDir}/${basename(new URL(route.request().url()).pathname)}` }));
-      await page.goto(new URL("?show=lint-duet", url).href, { waitUntil: "networkidle" });
-      await page.waitForSelector(".duet-head canvas", { timeout: 15000 });
-      await check("duet", 2000);
-      await page.locator(".duet-bar button.primary").click();
-      // 1.2 s in: both heads singing, a word at each mouth
-      await check("duet, playing", 1200);
-    }
-    if (!modes.length) {
-      await page.close();
-      continue;
-    }
+    const button = (name: RegExp) => page.getByRole("button", { name }).first();
     await page.goto(url, { waitUntil: "networkidle" });
-    await page.getByRole("radio", { name: "Chimera", exact: true }).click();
-    for (const m of modes) {
-      await mode(m);
-      await check(m);
-    }
-    await page.locator(".topbar button.primary").click();
-    await page.waitForSelector(".load", { timeout: 15000 });
-    for (const m of modes) {
-      await mode(m);
-      await check(`${m} (running)`);
-      await pages(`${m} (running)`);
-      if (m === "play") {
-        // the 3D face lays its readouts out on its own
-        await page.locator(".view-toggles .toggle", { hasText: "3D" }).click();
-        await check("play (running), 3D", 2500);
-        await page.locator(".view-toggles .toggle", { hasText: "3D" }).click();
-      }
-      if (m === "speak") {
-        // the gestural score with a phrase in it, mid-utterance
-        await page.getByRole("button", { name: /^Speak$/ }).click();
-        await check("speak (running), speaking", 900);
-      }
-      if (m === "bestiary") {
-        // each creature has its own names and parameters
-        const specimens = page.locator(".s-gallery .specimen");
-        for (let i = 1; i < (await specimens.count()); i++) {
-          await specimens.nth(i).click();
-          const name = (await specimens.nth(i).locator(".specimen-name").textContent())?.trim();
-          await check(`bestiary (running), ${name}`);
-          await pages(`bestiary (running), ${name}`);
-        }
-        await specimens.first().click();
-      }
-    }
+    await page.waitForSelector(".s-stage", { timeout: 15000 });
+    await check("stage");
+    // playing: the stage's speech, notes and labels move
+    await button(/^▶|Play/).click();
+    await page.waitForFunction(() => (window as unknown as { __choir: { ensemble: { getState(): { status: string } } } }).__choir.ensemble.getState().status === "playing", undefined, { timeout: 30000 });
+    await check("stage, playing", 2500);
+    await button(/Stop playback/).click();
+    // a song with its words editor open: a field and a syllable check per line
+    await choose(page, "Autocomplete");
+    await button(/Edit words/).click();
+    await check("Autocomplete, editing words", 1500);
+    await button(/Done editing/).click();
+    // a skit: the script instead of a score
+    await choose(page, "Toaster");
+    await check("skit");
     await page.close();
   }
   await browser.close();

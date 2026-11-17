@@ -15,7 +15,7 @@ const { beatSeconds, LEAD_IN, pieceSeconds, planTrack } = await import("../src/c
 const { CAST: voices, MIX_LEVEL } = await import("../src/choir/voices.ts");
 const { extraStems, mixStems, pieceGains, wavBytes } = await import("../src/choir/mix.ts");
 const { renderAccompaniment } = await import("../src/choir/bandSynth.ts");
-const { beatReady, EnglishG2P, parseBeat } = await import("../src/wasm/engine.ts");
+const { beatReady, EnglishG2P, parseBeat } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 const out = process.argv[2] ?? "out/listen";
 mkdirSync(out, { recursive: true });

@@ -2,7 +2,7 @@
  * How a Moppet's voice definition reaches its engine: the only place recipes turn into engine
  * values. Free of engine imports so the singer Workers can use it.
  */
-import type { Gesture } from "../wasm/types.ts";
+import type { Gesture } from "@chimera/wasm/types.ts";
 import type { MoppetVoice } from "./voices.ts";
 
 /** Tag of the held character posture; a live edit replaces it (see SingerCore.setCharacter). */

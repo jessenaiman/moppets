@@ -6,7 +6,7 @@
  *  - size     formant scale: the geometric mean of F1..F3 of this Moppet's own airway (body, size
  *             and posture) on a neutral vowel, from the engine's transfer function. A big airway
  *             sounds big at any pitch, and the sung voice follows these resonances (see
- *             crates/chimera/tests/airway_size.rs). Audio LPC was tried first and misread pressed
+ *             crates/moppet-wasm/tests/airway_size.rs). Audio LPC was tried first and misread pressed
  *             and very low voices. Distinct at >= 12 % apart.
  *  - colour   spectral envelope, 24 log bands 80 Hz to 8 kHz, dB RMS apart (vowel posture, nasality,
  *             brightness). Distinct at >= 4 dB.
@@ -22,14 +22,14 @@
 import { gunzipSync } from "node:zlib";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { initEngine, wasmModule } from "../tests/harness.ts";
-import { FFT, hann } from "./lib/fft.ts";
-import { writeWav } from "./lib/wav.ts";
+import { FFT, hann } from "../chimera/tools/lib/fft.ts";
+import { writeWav } from "../chimera/tools/lib/wav.ts";
 await initEngine();
 const { hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.ts");
 const { makeSolo } = await import("../src/choir/music.ts");
 const { planTrack, pieceSeconds } = await import("../src/choir/plan.ts");
 const { CAST } = await import("../src/choir/voices.ts");
-const { EnglishG2P, airwayModel, airwayTransfer, NEUTRAL, restTip } = await import("../src/wasm/engine.ts");
+const { EnglishG2P, airwayModel, airwayTransfer, NEUTRAL, restTip } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 
 const outDir = process.argv[2] ?? "out/moppet-voices";
@@ -64,11 +64,17 @@ const N = 4096, BANDS = 24, LO = 80, HI = 8000;
 const edges = Array.from({ length: BANDS + 1 }, (_, i) => LO * Math.pow(HI / LO, i / BANDS));
 const fft = new FFT(N), win = hann(N);
 
-/** F1..F3 of the Moppet's own airway at rest on a neutral vowel, with its character posture. */
+/**
+ * F1..F3 of the Moppet's own airway at rest on a neutral vowel, with its character posture. CHIMERA's
+ * airway model has no size, so its body's formants are divided by the Moppet's size (clamped as the
+ * engine clamps it): every resonance moves inversely with size, to within 15 % (tested in
+ * crates/moppet-wasm/tests/airway_size.rs).
+ */
 function airwayFormants(v: Voice): number[] {
   const tip = restTip(NEUTRAL.jaw, NEUTRAL.tbX, NEUTRAL.tbY);
-  const m = airwayModel(v.body, FS, v.size ?? 1);
-  return airwayTransfer(m, { ...NEUTRAL, ttX: tip.x, ttY: tip.y, ...v.artic }).formants.slice(0, 3);
+  const m = airwayModel(v.body, FS);
+  const scale = m.body.scale, sized = Math.min(1.6, Math.max(0.65, scale * (v.size ?? 1)));
+  return airwayTransfer(m, { ...NEUTRAL, ttX: tip.x, ttY: tip.y, ...v.artic }).formants.slice(0, 3).map((f) => (f * scale) / sized);
 }
 
 interface Print {

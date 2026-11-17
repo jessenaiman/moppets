@@ -1,7 +1,7 @@
-# CHIMERA
+# The Moppets
 
-A physical-modeling voice synthesizer: a Rust engine (wasm in an AudioWorklet, native for tests
-and the CLI) under a React UI. See the README.
+Found-object characters with physically modelled voices, on CHIMERA (pinned in `chimera/`). See
+the README.
 
 ## Working here
 
@@ -16,48 +16,39 @@ and the CLI) under a React UI. See the README.
 
 ## Map
 
-- `crates/chimera/`: the engine (no I/O). `crates/chimera-wasm/`: the browser's C ABI.
-  `crates/chimera-cli/`: `chimera render | compare csd | compare tsp | diagnose | calibrate`.
-- `src/wasm/`: the UI's facade over the engine. `src/worklet/`: the AudioWorklet. `src/ui/`: React
-  and the canvas renderers.
+- `chimera/`: CHIMERA, a git submodule at an exact commit. **Never edit it**; its own AGENTS.md
+  governs it, not this repo. Move the pin to update (README → How it uses CHIMERA).
+- `crates/moppet-wasm/`: the app's wasm: CHIMERA's C ABI plus the sized Moppet voices (`moppet_*`).
+- `src/choir/`: the Moppets (cast, scores, songs, skits, band, gestures, the ensemble of singer
+  workers). `src/audio/`: the AudioContext and the dictionary. `src/ui/`: the app (React, the stage).
+  `src/worklet/`: the choir mixer.
 - `songs/`: every song, skit and round's words as a lead sheet (`src/choir/songFile.ts`,
   `docs/writing-songs.md`); a new one is listed in `src/choir/songs.ts`.
-- `tests/`: bun tests on the wasm build. `tools/`: e2e, layout lint, spectrogram, speech judges
-  (`asr/` Whisper, `tsp/` the real speakers' data).
-- `docs/`: architecture, the engine contract (`rust-engine.md`), the UI look, the singer and
-  speech judges, and the hill-climb rules.
+- `tests/`: bun tests on the wasm build. `tools/`: the choir e2e, layout lint, videos, gestures,
+  the Claude, SoundCraft and song bridges for the dev server.
 
 ## Rules
 
-- **The engine's contract** (`docs/rust-engine.md`): transcendental math only through
-  `chimera::math`, no allocation while rendering, output independent of block size. `cargo test`
-  enforces each.
-- **Any change to the sound or the plans fails the golden tests, by design.** Re-bless with
-  `CHIMERA_BLESS=1 cargo test --workspace --no-fail-fast`, run twice. Human-voice audio, plans
-  (including the beat sounds' gestures and the beat player), the tract geometry and the human
-  airway's transfer functions re-bless; see `crates/chimera/tests/golden/README.md` for the rest.
-- **`*.generated.json` tables are regenerated (`chimera calibrate`, `tools/gen-*`), never edited.**
-  Vowel calibration isn't bit-reproducible, so rerun it only when the formants should move.
-- **`src/wasm/chimera.wasm` is a gitignored build product.** After a Rust change, `bun test tests`
-  alone tests the old engine: use `bun run test`. Don't share a cargo `target/` between checkouts.
-- **Gesture records are defined twice**, in `crates/chimera-wasm/src/lib.rs` and
-  `src/wasm/wire.ts`. Change both and bump `LAYOUT_VERSION`.
-- **The wasm loads before the UI.** A module that calls the engine at import must not be reachable
-  from `src/main.tsx`'s static imports. Check: `bun tools/e2e.ts` against `bun run preview`.
+- **CHIMERA's TypeScript is imported as `@chimera/…`**, never copied. When the Moppets need what
+  CHIMERA doesn't do, it goes in `crates/moppet-wasm` or `src/`, on CHIMERA's public API.
+- **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a new
+  CHIMERA pin), `bun test ./tests` alone tests the old engine: use `bun run test`.
+- **`bun test ./tests`, not `bun test tests`:** the bare word is a filter that also runs
+  CHIMERA's own tests in `chimera/`, against a wasm they weren't built for.
+- **The wasm loads before the UI.** CHIMERA's `engine.ts` calls the engine as it loads, so it
+  must not be reachable from `src/main.tsx`'s static imports. Check: `bun tools/choir-e2e.ts`
+  against `bun run preview`.
 - **Worker, worklet and tool modules stay engine-free** (`music.ts`, `band.ts`, `bandSynth.ts`,
-  `mix.ts`, `midi.ts`, `timeline.ts`, `captions.ts`, the singer worker, the mixer worklet): they load where the
-  engine isn't. Engine-calling helpers go in their own module (`roundCheck.ts`, `plan.ts`). Check:
-  `tests/engine-free.test.ts`.
+  `mix.ts`, `midi.ts`, `timeline.ts`, `captions.ts`, the singer worker, the mixer worklet): they load
+  where the engine isn't. Engine-calling helpers go in their own module (`roundCheck.ts`, `plan.ts`).
+  Check: `tests/engine-free.test.ts`.
 - **DOM content flows in `.screen-body`, never absolutely positioned.** Check: `bun run lint:layout`.
-- **Nothing copyrighted goes in git.** `public/shows/` is gitignored; never ship CSD audio or
-  anything derived from it.
-- **Voice tuning follows `docs/hill-climb/README.md`** and never edits its judges.
+- **Nothing copyrighted goes in git.**
 
 ## Checks
 
 | When you touch | Run |
 |---|---|
 | anything | `bun run test` and `bun run typecheck` |
-| `crates/chimera/` sound | re-bless goldens (above); `cargo run --release -q -p chimera --example bench` against the previous commit |
-| `crates/chimera-wasm/`, `src/wasm/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/e2e.ts` |
-| `src/ui/`, `src/show/`, CSS | `bun run lint:layout` |
+| `crates/moppet-wasm/`, the `chimera/` pin, `src/audio/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/choir-e2e.ts http://127.0.0.1:5418/` |
+| `src/ui/`, CSS | `bun run lint:layout` |

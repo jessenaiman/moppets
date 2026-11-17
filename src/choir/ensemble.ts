@@ -7,15 +7,15 @@
  */
 import { create } from "zustand";
 import mixerUrl from "../worklet/mixer.ts?worker&url";
-import { engine } from "../audio/AudioEngine.ts";
-import { chimeraModule } from "../wasm/chimera.ts";
-import { g2p } from "../ui/speech.ts";
-import type { TelemetryMessage } from "../worklet/protocol.ts";
+import { audio } from "../audio/audio.ts";
+import { chimeraModule } from "@chimera/wasm/chimera.ts";
+import { g2p } from "../audio/g2p.ts";
+import type { TelemetryMessage } from "@chimera/worklet/protocol.ts";
 import type { MixerIn, MixerOut } from "../worklet/mixerProtocol.ts";
 import type { Backing, FromSinger, ToSinger } from "./singer.worker.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
 import { hopFor, midiToHz, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
-import { beatReady, parseBeat } from "../wasm/engine.ts";
+import { beatReady, parseBeat } from "@chimera/wasm/engine.ts";
 import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
 import { bandFor } from "./band.ts";
 import { poseFromRecord, SILENT_POSE, type Pose } from "./pose.ts";
@@ -41,6 +41,12 @@ export interface EnsembleState {
   peak: number;
   limited: number;
 }
+
+/**
+ * The playing singer's latest telemetry (CHIMERA's snapshot: airway pressure and flow, the folds,
+ * the articulators), at the moment now sounding; null when nothing plays.
+ */
+export const useTelemetry = create<{ id: string; tele: TelemetryMessage | null }>(() => ({ id: "", tele: null }));
 
 export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, renderMode: "auto", peak: 0, limited: 0 }));
 
@@ -75,9 +81,8 @@ async function ensureMixer(ctx: AudioContext): Promise<void> {
   node = new AudioWorkletNode(ctx, "choir-mixer", { numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1] });
   const splitter = ctx.createGain();
   node.connect(splitter, 0);
-  const soloBus = ctx.createGain();
-  node.connect(soloBus, 1);
-  engine.connectChoir(splitter, soloBus);
+  // output 1 is the solo singer alone (CHIMERA's analysers listened to it); nothing needs it yet
+  audio.connect(splitter);
   node.port.onmessage = (e: MessageEvent<MixerOut>) => onMixer(e.data);
 }
 
@@ -268,11 +273,11 @@ function startTick(): void {
 }
 
 function audibleFrame(): number {
-  if (!pos || !engine.ctx) return 0;
+  if (!pos || !audio.ctx) return 0;
   if (!pos.playing) return pos.frame;
-  const sr = engine.ctx.sampleRate;
-  const latency = (engine.ctx.outputLatency || 0) + (engine.ctx.baseLatency || 0);
-  const now = engine.ctx.currentTime * sr;
+  const sr = audio.ctx.sampleRate;
+  const latency = (audio.ctx.outputLatency || 0) + (audio.ctx.baseLatency || 0);
+  const now = audio.ctx.currentTime * sr;
   return Math.max(0, Math.min(pos.frame + (now - pos.contextFrame), pos.frame + 2048) - latency * sr);
 }
 
@@ -286,7 +291,7 @@ function tick(): void {
     const frame = st === "paused" ? resumeAt : audibleFrame();
     const hop = Math.floor(frame / s.hop);
     const tele = s.telemetry(s.indexOf(soloId), hop);
-    if (tele) engine.overrideTelemetry(tele);
+    if (tele) useTelemetry.setState({ id: soloId, tele });
     set({ time: frame / s.sampleRate });
   }
 }
@@ -301,9 +306,6 @@ function beginPlaying(frame: number, how: "live" | "prerender"): void {
     s.worker.postMessage({ type: "seek", frame, generation } satisfies ToSinger);
     if (how === "live") s.worker.postMessage({ type: "pace", paced: true } satisfies ToSinger);
   }
-  engine.gate(0);
-  engine.setBypass(true);
-  engine.analysersOnChoir(true);
   startTick();
   set({ status: "buffering", howPlaying: how, message: how === "live" ? "Starting live…" : "Starting the pre-rendered performance…", progress: get().progress });
 }
@@ -331,9 +333,7 @@ function finishPlaying(frame: number): void {
 
 function stopVisuals(): void {
   cancelAnimationFrame(raf);
-  engine.setBypass(false);
-  engine.overrideTelemetry(null);
-  engine.analysersOnChoir(false);
+  useTelemetry.setState({ tele: null });
 }
 
 /** Choose the next performance. Clears whatever was prepared. */
@@ -379,16 +379,16 @@ export async function play(start: () => Promise<void>): Promise<void> {
     return;
   }
   if (token !== playToken) return;
-  if (!engine.ctx) return set({ status: "idle", message: "Audio could not start." });
-  await ensureMixer(engine.ctx);
+  if (!audio.ctx) return set({ status: "idle", message: "Audio could not start." });
+  await ensureMixer(audio.ctx);
   if (token !== playToken) return;
   const mode = get().renderMode;
-  const reuse = sessionFresh() && session!.sampleRate === engine.ctx.sampleRate;
+  const reuse = sessionFresh() && session!.sampleRate === audio.ctx.sampleRate;
   if (!reuse) {
     const paced = mode !== "prerender";
     disposeSession();
     try {
-      session = new Session(piece, voicesProvider(), engine.ctx, paced);
+      session = new Session(piece, voicesProvider(), audio.ctx, paced);
     } catch (e) {
       session = null;
       set({ status: "idle", message: `Could not plan the song: ${e instanceof Error ? e.message : String(e)}` });
@@ -502,11 +502,11 @@ export async function exportWav(start: () => Promise<void>, only?: number): Prom
   if (!session || !sessionFresh()) {
     await start();
     await g2p.load();
-    if (!engine.ctx) throw new Error("audio not started");
-    await ensureMixer(engine.ctx);
+    if (!audio.ctx) throw new Error("audio not started");
+    await ensureMixer(audio.ctx);
     if (!piece) throw new Error("no piece");
     disposeSession();
-    session = new Session(piece, voicesProvider(), engine.ctx, false);
+    session = new Session(piece, voicesProvider(), audio.ctx, false);
     set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering" });
   } else {
     for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);

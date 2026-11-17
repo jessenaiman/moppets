@@ -1,12 +1,8 @@
 /**
- * Moppet mode's state: the six recipes (saved locally), who is on the workbench, and the choice
- * of performance. Selecting a Moppet loads its body and recipe into CHIMERA's own stores, so every
- * upstream view and control acts on that character.
+ * The Moppets' state: the cast's recipes (saved locally), who is on the workbench, and the choice
+ * of performance. Selecting a Moppet makes it the one the stage's views follow.
  */
 import { create } from "zustand";
-import { useStore } from "../ui/store.ts";
-import { DEFAULT_SOURCE, NEUTRAL, restTip, type HumanArtic, type VoiceSource } from "../wasm/engine.ts";
-import { sameBody, type BodyMix } from "../ui/body.ts";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
 import { roundProblems } from "./roundCheck.ts";
 import { buildSong, SONGBOOK, type SongId } from "./songbook.ts";
@@ -16,21 +12,17 @@ import { songProblems } from "./songCheck.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
-import { editVoice, inspect, leaveEnsemble, loadPiece, setVoicesProvider } from "./ensemble.ts";
+import { inspect, loadPiece, setVoicesProvider } from "./ensemble.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
-import { ensembleHooks } from "../ui/store.ts";
-import { g2p } from "../ui/speech.ts";
+import { g2p } from "../audio/g2p.ts";
 
 export type Lesson = "intro" | "school" | "round" | "chip" | "tabby" | "gruff" | SongId | SkitId | "newskit";
-/** The Moppets view: the stage and its score, or CHIMERA's instruments inspecting one Moppet. */
-export type MoppetView = "stage" | "inspect";
 /**
  * Saved recipes override the cast, and an edit saves every Moppet. Bump the version when the cast
  * itself is retuned, or anyone who once touched a knob keeps hearing the old voices.
  * v2: the cartoon-range cast (airway size).
  */
 const STORAGE_KEY = "moppet-voices-v2";
-const CHARACTER_KEYS = ["larynx", "velum", "root", "epilarynx", "ventricular"] as const;
 
 function loadSaved(): MoppetVoice[] {
   try {
@@ -81,8 +73,6 @@ interface MoppetState {
   soul: boolean;
   /** the score drawn differs from what would play (settings moved, nothing rendered yet) */
   status: string;
-  view: MoppetView;
-  setView: (v: MoppetView) => void;
   select: (i: number) => void;
   setLesson: (l: Lesson) => void;
   setSettings: (s: Partial<Pick<MoppetState, "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "seed" | "progression" | "groove" | "palette" | "soul">>) => void;
@@ -171,24 +161,6 @@ function persist(voices: MoppetVoice[]): void {
   } catch {
     // private window
   }
-}
-
-/** A selection pushes a recipe into CHIMERA; its changes must not write straight back. */
-let applying = false;
-
-function applyToWorkbench(v: MoppetVoice): void {
-  applying = true;
-  const st = useStore.getState();
-  st.setSize(v.size ?? 1);
-  if (!sameBody(st.body, v.body)) st.setBody(v.body);
-  const artic: Partial<HumanArtic> = { ...v.artic };
-  const tip = restTip(NEUTRAL.jaw, NEUTRAL.tbX, NEUTRAL.tbY);
-  st.setArtic({ ...NEUTRAL, ttX: tip.x, ttY: tip.y, ...artic }, true);
-  const source: Partial<VoiceSource> = { ...DEFAULT_SOURCE, ...v.source };
-  delete source.f0;
-  st.setSource(source);
-  inspect(v.id);
-  applying = false;
 }
 
 export const useMoppet = create<MoppetState>((set, get) => ({
@@ -326,11 +298,9 @@ export const useMoppet = create<MoppetState>((set, get) => ({
   },
   seed: 404,
   status: "",
-  view: "stage",
-  setView: (view) => set({ view }),
   select: (i) => {
     set({ selected: i });
-    applyToWorkbench(get().voices[i]);
+    inspect(get().voices[i].id);
   },
   setLesson: (lesson) => {
     const s = get();
@@ -377,7 +347,7 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     voices[get().selected] = structuredClone(defaults[get().selected]) as MoppetVoice;
     set({ voices });
     persist(voices);
-    applyToWorkbench(voices[get().selected]);
+    inspect(voices[get().selected].id);
     const s = get();
     if (s.piece.kind === "solo") loadPiece(s.piece);
     else loadPiece(scoreFor(s));
@@ -399,7 +369,7 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     voices[i] = { ...voices[i], body: { ...voices[i].body, ...v.body }, artic: { ...voices[i].artic, ...v.artic }, source: { ...voices[i].source, ...v.source }, vibrato: v.vibrato ?? voices[i].vibrato, size: v.size ?? voices[i].size };
     set({ voices, selected: i });
     persist(voices);
-    applyToWorkbench(voices[i]);
+    inspect(voices[i].id);
     loadPiece(scoreFor(get()));
   },
   singMidi: (bytes) => {
@@ -412,50 +382,3 @@ export const useMoppet = create<MoppetState>((set, get) => ({
 }));
 
 setVoicesProvider(() => useMoppet.getState().voices);
-
-/** Moves of CHIMERA's own controls in Moppet mode belong to the selected Moppet. */
-let prevBody: BodyMix = useStore.getState().body;
-let prevArtic = useStore.getState().artic;
-let prevSource = useStore.getState().source;
-useStore.subscribe((st) => {
-  const { body, artic, source, mode } = st;
-  const bodyChanged = !sameBody(prevBody, body), articChanged = artic !== prevArtic, sourceChanged = source !== prevSource;
-  prevBody = body;
-  const oldArtic = prevArtic, oldSource = prevSource;
-  prevArtic = artic;
-  prevSource = source;
-  if (mode !== "moppet" || applying || !(bodyChanged || articChanged || sourceChanged)) return;
-  const m = useMoppet.getState();
-  const v = m.voices[m.selected];
-  if (bodyChanged) {
-    m.edit((x) => {
-      x.body = body;
-    });
-    editVoice(v.id, { rerender: true });
-  }
-  if (articChanged) {
-    const moved = CHARACTER_KEYS.filter((k) => artic[k] !== oldArtic[k]);
-    if (moved.length) {
-      m.edit((x) => {
-        for (const k of moved) x.artic[k] = artic[k];
-      });
-      const next = useMoppet.getState().voices[m.selected];
-      editVoice(v.id, { artic: next.artic });
-    }
-  }
-  if (sourceChanged) {
-    const keys = Object.keys(source) as (keyof VoiceSource)[];
-    const moved = keys.filter((k) => k !== "f0" && source[k] !== oldSource[k]);
-    if (moved.length) {
-      const values: Record<string, number> = {};
-      for (const k of moved) values[k] = Number(source[k]);
-      m.edit((x) => Object.assign(x.source, values));
-      editVoice(v.id, { source: values });
-    }
-  }
-});
-
-ensembleHooks.leave = () => {
-  leaveEnsemble();
-  useStore.getState().setSize(1); // the other modes play the calibrated bodies
-};

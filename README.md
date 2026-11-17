@@ -1,76 +1,53 @@
-# CHIMERA
+# The Moppets
 
-A physical-modeling voice synthesizer in the browser. Every sound comes from a simulated
-airway (lungs, vocal folds or syrinx, a branched vocal tract, lips, nose), not from samples.
-The engine is Rust, compiled to WebAssembly for an AudioWorklet; the same code runs natively
-for tests and the `chimera` CLI.
+Found objects that sing: a tape-deck fox, a typewriter rabbit, a robot tenor, a felted frog, a
+gravelly monster, a patchwork soprano and a floppy-disk bird, each with a real, physically modelled
+voice. An animated stage, songs written as lead sheets, a round, talking skits, a MIDI band, and
+a Launchkey Mini to play with.
 
-## What it does
+Every voice is [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth): a simulated airway
+(lungs, vocal folds, throat, mouth and nose), not samples. CHIMERA is a dependency here, pinned
+in `chimera/` (a git submodule, never edited); what the Moppets add is in this repo.
 
-- **Play**: drag the tongue, lips and jaw in a live cutaway of the head; vowel pad, encoders,
-  computer keyboard and Web MIDI.
-- **Speak**: English text (CMUdict with a letter-to-sound fallback) or IPA, turned into
-  gestures and prosody, with the gestural score and a consonant chart on screen.
-- **Sing**: piano roll with lyrics per note; consonants land before the beat.
-- **Beatbox**: pads and a step sequencer, every drum an articulatory gesture.
-- **Bestiary**: songbird (two-voice syrinx), seal, alligator and elephant.
-- **Duet** (`?show=<id>`): two 3D heads replay a pre-rendered song.
+## What's here
 
-The app opens on the Moppet Choir: an animated stage where each Moppet is its own CHIMERA voice
-(its own body, airway posture and vocal folds) singing a shared score. Its Inspect tab opens one
-Moppet's voice in CHIMERA's instruments; the Chimera tab holds the original voice modes.
-The Moppets also perform talking skits, spoken through CHIMERA's speech planner, and act them out
-with gesture clips (laugh, shrug, gasp, nod, tilt, bow) animated in AniCraft: edit
-`tools/moppets/gestures.anicraft` in AniCraft, then `bun tools/gen-gestures.ts` brings the clips in.
-To share a performance, `bun tools/moppet-video.ts autocomplete toaster` (against `bun run preview`)
-renders each one frame-exact to `out/video/<title>/` as `stage.mp4`, `mix.wav` and `captions.srt`;
-`bun tools/moppet-edit.ts` then builds a FilmCraft project (vertical 9:16 and landscape 16:9 sequences
-with an editable caption track; tick "Burn captions" when exporting) and an EffectCraft project.
-Male, female and child bodies blend continuously. Everything on screen animates from live
-engine state: pressure in the airway, airflow, the vocal folds, spectra and formants.
+- **The stage:** each Moppet is its own CHIMERA voice (body, airway size, posture and folds)
+  singing one score, animated from the engine's own telemetry: mouths open with the lips, gesture
+  clips (laugh, shrug, gasp, nod, tilt, bow) play on cue.
+- **Songs** are lead sheets in `songs/`, one text file each, with words you can edit in the app
+  (a live syllable and stress check, holds and note splits as fixes): see
+  [docs/writing-songs.md](docs/writing-songs.md). Claude can write a new round or skit (dev server).
+- **The band:** bass, keys and drums arranged from each song's chords; MIDI out and back through
+  SoundCraft.
+- **Videos:** `bun tools/moppet-video.ts autocomplete toaster` (against `bun run preview`) renders
+  each performance frame-exact to `out/video/<title>/`; `bun tools/moppet-edit.ts` builds FilmCraft
+  and EffectCraft projects from them.
+- **A Launchkey Mini** (any MIDI controller): knobs shape the selected Moppet's voice, pads pick a
+  Moppet and sing its introduction.
 
 ## Run it
 
 Needs Rust with the `wasm32-unknown-unknown` target, and Bun.
 
 ```sh
+git clone --recurse-submodules …      # or, in a clone: git submodule update --init
 bun install
-bun run dev        # builds the wasm, then Vite on 127.0.0.1:5317
-bun run test       # wasm build, cargo test --workspace, bun test tests
+bun run dev        # builds the wasm, then Vite on 127.0.0.1:5417
+bun run test       # wasm build, cargo test, bun test ./tests
 ```
 
-The AudioWorklet needs a secure context, so open it on localhost or over HTTPS (for example
-`tailscale serve`). Vercel builds it with `vercel.json`.
+## How it uses CHIMERA
 
-Offline renders and measurement:
-
-```sh
-cargo run --release -p chimera-cli -- render speech|text|song|notes|beatbox|creature|vowels …
-cargo run --release -p chimera-cli -- diagnose       # nasal leakage, formants, bandwidths, pitch
-cargo run --release -p chimera-cli -- compare csd    # against a real singer (docs/csd-comparison.md)
-cargo run --release -p chimera-cli -- compare tsp    # against 23 real speakers (docs/speech-comparison.md)
-bun tools/spectrogram.ts in.wav out.png
-```
-
-## Docs
-
-- [docs/architecture.md](docs/architecture.md): the acoustic model (FDTD airway, sources,
-  anatomy, gestures).
-- [docs/rust-engine.md](docs/rust-engine.md): the engine's real-time and determinism contract,
-  and the browser boundary.
-- [docs/ui-redesign.md](docs/ui-redesign.md) and [docs/mockups/](docs/mockups/): the vector
-  display look.
-- [docs/csd-comparison.md](docs/csd-comparison.md): scoring the voice against the Children's
-  Song Dataset.
-- [docs/speech-comparison.md](docs/speech-comparison.md): scoring the speech against real
-  speakers, phone by phone (the TSP speech database).
-- [docs/hill-climb/](docs/hill-climb/): the rules and log for tuning the voice one measured
-  step at a time.
-
-Agents: see [AGENTS.md](AGENTS.md).
+- **`chimera/`** is CHIMERA at an exact commit. To take a newer CHIMERA:
+  `git -C chimera fetch && git -C chimera checkout <commit>`, then `bun run test` and commit the new
+  pin. Nothing is merged.
+- **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
+  plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
+  itself doesn't offer (Gruff and Clank are giants).
+- **TypeScript** imports CHIMERA's engine wrapper, types and look as `@chimera/…`
+  (`chimera/src/…`). The dictionary and fonts are served from `chimera/public`.
 
 ## License
 
-[MIT](LICENSE). Bundled third-party files keep their own licenses: the CMU Pronouncing
-Dictionary ([public/data/CMUDICT-LICENSE.txt](public/data/CMUDICT-LICENSE.txt)) and the fonts
-([public/fonts/](public/fonts/)).
+[MIT](LICENSE), as CHIMERA. Bundled third-party files keep their own licenses: the CMU
+Pronouncing Dictionary and the fonts (in `chimera/public/`).

@@ -2,9 +2,9 @@
  * Score → gestures, through the engine's own lyric and singing planners (main thread: they
  * allocate). Melody and timing come from the score; how a Moppet colours them is character.ts.
  */
-import { EnglishG2P, lyricsToSyllables, planPhrases, planSong } from "../wasm/engine.ts";
+import { EnglishG2P, lyricsToSyllables, planPhrases, planSong } from "@chimera/wasm/engine.ts";
 import { midiToHz } from "./singerCore.ts";
-import type { Gesture, Syllable } from "../wasm/types.ts";
+import type { Gesture, Syllable } from "@chimera/wasm/types.ts";
 import type { Piece, ScoreEvent, Track } from "./music.ts";
 import { PLAN_VIBRATO } from "./character.ts";
 import type { MoppetVoice } from "./voices.ts";

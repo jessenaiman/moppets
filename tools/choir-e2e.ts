@@ -1,6 +1,6 @@
 /**
  * Moppet Choir in headless Chromium: live ensemble playback, timing, pause/seek/stop, repeated
- * starts, cancellation, exports, character switching and resource cleanup, plus every upstream mode.
+ * starts, cancellation, exports, character switching and resource cleanup.
  * Usage: bun tools/choir-e2e.ts [url] [outdir]   (a dev server or preview must be running)
  * Exits non-zero on any failure; prints measured numbers as JSON at the end.
  */
@@ -9,7 +9,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { midiBytes } from "../src/choir/midi.ts";
 import { makeRound } from "../src/choir/music.ts";
 
-const url = process.argv[2] ?? "http://127.0.0.1:5317/";
+const url = process.argv[2] ?? "http://127.0.0.1:5417/";
 const outDir = process.argv[3] ?? "out/choir-e2e";
 mkdirSync(outDir, { recursive: true });
 
@@ -33,25 +33,8 @@ page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
 await page.goto(url, { waitUntil: "networkidle" });
 await page.waitForTimeout(300);
 
-type W = Window & { __choir: { debug(): { workersAlive: number; sessionsMade: number; hasSession: boolean; singers: { id: string; rendered: number; frames: number; rtf: number }[] }; ensemble: { getState(): { status: string; time: number; duration: number; underruns: number; message: string; howPlaying: string; peak: number; limited: number; rtf: number; progress: number } }; moppet: { getState(): Record<string, never> }; engine: { latest: { body: { female: number; child: number }; t: { outRms: number; f0: number; artic: Float32Array } } | null; analyser: AnalyserNode | null; ctx: AudioContext | null; load: number; overrideTelemetry: (m: unknown) => void }; bench(): Promise<unknown> } };
+type W = Window & { __choir: { debug(): { workersAlive: number; sessionsMade: number; hasSession: boolean; singers: { id: string; rendered: number; frames: number; rtf: number }[] }; ensemble: { getState(): { status: string; time: number; duration: number; underruns: number; message: string; howPlaying: string; peak: number; limited: number; rtf: number; progress: number } }; moppet: { getState(): Record<string, never> }; telemetry: { getState(): { id: string; tele: { t: { outRms: number; f0: number } } | null } }; bench(): Promise<unknown> } };
 
-// ---- every upstream mode still loads and starts
-await page.getByRole("radio", { name: "Chimera", exact: true }).click();
-for (const mode of ["Play", "Speak", "Sing", "Bestiary", "Beatbox"]) {
-  await page.getByRole("radio", { name: mode, exact: true }).click().catch(() => page.getByRole("button", { name: mode, exact: true }).click());
-  await page.waitForTimeout(300);
-  if (mode === "Play") {
-    await page.getByRole("button", { name: /breathe in and start/i }).click();
-    await page.waitForTimeout(1200);
-  }
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: `${outDir}/upstream-${mode.toLowerCase()}.png` });
-}
-const upstreamOk = await page.evaluate(() => (window as unknown as W).__choir === undefined);
-report.upstreamModes = upstreamOk ? "loaded all five before choir mode existed" : "choir loaded early";
-
-await page.getByRole("radio", { name: "Moppets", exact: true }).click();
-await page.waitForTimeout(600);
 const start = page.getByRole("button", { name: /start the choir stage/i });
 if (await start.count()) await start.click();
 await page.waitForTimeout(500);
@@ -87,19 +70,15 @@ ok(s1.howPlaying === "live", `Auto chose live (rtf ${s1.rtf.toFixed(2)})`);
 ok(s1.time > 0.8, `the timeline advanced to ${s1.time.toFixed(2)} s`);
 await page.screenshot({ path: `${outDir}/moppet-playing.png`, fullPage: true });
 
-// the analyser hears the selected Moppet, and the puppets' mouths follow telemetry
+// the mix is audible, the selected Moppet's telemetry follows the timeline, and the puppets' mouths follow telemetry
 const measures = await page.evaluate(() => {
   const c = (window as unknown as W).__choir;
-  const a = c.engine.analyser!;
-  const buf = new Float32Array(a.fftSize);
-  a.getFloatTimeDomainData(buf);
-  let sum = 0;
-  for (const v of buf) sum += v * v;
-  return { analyserRms: Math.sqrt(sum / buf.length), telemetryBody: c.engine.latest?.body, tele: c.engine.latest?.t.outRms, f0: c.engine.latest?.t.f0, puppets: [...document.querySelectorAll<HTMLElement>(".puppet")].map((p) => ({ cel: p.style.getPropertyValue("--cel"), mouthOpen: p.classList.contains("mouth-open"), singing: p.classList.contains("singing") })) };
+  const t = c.telemetry.getState();
+  return { peak: c.ensemble.getState().peak, telemetryOf: t.id, outRms: t.tele?.t.outRms, f0: t.tele?.t.f0, puppets: [...document.querySelectorAll<HTMLElement>(".puppet")].map((p) => ({ cel: p.style.getPropertyValue("--cel"), mouthOpen: p.classList.contains("mouth-open"), singing: p.classList.contains("singing") })) };
 });
 report.playingMeasures = measures;
-ok(measures.analyserRms > 1e-4, `analyser is hearing a singer (rms ${measures.analyserRms.toExponential(2)})`);
-ok(measures.telemetryBody !== undefined, "instrument views are on engine telemetry");
+ok(measures.peak > 0.05, `the mix is audible (peak ${measures.peak.toFixed(2)})`);
+ok(measures.outRms !== undefined, `the selected Moppet's telemetry follows the timeline (${measures.telemetryOf})`);
 
 // the lead's sprite must really change: dance frames on the beat, mouth from engine telemetry
 // sampled until the mouth has opened and closed (up to 8 s): a window of legato "da da da" keeps the
@@ -119,11 +98,11 @@ for (let i = 0, t0 = Date.now(); i < 40 || (mouthChanges < 2 && Date.now() - t0 
 ok(cels.size >= 3, `the lead dances through sprite frames (${cels.size} frames seen)`);
 ok(mouthChanges >= 2, `the lead's mouth opens and closes with telemetry (${mouthChanges} changes)`);
 
-// ---- switching the inspected character during playback changes the instruments to that voice
-await page.locator(".puppet").nth(2).click(); // Gruff
+// ---- picking another Moppet during playback moves the telemetry to that voice
+await page.locator(".puppet").nth(2).click();
 await page.waitForTimeout(400);
-const bodyAfter = await page.evaluate(() => (window as unknown as W).__choir.engine.latest?.body);
-ok(!!bodyAfter && bodyAfter.female === 0 && bodyAfter.child === 0, "the instruments switched to Gruff's body during playback");
+const picked = await page.evaluate(() => (window as unknown as W).__choir.telemetry.getState().id);
+ok(picked === "clank", `the telemetry switched to the third Moppet during playback (${picked})`);
 
 // ---- repeated start, pause, resume, seek
 await playBtn.click();
@@ -297,18 +276,12 @@ report.roundWav = { seconds: n / 48000, peak: peakW, rms: Math.sqrt(sumW / n), c
 ok(clip === 0, `no clipped samples (${clip})`);
 ok(peakW > 0.1, `the WAV is not silent (${peakW.toFixed(2)})`);
 
-// ---- phone layout and a leaving-mode clean-up
+// ---- phone layout
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(400);
 await page.screenshot({ path: `${outDir}/moppet-phone.png`, fullPage: true });
 const hscroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 ok(!hscroll, "no sideways scrolling on a phone");
-await page.setViewportSize({ width: 1440, height: 1000 });
-await page.getByRole("radio", { name: "Chimera", exact: true }).click();
-await page.getByRole("radio", { name: "Play", exact: true }).click().catch(() => page.getByRole("button", { name: "Play", exact: true }).click());
-await page.waitForTimeout(300);
-ok((await dbg()).workersAlive === 0, "leaving Moppet mode ends every worker");
-ok((await page.evaluate(() => (window as unknown as W).__choir.engine.latest !== null)) === true, "Play mode's views returned to the live voice");
 
 for (const e of errors) console.error("ERR:", e);
 console.log(JSON.stringify(report, null, 2));

@@ -2,7 +2,7 @@
  * Measures, on this device: (a) one singer's cost and six on one thread (what one AudioWorklet
  * would have to carry), and (b) six singers in six Workers at once (the host the choir uses).
  */
-import { chimeraModule } from "../wasm/chimera.ts";
+import { chimeraModule } from "@chimera/wasm/chimera.ts";
 import { compose } from "./music.ts";
 import { planTrack } from "./plan.ts";
 import { voices } from "./voices.ts";

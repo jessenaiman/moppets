@@ -10,7 +10,7 @@ const { hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.t
 const { compose } = await import("../src/choir/music.ts");
 const { planTrack, pieceSeconds } = await import("../src/choir/plan.ts");
 const { voices } = await import("../src/choir/voices.ts");
-const { EnglishG2P } = await import("../src/wasm/engine.ts");
+const { EnglishG2P } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 
 const FS = 48000;

@@ -3,7 +3,7 @@
  * that sound amusing together, not verified anatomical explanations or impressions of anyone.
  * A recipe says nothing about pitch; every note the choir sings comes from the score.
  */
-import type { BodyMix } from "../wasm/types.ts";
+import type { BodyMix } from "@chimera/wasm/types.ts";
 
 export const INTRO_BPM = 116;
 export const CHORUS = ["We are the scraps that found a song", "At four oh four we all belong"];

@@ -12,7 +12,7 @@ let songFile: typeof import("../src/choir/songFile.ts");
 let songs: typeof import("../src/choir/songs.ts");
 beforeAll(async () => {
   await initEngine();
-  const { EnglishG2P } = await import("../src/wasm/engine.ts");
+  const { EnglishG2P } = await import("@chimera/wasm/engine.ts");
   new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
   songFile = await import("../src/choir/songFile.ts");
   songs = await import("../src/choir/songs.ts");

@@ -8,16 +8,16 @@
  *           kept in this browser.
  *  - pads   on MIDI channel 10 (the Launchkey's drum pads): notes 36..42 pick Moppets 1..7 and
  *           43 sings the picked Moppet's introduction. Pads never play the voice.
- *  - keys   play the inspected voice, as anywhere in CHIMERA.
+ *  - keys   (coming with the live voice: puppeteer mode)
  *
  * A turned knob is an edit like a slider's: it is saved to the Moppet at once, and Save preset
  * writes it to a file.
  */
 import { create } from "zustand";
-import { useStore } from "../ui/store.ts";
-import { onMidiControl, type MidiControl } from "../ui/midi.ts";
+import { useAudio } from "../audio/audio.ts";
+import { connectMidi, disconnectMidi, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
 import { useMoppet } from "./store.ts";
-import { play } from "./ensemble.ts";
+import { editVoice, play } from "./ensemble.ts";
 
 /** The voice recipe, grouped the way CHIMERA builds a voice: size and body, airway posture, then the folds. */
 export const CONTROLS = [
@@ -47,9 +47,15 @@ export function applyControl(key: ControlKey, n: number): void {
   if (!c) return;
   const group = c[6];
   if (group === "body" || group === "size") return rebuildLater(key, n);
-  const st = useStore.getState();
-  if (group === "artic") st.setArtic({ [key]: n });
-  else st.setSource({ [key]: n });
+  const m = useMoppet.getState();
+  const id = m.voices[m.selected].id;
+  if (group === "artic") {
+    m.edit((v) => void (v.artic[key as keyof typeof v.artic] = n));
+    editVoice(id, { artic: useMoppet.getState().voices[m.selected].artic });
+  } else {
+    m.edit((v) => void ((v.source as unknown as Record<string, number>)[key] = n));
+    editVoice(id, { source: { [key]: n } });
+  }
 }
 
 const REBUILD_MS = 120;
@@ -65,17 +71,15 @@ function rebuildLater(key: ControlKey, n: number): void {
     lastRebuild = performance.now();
     const changes = [...pending];
     pending.clear();
-    const st = useStore.getState();
-    const v = useMoppet.getState().voices[useMoppet.getState().selected];
-    let body = v.body;
-    for (const [k, x] of changes) {
-      if (k === "size") {
-        // the airway is built with the singer's engine; the inspected voice resizes now
-        useMoppet.getState().edit((m) => void (m.size = x));
-        st.setSize(x);
-      } else body = { ...body, [k]: x };
-    }
-    if (body !== v.body) st.setBody(body);
+    // the airway is built with the singer's engine: heard from the next performance
+    const m = useMoppet.getState();
+    m.edit((v) => {
+      for (const [k, x] of changes) {
+        if (k === "size") v.size = x;
+        else v.body = { ...v.body, [k]: x };
+      }
+    });
+    editVoice(m.voices[m.selected].id, { rerender: true });
   }, wait);
 }
 
@@ -104,6 +108,9 @@ interface ControllerState {
   last: string;
   learn: (key: ControlKey | null) => void;
   resetMap: () => void;
+  /** the browser's MIDI connection and the inputs it sees */
+  midi: { status: MidiStatus; inputs: string[] };
+  setMidi: (on: boolean) => void;
 }
 
 function saveMap(map: Record<number, ControlKey>): void {
@@ -123,6 +130,25 @@ export const useController = create<ControllerState>((set, get) => ({
     saveMap(DEFAULT_MAP);
     set({ map: { ...DEFAULT_MAP }, learning: null, last: "Knobs back to the Launchkey layout." });
   },
+  midi: { status: "off", inputs: [] },
+  setMidi: (on) => {
+    if (!on) {
+      disconnectMidi();
+      set({ midi: { status: "off", inputs: [] } });
+      return;
+    }
+    set({ midi: { status: "connecting", inputs: [] } });
+    // the click that connects is also the gesture that may start audio
+    void useAudio.getState().start();
+    connectMidi({
+      // the keys have no voice yet (the live Moppet comes with puppeteer mode)
+      noteOn: () => {},
+      noteOff: () => {},
+      inputs: (names) => set({ midi: { status: "on", inputs: names } }),
+    }).catch(() => {
+      if (get().midi.status === "connecting") set({ midi: { status: "denied", inputs: [] } });
+    });
+  },
 }));
 
 /** The controller number a voice control answers to, if any. */
@@ -132,7 +158,6 @@ export const ccFor = (map: Record<number, ControlKey>, key: ControlKey): number 
 };
 
 export function handleControl(c: MidiControl): boolean {
-  if (useStore.getState().mode !== "moppet") return false;
   const ctl = useController.getState();
   if (c.kind === "cc") {
     if (ctl.learning) {
@@ -156,7 +181,7 @@ export function handleControl(c: MidiControl): boolean {
   const m = useMoppet.getState();
   if (c.number === PAD_AUDITION) {
     m.singSolo();
-    void play(useStore.getState().start);
+    void play(useAudio.getState().start);
     useController.setState({ last: `${m.voices[m.selected].name} sings` });
   } else if (c.number - PAD_FIRST < m.voices.length) {
     m.select(c.number - PAD_FIRST);

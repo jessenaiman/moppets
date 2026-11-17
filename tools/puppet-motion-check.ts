@@ -16,7 +16,7 @@ const { planTrack, pieceSeconds } = await import("../src/choir/plan.ts");
 const { CAST: voices } = await import("../src/choir/voices.ts");
 const { poseFromRecord } = await import("../src/choir/pose.ts");
 const { wavBytes } = await import("../src/choir/mix.ts");
-const { EnglishG2P } = await import("../src/wasm/engine.ts");
+const { EnglishG2P } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 
 const id = process.argv[2] ?? "vee";
