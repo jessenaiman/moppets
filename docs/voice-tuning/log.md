@@ -131,3 +131,12 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
   `out/clarity/e6/clank/13.wav`, Scribe `out/clarity/e2/scribe/00.wav` →
   `out/clarity/e6/scribe/00.wav`.
 - `out/clarity/best` is now `e6`.
+
+### 7. Pip: velum 0.6 → 0.45 (reverted)
+
+- Hypothesis (lead 3): Pip's open velum nasalizes its stops; 0.45 is the planner's own nasal
+  opening, so Pip stays nasal but its nasals and stops differ again.
+- Measured (`out/clarity/e7`, full run): Pip 83.4 → 86.1, no clear change. Reverted.
+- Noise seen in the same run, on audio identical to `best`: plain 35.8 → 35.1, Vee 38.4 → 37.1,
+  Tabby 58.9 → 60.9, and Scribe 107.3 → **168.9** (a hallucination loop). So Whisper also varies
+  between runs, not only between contexts: about ±2 points away from the floor.
