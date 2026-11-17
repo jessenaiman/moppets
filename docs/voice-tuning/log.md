@@ -93,3 +93,9 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
   (the 48 % in experiment 2 was measured with the velum bug in). Moppets with a strongly raised
   or lowered larynx get pushed to the end of its range on some vowels (Pip −0.6 + /ɝ/'s −0.92),
   and Whisper starts inventing words. Don't retry as an offset; a gentler hold is untested.
+
+### 5. Scribe: velum 0.5 → 0.3 (reverted)
+
+- Hypothesis (lead 2): Scribe's half-open velum makes every stop a nasal ("Moo! Moo! Moo!").
+- Measured (`out/clarity/e5`, Scribe only): 94.7 → **102.0** WORSE. Reverted. Scribe sits at the
+  floor (Whisper invents whole sentences); its velum isn't what's in the way.
