@@ -8,7 +8,8 @@
  *           kept in this browser.
  *  - pads   on MIDI channel 10 (the Launchkey's drum pads): notes 36..42 pick Moppets 1..7 and
  *           43 sings the picked Moppet's introduction. Pads never play the voice.
- *  - keys   (coming with the live voice: puppeteer mode)
+ *  - keys   play the selected Moppet live (see live.ts): in puppeteer mode the knobs are its mouth
+ *           and the pads its vowels instead
  *
  * A turned knob is an edit like a slider's: it is saved to the Moppet at once, and Save preset
  * writes it to a file.
@@ -18,6 +19,7 @@ import { useAudio } from "../audio/audio.ts";
 import { connectMidi, disconnectMidi, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
 import { useMoppet } from "./store.ts";
 import { editVoice, play } from "./ensemble.ts";
+import { liveNoteOff, liveNoteOn, MOUTH, moveMouth, padVowel, useLive } from "./live.ts";
 
 /** The voice recipe, grouped the way CHIMERA builds a voice: size and body, airway posture, then the folds. */
 export const CONTROLS = [
@@ -141,9 +143,9 @@ export const useController = create<ControllerState>((set, get) => ({
     // the click that connects is also the gesture that may start audio
     void useAudio.getState().start();
     connectMidi({
-      // the keys have no voice yet (the live Moppet comes with puppeteer mode)
-      noteOn: () => {},
-      noteOff: () => {},
+      // the keys play the live Moppet (puppeteer or singing the words), when it's on
+      noteOn: (n, v) => void liveNoteOn(n, v),
+      noteOff: (n) => void liveNoteOff(n),
       inputs: (names) => set({ midi: { status: "on", inputs: names } }),
     }).catch(() => {
       if (get().midi.status === "connecting") set({ midi: { status: "denied", inputs: [] } });
@@ -158,6 +160,17 @@ export const ccFor = (map: Record<number, ControlKey>, key: ControlKey): number 
 };
 
 export function handleControl(c: MidiControl): boolean {
+  // puppeteer mode: the knobs are the mouth, the pads its vowels
+  if (useLive.getState().mode === "puppet") {
+    if (c.kind === "cc" && c.number >= 21 && c.number < 21 + MOUTH.length) {
+      moveMouth(MOUTH[c.number - 21][0], c.value / 127);
+      return true;
+    }
+    if (c.kind === "note" && c.channel === PAD_CHANNEL && c.number >= PAD_FIRST && c.number <= PAD_AUDITION) {
+      if (c.value) padVowel(c.number - PAD_FIRST);
+      return true;
+    }
+  }
   const ctl = useController.getState();
   if (c.kind === "cc") {
     if (ctl.learning) {

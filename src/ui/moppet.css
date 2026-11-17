@@ -203,3 +203,20 @@
 .prop-chip .led { width: 100%; height: 100%; border-radius: 50%; background: #3d1d12; box-shadow: inset 0 0 0 1px #000; }
 .prop-chip.blink .led { background: #ff4b2b; box-shadow: 0 0 6px 2px rgba(255, 75, 43, 0.85); }
 @media (prefers-reduced-motion: reduce) { .prop-vee .reel { transform: none; } }
+
+/* Playing a Moppet live (src/choir/live.ts) */
+.live-panel { margin: 10px 0; padding: 10px; border: 1px solid var(--line, #d8cfc0); border-radius: 8px; }
+.live-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.live-head h3 { margin: 0; font-size: 14px; }
+.live-modes { display: flex; flex-wrap: wrap; gap: 4px; }
+.live-modes button.on, .live-pads button:active { background: #c9662e; color: #fff; }
+.live-pads { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; margin: 8px 0; }
+.live-pads button { min-width: 0; padding: 8px 0; }
+.live-words { display: flex; flex-wrap: wrap; gap: 2px 6px; font-family: Fraunces, Georgia, serif; font-size: 15px; margin: 8px 0; }
+.live-words .sung { opacity: 0.4; }
+.live-words .next { background: #c9662e; color: #fff; border-radius: 4px; padding: 0 4px; }
+.live-keys { display: flex; height: 64px; margin: 8px 0 4px; touch-action: none; }
+.live-keys button { flex: 1 1 0; min-width: 0; padding: 0; border-radius: 0 0 4px 4px; }
+.live-keys button.white { background: #fffaf2; border: 1px solid #b9ad99; }
+.live-keys button.black { background: #2b2622; border: 1px solid #000; flex: 0.7 1 0; height: 62%; margin: 0 -1.6%; z-index: 1; }
+.live-keys button:active { background: #f0c7a8; }

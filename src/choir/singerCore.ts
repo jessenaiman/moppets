@@ -12,8 +12,8 @@ import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 type Fn = (...a: number[]) => number;
 export type EngineExports = { memory: WebAssembly.Memory } & Record<string, Fn>;
 
-const ARTIC_KEYS = ["jaw", "tbX", "tbY", "ttX", "ttY", "ttCurl", "root", "lipAp", "lipProt", "lipWidth", "labiodental", "velum", "larynx", "epilarynx", "ventricular", "lateral", "dorsum"];
-const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension", "fry", "roughness", "vibratoDepth", "vibratoRate", "drift", "voiced", "brightness"];
+export const ARTIC_KEYS = ["jaw", "tbX", "tbY", "ttX", "ttY", "ttCurl", "root", "lipAp", "lipProt", "lipWidth", "labiodental", "velum", "larynx", "epilarynx", "ventricular", "lateral", "dorsum"];
+export const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension", "fry", "roughness", "vibratoDepth", "vibratoRate", "drift", "voiced", "brightness"];
 export const TELE_HEADER = 16;
 /** indices into a telemetry record */
 export const TELE = { f0: 3, voicing: 4, pLung: 5, outRms: 6, gate: 9, clock: 10, nArtic: 11, nPh: 12, nOr: 13, nScope: 14 } as const;

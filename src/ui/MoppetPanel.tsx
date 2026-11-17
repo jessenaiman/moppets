@@ -19,6 +19,7 @@ import { gestureAt, type GesturePose } from "../choir/gestures.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
 import { PropFx, updateProp } from "./props.tsx";
+import { livePose, liveNoteOff, liveNoteOn, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
@@ -299,6 +300,9 @@ function Stage() {
       const performing = dancing || e.status === "paused";
       const beat = performing ? beatNow(m.piece, songTime) : now * 1.1;
       const poses = m.voices.map((v) => (capturing ? poseAt(v.id, songTime) : pose(v.id)));
+      // played live (and no song on): the selected Moppet's face follows the live voice
+      const lp = !performing && !capturing ? livePose() : null;
+      if (lp) poses[m.selected] = lp;
       const ids = m.voices.map((v) => v.id);
       if (!choreo || choreo.actors.length !== ids.length) choreo = new Choreographer(ids);
       const featured = !performing ? ids.map(() => false) : m.piece.scenes ? sceneFeatured(m.piece.scenes, ids, beat) : featuredAt(m.piece.tracks, ids, beat);
@@ -883,6 +887,62 @@ function MidiStrip() {
   );
 }
 
+/** Play the selected Moppet live: as its mouth (puppeteer), or singing its words from the keys. */
+function LivePanel({ name }: { name: string }) {
+  const mode = useLive((s) => s.mode);
+  const setMode = useLive((s) => s.setMode);
+  const last = useLive((s) => s.last);
+  const mouth = useLive((s) => s.mouth);
+  const words = useLive((s) => s.words);
+  const next = useLive((s) => s.next);
+  const down = useRef(new Set<number>());
+  const key = (n: number, on: boolean) => {
+    if (on && !down.current.has(n)) {
+      down.current.add(n);
+      liveNoteOn(n, 100);
+    } else if (!on && down.current.delete(n)) liveNoteOff(n);
+  };
+  const black = (n: number) => [1, 3, 6, 8, 10].includes(n % 12);
+  const modes: [LiveMode, string][] = [["off", "Off"], ["puppet", "Puppeteer"], ["words", "Sing the words"]];
+  return (
+    <div className="live-panel">
+      <div className="live-head">
+        <h3>Play {name} live</h3>
+        <div className="live-modes" role="radiogroup" aria-label="Play live">
+          {modes.map(([m, label]) => <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? "on" : ""} onClick={() => void setMode(m)}>{label}</button>)}
+        </div>
+      </div>
+      {mode === "off" && <p className="status">Puppeteer: you are {name}’s mouth (knobs, pads and keys on a Launchkey, or here). Sing the words: each key sings {name}’s next word in this song.</p>}
+      {mode === "puppet" && (
+        <>
+          <div className="live-pads">{PAD_VOWELS.map(([, label], i) => <button key={label} onClick={() => padVowel(i)}>{label}</button>)}</div>
+          <div className="knobs live-knobs">
+            {MOUTH.map(([k, lo, hi, label]) => (
+              <div className="knob" key={k}>
+                <div className="knob-head"><label htmlFor={`mouth-${k}`}>{label}</label><output>{(mouth[k] ?? 0).toFixed(2)}</output></div>
+                <input id={`mouth-${k}`} type="range" min={0} max={1} step={0.01} value={((mouth[k] ?? lo) - lo) / (hi - lo)} onChange={(e) => moveMouth(k, Number(e.target.value))} />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {mode === "words" && (
+        <p className="live-words" aria-label="The words the keys sing">
+          {words.length ? words.map((w, i) => <span key={i} className={i === next ? "next" : i < next ? "sung" : ""}>{w}</span>) : `${name} has no words in this piece.`}
+        </p>
+      )}
+      {mode !== "off" && (
+        <div className="live-keys" data-layout="layered" aria-label="Keys">
+          {Array.from({ length: 25 }, (_, i) => 48 + i).map((n) => (
+            <button key={n} className={black(n) ? "black" : "white"} aria-label={`Key ${n}`} onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); key(n, true); }} onPointerUp={() => key(n, false)} onPointerCancel={() => key(n, false)} />
+          ))}
+        </div>
+      )}
+      {mode !== "off" && <p className="status" role="status">{last}</p>}
+    </div>
+  );
+}
+
 function Workbench() {
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
@@ -938,6 +998,7 @@ function Workbench() {
           <button className="download" onClick={() => void wav()}>↓ WAV</button>
         </div>
         <MidiStrip />
+        <LivePanel name={v.name} />
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
@@ -976,7 +1037,7 @@ export function MoppetRight() {
       loadPiece(piece);
       useMoppet.getState().select(useMoppet.getState().selected);
     }
-    (window as unknown as { __choir: unknown }).__choir = { capture: captureApi, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
+    (window as unknown as { __choir: unknown }).__choir = { capture: captureApi, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (

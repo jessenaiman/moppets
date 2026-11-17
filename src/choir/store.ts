@@ -13,6 +13,7 @@ import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
 import { inspect, loadPiece, setVoicesProvider } from "./ensemble.ts";
+import { setLiveVoice, setLiveWords } from "./live.ts";
 import { CAST as defaults, type MoppetVoice } from "./voices.ts";
 import { g2p } from "../audio/g2p.ts";
 
@@ -382,3 +383,21 @@ export const useMoppet = create<MoppetState>((set, get) => ({
 }));
 
 setVoicesProvider(() => useMoppet.getState().voices);
+
+// the live Moppet (live.ts) is the selected one, singing its lines in the piece on stage
+let liveKey = "";
+useMoppet.subscribe((m) => {
+  const v = m.voices[m.selected];
+  const key = `${JSON.stringify(v)}|${m.selected}`;
+  if (key !== liveKey) {
+    liveKey = key;
+    setLiveVoice(v);
+  }
+});
+let wordsKey: [Piece | null, number] = [null, -1];
+useMoppet.subscribe((m) => {
+  if (m.piece === wordsKey[0] && m.selected === wordsKey[1]) return;
+  wordsKey = [m.piece, m.selected];
+  setLiveWords(m.piece, m.voices[m.selected].id);
+});
+setLiveVoice(useMoppet.getState().voices[useMoppet.getState().selected]);
