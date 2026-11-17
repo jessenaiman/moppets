@@ -10,7 +10,7 @@ import { beatSeconds } from "./plan.ts";
 import { gestureSeconds } from "./gestures.ts";
 import type { Piece } from "./music.ts";
 
-const REST = 6;
+const REST = 12;
 const memo = new WeakMap<Piece, NonNullable<Piece["cues"]>>();
 
 export function cuesFor(piece: Piece): NonNullable<Piece["cues"]> {
@@ -24,7 +24,7 @@ export function cuesFor(piece: Piece): NonNullable<Piece["cues"]> {
   for (const t of piece.tracks) {
     let last = -Infinity, line: number | undefined;
     for (const e of t.events) {
-      if (e.beat - last >= REST) cues.push({ beat: Math.max(0, e.beat - 1), who: t.id, gesture: "nod" });
+      if (e.beat - last >= REST && (last === -Infinity || e.beats >= 0.75)) cues.push({ beat: Math.max(0, e.beat - 1), who: t.id, gesture: "nod" });
       const words = e.line === undefined ? undefined : (t.phrases ?? t.lines)?.[e.line];
       if (e.line !== line && words && /\?\s*$/.test(words)) cues.push({ beat: e.beat, who: t.id, gesture: "tilt" });
       line = e.line;

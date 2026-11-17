@@ -259,3 +259,15 @@
 .lk-keys { margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: repeating-linear-gradient(90deg, #f6f1e6 0 18px, #d2cbbb 18px 19px); color: #2b2622; font-size: 12px; }
 .lk-keys.lit { box-shadow: 0 0 0 3px #ff9f43; }
 .lk-keys-label { font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 10px; }
+
+/* The words editor's note strip: a line's notes and the syllable each sings */
+.note-strip { grid-column: 2; display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
+.note-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; }
+.note-row { position: relative; height: 46px; border-bottom: 1px solid #d6cdbb; }
+.note-strip .note { position: absolute; height: 18px; padding: 0 2px; border: 1px solid #b7a98f; border-radius: 4px; background: #f6efe2; color: #2b2622; font: 10px/16px "DM Sans", sans-serif; text-transform: none; letter-spacing: 0; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
+.note-strip .note.hold { background: #efe3c9; color: #8a7350; }
+.note-strip .note.empty { background: transparent; border-style: dashed; border-color: #c0492b; }
+.note-strip .note.act { cursor: pointer; }
+.note-strip .note.act:hover { border-color: #c9662e; box-shadow: 0 0 0 2px #f0c7a8; }
+.note-strip .note:disabled { opacity: 1; }
+.note-strip .extra { color: #c0492b; font-size: 11px; font-weight: 600; white-space: nowrap; }

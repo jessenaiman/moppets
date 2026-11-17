@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { currentFile, lessonFile, useMoppet, type Lesson } from "../choir/store.ts";
-import { checkSung, holdFix, lineStarts, splitFix } from "../choir/songCheck.ts";
+import { checkSung, holdAt, holdFix, lineStarts, splitFix, splitNote, unholdAt } from "../choir/songCheck.ts";
 import type { Line, Section, Sung } from "../choir/songbook.ts";
 import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
@@ -567,6 +567,41 @@ function MusicSettings() {
  * splits it and whether that fits its notes; the score follows once every line fits. Edits stay in
  * this browser until saved into songs/ (dev server) or downloaded, or reverted.
  */
+/**
+ * A line's notes under its words: each block as long as its note and as high as its pitch, with the
+ * syllable it sings ("–": a hold). A note with no syllable is dashed: click it to hold the syllable
+ * before it there. Click a hold to let go of it. Syllables with no note show in red after the
+ * line: click a note to split it in two for one of them.
+ */
+function NoteStrip({ s, syllables, diff, onHold, onUnhold, onSplit }: { s: Sung; syllables: string[]; diff: number; onHold: (k: number) => void; onUnhold: (k: number) => void; onSplit: (i: number) => void }) {
+  const total = s.rhythm.reduce((a, b) => a + b, 0);
+  const lo = Math.min(...s.degrees), hi = Math.max(...s.degrees), span = Math.max(1, hi - lo);
+  let at = 0;
+  return (
+    <div className="note-strip" aria-label="The line's notes and the syllable each sings">
+      {/* every beat gets room for a syllable (a half-beat note still shows its "please"); a long line scrolls in its strip */}
+      <div className="note-scroll">
+      <div className="note-row" style={{ minWidth: `${total * 64}px` }}>
+        {s.degrees.map((d, i) => {
+          const left = (at / total) * 100, width = (s.rhythm[i] / total) * 100;
+          at += s.rhythm[i];
+          const syl = syllables[i];
+          const empty = syl === undefined, hold = syl === "~";
+          const act = empty && i > 0 ? () => onHold(i - 1) : hold ? () => onUnhold(i) : diff > 0 && s.rhythm[i] >= 0.5 ? () => onSplit(i) : undefined;
+          const title = empty ? (i > 0 ? `No syllable: click to hold "${syllables[i - 1] ?? ""}" over this note` : "No syllable") : hold ? "Held from the syllable before: click to let go" : act ? "Click to split this note in two (for a syllable with no note)" : `${syl}, ${s.rhythm[i]} beat${s.rhythm[i] === 1 ? "" : "s"}`;
+          return (
+            <button key={i} type="button" className={`note${empty ? " empty" : ""}${hold ? " hold" : ""}${act ? " act" : ""}`} style={{ left: `${left}%`, width: `${width}%`, bottom: `${((d - lo) / span) * 60}%` }} onClick={act} disabled={!act} title={title}>
+              {empty ? "" : hold ? "–" : syl}
+            </button>
+          );
+        })}
+      </div>
+      </div>
+      {diff > 0 && <span className="extra" title="Syllables with no note: shorten the words, or click a note to split it">+ {syllables.slice(s.degrees.length).join(" ")}</span>}
+    </div>
+  );
+}
+
 function WordsEditor() {
   const lesson = useMoppet((s) => s.lesson);
   const edits = useMoppet((s) => s.songEdits);
@@ -629,7 +664,8 @@ function WordsEditor() {
       <div key={`${li}-${ai}`} className={`words-line${ai !== null ? " answer" : ""}`}>
         <b>{ai !== null ? "+ " : ""}{name(s.who, song.lead)}</b>
         <input value={s.words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => change(si, li, ai, (x) => void (x.words = sheetWords(e.target.value)))} />
-        {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.syllables.join("·") || "—"} · {check.ok ? `${check.notes} ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
+        {check && <NoteStrip s={s} syllables={check.syllables} diff={diff} onHold={(k) => change(si, li, ai, (x) => void (x.words = holdAt(x.words, k) ?? x.words))} onUnhold={(k) => change(si, li, ai, (x) => void (x.words = unholdAt(x.words, k) ?? x.words))} onSplit={(i) => change(si, li, ai, (x) => void Object.assign(x, splitNote(x, i) ?? {}))} />}
+        {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.ok ? `${check.notes} notes ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
         {check && check.syllables.length > 0 && diff < 0 && (
           <span className="words-fix">
             <button title="Hold the last syllable over the spare notes (the _ marks); move the marks to hold another syllable" onClick={() => change(si, li, ai, (x) => void (x.words = holdFix(x.words, -diff)))}>Hold the last word over {-diff + 1} notes</button>
@@ -647,7 +683,7 @@ function WordsEditor() {
     <div className="words-editor">
       {head}
       {!dictionary && <p className="words-note">Loading the pronouncing dictionary…</p>}
-      <p className="words-note">One syllable per note: the dots show how the dictionary splits each line, and <code>_</code> after a syllable holds it over one more note (<code>ma_ny</code>). A repeated section is edited once.</p>
+      <p className="words-note">Under each line, its notes and the syllable each one sings. A dashed note has no syllable: click it to hold the syllable before it there (that writes <code>_</code>, as in <code>ma_ny</code>). Red syllables have no note: shorten the words, or click a note to split it. A repeated section is edited once.</p>
       {sections.map((sec, si) => (
         <section key={si}>
           <h3>Section {si + 1}{sec.choir ? " · choir" : ""}{repeats(sec) > 1 ? ` · sung ${repeats(sec)} times` : ""}</h3>

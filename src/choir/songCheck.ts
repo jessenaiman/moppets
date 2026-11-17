@@ -5,6 +5,7 @@
  * what the singers will plan.
  */
 import { sungSyllables } from "./plan.ts";
+import { lyricsToSyllables } from "@chimera/wasm/engine.ts";
 import type { Line, Rest, Song, Sung } from "./songbook.ts";
 
 export interface LineCheck {
@@ -69,6 +70,58 @@ export function splitFix(s: Pick<Sung, "degrees" | "rhythm">, extra: number): Pi
     rhythm.splice(i, 1, rhythm[i] / 2, rhythm[i] / 2);
     degrees.splice(i, 0, degrees[i]);
   }
+  return { degrees, rhythm };
+}
+
+/**
+ * Where each sung syllable ends in the typed words (character offsets, one per `sungSyllables`
+ * syllable, holds included): `_` inserted at offset k holds syllable k over one more note.
+ * Null when the words can't be split (the dictionary and the spelling disagree).
+ */
+export function syllableEnds(words: string): number[] | null {
+  const ends: number[] = [];
+  for (const m of words.matchAll(/[A-Za-z'][A-Za-z'\-_]*/g)) {
+    const word = m[0], clean = word.replace(/_/g, "");
+    const lengths = lyricsToSyllables(clean).map((x) => x.text.replace(/~/g, "").length);
+    // walk the word's letters, closing a syllable when its spelling is used up; each _ is its own
+    let k = 0, used = 0;
+    for (let i = 0; i < word.length; i++) {
+      if (word[i] === "_") {
+        ends.push(m.index! + i + 1);
+        continue;
+      }
+      used++;
+      if (k < lengths.length - 1 && used >= lengths[k]) {
+        ends.push(m.index! + i + 1);
+        k++;
+        used = 0;
+      }
+    }
+    // the last syllable ends with the word's last letter (before any _ after it)
+    const tail = word.length - (word.match(/_*$/)![0].length);
+    ends.splice(ends.length - (word.length - tail), 0, m.index! + tail);
+  }
+  return ends.length === sungSyllables(words).length ? ends : null;
+}
+
+/** Hold syllable `k` over one more note (its `_` mark). */
+export const holdAt = (words: string, k: number): string | null => {
+  const ends = syllableEnds(words);
+  return ends && ends[k] !== undefined ? words.slice(0, ends[k]) + "_" + words.slice(ends[k]) : null;
+};
+
+/** Remove one hold, the one sung as syllable `k` (it must be a hold). */
+export const unholdAt = (words: string, k: number): string | null => {
+  const ends = syllableEnds(words);
+  return ends && words[ends[k] - 1] === "_" ? words.slice(0, ends[k] - 1) + words.slice(ends[k]) : null;
+};
+
+/** Split note `i` in two halves at the same pitch (the line keeps its length). */
+export function splitNote(s: Pick<Sung, "degrees" | "rhythm">, i: number): Pick<Sung, "degrees" | "rhythm"> | null {
+  if (s.rhythm[i] === undefined || s.rhythm[i] < 0.5) return null;
+  const degrees = [...s.degrees], rhythm = [...s.rhythm];
+  rhythm.splice(i, 1, rhythm[i] / 2, rhythm[i] / 2);
+  degrees.splice(i, 0, degrees[i]);
   return { degrees, rhythm };
 }
 
