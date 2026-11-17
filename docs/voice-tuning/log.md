@@ -79,3 +79,17 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
   `out/clarity/e2/tabby/10.wav`, plain `out/clarity/baseline/plain/20.wav` →
   `out/clarity/e2/plain/20.wav` ("…when the sun rose", 5 → 0 errors).
 - `out/clarity/best` is now `e2`.
+
+### 4. Let the larynx move: recipe larynx as an offset on the planner's vowel larynx (reverted)
+
+- Hypothesis: from experiment 2, the held posture pins the larynx (strength 5) against the
+  planner's per-vowel larynx moves.
+- Change: the character gesture held only epilarynx and false folds; `shapeGesture` added the
+  recipe larynx to each vowel's larynx target (clamped to ±1.6), as it does the tongue root.
+- Measured (`out/clarity/e4`): plain 37.8 → 39.1, Vee 41.1 → 42.4, Clank 62.9 → 62.9 (no clear
+  change); Gruff 78.2 → 75.5 BETTER; Scribe 94.7 → **144.4**, Pip 88.1 → **227.8**, Tabby
+  64.9 → 68.2, Chip 75.5 → 79.5 WORSE. Cast still distinct.
+- Reverted. With the nasals fixed, the held larynx no longer costs the plain voice anything
+  (the 48 % in experiment 2 was measured with the velum bug in). Moppets with a strongly raised
+  or lowered larynx get pushed to the end of its range on some vowels (Pip −0.6 + /ɝ/'s −0.92),
+  and Whisper starts inventing words. Don't retry as an offset; a gentler hold is untested.
