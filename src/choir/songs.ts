@@ -11,6 +11,7 @@ import lullaby from "../../songs/lullaby.song";
 import askme from "../../songs/askme.song";
 import pip from "../../songs/pip.song";
 import found from "../../songs/found.song";
+import bandNight from "../../songs/band-night.song";
 import rerun from "../../songs/skit-rerun.song";
 import toaster from "../../songs/skit-toaster.song";
 import letter from "../../songs/skit-letter.song";
@@ -25,6 +26,7 @@ const FILES: [string, string][] = [
   ["askme.song", askme],
   ["pip.song", pip],
   ["found.song", found],
+  ["band-night.song", bandNight],
   ["skit-rerun.song", rerun],
   ["skit-toaster.song", toaster],
   ["skit-letter.song", letter],

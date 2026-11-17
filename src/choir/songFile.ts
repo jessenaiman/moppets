@@ -11,6 +11,7 @@
  *   beat: B . t K | . t B . | t B . K | . B t . (swing 0.12)
  *   backing: vee +0, pip +2, tabby +4, gruff +2
  *   finale: "Home" on 7
+ *   stage: band, tabby, pip                           optional: who's on stage (band: the band too)
  *
  *   tune hook = 7/1.5 4/.5 4 5 4 2 4/2 | I 4, VI 4      a named tune, reusable by name
  *
@@ -251,6 +252,7 @@ export function parseSongFile(text: string, file = "song"): SongFile {
       return [who, num(off.replace(/^\+/, ""))] as [string, number];
     }),
     ...(meta.has("bass") ? { bass: meta.get("bass")! } : {}),
+    ...(meta.has("stage") ? { stage: meta.get("stage")!.split(",").map((x) => x.trim()).filter(Boolean) } : {}),
     ...(beat ? { beat: { text: bm ? bm[1] : beat, swing: bm ? num(bm[2]) : 0 } } : {}),
     finale: { word: fin[1], degree: num(fin[2]) },
   };
@@ -284,6 +286,7 @@ export function printSongFile(f: SongFile): string {
     ...(s.beat ? [`beat: ${s.beat.text} (swing ${fmt(s.beat.swing)})`] : []),
     `backing: ${s.seats.map(([w, o]) => `${w} +${fmt(o)}`).join(", ")}`,
     ...(s.bass ? [`bass: ${s.bass}`] : []),
+    ...(s.stage ? [`stage: ${s.stage.join(", ")}`] : []),
     `finale: "${s.finale.word}" on ${fmt(s.finale.degree)}`,
   ];
   // a line's music used three or more times becomes a named tune

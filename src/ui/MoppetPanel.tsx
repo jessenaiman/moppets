@@ -19,6 +19,8 @@ import { gestureAt, type GesturePose } from "../choir/gestures.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
 import { effectOf, PropFx, updateProp } from "./props.tsx";
+import { BandStage, updateBand } from "./band-stage.tsx";
+import { bandFor } from "../choir/band.ts";
 import { moppet } from "../choir/cast/index.ts";
 import { livePose, liveNoteOff, liveNoteOn, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
@@ -282,6 +284,7 @@ function Stage() {
     let lastText = "";
     let lastT = performance.now() / 1000;
     let choreo: Choreographer | null = null;
+    let bandCache: { piece: Piece | null; parts: ReturnType<typeof bandFor> } = { piece: null, parts: [] };
     const notes: Note[] = [];
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     /**
@@ -312,6 +315,11 @@ function Stage() {
       const spot = featured.filter(Boolean).length;
       // spotlights only when a few are featured; the whole choir sings in the open
       const stage = stageRef.current;
+      // the band, when it's on stage: its parts once per piece, then who strikes at this beat
+      if (m.piece.stage?.includes("band")) {
+        if (bandCache.piece !== m.piece) bandCache = { piece: m.piece, parts: bandFor(m.piece) };
+        updateBand(stage?.querySelector<HTMLElement>(".band-row") ?? null, bandCache.parts, beat, dancing);
+      }
       const W = stage?.clientWidth ?? 0, H = stage?.clientHeight ?? 0;
       // read every puppet's resting slot before writing any transform
       const homes = refs.current.map((el) => (el ? { x: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth, h: (el.offsetWidth * 512) / 384 } : null));
@@ -421,9 +429,10 @@ function Stage() {
       <div className="stage" ref={stageRef}>
         <canvas ref={backRef} className="stage-fx back" data-layout="overlay" aria-hidden="true" />
         <div className="string-lights" data-layout="overlay" aria-hidden="true">●<span>●</span>●<span>●</span>●<span>●</span>●</div>
+        {piece.stage?.includes("band") && <BandStage />}
         <div className="cast" data-layout="layered">
           {voices.map((v: MoppetVoice, i: number) => (
-            <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}`} onClick={() => { select(i); poke.current = { index: i, at: performance.now() / 1000 }; }} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
+            <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}${piece.stage && !piece.stage.includes(v.id) ? " offstage" : ""}`} onClick={() => { select(i); poke.current = { index: i, at: performance.now() / 1000 }; }} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
               {moppet(v.id)?.art === "solo" ? (
                 <span className="sprite solo" style={{ backgroundImage: `url(/moppets/${v.id}/body.webp)` }} aria-hidden="true">
                   <span className="solo-head" style={{ backgroundImage: `url(/moppets/${v.id}/head.webp)`, width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />

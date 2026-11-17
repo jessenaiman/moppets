@@ -86,6 +86,8 @@ export interface Piece {
   beat?: { text: string; swing: number };
   /** gestures on the stage (AniCraft clips, see gestures.ts): who does what, from which beat */
   cues?: { beat: number; who: string; gesture: import("./gestures.ts").GestureName }[];
+  /** who is on the stage for this piece ("band": the band members too); none: the whole cast */
+  stage?: string[];
   /** a skit's scenes: who is downstage together, in beats */
   scenes?: { beat: number; beats: number; cast: string[] }[];
   /** creature calls answering the singers, on the beat grid */

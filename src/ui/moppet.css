@@ -225,3 +225,19 @@
 .score .note-edit rect:first-child { cursor: ns-resize; }
 .score .note-edit .note-end { cursor: ew-resize; }
 .score svg.editing { touch-action: none; }
+
+/* The band on stage (src/ui/band-stage.tsx): upstage, behind the singers */
+.puppet.offstage { display: none; }
+.band-row { position: absolute; left: 0; right: 0; bottom: 64px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 6%; opacity: 0.92; pointer-events: none; }
+.band-member { width: 13%; max-width: 120px; overflow: visible; transform-origin: 50% 100%; transition: transform 60ms ease-out; }
+.band-member.clacker { width: 17%; max-width: 160px; }
+.thrum.hit { transform: translateY(-3px) scaleY(1.04); }
+.thrum.hit .cord { stroke: #ffab5e; }
+.thrum.hit .light { fill: #ff8a3d; }
+.clacker .key.lit { fill: #ffd27a; }
+.rattle .tin { transform-origin: 55px 100px; transform-box: view-box; transition: transform 60ms ease-out; }
+.rattle .tin.hit { transform: scale(1.06, 0.94); }
+.rattle .stick { transform-origin: 78px 70px; transform-box: view-box; transition: transform 60ms ease-out; }
+.rattle .stick.hit { transform: rotate(28deg); }
+.rattle .lid.hit { fill: #fff2b0; }
+.band-names { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 600 8px/1 "DM Sans", sans-serif; letter-spacing: 1px; color: #cbbd9d; text-transform: uppercase; }

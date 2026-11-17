@@ -51,8 +51,10 @@ export interface Song {
   sections: Section[];
   /** the choir's seats: [singer, scale steps above the chord root] */
   seats: [string, number][];
-  /** who plays the bass line (default Clank) */
+  /** who sings the bass line (default Clank; "none": the band's bass alone) */
   bass?: string;
+  /** who is on stage ("band" for the band members); none: the whole cast */
+  stage?: string[];
   beat?: { text: string; swing: number };
   /** the last word, held by the lead over the home chord while everyone lands */
   finale: { word: string; degree: number };
@@ -130,7 +132,7 @@ export function buildSong(s: Song): Piece {
 
   // a bar of groove so the song doesn't start cold
   chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: BAR });
-  pad(bass, 0, 0, BAR);
+  if (bass !== "none") pad(bass, 0, 0, BAR);
   let at = BAR;
   const distinct = [...new Set(s.sections)];
   for (const section of s.sections) {
@@ -153,7 +155,7 @@ export function buildSong(s: Song): Piece {
       let t = at;
       for (const [deg, beats] of l.chords) {
         chords.push({ ...chordInfo(((deg % 7) + 7) % 7, key, mode), beat: t, beats });
-        if (!busy.has(bass)) pad(bass, t, deg, beats);
+        if (bass !== "none" && !busy.has(bass)) pad(bass, t, deg, beats);
         if (section.choir) for (const [id, offset] of s.seats) if (!busy.has(id) && id !== bass) pad(id, t, deg + offset, beats);
         t += beats;
       }
@@ -162,7 +164,8 @@ export function buildSong(s: Song): Piece {
   }
   // everyone lands on the home chord; the lead holds the last word
   chords.push({ ...chordInfo(0, key, mode), beat: at, beats: BAR });
-  for (const [id, d] of FINALE_SEATS) if (id !== s.lead) pad(id, at, d, BAR);
+  // everyone on stage lands on it (offstage Moppets stay quiet)
+  for (const [id, d] of FINALE_SEATS) if (id !== s.lead && (!s.stage || s.stage.includes(id))) pad(id, at, d, BAR);
   sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [BAR] }, at, [{ start: at, end: at + BAR, deg: 0 }]);
 
   // each singer's sung part moves by whole octaves into its register, keeping its contour
@@ -179,7 +182,7 @@ export function buildSong(s: Song): Piece {
     tracks.push({ id, events, ...(p.phrases.length ? { phrases: p.phrases } : {}) });
   }
   tracks.sort((a, b) => (a.id === s.lead ? -1 : b.id === s.lead ? 1 : 0));
-  return { kind: "motesong", title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues };
+  return { kind: "motesong", title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
 }
 
 // ---------------------------------------------------------------------------------- the songs

@@ -87,6 +87,26 @@ the character's feet at the same height in every cell, once with the mouth close
 > A small bright parrot-like bird whose body is a big SD card with a gold-contact belly, feathers
 > made from colourful old circuit boards, felt wings, orange felt feet.
 
+## The band (issue #9)
+
+Three devices that became puppets play the backing band. On stage now as drawn stand-ins
+(`src/ui/band-stage.tsx`), playing the band's own notes; these prompts are for their real sprites.
+
+**Thrum, the bass.**
+> A bassist made from a coiled orange extension cord and a white power strip: the power strip is
+> its upright body, two sockets for eyes and one for a surprised mouth, the cord loops up over its
+> head like a guitar neck and it plucks it with felt fingers. A little red power light on its belly.
+
+**Clacker, the keys.**
+> A grinning keyboardist that is an old beige computer keyboard standing on its edge: a row of keys
+> for teeth, two round caps for eyes, cable arms, felt hands hovering over its own keys like a
+> piano player.
+
+**Rattle, the drums.**
+> A drummer made from a dented red coffee tin: the tin is its body and drum, two pencils for
+> drumsticks, two jar lids on bent wire stands for cymbals, button eyes, felt arms, sitting
+> on an upturned bottle cap.
+
 ## Text prompts: who they are and what they sing
 
 Each Moppet introduces itself in two lines of about 8 syllables, on the introduction's tune
