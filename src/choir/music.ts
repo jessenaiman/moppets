@@ -4,6 +4,7 @@
  * calls is the seed contract: changing it changes what every saved seed sounds like.
  */
 import { CHORUS, INTRO_BPM, voices as defaultVoices } from "./voices.ts";
+import { FINALE_SEATS, padOf } from "./cast/index.ts";
 import { SONG_FILES } from "./songs.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
 
@@ -449,7 +450,7 @@ function buildLeadSong(s: LeadSong): Piece {
   const pad = (id: string, beat: number, degree: number, beats: number): ScoreEvent => {
     const mid = (RANGES[id][0] + RANGES[id][1]) / 2;
     const midi = candidates([degree], key, mode, RANGES[id]).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
-    return { beat, beats, midi, text: id === "babel" || id === "clank" ? "bom" : "oo" };
+    return { beat, beats, midi, text: padOf(id) };
   };
   const others: Record<string, ScoreEvent[]> = Object.fromEntries(Object.keys(RANGES).map((id) => [id, []]));
   const addSection = (at: number, lines: SongLine[], lineBase: number, choir: boolean) => {
@@ -494,8 +495,7 @@ function buildLeadSong(s: LeadSong): Piece {
   // the shared last note, everyone landing on C
   const finale = start + 128;
   chords.push({ ...chordInfo(0, key, mode), beat: finale, beats: BAR });
-  const seats: [string, number][] = [["vee", 0], ["scribe", 2], ["pip", 4], ["clank", 0], ["gruff", 2], ["tabby", 4]];
-  for (const [id, d] of seats) if (id !== s.lead && id !== s.mirror?.id) others[id].push(pad(id, finale, d, BAR));
+  for (const [id, d] of FINALE_SEATS) if (id !== s.lead && id !== s.mirror?.id) others[id].push(pad(id, finale, d, BAR));
   events.push({ beat: finale, beats: BAR, midi: scalePitch(7, key, mode) + leadShift, text: "", line: 8 });
   const song: Track = { id: s.lead, phrases: [...s.verse, ...s.chorus, "Hum"], events };
   const parts: Track[] = Object.keys(RANGES).filter((id) => others[id].length).map((id) => ({ id, events: others[id] }));

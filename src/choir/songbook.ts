@@ -11,6 +11,7 @@
 import type { GestureName } from "./gestures.ts";
 import { candidates, chordInfo, scalePitch, type Chord, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "./music.ts";
 import { CAST } from "./voices.ts";
+import { FINALE_SEATS, padOf } from "./cast/index.ts";
 import { SONG_FILES } from "./songs.ts";
 
 /** One sung phrase: who sings it (default the song's lead), its words, and a note per syllable. */
@@ -124,7 +125,7 @@ export function buildSong(s: Song): Piece {
   const pad = (id: string, beat: number, degree: number, beats: number) => {
     const r = REGISTER[id], mid = (r[0] + r[1]) / 2;
     const midi = candidates([degree], key, mode, r).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
-    part(id).pads.push({ beat, beats, midi, text: id === "clank" ? "bom" : "oo" });
+    part(id).pads.push({ beat, beats, midi, text: padOf(id) });
   };
 
   // a bar of groove so the song doesn't start cold
@@ -161,7 +162,7 @@ export function buildSong(s: Song): Piece {
   }
   // everyone lands on the home chord; the lead holds the last word
   chords.push({ ...chordInfo(0, key, mode), beat: at, beats: BAR });
-  for (const [id, d] of [["vee", 0], ["scribe", 2], ["pip", 4], ["clank", 0], ["gruff", 2], ["tabby", 4]] as const) if (id !== s.lead) pad(id, at, d, BAR);
+  for (const [id, d] of FINALE_SEATS) if (id !== s.lead) pad(id, at, d, BAR);
   sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [BAR] }, at, [{ start: at, end: at + BAR, deg: 0 }]);
 
   // each singer's sung part moves by whole octaves into its register, keeping its contour

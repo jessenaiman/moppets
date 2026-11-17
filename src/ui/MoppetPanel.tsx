@@ -18,7 +18,8 @@ import { SKITS } from "../choir/skits.ts";
 import { gestureAt, type GesturePose } from "../choir/gestures.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
-import { PropFx, updateProp } from "./props.tsx";
+import { effectOf, PropFx, updateProp } from "./props.tsx";
+import { moppet } from "../choir/cast/index.ts";
 import { livePose, liveNoteOff, liveNoteOn, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
@@ -338,8 +339,8 @@ function Stage() {
         const walkFrame = Math.floor(now * 7 + i * 3) % 8;
         // the 8-frame dance cycle advances on the score's beat (two frames a beat); a rest holds the settle frame
         const cel = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
-        updateProp(el.querySelector<HTMLElement>(".prop"), v.id, cel, p, dt, v.id === "scribe" ? lineAt(m.piece, v.id, beat) : null, v.id === "tabby" && p.singing ? scopeOf(v.id, capturing ? songTime : undefined) : null);
-        if (v.id === "vee") {
+        updateProp(el.querySelector<HTMLElement>(".prop"), v.id, cel, p, dt, effectOf(v.id) === "typewriter" ? lineAt(m.piece, v.id, beat) : null, effectOf(v.id) === "scope" && p.singing ? scopeOf(v.id, capturing ? songTime : undefined) : null);
+        if (moppet(v.id)?.art === "solo") {
           // the fully animated Moppet: a dancing body with a viseme head riding its neck
           const f = cel;
           const [nx, ny] = solo.neck[f];
@@ -423,9 +424,9 @@ function Stage() {
         <div className="cast" data-layout="layered">
           {voices.map((v: MoppetVoice, i: number) => (
             <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}`} onClick={() => { select(i); poke.current = { index: i, at: performance.now() / 1000 }; }} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
-              {v.id === "vee" ? (
-                <span className="sprite solo" style={{ backgroundImage: "url(/moppets/vee/body.webp)" }} aria-hidden="true">
-                  <span className="solo-head" style={{ backgroundImage: "url(/moppets/vee/head.webp)", width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />
+              {moppet(v.id)?.art === "solo" ? (
+                <span className="sprite solo" style={{ backgroundImage: `url(/moppets/${v.id}/body.webp)` }} aria-hidden="true">
+                  <span className="solo-head" style={{ backgroundImage: `url(/moppets/${v.id}/head.webp)`, width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />
                   <PropFx id={v.id} />
                 </span>
               ) : (

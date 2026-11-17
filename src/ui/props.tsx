@@ -15,6 +15,10 @@
  * from tools/gen-prop-anchors.py: fractions of the 384×512 cel, one per frame).
  */
 import type { Pose } from "../choir/pose.ts";
+import { moppet, type PropEffect } from "../choir/cast/index.ts";
+
+/** The effect on this Moppet's object (its definition's `prop`). */
+export const effectOf = (id: string): PropEffect | undefined => moppet(id)?.prop;
 import ANCHORS from "./prop-anchors.generated.json";
 
 const AT = ANCHORS as unknown as Record<string, [number, number][]>;
@@ -23,20 +27,21 @@ const REST = 7;
 const place = (id: string, cel: number) => ({ left: `${AT[id][cel][0] * 100}%`, top: `${AT[id][cel][1] * 100}%` });
 
 export function PropFx({ id }: { id: string }) {
-  if (!AT[id]) return null;
+  const fx = effectOf(id);
+  if (!AT[id] || !fx) return null;
   const style = place(id, REST);
   return (
-    <span className={`prop prop-${id}`} style={style} aria-hidden="true">
-      {id === "vee" && (
+    <span className={`prop prop-${fx}`} style={style} aria-hidden="true">
+      {fx === "reels" && (
         <>
           <i className="reel" />
           <i className="reel" />
         </>
       )}
-      {id === "scribe" && <b className="platen" />}
-      {id === "clank" && [0, 1, 2, 3, 4, 5].map((k) => <i key={k} className="lamp" />)}
-      {id === "tabby" && <canvas className="scope" width={96} height={24} />}
-      {id === "chip" && <i className="led" />}
+      {fx === "typewriter" && <b className="platen" />}
+      {fx === "lamps" && [0, 1, 2, 3, 4, 5].map((k) => <i key={k} className="lamp" />)}
+      {fx === "scope" && <canvas className="scope" width={96} height={24} />}
+      {fx === "led" && <i className="led" />}
     </span>
   );
 }
@@ -54,8 +59,8 @@ const memory = new Map<string, PropState>();
 
 /**
  * One frame of a Moppet's object. `cel`: the dance frame showing (0..7). `line`: the words it is
- * singing now and how far through them (0..1), for Scribe's typewriter. `scope`: its glottal flow,
- * for Tabby's screen.
+ * singing now and how far through them (0..1), for a typewriter. `scope`: its glottal flow, for a
+ * scope.
  */
 export function updateProp(el: HTMLElement | null, id: string, cel: number, p: Pose, dt: number, line: { text: string; at: number } | null, scope: Float32Array | null): void {
   if (!el || !AT[id]) return;
@@ -66,14 +71,14 @@ export function updateProp(el: HTMLElement | null, id: string, cel: number, p: P
     Object.assign(el.style, place(id, cel));
   }
   const voiced = p.singing && p.voicing > 0.3;
-  switch (id) {
-    case "vee": {
+  switch (effectOf(id)) {
+    case "reels": {
       // a cassette turns at a steady speed when it plays; the air sets how fast
       m.reel = (m.reel + dt * (p.singing ? 120 + 600 * p.level : 0)) % 360;
       el.style.setProperty("--reel", `${m.reel.toFixed(1)}deg`);
       break;
     }
-    case "scribe": {
+    case "typewriter": {
       // the last few letters typed, as the carriage moves along the line
       const text = line ? line.text.slice(0, Math.round(line.text.length * line.at)) : "";
       const shown = text.slice(-7);
@@ -83,23 +88,23 @@ export function updateProp(el: HTMLElement | null, id: string, cel: number, p: P
       }
       break;
     }
-    case "clank": {
+    case "lamps": {
       // the breath behind the voice, as loud as it is sounding now
       const lit = p.singing ? Math.round(6 * p.pressure * Math.min(1, 0.35 + p.level * 1.6)) : 0;
       el.querySelectorAll<HTMLElement>(".lamp").forEach((l, k) => l.classList.toggle("on", k < lit));
       break;
     }
-    case "pip": {
+    case "sac": {
       el.style.setProperty("--sac", (p.singing ? 0.4 + 0.6 * p.pressure * (0.5 + p.level) : 0).toFixed(3));
       break;
     }
-    case "gruff": {
+    case "dial": {
       // heats over ~3 s of singing, cools over ~2 s
       m.warm = Math.max(0, Math.min(1, m.warm + (p.singing ? dt / 3 : -dt / 2)));
       el.style.setProperty("--warm", m.warm.toFixed(3));
       break;
     }
-    case "tabby": {
+    case "scope": {
       const c = el.firstElementChild as HTMLCanvasElement;
       const g = c.getContext("2d");
       if (!g) break;
@@ -118,7 +123,7 @@ export function updateProp(el: HTMLElement | null, id: string, cel: number, p: P
       g.stroke();
       break;
     }
-    case "chip": {
+    case "led": {
       if (voiced && !m.wasVoiced) m.blink = 0.12;
       m.blink = Math.max(0, m.blink - dt);
       el.classList.toggle("blink", m.blink > 0);

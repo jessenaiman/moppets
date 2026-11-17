@@ -187,22 +187,22 @@
 
 /* Each found object shows its own voice (src/ui/props.tsx), placed on the cel and carried by the sprite's transforms. */
 .puppet .prop { position: absolute; transform: translate(-50%, -50%); pointer-events: none; display: flex; align-items: center; justify-content: center; }
-.prop-vee { width: 6.3%; justify-content: space-between; }
-.prop-vee .reel { flex: 0 0 auto; width: 30%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(#3b2a1e 0 20deg, #d9c29a 20deg 120deg, #3b2a1e 120deg 140deg, #d9c29a 140deg 240deg, #3b2a1e 240deg 260deg, #d9c29a 260deg 360deg); transform: rotate(var(--reel, 0deg)); opacity: 0.9; box-shadow: 0 0 0 1px #3b2a1e; }
-.prop-scribe { width: 36%; height: 7%; }
-.prop-scribe .platen { font: 700 8px/1 "Courier New", monospace; color: #2b2622; white-space: pre; overflow: hidden; letter-spacing: 0; }
-.prop-clank { width: 18%; gap: 6%; }
-.prop-clank .lamp { flex: 1 1 0; aspect-ratio: 1; border-radius: 50%; background: #3a2a16; box-shadow: inset 0 0 0 1px #000; }
-.prop-clank .lamp.on { background: #ffb547; box-shadow: 0 0 6px 2px rgba(255, 181, 71, 0.75); }
-.prop-clank .lamp.on:nth-child(n + 5) { background: #ff6a3d; box-shadow: 0 0 6px 2px rgba(255, 106, 61, 0.8); }
-.prop-pip { width: 15%; aspect-ratio: 1.5; border-radius: 50%; background: radial-gradient(ellipse at 50% 35%, rgba(236, 246, 198, 0.95), rgba(170, 205, 120, 0.85) 70%); transform: translate(-50%, -5%) scale(var(--sac, 0)); transform-origin: 50% 0; box-shadow: inset 0 -2px 4px rgba(70, 100, 40, 0.5); }
-.prop-gruff { width: 12%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 196, 92, var(--warm, 0)), rgba(255, 120, 40, calc(var(--warm, 0) * 0.6)) 55%, transparent 75%); box-shadow: 0 0 calc(var(--warm, 0) * 18px) calc(var(--warm, 0) * 6px) rgba(255, 150, 60, calc(var(--warm, 0) * 0.7)); }
-.prop-tabby { width: 26%; height: 4%; }
-.prop-tabby .scope { width: 100%; height: 100%; filter: drop-shadow(0 0 2px #6dfcc4); }
-.prop-chip { width: 5%; aspect-ratio: 1; }
-.prop-chip .led { width: 100%; height: 100%; border-radius: 50%; background: #3d1d12; box-shadow: inset 0 0 0 1px #000; }
-.prop-chip.blink .led { background: #ff4b2b; box-shadow: 0 0 6px 2px rgba(255, 75, 43, 0.85); }
-@media (prefers-reduced-motion: reduce) { .prop-vee .reel { transform: none; } }
+.prop-reels { width: 6.3%; justify-content: space-between; }
+.prop-reels .reel { flex: 0 0 auto; width: 30%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(#3b2a1e 0 20deg, #d9c29a 20deg 120deg, #3b2a1e 120deg 140deg, #d9c29a 140deg 240deg, #3b2a1e 240deg 260deg, #d9c29a 260deg 360deg); transform: rotate(var(--reel, 0deg)); opacity: 0.9; box-shadow: 0 0 0 1px #3b2a1e; }
+.prop-typewriter { width: 36%; height: 7%; }
+.prop-typewriter .platen { font: 700 8px/1 "Courier New", monospace; color: #2b2622; white-space: pre; overflow: hidden; letter-spacing: 0; }
+.prop-lamps { width: 18%; gap: 6%; }
+.prop-lamps .lamp { flex: 1 1 0; aspect-ratio: 1; border-radius: 50%; background: #3a2a16; box-shadow: inset 0 0 0 1px #000; }
+.prop-lamps .lamp.on { background: #ffb547; box-shadow: 0 0 6px 2px rgba(255, 181, 71, 0.75); }
+.prop-lamps .lamp.on:nth-child(n + 5) { background: #ff6a3d; box-shadow: 0 0 6px 2px rgba(255, 106, 61, 0.8); }
+.prop-sac { width: 15%; aspect-ratio: 1.5; border-radius: 50%; background: radial-gradient(ellipse at 50% 35%, rgba(236, 246, 198, 0.95), rgba(170, 205, 120, 0.85) 70%); transform: translate(-50%, -5%) scale(var(--sac, 0)); transform-origin: 50% 0; box-shadow: inset 0 -2px 4px rgba(70, 100, 40, 0.5); }
+.prop-dial { width: 12%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 196, 92, var(--warm, 0)), rgba(255, 120, 40, calc(var(--warm, 0) * 0.6)) 55%, transparent 75%); box-shadow: 0 0 calc(var(--warm, 0) * 18px) calc(var(--warm, 0) * 6px) rgba(255, 150, 60, calc(var(--warm, 0) * 0.7)); }
+.prop-scope { width: 26%; height: 4%; }
+.prop-scope .scope { width: 100%; height: 100%; filter: drop-shadow(0 0 2px #6dfcc4); }
+.prop-led { width: 5%; aspect-ratio: 1; }
+.prop-led .led { width: 100%; height: 100%; border-radius: 50%; background: #3d1d12; box-shadow: inset 0 0 0 1px #000; }
+.prop-led.blink .led { background: #ff4b2b; box-shadow: 0 0 6px 2px rgba(255, 75, 43, 0.85); }
+@media (prefers-reduced-motion: reduce) { .prop-reels .reel { transform: none; } }
 
 /* Playing a Moppet live (src/choir/live.ts) */
 .live-panel { margin: 10px 0; padding: 10px; border: 1px solid var(--line, #d8cfc0); border-radius: 8px; }
