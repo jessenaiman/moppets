@@ -28,3 +28,18 @@ Every Moppet speaking CHIMERA's judge sentences through the skit path, scored by
 | held out | 59.3 | 69.3 | 107.3 | 67.3 | 89.3 | 124.0 | 69.3 | 93.3 |
 
 Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
+
+### 1. Skit pace, then where the plain voice loses its words (diagnosis, nothing changed)
+
+- Hypothesis: skits rush lines (the speed-up to 1.6×), costing every Moppet clarity.
+- Measured: only 8 of the 20 training sentences are sped up at all, by at most 1.04×; the
+  Toaster skit's lines 1 of 8, at 1.03×. Not the cause: no pacing change made.
+- CHIMERA's own judge on this machine (`speech_wer.py`): male 31.3 % (Harvard) and 43.7 %
+  (nonsense), about 37 % together; ours for `plain` 51.7 %.
+- Diagnostic (out/diag.ts, plain voice, same plan, same 112 Hz): CHIMERA's stock engine
+  **35.1 %**, the Moppets' singer engine (SingerCore: moppet_* handle, the held character
+  posture gesture at strength 5, vowel shaping) **53.6 %**. The loss is in our singer path.
+- Next: find which part of SingerCore costs it, one at a time: the character posture gesture
+  (holds larynx, epilarynx and false folds against every phoneme), the vowel shaping (velum and
+  tongue root on every vowel), the source settings it sends at the start. Fixing it should help
+  every Moppet at once.
