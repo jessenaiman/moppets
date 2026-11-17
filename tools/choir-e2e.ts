@@ -133,7 +133,7 @@ ok(ended.peak > 0.05, `not silent (peak ${ended.peak.toFixed(2)})`);
 ok(ended.peak <= 0.93, `bus never exceeds its ceiling (${ended.peak.toFixed(3)})`);
 
 // ---- the round, live, full length: count underruns and mixer drift
-await page.getByRole("tab", { name: "02 · The jam round" }).click();
+await page.getByLabel("Performance").selectOption({ label: "02 · The jam round" });
 await page.waitForTimeout(200);
 ok((await playBtn.textContent())!.toLowerCase().includes("jam round"), "the button says it will play the round");
 await page.screenshot({ path: `${outDir}/moppet-round.png`, fullPage: true });
@@ -156,7 +156,7 @@ console.log("round starting took", Date.now() - wall0, "ms");
 
 // ---- the introduction, a generated minor piece, and a solo: real listening material
 const seedInput = page.locator('input[type="number"]');
-await page.getByRole("tab", { name: "The first hello" }).click();
+await page.getByLabel("Performance").selectOption({ label: "The first hello" });
 await page.waitForTimeout(150);
 ok((await playBtn.textContent())!.includes("Meet the whole choir"), "the introduction's button is labelled for the introduction");
 await playBtn.click();
@@ -168,7 +168,7 @@ report.introUnderruns = introT.underruns;
 await page.evaluate(() => document.querySelector<HTMLButtonElement>('button[aria-label="Stop playback"]')!.click());
 await until(async () => (await st()).status === "idle", 2000, "stop intro");
 
-await page.getByRole("tab", { name: "01 · Music school" }).click();
+await page.getByLabel("Performance").selectOption({ label: "01 · Music school" });
 await page.locator('select').filter({ hasText: "Harmonic minor" }).selectOption("minor");
 await seedInput.fill("88");
 await page.waitForTimeout(150);
@@ -188,7 +188,7 @@ await page.evaluate(() => document.querySelector<HTMLButtonElement>('button[aria
 await until(async () => (await st()).status === "idle", 2000, "stop solo");
 
 // song 03: Chip's solo, and the seventh Moppet
-await page.getByRole("tab", { name: "03 · Chip’s song" }).click();
+await page.getByLabel("Performance").selectOption({ label: "03 · Chip’s song" });
 await page.waitForTimeout(150);
 ok((await playBtn.textContent())!.includes("Chip"), "song 03 has its own label");
 await playBtn.click();
@@ -201,7 +201,7 @@ await page.evaluate(() => document.querySelector<HTMLButtonElement>('button[aria
 await until(async () => (await st()).status === "idle", 2000, "stop Chip");
 
 // a control reaches the singer during playback
-await page.getByRole("tab", { name: "02 · The jam round" }).click();
+await page.getByLabel("Performance").selectOption({ label: "02 · The jam round" });
 await playBtn.click();
 await until(async () => (await st()).status === "playing", 15000, "round restarts");
 await page.locator("#knob-roughness").evaluate((el: HTMLInputElement) => {
@@ -233,7 +233,7 @@ report.workersAfterRepeatedStarts = leaked;
 
 // ---- pre-render fallback with cancel, then a complete WAV + MIDI of the round
 await page.locator('select').filter({ hasText: "Pre-render" }).selectOption("prerender");
-await page.getByRole("tab", { name: "01 · Music school" }).click();
+await page.getByLabel("Performance").selectOption({ label: "01 · Music school" });
 await playBtn.click();
 await until(async () => (await st()).status === "rendering", 4000, "pre-render begins");
 await page.waitForTimeout(300);
@@ -243,7 +243,7 @@ await until(async () => (await st()).status === "idle", 3000, "cancel");
 ok((await dbg()).workersAlive === 0, "cancel ended the render workers");
 report.prerenderProgressBeforeCancel = progress;
 
-await page.getByRole("tab", { name: "02 · The jam round" }).click();
+await page.getByLabel("Performance").selectOption({ label: "02 · The jam round" });
 const wavPromise = page.waitForEvent("download", { timeout: 300000 });
 await page.getByRole("button", { name: /round wav/i }).click();
 const wav = await wavPromise;

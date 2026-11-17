@@ -500,15 +500,22 @@ function Transport() {
   );
 }
 
+/** Every performance in one menu, grouped: the lessons, the songs, the skits. */
 function LessonTabs() {
   const lesson = useMoppet((s) => s.lesson);
-  const piece = useMoppet((s) => s.piece);
   const setLesson = useMoppet((s) => s.setLesson);
   const fresh = useMoppet((s) => s.freshSkit);
-  const tab = (l: Lesson, label: string) => (
-    <button role="tab" aria-selected={lesson === l && piece.kind !== "solo"} onClick={() => setLesson(l)}>{label}</button>
+  const opt = (l: Lesson, label: string) => <option key={l} value={l}>{label}</option>;
+  return (
+    <label className="lesson-pick">
+      <span>Performance</span>
+      <select className="lesson-select" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
+        <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
+        <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => opt(x.id, x.tab))}</optgroup>
+        <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{fresh && opt("newskit", `New: ${fresh.title}`)}</optgroup>
+      </select>
+    </label>
   );
-  return <div className="lesson-tabs" role="tablist" aria-label="Choose a performance">{tab("intro", "The first hello")}{tab("school", "01 · Music school")}{tab("round", "02 · The jam round")}{tab("chip", "03 · Chip’s song")}{tab("tabby", "04 · Tabby’s song")}{tab("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => <Fragment key={x.id}>{tab(x.id, x.tab)}</Fragment>)}{SKITS.map((x) => <Fragment key={x.id}>{tab(x.id, `Skit · ${x.title}`)}</Fragment>)}{fresh && tab("newskit", `Skit · ${fresh.title}`)}</div>;
 }
 
 function MusicSettings() {

@@ -67,9 +67,9 @@
 .render-mode { font-size: 10px; letter-spacing: 1px; display: flex; flex-direction: column; gap: 3px; color: var(--muted); }
 .how { font-size: 10px; color: var(--muted); min-width: 66px; }
 .moppet-score { padding: 14px 18px; }
-.lesson-tabs { display: flex; gap: 5px; border-bottom: 1px solid #cbd0c1; margin-bottom: 14px; flex-wrap: wrap; }
-.warm .lesson-tabs button { border: none; border-radius: 5px 5px 0 0; padding: 11px 18px; font-size: 13px; color: var(--muted); }
-.warm .lesson-tabs button[aria-selected=true] { background: #dce3d3; color: var(--green); box-shadow: inset 0 -3px var(--green); }
+.lesson-pick { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #cbd0c1; padding-bottom: 12px; margin-bottom: 14px; }
+.lesson-pick span { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.lesson-select { flex: 0 1 360px; min-width: 0; font-size: 15px; padding: 7px 10px; border: 1px solid #cbd0c1; border-radius: 6px; background: #fff; color: var(--ink); }
 .lesson-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .lesson-header p { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 .lesson-header .eyebrow { font-size: 9px; letter-spacing: 1.8px; font-weight: 700; margin: 0 0 6px; }
