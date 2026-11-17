@@ -181,3 +181,6 @@
 .words-line small.ok { color: #5c7a4a; }
 .words-line small.hint { color: #9a7a2a; }
 .words-line small.bad { color: #c0492b; font-weight: 600; }
+.words-fix { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; }
+.words-fix button { font-size: 11px; padding: 2px 8px; }
+.words-note code { font-size: 11px; }

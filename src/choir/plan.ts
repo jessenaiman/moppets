@@ -22,11 +22,49 @@ export interface TrackPlan {
   nasal: boolean;
 }
 
+/**
+ * A sung line's syllables, with its holds: `_` straight after a syllable holds its vowel onto one
+ * more note per mark ("ma_ny" sings ma-a-ny over three notes, "made__" holds "made" over three).
+ * The engine's own mark, a lone "-" or "~" between words, holds the syllable before it too.
+ * A hold is a melisma syllable: the vowel carries on to the next note's pitch, and the held
+ * syllable's closing consonants wait for the last of its notes.
+ */
+export function sungSyllables(text: string): Syllable[] {
+  if (!text.includes("_")) return lyricsToSyllables(text);
+  const syl = lyricsToSyllables(text.replace(/_/g, ""));
+  // where each mark falls: the syllable that ends at or after the letters before it, per word
+  const holds: number[] = []; // after which syllable, once per mark
+  let base = 0;
+  for (const word of text.match(/[A-Za-z'][A-Za-z'\-_]*/g) ?? []) {
+    const clean = word.replace(/_/g, "");
+    const pieces = lyricsToSyllables(clean).map((s) => s.text.length);
+    let letters = 0;
+    for (const ch of word) {
+      if (ch !== "_") {
+        letters++;
+        continue;
+      }
+      let k = 0, end = pieces[0] ?? 0;
+      while (k < pieces.length - 1 && end < letters) end += pieces[++k];
+      holds.push(base + k);
+    }
+    base += pieces.length;
+  }
+  if (base !== syl.length) throw new Error(`can't place the holds in "${text}"`);
+  const out: Syllable[] = [];
+  syl.forEach((s, i) => {
+    const n = holds.filter((h) => h === i).length;
+    out.push(n ? { ...s, phraseEnd: false } : s);
+    for (let j = 0; j < n; j++) out.push({ text: "~", onset: [], nucleus: s.nucleus, coda: [], melisma: true, wordEnd: s.wordEnd, phraseEnd: j === n - 1 && s.phraseEnd });
+  });
+  return out;
+}
+
 /** The syllables of one phrase of contiguous notes (each word's stress and syllable breaks come from the planner). */
 function phraseSyllables(track: Track, group: ScoreEvent[]): Syllable[] {
   const fromLine = group[0].line !== undefined && track.phrases !== undefined && group.every((e) => e.line === group[0].line);
   if (fromLine) {
-    const syl = lyricsToSyllables(track.phrases![group[0].line!]);
+    const syl = sungSyllables(track.phrases![group[0].line!]);
     if (syl.length !== group.length) throw new Error(`${track.id}: expected ${group.length} syllables, got ${syl.length}: ${syl.map((s) => s.text).join(" ")}`);
     return syl;
   }

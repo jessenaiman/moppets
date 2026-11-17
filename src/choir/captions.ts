@@ -7,6 +7,9 @@
 import type { Piece } from "./music.ts";
 import { beatSeconds, LEAD_IN } from "./timeline.ts";
 
+/** A sung line as it is shown and captioned: without its hold marks ("ma_ny", a lone "-"). */
+export const shownWords = (text: string) => text.replace(/_/g, "").replace(/(^|\s)[~-](?=\s|$)/g, "").replace(/\s+/g, " ").trim();
+
 export interface Caption {
   start: number;
   end: number;
@@ -40,7 +43,7 @@ export function captionsFor(piece: Piece, names: Record<string, string> = {}): C
         if (last && s - last.end < 1) last.end = Math.max(last.end, en);
         else passes.push({ start: s, end: en });
       }
-      for (const p of passes.length ? passes : [span]) raw.push({ ...p, text: words[line], who: name });
+      for (const p of passes.length ? passes : [span]) raw.push({ ...p, text: shownWords(words[line]), who: name });
     }
   }
   raw.sort((a, b) => a.start - b.start || a.text.localeCompare(b.text));

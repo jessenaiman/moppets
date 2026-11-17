@@ -65,3 +65,26 @@ test("the words check counts syllables against notes and spots a word sung again
   expect(checkSung({ words: "banana", rhythm: [0.5, 1, 1] }, 0).hint).toContain("ba·NA·na"); // NA between beats
   for (const s of SONGBOOK) expect(songProblems(s.song)).toEqual([]);
 });
+
+test("a hold (_) sings one syllable over several notes, and the editor's fixes make a line fit", async () => {
+  const { checkSung, holdFix, splitFix } = await import("../src/choir/songCheck.ts");
+  const { sungSyllables } = await import("../src/choir/plan.ts");
+  const { shownWords } = await import("../src/choir/captions.ts");
+  expect(sungSyllables("ma_ny cakes").map((s) => [s.text, !!s.melisma])).toEqual([["ma", false], ["~", true], ["ny", false], ["cakes", false]]);
+  expect(checkSung({ words: "pancakes made__,", rhythm: [1, 1, 1, 1, 1] }).ok).toBe(true);
+  expect(holdFix("pancakes made,", 2)).toBe("pancakes made__,");
+  expect(splitFix({ degrees: [7, 6, 4], rhythm: [1, 1, 2] }, 1)).toEqual({ degrees: [7, 6, 4, 4], rhythm: [1, 1, 1, 1] });
+  expect(shownWords("ma_ny cakes - made")).toBe("many cakes made");
+  const { buildSong, SONGBOOK } = await import("../src/choir/songbook.ts");
+  const { planTrack } = await import("../src/choir/plan.ts");
+  const { CAST } = await import("../src/choir/voices.ts");
+  const song = structuredClone(SONGBOOK[0].song);
+  // the first line loses its last word, and holds the one before over the spare notes
+  const first = song.sections[0].lines.find((l) => !("rest" in l)) as { words: string; rhythm: number[] };
+  const shorter = first.words.split(" ").slice(0, -1).join(" ");
+  first.words = holdFix(shorter, -checkSung({ words: shorter, rhythm: first.rhythm }).syllables.length + first.rhythm.length);
+  expect(checkSung(first).ok).toBe(true);
+  const piece = buildSong(song);
+  const t = piece.tracks[0];
+  expect(planTrack(t, piece, CAST.find((v) => v.id === t.id)!).gestures.length).toBeGreaterThan(0);
+});

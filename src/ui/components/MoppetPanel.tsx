@@ -8,8 +8,9 @@ import { SpectrumView } from "./SpectrumView.tsx";
 import { VoiceControls, VoiceToggles } from "./VoiceControls.tsx";
 import { Keys } from "./Keys.tsx";
 import { currentFile, lessonFile, useMoppet, type Lesson } from "../../choir/store.ts";
-import { checkSung, lineStarts } from "../../choir/songCheck.ts";
-import type { Line, Section } from "../../choir/songbook.ts";
+import { checkSung, holdFix, lineStarts, splitFix } from "../../choir/songCheck.ts";
+import type { Line, Section, Sung } from "../../choir/songbook.ts";
+import type { SongFile } from "../../choir/songFile.ts";
 import { g2p } from "../speech.ts";
 import { cancel, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../../choir/theory.ts";
@@ -22,7 +23,7 @@ import { Choreographer, featuredAt, sceneFeatured } from "../../choir/choreo.ts"
 import { SKITS } from "../../choir/skits.ts";
 import { gestureAt, type GesturePose } from "../../choir/gestures.ts";
 import { cuesFor } from "../../choir/cues.ts";
-import { captionsFor, type Caption } from "../../choir/captions.ts";
+import { captionsFor, shownWords, type Caption } from "../../choir/captions.ts";
 import { SONGBOOK } from "../../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../../choir/controller.ts";
 import { midiSupported } from "../midi.ts";
@@ -365,7 +366,7 @@ function Stage() {
           if (!ev) return [];
           const name = m.voices.find((v) => v.id === t.id)?.name ?? t.id;
           const line = t.phrases && ev.line !== undefined ? t.phrases[ev.line] : t.lines && ev.line !== undefined ? t.lines[ev.line] : ev.text;
-          return [{ id: name, text: line }];
+          return [{ id: name, text: shownWords(line) }];
         });
         const names = active.length === 6 ? "ALL TOGETHER" : active.length > 1 ? `${active.length} VOICES IN HARMONY` : active[0] ? `${active[0].toUpperCase()} IS SINGING` : "A LITTLE BREATH";
         const text = lines.length ? (lines.length === 1 ? lines[0].text : lines.map((l) => `${l.id}: ${l.text}`).join(" · ")) : "";
@@ -581,18 +582,39 @@ function WordsEditor() {
   const starts = lineStarts(song);
   const sections = [...new Set(song.sections)];
   const repeats = (sec: Section) => song.sections.filter((x) => x === sec).length;
-  const line = (words: string, who: string | undefined, check: ReturnType<typeof checkSung> | null, set: (w: string) => void, key: string, answer = false) => (
-    <div key={key} className={`words-line${answer ? " answer" : ""}`}>
-      <b>{answer ? "+ " : ""}{name(who, song.lead)}</b>
-      <input value={words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => set(e.target.value)} />
-      {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.syllables.join("·") || "—"} · {check.ok ? `${check.notes} ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
-    </div>
-  );
+  // a phrase of the song, found again in the edited copy (a repeated section is one object)
+  const at = (x: SongFile, si: number, li: number, ai: number | null): Sung => {
+    const l = [...new Set((x as Extract<SongFile, { kind: "song" }>).song.sections)][si].lines[li] as Line;
+    return ai === null ? l : l.with![ai];
+  };
+  const change = (si: number, li: number, ai: number | null, apply: (s: Sung) => void) => editSongFile((x) => void (x.kind === "song" && apply(at(x, si, li, ai))));
+  const line = (s: Sung, start: number | undefined, si: number, li: number, ai: number | null) => {
+    const check = dictionary ? checkSung(s, start) : null;
+    const diff = check ? check.syllables.length - check.notes : 0;
+    const split = check && check.syllables.length && diff > 0 ? splitFix(s, diff) : null;
+    return (
+      <div key={`${li}-${ai}`} className={`words-line${ai !== null ? " answer" : ""}`}>
+        <b>{ai !== null ? "+ " : ""}{name(s.who, song.lead)}</b>
+        <input value={s.words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => change(si, li, ai, (x) => void (x.words = e.target.value))} />
+        {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.syllables.join("·") || "—"} · {check.ok ? `${check.notes} ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
+        {check && check.syllables.length > 0 && diff < 0 && (
+          <span className="words-fix">
+            <button title="Hold the last syllable over the spare notes (the _ marks); move the marks to hold another syllable" onClick={() => change(si, li, ai, (x) => void (x.words = holdFix(x.words, -diff)))}>Hold the last word over {-diff + 1} notes</button>
+          </span>
+        )}
+        {split && (
+          <span className="words-fix">
+            <button title="Split the longest notes in two, same pitch: the tune changes, the chords still fit" onClick={() => change(si, li, ai, (x) => void Object.assign(x, splitFix(x, diff)))}>Split {diff > 1 ? `${diff} notes` : "a note"} in two</button>
+          </span>
+        )}
+      </div>
+    );
+  };
   return (
     <div className="words-editor">
       {head}
       {!dictionary && <p className="words-note">Loading the pronouncing dictionary…</p>}
-      <p className="words-note">One syllable per note: the dots show how the dictionary splits each line. A repeated section is edited once.</p>
+      <p className="words-note">One syllable per note: the dots show how the dictionary splits each line, and <code>_</code> after a syllable holds it over one more note (<code>ma_ny</code>). A repeated section is edited once.</p>
       {sections.map((sec, si) => (
         <section key={si}>
           <h3>Section {si + 1}{sec.choir ? " · choir" : ""}{repeats(sec) > 1 ? ` · sung ${repeats(sec)} times` : ""}</h3>
@@ -601,8 +623,8 @@ function WordsEditor() {
               <p key={li} className="words-rest">rest {l.rest} beats</p>
             ) : (
               <Fragment key={li}>
-                {line(l.words, l.who, dictionary ? checkSung(l, starts.get(l)) : null, (w) => editSongFile((x) => void (x.kind === "song" && ((([...new Set(x.song.sections)][si].lines[li] as Line).words = w)))), `${li}`)}
-                {(l.with ?? []).map((a, ai) => line(a.words, a.who, dictionary ? checkSung(a) : null, (w) => editSongFile((x) => void (x.kind === "song" && (((([...new Set(x.song.sections)][si].lines[li] as Line).with ?? [])[ai].words = w)))), `${li}-${ai}`, true))}
+                {line(l, starts.get(l), si, li, null)}
+                {(l.with ?? []).map((a, ai) => line(a, undefined, si, li, ai))}
               </Fragment>
             ),
           )}

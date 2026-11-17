@@ -4,7 +4,7 @@
  * engine's syllable splitter, so the dictionary must be loaded (g2p.load()) for the counts to match
  * what the singers will plan.
  */
-import { lyricsToSyllables } from "../wasm/engine.ts";
+import { sungSyllables } from "./plan.ts";
 import type { Line, Rest, Song, Sung } from "./songbook.ts";
 
 export interface LineCheck {
@@ -24,7 +24,7 @@ export interface LineCheck {
  * on a whole beat is strong, one between beats weak.
  */
 export function checkSung(s: Pick<Sung, "words" | "rhythm">, start?: number): LineCheck {
-  const syl = s.words.trim() ? lyricsToSyllables(s.words) : [];
+  const syl = s.words.trim() ? sungSyllables(s.words) : [];
   const syllables = syl.map((x) => x.text);
   const notes = s.rhythm.length;
   const diff = syllables.length - notes;
@@ -35,7 +35,8 @@ export function checkSung(s: Pick<Sung, "words" | "rhythm">, start?: number): Li
     let at = start, word: { text: string; stressed: boolean; onBeat: boolean }[] = [];
     for (let i = 0; i < syl.length && !hint; i++) {
       const onBeat = Math.abs(at - Math.round(at)) < 1e-6;
-      word.push({ text: syl[i].text, stressed: syl[i].nucleus.stress === 1, onBeat });
+      // a held note carries its syllable on; only where a syllable starts counts
+      if (!syl[i].melisma) word.push({ text: syl[i].text, stressed: syl[i].nucleus.stress === 1, onBeat });
       at += s.rhythm[i];
       if (syl[i].wordEnd) {
         if (word.length > 1 && word.some((w) => w.stressed && !w.onBeat) && word.some((w) => !w.stressed && w.onBeat)) hint = `"${word.map((w) => w.text).join("")}" is sung against its stress (${word.map((w) => (w.stressed ? w.text.toUpperCase() : w.text)).join("·")})`;
@@ -44,6 +45,31 @@ export function checkSung(s: Pick<Sung, "words" | "rhythm">, start?: number): Li
     }
   }
   return { syllables, notes, ok: !problem, problem, hint };
+}
+
+/**
+ * A fix for a line short of syllables: hold its last syllable over the spare notes (a mark per
+ * note, before any closing punctuation). The singer stretches the line's last word; move the
+ * marks by hand to hold another syllable instead ("ma_ny").
+ */
+export function holdFix(words: string, notesSpare: number): string {
+  return words.replace(/([A-Za-z'_])([^A-Za-z'_]*)$/, `$1${"_".repeat(notesSpare)}$2`);
+}
+
+/**
+ * A fix for a line with syllables to spare: split its longest notes in two, each half the same
+ * pitch, until there is a note per syllable (null when the notes are already too short to split,
+ * under a quarter of a beat). The line keeps its length, so its chords still fit.
+ */
+export function splitFix(s: Pick<Sung, "degrees" | "rhythm">, extra: number): Pick<Sung, "degrees" | "rhythm"> | null {
+  const degrees = [...s.degrees], rhythm = [...s.rhythm];
+  for (let n = 0; n < extra; n++) {
+    const i = rhythm.indexOf(Math.max(...rhythm));
+    if (rhythm[i] < 0.5) return null;
+    rhythm.splice(i, 1, rhythm[i] / 2, rhythm[i] / 2);
+    degrees.splice(i, 0, degrees[i]);
+  }
+  return { degrees, rhythm };
 }
 
 /** Where each line of a song starts, in beats (the song opens with a bar of groove), by line object. */
