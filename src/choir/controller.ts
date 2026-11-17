@@ -108,6 +108,8 @@ interface ControllerState {
   learning: ControlKey | null;
   /** what the controller did last, for the workbench to show */
   last: string;
+  /** the control touched last (the Launchkey map lights it): knob 0-7, pad 0-7, or a key's MIDI note */
+  touched: { what: "knob" | "pad" | "key"; n: number; at: number } | null;
   learn: (key: ControlKey | null) => void;
   resetMap: () => void;
   /** the browser's MIDI connection and the inputs it sees */
@@ -127,6 +129,7 @@ export const useController = create<ControllerState>((set, get) => ({
   map: loadMap(),
   learning: null,
   last: "",
+  touched: null,
   learn: (key) => set({ learning: get().learning === key ? null : key }),
   resetMap: () => {
     saveMap(DEFAULT_MAP);
@@ -144,7 +147,10 @@ export const useController = create<ControllerState>((set, get) => ({
     void useAudio.getState().start();
     connectMidi({
       // the keys play the live Moppet (puppeteer or singing the words), when it's on
-      noteOn: (n, v) => void liveNoteOn(n, v),
+      noteOn: (n, v) => {
+        touchControl("key", n);
+        liveNoteOn(n, v);
+      },
       noteOff: (n) => void liveNoteOff(n),
       inputs: (names) => set({ midi: { status: "on", inputs: names } }),
     }).catch(() => {
@@ -159,7 +165,11 @@ export const ccFor = (map: Record<number, ControlKey>, key: ControlKey): number 
   return cc === undefined ? undefined : Number(cc);
 };
 
+export const touchControl = (what: "knob" | "pad" | "key", n: number) => useController.setState({ touched: { what, n, at: performance.now() } });
+
 export function handleControl(c: MidiControl): boolean {
+  if (c.kind === "cc" && c.number >= 21 && c.number <= 28) touchControl("knob", c.number - 21);
+  if (c.kind === "note" && c.channel === PAD_CHANNEL && c.number >= PAD_FIRST && c.number <= PAD_AUDITION && c.value) touchControl("pad", c.number - PAD_FIRST);
   // puppeteer mode: the knobs are the mouth, the pads its vowels
   if (useLive.getState().mode === "puppet") {
     if (c.kind === "cc" && c.number >= 21 && c.number < 21 + MOUTH.length) {

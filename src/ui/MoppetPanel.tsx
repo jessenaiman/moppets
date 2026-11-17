@@ -20,11 +20,12 @@ import { cuesFor } from "../choir/cues.ts";
 import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
 import { effectOf, PropFx, updateProp } from "./props.tsx";
 import { BandStage, updateBand } from "./band-stage.tsx";
+import { LaunchkeyMap } from "./launchkey-map.tsx";
 import { bandFor } from "../choir/band.ts";
 import { moppet } from "../choir/cast/index.ts";
 import { livePose, liveNoteOff, liveNoteOn, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
-import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
+import { applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
 import solo from "../choir/vee-solo.json";
 import "./moppet.css";
@@ -1000,7 +1001,6 @@ function MidiStrip() {
     <div className="midi-strip">
       <button className={on ? "on" : ""} aria-pressed={on} onClick={() => setMidi(!on)}>{on ? "MIDI on" : "Connect MIDI controller"}</button>
       <span className="midi-what">{learning ? "Turn the knob to use" : last || status}</span>
-      <span className="midi-help">Knobs shape the voice · pads 1–7 pick a Moppet, pad 8 sings · keys play it</span>
       <button className="link" onClick={resetMap}>Launchkey layout</button>
     </div>
   );
@@ -1018,6 +1018,7 @@ function LivePanel({ name }: { name: string }) {
   const key = (n: number, on: boolean) => {
     if (on && !down.current.has(n)) {
       down.current.add(n);
+      touchControl("key", n);
       liveNoteOn(n, 100);
     } else if (!on && down.current.delete(n)) liveNoteOff(n);
   };
@@ -1117,6 +1118,7 @@ function Workbench() {
           <button className="download" onClick={() => void wav()}>↓ WAV</button>
         </div>
         <MidiStrip />
+        <LaunchkeyMap />
         <LivePanel name={v.name} />
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
