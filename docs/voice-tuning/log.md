@@ -140,3 +140,10 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
 - Noise seen in the same run, on audio identical to `best`: plain 35.8 → 35.1, Vee 38.4 → 37.1,
   Tabby 58.9 → 60.9, and Scribe 107.3 → **168.9** (a hallucination loop). So Whisper also varies
   between runs, not only between contexts: about ±2 points away from the floor.
+
+### 8. Chip: breathiness 0.3 → 0.2 (reverted)
+
+- Hypothesis (lead 4): Chip's breath noise covers its consonants.
+- Measured (`out/clarity/e8`, full run): Chip 72.2 → 74.8, no clear change. Reverted.
+- Pip's audio, identical to `best`, scored 83.4 → **123.2** this run (a loop): Pip is near the
+  floor too; read it on capped errors.
