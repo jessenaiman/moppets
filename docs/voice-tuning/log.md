@@ -43,3 +43,39 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
   (holds larynx, epilarynx and false folds against every phoneme), the vowel shaping (velum and
   tongue root on every vowel), the source settings it sends at the start. Fixing it should help
   every Moppet at once.
+
+### 2. Which part of the singer engine costs the plain voice its words (diagnosis)
+
+- Diagnostic: `out/diag2.ts` with `out/core.ts`, a copy of SingerCore with one part switchable
+  off at a time (gitignored scratch). Plain voice, CHIMERA's plan at 112 Hz, all 40 sentences,
+  training word errors: stock engine **33.1 %**; singer engine **53.0 %**; without the held
+  character posture 48.3 %; without vowel shaping **45.0 %**; without the start-up artic and
+  source settings 53.0 % (no effect); scheduled all at once, no rest skipping 54.3 % (no effect).
+- Why the shaping costs anything for a voice with no recipe: `shapeGesture`'s vowel test
+  `VOWEL.test(label)` was unanchored, so it matched every label with a vowel letter in it, among
+  them the planner's `"velum"` gesture. With `nasal` on (every skit line), the recipe's velum
+  (−0.15 for plain) replaced the planner's nasal opening (0.45) on every /m n ŋ/: nasals spoken
+  oral, "m" as "b". The planner gives vowels no velum target at all, so the `nasal` branch never
+  coloured a vowel; a Moppet's nasality comes from its resting posture (`moppet_set_artic`).
+- Why the held posture costs: the planner moves the larynx on every vowel (−0.92 for /ɝ/ to
+  +0.36 for /ɪ/); the character gesture, strength 5, pins it at the recipe value.
+
+### 3. Anchor the vowel test, so nasal consonants keep their velum opening (kept)
+
+- Hypothesis: from experiment 2, every Moppet's /m n ŋ/ is spoken oral because `shapeGesture`
+  treated the `"velum"` gesture as a vowel. Anatomy: a nasal needs the velum open.
+- Change: `VOWEL` in `src/choir/character.ts` must match the whole label (vowel symbols and the
+  length mark), not any vowel letter in it.
+- Measured (`out/clarity/e2`), training word errors: plain 51.7 → **37.8** BETTER, Vee 53.6 →
+  **41.1** BETTER, Tabby 70.2 → **64.9** BETTER, Chip 80.1 → **75.5** BETTER; Scribe 96.0 → 94.7,
+  Clank 62.9 → 62.9, Gruff 78.2 → 78.2, Pip 85.4 → 88.1 (all no clear change). Held out: Pip
+  89 → 181 (Whisper inventing words on a few sentences; held out never decides, watch it).
+  `bun tools/moppet-voices.ts`: every Moppet still its own voice.
+- Pip's resting velum (0.6) is above the planner's nasal opening (0.45), so its nasals now
+  narrow the port a little: its nasality is the next lead.
+- Listen, before → after: Vee `out/clarity/baseline/vee/00.wav` → `out/clarity/e2/vee/00.wav`
+  ("The birch canoe…"), Chip `out/clarity/baseline/chip/06.wav` → `out/clarity/e2/chip/06.wav`
+  ("The box was thrown…"), Tabby `out/clarity/baseline/tabby/10.wav` →
+  `out/clarity/e2/tabby/10.wav`, plain `out/clarity/baseline/plain/20.wav` →
+  `out/clarity/e2/plain/20.wav` ("…when the sun rose", 5 → 0 errors).
+- `out/clarity/best` is now `e2`.

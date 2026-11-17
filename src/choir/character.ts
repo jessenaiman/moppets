@@ -9,7 +9,12 @@ import type { MoppetVoice } from "./voices.ts";
 export const CHARACTER_TAG = 7001;
 /** Vibrato the planner is asked for; each voice scales it to its own depth when it is scheduled. */
 export const PLAN_VIBRATO = 12;
-const VOWEL = /[aeiou\u0251\u0252\u00e6\u0259\u025b\u025c\u025d\u026a\u0254\u028a\u028c]/;
+/**
+ * A vowel's gesture: its whole label is vowel symbols (a diphthong, a length mark). Unanchored, the
+ * test matched the planner's other labels too ("velum", "aspiration", "voiced frication"), and the
+ * recipe's velum replaced every nasal consonant's opening: /m n ŋ/ came out oral.
+ */
+const VOWEL = /^[aeiou\u0251\u0252\u00e6\u0259\u025a\u025b\u025c\u025d\u026a\u0254\u028a\u028c\u02d0]+$/;
 
 /** The steady posture a singer holds over the whole song. */
 export function characterGesture(v: MoppetVoice, t0: number, end: number, tag: number): Gesture {
