@@ -4,7 +4,7 @@ import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { currentFile, lessonFile, useMoppet, type Lesson } from "../choir/store.ts";
 import { checkSung, holdFix, lineStarts, splitFix } from "../choir/songCheck.ts";
 import type { Line, Section, Sung } from "../choir/songbook.ts";
-import type { SongFile } from "../choir/songFile.ts";
+import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
 import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
@@ -584,7 +584,7 @@ function WordsEditor() {
             {scene.map((l, li) => (
               <label key={li} className="words-line">
                 <b>{name(l.who, l.who)}</b>
-                <input value={l.say} onChange={(e) => editSongFile((x) => void (x.kind === "skit" && (x.skit.scenes[si][li].say = e.target.value)))} />
+                <input value={l.say} onChange={(e) => editSongFile((x) => void (x.kind === "skit" && (x.skit.scenes[si][li].say = sheetWords(e.target.value))))} />
               </label>
             ))}
           </section>
@@ -610,7 +610,7 @@ function WordsEditor() {
     return (
       <div key={`${li}-${ai}`} className={`words-line${ai !== null ? " answer" : ""}`}>
         <b>{ai !== null ? "+ " : ""}{name(s.who, song.lead)}</b>
-        <input value={s.words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => change(si, li, ai, (x) => void (x.words = e.target.value))} />
+        <input value={s.words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => change(si, li, ai, (x) => void (x.words = sheetWords(e.target.value)))} />
         {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.syllables.join("·") || "—"} · {check.ok ? `${check.notes} ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
         {check && check.syllables.length > 0 && diff < 0 && (
           <span className="words-fix">

@@ -86,15 +86,25 @@ const bodyName = (v: MoppetVoice) => (v.body.child > 0.5 ? "child" : v.body.fema
 async function ensureNode(): Promise<void> {
   if (node) return;
   starting ??= (async () => {
-    await useAudio.getState().start();
-    const ctx = audio.ctx!;
-    await ctx.audioWorklet.addModule(liveUrl);
-    node = new AudioWorkletNode(ctx, "live-moppet", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { module: chimeraModule() } });
-    node.port.onmessage = (e: MessageEvent<FromLive>) => useLive.setState({ pose: e.data });
-    audio.connect(node);
-    if (voice) sendVoice(voice);
+    // a failed start is tried again on the next note or mode change
+    try {
+      await start();
+    } catch (e) {
+      starting = null;
+      throw e;
+    }
   })();
   await starting;
+}
+
+async function start(): Promise<void> {
+  await useAudio.getState().start();
+  const ctx = audio.ctx!;
+  await ctx.audioWorklet.addModule(liveUrl);
+  node = new AudioWorkletNode(ctx, "live-moppet", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { module: chimeraModule() } });
+  node.port.onmessage = (e: MessageEvent<FromLive>) => useLive.setState({ pose: e.data });
+  audio.connect(node);
+  if (voice) sendVoice(voice);
 }
 
 function sendVoice(v: MoppetVoice): void {
@@ -121,10 +131,17 @@ export const useLive = create<LiveState>((set, get) => ({
   },
 }));
 
-/** The selected Moppet becomes the live voice (and its recipe edits follow). */
+/**
+ * The selected Moppet becomes the live voice, and its recipe edits follow. Only another body or
+ * size rebuilds the voice (that allocates on the audio thread and cuts off what is sounding); the
+ * rest is a patch at the render head.
+ */
 export function setLiveVoice(v: MoppetVoice): void {
+  const same = voice && voice.id === v.id && voice.body.female === v.body.female && voice.body.child === v.body.child && (voice.size ?? 1) === (v.size ?? 1);
   voice = v;
-  sendVoice(v);
+  if (!same) return sendVoice(v);
+  post({ type: "source", values: { ...v.source } as Record<string, number> });
+  if (useLive.getState().mode !== "puppet") post({ type: "mouth", values: { ...v.artic } });
 }
 
 /** The keys sing this Moppet's lines in `piece` (the lead's, if it sings none). */
@@ -163,7 +180,7 @@ export function padVowel(i: number): void {
 export function liveNoteOn(midi: number, velocity = 100): boolean {
   const { mode } = useLive.getState();
   if (mode === "off" || !voice) return false;
-  void ensureNode();
+  ensureNode().catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
   if (mode === "puppet") {
     held.set(midi, { tag: 0, syl: null as unknown as Syllable, midi });
     post({ type: "source", values: { f0: midiToHz(midi + (voice.octave ?? 0)), pressure: 6 + 4 * (velocity / 127) } });
@@ -192,7 +209,10 @@ export function liveNoteOff(midi: number): boolean {
   if (mode === "off" || !h) return false;
   held.delete(midi);
   if (mode === "puppet") {
-    if (!held.size) post({ type: "gate", level: 0 });
+    // back to the newest key still held, or the breath stops
+    const still = [...held.keys()].pop();
+    if (still === undefined) post({ type: "gate", level: 0 });
+    else if (voice) post({ type: "source", values: { f0: midiToHz(still + (voice.octave ?? 0)) } });
     return true;
   }
   post({ type: "release", tag: h.tag });

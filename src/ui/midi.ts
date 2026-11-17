@@ -130,4 +130,5 @@ export function disconnectMidi(): void {
     access = null;
   }
   liftWhere(() => true);
+  claimed.clear();
 }

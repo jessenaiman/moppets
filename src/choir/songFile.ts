@@ -39,6 +39,22 @@ export type SongFile =
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
+/**
+ * Words as a lead sheet can hold them: a straight double quote would end the quoted words, so it
+ * becomes a curly one (the editor applies this as you type).
+ */
+export const sheetWords = (w: string) => w.replace(/"([^"]*)"/g, "“$1”").replace(/"/g, "”");
+
+/** A line without its comment: `#` starts one only outside quotes ("Track #1" keeps its #). */
+function stripComment(raw: string): string {
+  let quoted = false;
+  for (let i = 0; i < raw.length; i++) {
+    if (raw[i] === '"') quoted = !quoted;
+    else if (raw[i] === "#" && !quoted && (i === 0 || /\s/.test(raw[i - 1]))) return raw.slice(0, i);
+  }
+  return raw;
+}
+
 export class SongFileError extends Error {
   constructor(
     readonly file: string,
@@ -112,7 +128,7 @@ export function parseSongFile(text: string, file = "song"): SongFile {
   lines.forEach((raw, i) => {
     const at = i + 1;
     try {
-      const line = raw.replace(/\s+#.*$|^#.*$/, "").trimEnd();
+      const line = stripComment(raw).trimEnd();
       if (!line.trim()) return;
       const t = line.trim();
       const kind = meta.get("kind") ?? "song";
