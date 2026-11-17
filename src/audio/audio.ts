@@ -28,6 +28,9 @@ export const useAudio = create<AppAudio>((set, get) => ({
     (starting ??= (async () => {
       set({ starting: true, error: "" });
       try {
+        // the voices run in AudioWorklets, which browsers allow only on localhost or HTTPS
+        if (!window.isSecureContext || typeof AudioWorkletNode === "undefined")
+          throw new Error(`No sound here: browsers only allow the voices on localhost or HTTPS, and this page is ${location.origin}. Open it as http://localhost:${location.port || "80"}/ on this computer, or over HTTPS (for example \`tailscale serve\`) from another device.`);
         ctx = new AudioContext({ latencyHint: "interactive", sampleRate: 48000 });
         master = ctx.createGain();
         master.gain.value = get().volume;

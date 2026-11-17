@@ -370,7 +370,13 @@ export async function play(start: () => Promise<void>): Promise<void> {
   if (st === "paused" && session) return resume();
   const token = ++playToken;
   set({ status: "preparing", time: 0, message: "Waking the singers…" });
-  await start();
+  try {
+    await start();
+  } catch (e) {
+    // no audio (an insecure page, a blocked device): say why instead of waking forever
+    if (token === playToken) set({ status: "idle", message: e instanceof Error ? e.message : String(e) });
+    return;
+  }
   // the lyric planner reads CMUdict: without it words fall back to letter-to-sound and weak forms vanish
   try {
     await g2p.load();
