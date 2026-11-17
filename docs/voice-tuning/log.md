@@ -2,18 +2,27 @@
 
 ## Leads
 
-1. **Skits rush their lines.** `planSpeech` (src/choir/plan.ts) speeds a line up to 1.6× when
-   the planner's natural pace overruns the slot `lineSeconds` (src/choir/skits.ts) estimated.
-   Even `plain` (no recipe) scores 51.7 %, against about 36 to 40 % for CHIMERA's own speech
-   judge on the same sentences (`chimera render text`, chimera/docs/hill-climb/log.md). Try:
-   longer slots, or no speed-up past ~1.15×. Affects every Moppet.
-2. **Scribe (96 %)** speaks at MIDI 66 (370 Hz: `speakingMidi` = register low + 4) with a child
-   body, a raised larynx (0.5) and a half-open velum (0.5): high and nasal. Whisper hears
-   "Moo! Moo! Moo!". Try the velum first (nasality), then the speaking pitch.
-3. **Pip (85 %)**: velum 0.6, larynx −0.6, tongue root −0.5: very nasal and dark. Velum first.
-4. **Chip (80 %)**: larynx 1.3 (very high) and breathiness 0.3.
-5. **Gruff (78 %, 124 % held out: Whisper invents words)**: roughness 0.72 and false folds 0.75.
-6. **Singing isn't judged yet**; only speech (skits). Songs are a later judge.
+1. **Scribe (~95 % on capped errors)** sits at the floor whatever its velum or pitch. Untested
+   suspects, one at a time: its overall airway scale (child 0.9 × size 0.95 ≈ 0.70, near the
+   0.65 where the running voice stops phonating cleanly: `crates/moppet-wasm`), its epilarynx
+   0.55 (a narrow twang tube; the diagnostic `out/diag3.ts` hinted at it, measured alone), its
+   tension 0.78.
+2. **Pip (~83 %)**: velum 0.6 → 0.45 made no clear change (experiment 7). Next: its tongue root
+   −0.5 (dark, pharyngeal vowels), or a smaller velum step after the root.
+3. **Chip (~72 %)**: breathiness didn't matter (experiment 8). Next: larynx 1.3 (very high).
+4. **Gruff (~70 %)**: roughness didn't matter and costs distinctness (experiment 9). Next: false
+   folds 0.75.
+5. **Speaking pitch**: + 1 semitone helped every Moppet (experiment 6); + 0, or a pitch per
+   Moppet, is untested.
+6. **The judge near the floor**: Whisper varies between runs and run contexts (experiments 6
+   and 7); a runaway loop moves a Moppet ~40 points. Compare full runs, and read Moppets near
+   100 % on errors capped per sentence as well. (Changing the judge is not allowed; this is
+   reading it.)
+7. **Singing isn't judged yet**; only speech (skits). Songs are a later judge. The nasal fix
+   (experiment 3) also reaches songs and live play: not listened to there.
+
+Done: the skit pace (old lead 1, experiment 1: not the cause); the singer engine's loss
+(experiments 2 to 4: the nasal bug, fixed).
 
 ## Experiments
 
@@ -147,3 +156,9 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
 - Measured (`out/clarity/e8`, full run): Chip 72.2 → 74.8, no clear change. Reverted.
 - Pip's audio, identical to `best`, scored 83.4 → **123.2** this run (a loop): Pip is near the
   floor too; read it on capped errors.
+
+### 9. Gruff: roughness 0.72 → 0.6 (reverted)
+
+- Hypothesis (lead 5): Gruff's rough source makes Whisper invent words.
+- Measured (`out/clarity/e9`, full run): Gruff 70.2 → 72.2, no clear change; its grain moved
+  closer to Clank's (4.5 → 3.1 dB apart, the distinct line is 3). Reverted.
