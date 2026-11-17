@@ -38,8 +38,8 @@ export function lineSeconds(say: string): number {
   return 0.55 + lyricsToSyllables(say).length * SYLLABLE + commas * COMMA + stops * STOP;
 }
 
-/** Speaking pitch: low in the Moppet's singing register, as a speaking voice sits. */
-export const speakingMidi = (v: Pick<MoppetVoice, "register">) => v.register[0] + 4;
+/** Speaking pitch: a semitone above the bottom of the Moppet's singing register, as a speaking voice sits (+4 cost every Moppet words: voice-tuning log, experiment 6). */
+export const speakingMidi = (v: Pick<MoppetVoice, "register">) => v.register[0] + 1;
 
 export function makeSkit(skit: Skit, voices: readonly MoppetVoice[] = CAST): Piece {
   const events = new Map<string, ScoreEvent[]>();
