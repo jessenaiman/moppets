@@ -191,11 +191,21 @@ export const useMoppet = create<MoppetState>((set, get) => ({
     else songEdits[cur.file] = text;
     persistEdits(songEdits);
     set({ songEdits });
-    const problems = cur.parsed.kind === "song" ? songProblems(cur.parsed.song) : [];
-    if (problems.length) return set({ status: `Not singable yet: ${problems[0]}${problems.length > 1 ? ` (and ${problems.length - 1} more)` : ""}. The score keeps the last version that fits.` });
-    const piece = scoreFor(get());
-    set({ piece, status: cur.parsed.kind === "song" ? "Edited: every line fits its notes." : "Edited." });
-    loadPiece(piece);
+    // syllables are counted by the pronouncing dictionary: without it, the letter rules miscount
+    // ("check" as two) and a good edit read as unsingable
+    const apply = () => {
+      if (get().songEdits[cur.file] !== (text === SONG_SOURCES.get(cur.file) ? undefined : text)) return; // edited again since
+      const problems = cur.parsed.kind === "song" ? songProblems(cur.parsed.song) : [];
+      if (problems.length) return set({ status: `Not singable yet: ${problems[0]}${problems.length > 1 ? ` (and ${problems.length - 1} more)` : ""}. The score keeps the last version that fits.` });
+      const piece = scoreFor(get());
+      set({ piece, status: cur.parsed.kind === "song" ? "Edited: every line fits its notes." : "Edited." });
+      loadPiece(piece);
+    };
+    if (g2p.loaded) apply();
+    else {
+      set({ status: "Loading the pronouncing dictionary…" });
+      void g2p.load().then(apply, apply);
+    }
   },
   revertSongFile: () => {
     const file = lessonFile(get().lesson);
