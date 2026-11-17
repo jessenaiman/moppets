@@ -497,6 +497,21 @@ export function pose(id: string): Pose {
   return s.pose(s.indexOf(id), Math.floor(audibleFrame() / s.hop));
 }
 
+/**
+ * A singer's glottal flow over the last few milliseconds (CHIMERA's scope: the air pulses the
+ * folds let through), at the moment now sounding, or at `seconds` of the rendered session
+ * (video capture). Null when silent or not rendered.
+ */
+export function scopeOf(id: string, seconds?: number): Float32Array | null {
+  const s = session;
+  if (!s) return null;
+  const st = get().status;
+  if (seconds === undefined && st !== "playing" && st !== "buffering" && st !== "paused") return null;
+  const frame = seconds === undefined ? audibleFrame() : seconds * s.sampleRate;
+  const t = s.telemetry(s.indexOf(id), Math.floor(frame / s.hop));
+  return t ? (t.t.glottalFlow as Float32Array) : null;
+}
+
 /** Render to the end if needed, then the piece through the same bus as playback, as a WAV. `only`: one singer's stem. */
 export async function exportWav(start: () => Promise<void>, only?: number): Promise<{ bytes: ArrayBuffer; peak: number; limited: number; nonFinite: number }> {
   if (!session || !sessionFresh()) {

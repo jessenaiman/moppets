@@ -6,7 +6,7 @@ import { checkSung, holdFix, lineStarts, splitFix } from "../choir/songCheck.ts"
 import type { Line, Section, Sung } from "../choir/songbook.ts";
 import type { SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
-import { cancel, useTelemetry, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
+import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
@@ -18,6 +18,7 @@ import { SKITS } from "../choir/skits.ts";
 import { gestureAt, type GesturePose } from "../choir/gestures.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
+import { PropFx, updateProp } from "./props.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
@@ -103,6 +104,18 @@ function setGesture(el: HTMLElement, g: GesturePose | null, h: number, face: num
   el.style.setProperty("--grot", `${((g?.rot ?? 0) * side).toFixed(2)}deg`);
   el.style.setProperty("--gsx", (g?.sx ?? 1).toFixed(3));
   el.style.setProperty("--gsy", (g?.sy ?? 1).toFixed(3));
+}
+
+/** The words a Moppet is singing at `beat`, and how far through them it is (0..1). */
+function lineAt(piece: Piece, id: string, beat: number): { text: string; at: number } | null {
+  const t = piece.tracks.find((x) => x.id === id);
+  const words = t?.phrases ?? t?.lines;
+  const e = t?.events.find((x) => beat >= x.beat && beat < x.beat + x.beats && x.line !== undefined);
+  if (!t || !words || !e) return null;
+  // this pass through the line: its notes that run on from this one without a gap of a beat
+  const same = t.events.filter((x) => x.line === e.line && Math.abs(x.beat - e.beat) < 32);
+  const start = Math.min(...same.map((x) => x.beat)), end = Math.max(...same.map((x) => x.beat + x.beats));
+  return { text: shownWords(words[e.line!]), at: Math.min(1, (beat - start + 0.5) / Math.max(0.5, end - start)) };
 }
 
 /** One puppet as the stage effects see it, in stage pixels. */
@@ -319,9 +332,12 @@ function Stage() {
         const floor = H - 24 - a.depth * 44;
         marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, talking: m.piece.kind === "skit", spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
         const walkFrame = Math.floor(now * 7 + i * 3) % 8;
+        // the 8-frame dance cycle advances on the score's beat (two frames a beat); a rest holds the settle frame
+        const cel = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
+        updateProp(el.querySelector<HTMLElement>(".prop"), v.id, cel, p, dt, v.id === "scribe" ? lineAt(m.piece, v.id, beat) : null, v.id === "tabby" && p.singing ? scopeOf(v.id, capturing ? songTime : undefined) : null);
         if (v.id === "vee") {
           // the fully animated Moppet: a dancing body with a viseme head riding its neck
-          const f = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
+          const f = cel;
           const [nx, ny] = solo.neck[f];
           const blink = p.viseme === 0 && (now * 0.31 + i) % 1 < 0.04;
           const cell = blink ? 7 : p.viseme;
@@ -337,8 +353,7 @@ function Stage() {
           if (p.singing) active.push(v.name);
           return;
         }
-        // the 8-frame dance cycle advances on the score's beat (two frames a beat); a rest holds the settle frame
-        const frame = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
+        const frame = cel;
         const open = p.singing && p.open > 0.2; // the mouth comes from the engine's lip telemetry
         const col = frame % 4, row = Math.floor(frame / 4);
         const pos = `${(col * 100) / 3}% ${row * 100}%`;
@@ -407,10 +422,12 @@ function Stage() {
               {v.id === "vee" ? (
                 <span className="sprite solo" style={{ backgroundImage: "url(/moppets/vee/body.webp)" }} aria-hidden="true">
                   <span className="solo-head" style={{ backgroundImage: "url(/moppets/vee/head.webp)", width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />
+                  <PropFx id={v.id} />
                 </span>
               ) : (
                 <span className="sprite" style={{ backgroundImage: `url(/moppets/${v.id}/closed.webp)` }} aria-hidden="true">
                   <span className="sprite-open" style={{ backgroundImage: `url(/moppets/${v.id}/open.webp)` }} />
+                  <PropFx id={v.id} />
                 </span>
               )}
               <span className="name-tag">{v.name.toUpperCase()}</span>

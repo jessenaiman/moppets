@@ -16,7 +16,7 @@ const ARTIC_KEYS = ["jaw", "tbX", "tbY", "ttX", "ttY", "ttCurl", "root", "lipAp"
 const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension", "fry", "roughness", "vibratoDepth", "vibratoRate", "drift", "voiced", "brightness"];
 export const TELE_HEADER = 16;
 /** indices into a telemetry record */
-export const TELE = { f0: 3, voicing: 4, outRms: 6, gate: 9, clock: 10, nArtic: 11, nPh: 12, nOr: 13, nScope: 14 } as const;
+export const TELE = { f0: 3, voicing: 4, pLung: 5, outRms: 6, gate: 9, clock: 10, nArtic: 11, nPh: 12, nOr: 13, nScope: 14 } as const;
 /** engine state update rate for the views: every hop frames at ~60 Hz */
 export const hopFor = (sampleRate: number) => Math.round(sampleRate / 60);
 const MAX_RECORDS = 4000;

@@ -19,6 +19,12 @@ export interface Pose {
   singing: boolean;
   /** which mouth shape the articulators are making (see VISEME) */
   viseme: number;
+  /** lung pressure 0..1 (of 12 in the voice's own units; the cast sings at 9 to 10) */
+  pressure: number;
+  /** pitch in Hz (0: unvoiced) */
+  f0: number;
+  /** voicing 0..1: how much the folds are vibrating */
+  voicing: number;
 }
 
 /** Cells of the viseme head sheet, in order. */
@@ -35,7 +41,7 @@ export function visemeFrom(lipAp: number, labio: number, round: number, jaw: num
 }
 
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
-export const SILENT_POSE: Pose = { open: 0, jaw: 0, round: 0, level: 0, singing: false, viseme: 0 };
+export const SILENT_POSE: Pose = { open: 0, jaw: 0, round: 0, level: 0, singing: false, viseme: 0, pressure: 0, f0: 0, voicing: 0 };
 
 /** Quiet floor below which a singer counts as resting (the telemetry's RMS of the stem). */
 const SINGING_RMS = 0.012;
@@ -54,5 +60,6 @@ export function poseFromRecord(rec: Float32Array, at = 0): Pose {
   const lip = lipAp <= 0.02 ? 0 : Math.max(clamp(lipAp / 2.2) * (0.55 + 0.45 * level), rounded ? 0.25 : 0);
   const open = singing ? lip : 0;
   const round = clamp(lipProt);
-  return { open, jaw: singing ? clamp(jaw / 1.9) : 0, round, level, singing, viseme: visemeFrom(lipAp, rec[at + LABIO], round, jaw, singing) };
+  const voicing = clamp(rec[at + TELE.voicing]);
+  return { open, jaw: singing ? clamp(jaw / 1.9) : 0, round, level, singing, viseme: visemeFrom(lipAp, rec[at + LABIO], round, jaw, singing), pressure: clamp(rec[at + TELE.pLung] / 12), f0: voicing > 0.1 ? rec[at + TELE.f0] : 0, voicing };
 }
