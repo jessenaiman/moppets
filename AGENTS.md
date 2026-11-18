@@ -1,6 +1,6 @@
 # The Moppets
 
-Found-object characters with physically modelled voices, on CHIMERA (pinned in `chimera/`). See
+Found-object characters with physically modelled voices, on CHIMERA (its `main`, in `chimera/`). See
 the README.
 
 ## Working here
@@ -16,8 +16,9 @@ the README.
 
 ## Map
 
-- `chimera/`: CHIMERA, a git submodule at an exact commit. **Never edit it**; its own AGENTS.md
-  governs it, not this repo. Move the pin to update (README → How it uses CHIMERA).
+- `chimera/`: CHIMERA, a git submodule following its `main`; `bun run dev` and `bun run build`
+  take the newest (`bun run chimera:update`). **Never edit it**; its own AGENTS.md governs it, not
+  this repo.
 - `crates/moppet-wasm/`: the app's wasm: CHIMERA's C ABI plus the sized Moppet voices (`moppet_*`).
 - `src/choir/`: the Moppets (cast, scores, songs, skits, band, gestures, the ensemble of singer
   workers). `src/audio/`: the AudioContext and the dictionary. `src/ui/`: the app (React, the stage).
@@ -31,8 +32,8 @@ the README.
 
 - **CHIMERA's TypeScript is imported as `@chimera/…`**, never copied. When the Moppets need what
   CHIMERA doesn't do, it goes in `crates/moppet-wasm` or `src/`, on CHIMERA's public API.
-- **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a new
-  CHIMERA pin), `bun test ./tests` alone tests the old engine: use `bun run test`.
+- **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a newer
+  CHIMERA), `bun test ./tests` alone tests the old engine: use `bun run test`.
 - **`bun test ./tests`, not `bun test tests`:** the bare word is a filter that also runs
   CHIMERA's own tests in `chimera/`, against a wasm they weren't built for.
 - **The wasm loads before the UI.** CHIMERA's `engine.ts` calls the engine as it loads, so it
@@ -50,5 +51,5 @@ the README.
 | When you touch | Run |
 |---|---|
 | anything | `bun run test` and `bun run typecheck` |
-| `crates/moppet-wasm/`, the `chimera/` pin, `src/audio/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/choir-e2e.ts http://127.0.0.1:5418/` |
+| `crates/moppet-wasm/`, a newer `chimera/`, `src/audio/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/choir-e2e.ts http://127.0.0.1:5418/` |
 | `src/ui/`, CSS | `bun run lint:layout` |

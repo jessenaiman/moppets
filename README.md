@@ -6,8 +6,8 @@ voice. An animated stage, songs written as lead sheets, a round, talking skits, 
 a Launchkey Mini to play with.
 
 Every voice is [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth): a simulated airway
-(lungs, vocal folds, throat, mouth and nose), not samples. CHIMERA is a dependency here, pinned
-in `chimera/` (a git submodule, never edited); what the Moppets add is in this repo.
+(lungs, vocal folds, throat, mouth and nose), not samples. CHIMERA is a dependency here, following
+its `main` in `chimera/` (a git submodule, never edited); what the Moppets add is in this repo.
 
 ## What's here
 
@@ -32,16 +32,17 @@ Needs Rust with the `wasm32-unknown-unknown` target, and Bun.
 ```sh
 git clone --recurse-submodules …      # or, in a clone: git submodule update --init
 bun install
-bun run dev        # builds the wasm, then Vite on 127.0.0.1:5417
+bun run dev        # takes CHIMERA's newest main, builds the wasm, then Vite on 127.0.0.1:5417
 bun run test       # wasm build, cargo test, bun test ./tests
 ```
 
 ## How it uses CHIMERA
 
-- **`chimera/`** is CHIMERA at an exact commit. To take the newest CHIMERA, `bun run
-  chimera:update` (fetches it, moves the pin to its `main`, rebuilds the engine), try the app, then
-  commit the new pin (`git add chimera`). Nothing is merged. Hosting the app (Vercel and the like)
-  needs the submodule fetched in its build, issue #13; that's separate from updating.
+- **`chimera/`** follows CHIMERA's `main` (`branch = main` in `.gitmodules`). `bun run dev` and
+  `bun run build` take its newest commit first (`bun run chimera:update`, which also rebuilds the
+  engine; offline, they build the checkout as it is). Git still records which commit a Moppets
+  commit was made against; that's a record, not a pin. Hosting the app (Vercel and the like) needs
+  the submodule fetched in its build, issue #13.
 - **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
   plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
   itself doesn't offer (Gruff and Clank are giants).

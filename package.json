@@ -5,14 +5,14 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "bun run wasm && vite --host 127.0.0.1",
-    "build": "bun run wasm && tsc --noEmit && vite build",
+    "dev": "bun run chimera:update && vite --host 127.0.0.1",
+    "build": "bun run chimera:update && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "bun run wasm && cargo test --workspace && bun test ./tests",
     "typecheck": "tsc --noEmit",
     "lint:layout": "bun run wasm && bun tools/layout-lint.ts",
     "wasm": "cargo build -p moppet-wasm --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/moppet_wasm.wasm src/audio/moppet.wasm",
-    "chimera:update": "git -C chimera fetch -q origin && git -C chimera checkout -q origin/main && git -C chimera log --oneline -1 && bun run wasm"
+    "chimera:update": "(git submodule update --init --remote chimera || echo 'chimera: could not fetch, building the checkout as it is') && git -C chimera log --oneline -1 && bun run wasm"
   },
   "dependencies": {
     "react": "19.3.1",
