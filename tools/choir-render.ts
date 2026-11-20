@@ -4,7 +4,8 @@
  * quality: the WAVs are for ears. Usage: bun tools/choir-render.ts [outDir]   (after `bun run wasm`)
  */
 import { gunzipSync } from "node:zlib";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
+import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "../tests/harness.ts";
 await initEngine();
 const { CueCore, hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.ts");
@@ -13,7 +14,7 @@ const { SONGBOOK } = await import("../src/choir/songbook.ts");
 const { makeSkit, SKITS } = await import("../src/choir/skits.ts");
 const { beatSeconds, LEAD_IN, pieceSeconds, planTrack } = await import("../src/choir/plan.ts");
 const { CAST: voices, MIX_LEVEL } = await import("../src/choir/voices.ts");
-const { extraStems, mixStems, pieceGains, wavBytes } = await import("../src/choir/mix.ts");
+const { extraStems, mixStems, pieceGains } = await import("../src/choir/mix.ts");
 const { renderAccompaniment } = await import("../src/choir/bandSynth.ts");
 const { beatReady, EnglishG2P, parseBeat } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
@@ -52,6 +53,6 @@ for (const [name, piece] of Object.entries(pieces)) {
   }
   const plan = pieceGains(piece, FS, LEAD_IN + piece.tracks.length * 20 * beatSeconds(piece), MIX_LEVEL);
   const m = mixStems(stems, plan.gains, frames, plan.section);
-  writeFileSync(`${out}/${name}.wav`, Buffer.from(wavBytes(m.samples, FS)));
+  writeWav(`${out}/${name}.wav`, [m.samples], FS);
   console.log(`${name}: ${(frames / FS).toFixed(1)} s audio in ${((performance.now() - t0) / 1000).toFixed(1)} s · mix peak ${m.peak.toFixed(3)} · limited ${m.limited} · invalid ${m.nonFinite} · stems peak: ${rows.join(", ")}`);
 }

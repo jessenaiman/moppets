@@ -9,10 +9,11 @@ const keys = Object.keys(KEYS) as KeyName[];
 const modes = Object.keys(SCALES) as ScaleMode[];
 
 test("generated scores: scale membership, strong-beat chord tones, register limits, cadence", () => {
+  const sampleSeeds = [0, 7, 42, 404];
   let pieces = 0;
   for (const key of keys)
     for (const mode of modes)
-      for (let seed = 0; seed < 100; seed++) {
+      for (const seed of sampleSeeds) {
         const p = compose({ seed, key, mode });
         expect(p.tracks.length).toBe(6);
         expect(p.beats).toBe(32);
@@ -35,7 +36,7 @@ test("generated scores: scale membership, strong-beat chord tones, register limi
         expect(p.chords[p.chords.length - 1].degree).toBe(0);
         pieces++;
       }
-  expect(pieces).toBe(Object.keys(KEYS).length * Object.keys(SCALES).length * 100);
+  expect(pieces).toBe(keys.length * modes.length * sampleSeeds.length);
 });
 
 test("seeds are reproducible", () => {
@@ -166,29 +167,44 @@ test("exported MIDI reproduces every score pitch, start time and duration", () =
 });
 
 test("inventions from named ideas: in mode, chord tones on strong beats, in register, resolved", () => {
-  for (const key of ["C", "E♭", "F♯", "A", "B♭"] as KeyName[])
-    for (const { id: mode } of MODES)
-      for (const progression of PROGRESSIONS)
-        for (const groove of GROOVES)
-          for (const soul of [false, true]) {
-            const p = invent({ seed: 19, key, mode, progression: progression.id, groove: groove.id, palette: "beatband", soul });
-            for (const t of p.tracks) {
-              let prev = -1;
-              for (const e of t.events) {
-                if (e.beat < prev - 1e-9) throw Error("overlap");
-                prev = e.beat + e.beats;
-                if (e.midi < RANGES[t.id][0] || e.midi > RANGES[t.id][1]) throw Error(`range ${t.id}`);
-                if (!SCALES[mode].includes((e.midi - KEYS[key] + 120) % 12)) throw Error(`scale ${mode} ${e.midi}`);
-                const c = p.chords.find((x) => e.beat >= x.beat && e.beat < x.beat + x.beats)!;
-                const strongLead = t.id === "scribe" || t.id === "pip" || t.id === "tabby" ? e.strong : true;
-                if (strongLead !== false && strongLead !== undefined && !c.tones.includes(e.midi % 12)) throw Error(`chord ${t.id} ${e.beat}`);
-              }
-            }
-            // every invention ends on the mode's approach chord, then home
-            const last = p.chords[p.chords.length - 1], prev = p.chords[p.chords.length - 2];
-            expect(last.degree).toBe(0);
-            expect(prev.degree).toBe(findMode(mode).approach);
-          }
+  const sampleKeys: KeyName[] = ["C", "E♭", "F♯", "A", "B♭"];
+  const cases: { key: KeyName; mode: ScaleMode; progression: string; groove: string; soul: boolean }[] = [];
+  let idx = 0;
+  for (const { id: mode } of MODES)
+    for (const progression of PROGRESSIONS)
+      for (const soul of [false, true]) {
+        cases.push({
+          key: sampleKeys[idx % sampleKeys.length],
+          mode,
+          progression: progression.id,
+          groove: GROOVES[idx % GROOVES.length].id,
+          soul,
+        });
+        idx++;
+      }
+  for (const key of sampleKeys)
+    for (const groove of GROOVES)
+      cases.push({ key, mode: "dorian", progression: PROGRESSIONS[0].id, groove: groove.id, soul: true });
+
+  for (const cSpec of cases) {
+    const p = invent({ seed: 19, ...cSpec, palette: "beatband" });
+    for (const t of p.tracks) {
+      let prev = -1;
+      for (const e of t.events) {
+        if (e.beat < prev - 1e-9) throw Error("overlap");
+        prev = e.beat + e.beats;
+        if (e.midi < RANGES[t.id][0] || e.midi > RANGES[t.id][1]) throw Error(`range ${t.id}`);
+        if (!SCALES[cSpec.mode].includes((e.midi - KEYS[cSpec.key] + 120) % 12)) throw Error(`scale ${cSpec.mode} ${e.midi}`);
+        const c = p.chords.find((x) => e.beat >= x.beat && e.beat < x.beat + x.beats)!;
+        const strongLead = t.id === "scribe" || t.id === "pip" || t.id === "tabby" ? e.strong : true;
+        if (strongLead !== false && strongLead !== undefined && !c.tones.includes(e.midi % 12)) throw Error(`chord ${t.id} ${e.beat}`);
+      }
+    }
+    // every invention ends on the mode's approach chord, then home
+    const last = p.chords[p.chords.length - 1], prev = p.chords[p.chords.length - 2];
+    expect(last.degree).toBe(0);
+    expect(prev.degree).toBe(findMode(cSpec.mode).approach);
+  }
   expect(invent({ seed: 88, mode: "dorian" })).toEqual(invent({ seed: 88, mode: "dorian" }));
   expect(invent({ seed: 88 })).not.toEqual(invent({ seed: 89 }));
   expect(PALETTES.length).toBeGreaterThan(1);

@@ -1,0 +1,73 @@
+title: The Cue Playbook
+id: cue-playbook
+tab: 29 · ★ The Cue Playbook (Full Show)
+about: 29 · The Cue Playbook: Cue introduces every Moppet, tests duets and a trio, then everyone writes the blank last page together
+lead: scribe
+key: G
+bpm: 104
+beat: B . t . | Pf . t K | B . t . | Pf . t . (swing .12)
+backing: vee +0, pip +2, tabby +4, gruff +2, chip +7, clank +0, zap +4
+bass: none
+finale: "Page" on 7
+
+tune prompt = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4
+
+[act 1]
+# Cue reads the cast list; each Moppet steps up with its solo's signature phrase.
+"Here's the cast I've known so long" = prompt ; do nod
+"Here is Neon two tubes bright" = prompt
+vee: "Twice for me and twice for me" = 4 5 4 2 4 5 4/2 | I 4, IV 4 ; do nod
+"Here is Tabby she's the star" = prompt
+tabby: "Hear me hear me sing" = 7/1.5 5/.5 7/1.5 5/.5 9/4 | I 4, IV 4 ; do tilt
+"Here is Gruff so warm and low" = prompt
+gruff: "Look I am so small" = 4/2 3 2 1 0/3 | I 4, IV 4 ; react laugh
+"Here is Clank who thinks a lot" = prompt
+rest 2
+clank: "Yes" = 0/4 | I 4 ; do nod ; react laugh
+"Here is Watt who keeps us on" = prompt
+pip: "Plug in plug in friends" = 0/.5 7/.5 0/.5 7/.5 9/2 | I 4
+"Here is Chip who tries it all" = prompt
+chip: "One more thing to try" = 4/.5 5/.5 6/.5 7/.5 8/2 | IV 4 ; do gasp
+"Here is Zap the newest friend" = prompt
+zap: "Zap cut to the moon" = 7 7 5 4 4/4 | I 4, IV 4 ; do gasp
+"And I'm Cue I read the lines" = 4 5 7 5 4 2 0/2 | IV 4, I 4 ; do bow
+
+[duet, high and low]
+# Two lines at once: Gruff below, Chip an octave and more above, moving in parallel.
+"First a duet high and low" = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4 ; do nod
+gruff: "I sing low beneath the floor" = 0 -1 -3 -1 0 2 0/2 | I 4, IV 4
+  + chip: "I sing high above the door" = 7 6 4 6 7 9 7/2
+gruff: "Low and high we meet halfway" = 0 2 4 2 0 -1 0/2 | IV 4, I 4
+  + chip: "High and low we meet halfway" = 7 5 4 5 7 8 7/2
+
+[duet, call and answer]
+"Now a duet call and reply" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do tilt
+vee: "Is it twice" = 4 5 7/2 | I 4
+tabby: "Yes it's twice" = 7 5 4/2 | V 4
+vee: "Is it bright" = 4 5 7/2 | IV 4
+tabby: "Shining bright" = 7 5 4/2 | I 4 ; do nod
+
+[trio, one after another]
+# Watt starts, Clank joins two beats in, Zap four beats in.
+"Now a trio three in a row" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do nod
+pip: "Plug it in and turn it on" = 0 2 4 5 4 2 0/2 | I 4, V 4
+  + clank @2: "Turn it on and wait" = 0 2 4 2 0/2
+  + zap @4: "Click it on" = 7 5 4/2
+pip: "Three of us all humming now" = 4 5 4 2 4 2 0/2 | IV 4, I 4 ; do gasp
+  + clank @2: "Humming now" = 0 -1 0/4
+  + zap @4: "Click click click" = 7 7 7/2
+
+[act 3]
+"Here's the last page of my scroll" = 4 5 4 2 1 0 -1/2 | VI 4, V 4 ; do tilt
+"But the last page has no words" = 2 2 2 1 0 -1 0/2 | IV 4, V 4 ; do shrug
+rest 2
+tabby: "Then we'll write it all together" = 0/.5 2/.5 4 5 7 5 4 4/2 | I 4, VI 4 ; do nod
+  + gruff @4: "all together" = 0 2 4/.5 2/1.5
+
+[chorus, choir]
+"All the lines you sang tonight" = 4 5 7 5 4 2 4/2 | VI 4, V 4
+  + chip @4: "sang tonight" = 7 8 9/2
+  + zap @4: "Click" = 7/4
+"That's the page I'll keep" = 4 5 4 2 0/4 | IV 4, I 4 ; do bow
+  + vee: "Twice for me" = 4 5 4/2
+  + clank @4: "Yes" = 0/4

@@ -6,7 +6,7 @@
  *  - a sung question (a phrase ending in "?"): the head cocks as it starts
  *  - the final chord: everyone holding it bows, finishing as the note ends
  */
-import { beatSeconds } from "./plan.ts";
+import { beatSeconds } from "./timeline.ts";
 import { gestureSeconds } from "./gestures.ts";
 import type { Piece } from "./music.ts";
 

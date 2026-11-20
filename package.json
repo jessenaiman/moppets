@@ -15,12 +15,16 @@
     "chimera:update": "(git submodule update --init --remote chimera || echo 'chimera: could not fetch, building the checkout as it is') && git -C chimera log --oneline -1 && bun run wasm"
   },
   "dependencies": {
+    "@remotion/player": "^4.0.545",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "remotion": "^4.0.545",
     "three": "0.186.1",
+    "vexflow": "^5.3.0",
     "zustand": "5.0.16"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.545",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

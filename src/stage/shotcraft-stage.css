@@ -1,0 +1,606 @@
+/* Unified 16:9 Shotcraft Theatrical Stage & Karaoke Speech Capsules (live React + Remotion parity) */
+
+.sc-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a0a0d 0%, #0f0507 60%, #070203 100%);
+  user-select: none;
+}
+
+.sc-plane {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 56%;
+}
+
+.sc-curtain-base,
+.sc-curtain-lit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 74.5%;
+  pointer-events: none;
+}
+
+.sc-curtain-base {
+  z-index: 1;
+}
+
+.sc-curtain-lit {
+  z-index: 2;
+}
+
+.sc-curtain-tint {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+}
+
+.sc-svg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.sc-beams {
+  z-index: 18;
+  mix-blend-mode: screen;
+}
+
+/* Grounded Upstage Band Riser */
+.sc-band-riser {
+  position: absolute;
+  left: 7%;
+  right: 24%;
+  bottom: 25.5%;
+  height: 22.5%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sc-riser-deck {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 19%;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #42221c 0%, #24120f 45%, #120807 100%);
+  border-top: 1.5px solid rgba(255, 224, 180, 0.34);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.68), 0 8px 18px rgba(0, 0, 0, 0.72);
+}
+
+.sc-band-members {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 15%;
+  height: 83%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.sc-band-member {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  transform-origin: 50% 94%;
+  filter: brightness(0.88) saturate(0.95) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.65));
+}
+
+.sc-band-member.hit {
+  filter: brightness(1.02) saturate(1.04) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 12px rgba(255, 224, 150, 0.32));
+}
+
+.sc-band-sprite {
+  position: absolute;
+  inset: 0;
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+/* Stage Apron Floor + Specular Lip + Reflection Pools */
+.sc-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 74.5%;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 224, 190, 0.018) 0px, rgba(255, 224, 190, 0.018) 1px, transparent 1px, transparent 14px),
+    linear-gradient(180deg, #2b1512 0%, #160908 58%, #090404 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.sc-floor-lip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 74.5%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 4%, rgba(255, 230, 194, 0.50) 35%, rgba(255, 230, 194, 0.34) 68%, transparent 96%);
+  pointer-events: none;
+  z-index: 8;
+}
+
+.sc-floor-pools,
+.sc-emissive-dark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.sc-emissive-dark {
+  z-index: 16;
+}
+
+/* Standalone Studio 404 Stage Microphones Prop Set */
+.sc-stage-mics {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-mic {
+  position: absolute;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+}
+
+.sc-mic img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.72));
+}
+
+.sc-mic-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(5, 1, 2, 0.84) 0%, transparent 74%);
+  z-index: 0;
+}
+
+.sc-mic-ribbon {
+  left: 1.8%;
+  bottom: 11.2%;
+  width: 3.3%;
+  z-index: 120;
+}
+
+.sc-mic-boom {
+  left: 22.8%;
+  bottom: 13.8%;
+  width: 5.0%;
+  z-index: 62;
+}
+
+.sc-mic-short {
+  left: 34.0%;
+  bottom: 11.8%;
+  width: 3.4%;
+  z-index: 120;
+}
+
+.sc-mic-desk {
+  left: 76.2%;
+  bottom: 12.6%;
+  width: 3.1%;
+  z-index: 56;
+}
+
+/* Tracking & Hertz: Two Independent Unconnected Stage-Right Comedic Duet Actors */
+.sc-stage .sc-duet-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 46;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor {
+  position: absolute;
+  bottom: 10.5%;
+  height: auto;
+  aspect-ratio: 384 / 512;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor[data-art-key="tracking"] {
+  left: 84.0%;
+  width: 13.0%;
+  z-index: 48;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor[data-art-key="hertz"] {
+  left: 93.8%;
+  width: 11.4%;
+  z-index: 47;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor .name-tag {
+  position: absolute;
+  bottom: -9.5%;
+  left: -4%;
+  right: -4%;
+  padding: 2px 0;
+  text-align: center;
+  font: 700 clamp(8px, 0.72cqw, 14px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.02em;
+  color: rgba(248, 239, 226, 0.88);
+  text-shadow: 0 2px 6px #050102, 0 0 8px rgba(5, 1, 2, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Cast Layer on Stage Floor */
+.sc-stage .sc-cast {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: block;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.sc-stage .sc-cast .sc-puppet {
+  position: absolute;
+  flex: none;
+  width: 14.2%;
+  height: auto;
+  aspect-ratio: 384 / 512;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  transform-origin: 50% 100%;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Canonical found-object proportions (README: "Gruff and Clank are giants") */
+.sc-stage .sc-cast .sc-puppet[data-art-key="gruff"] { width: 15.8%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="clank"] { width: 15.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="neon"]  { width: 14.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="cue"]   { width: 14.4%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="tabby"] { width: 13.4%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="watt"]  { width: 12.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="chip"]  { width: 12.4%; }
+
+.sc-stage .sc-cast .sc-puppet:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.sc-puppet.selected::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -2%;
+  height: 3px;
+  border-radius: 99px;
+  background: #3fbfa0;
+  box-shadow: 0 0 10px rgba(63, 191, 160, 0.8);
+  pointer-events: none;
+}
+
+.sc-foot-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -1%;
+  width: 68%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(5, 1, 2, 0.82) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sc-puppet .sprite,
+.sc-duet-actor .sprite {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  aspect-ratio: 384 / 512;
+  background-size: 400% 200%;
+  background-position: var(--cel, 100% 100%);
+  background-repeat: no-repeat;
+  transform-origin: 50% 96%;
+  transform: translate(var(--gx, 0%), var(--gy, 0%)) rotate(var(--grot, 0deg))
+    scale(calc((2 - var(--sy, 1)) * var(--face, 1) * var(--gsx, 1)), calc(var(--sy, 1) * var(--gsy, 1)));
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.62));
+}
+
+.sc-puppet .sprite.solo {
+  transform: translate(var(--gx, 0%), var(--gy, 0%)) rotate(var(--grot, 0deg))
+    scale(calc((2 - var(--sy, 1)) * var(--face, 1) * var(--gsx, 1)), calc(var(--sy, 1) * var(--gsy, 1)));
+}
+
+.sc-puppet .solo-head {
+  position: absolute;
+  left: var(--hx, 25%);
+  top: var(--hy, 0%);
+  aspect-ratio: 384 / 512;
+  background-size: 400% 200%;
+  background-position: var(--head, 0% 0%);
+  background-repeat: no-repeat;
+  transform: rotate(var(--tilt, 0deg));
+}
+
+/* Mutually exclusive 3-state sprite sheets: NEVER stack open over closed simultaneously */
+:is(.sc-puppet, .sc-duet-actor) .sprite-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-sing-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-open {
+  position: absolute;
+  inset: 0;
+  background-size: 400% 200%;
+  background-position: var(--cel, 100% 100%);
+  background-repeat: no-repeat;
+}
+
+:is(.sc-puppet, .sc-duet-actor) .sprite-closed {
+  visibility: visible;
+}
+
+:is(.sc-puppet, .sc-duet-actor) .sprite-sing-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-open {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).singing:not(.mouth-open).has-sing-closed .sprite-closed {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).singing:not(.mouth-open).has-sing-closed .sprite-sing-closed {
+  visibility: visible;
+}
+
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-closed,
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-sing-closed {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-open {
+  visibility: visible;
+}
+
+.sc-cast .sc-puppet .name-tag {
+  position: absolute;
+  bottom: -9.5%;
+  left: 6%;
+  right: 6%;
+  padding: 2px 4px;
+  text-align: center;
+  font: 700 clamp(8.5px, 0.78cqw, 14.5px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: rgba(248, 239, 226, 0.88);
+  text-shadow: 0 2px 6px #050102, 0 0 8px rgba(5, 1, 2, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Vignette, Film Grain & VHS Vertical-Hold Gag */
+.sc-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 180;
+  background: radial-gradient(ellipse 76% 74% at 50% 48%, transparent 38%, rgba(5, 1, 2, 0.60) 100%);
+}
+
+.sc-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 182;
+  opacity: 0.075;
+  mix-blend-mode: soft-light;
+  background-size: 220px 220px;
+}
+
+.sc-vhs-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 184;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 2px,
+    rgba(0, 0, 0, 0.16) 2px,
+    rgba(0, 0, 0, 0.16) 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Self-Luminous Shotcraft Frosted Glass Karaoke Speech Capsules */
+.sc-capsules-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 220;
+}
+
+.sc-capsule-wrap {
+  position: absolute;
+  width: max-content;
+  min-width: 18%;
+  transform-origin: 50% 100%;
+}
+
+.sc-capsule {
+  position: relative;
+  border-radius: clamp(12px, 1.55cqw, 30px);
+  padding: clamp(6px, 0.95cqw, 18px) clamp(10px, 1.65cqw, 32px) clamp(8px, 1.25cqw, 24px);
+  border: 1.5px solid rgba(255, 238, 218, 0.25);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  overflow: hidden;
+}
+
+.sc-capsule-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-capsule-rim {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 1.5px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 236, 0.70) 25%, rgba(255, 248, 236, 0.45) 75%, transparent);
+  pointer-events: none;
+}
+
+.sc-capsule-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(5px, 0.65cqw, 12px);
+  margin-bottom: clamp(3px, 0.45cqw, 9px);
+  white-space: nowrap;
+}
+
+.sc-capsule-dot {
+  width: clamp(6px, 0.62cqw, 12px);
+  height: clamp(6px, 0.62cqw, 12px);
+  border-radius: 50%;
+  flex: none;
+}
+
+.sc-capsule-speaker {
+  font: 700 clamp(9px, 1.25cqw, 24px) / 1 "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.sc-capsule-role {
+  font: 600 clamp(8.5px, 0.92cqw, 18px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  color: rgba(248, 239, 226, 0.52);
+}
+
+.sc-capsule-wave {
+  margin-left: auto;
+  padding-left: clamp(6px, 0.8cqw, 16px);
+  height: clamp(12px, 1.55cqw, 30px);
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.5px, 0.2cqw, 4px);
+  flex: none;
+}
+
+.sc-capsule-wave i {
+  display: inline-block;
+  width: clamp(1.8px, 0.2cqw, 4px);
+  border-radius: 99px;
+}
+
+/* Q11-Compliant Narrative Karaoke Subtitle Type: 2.95cqw = 56.6px at 1920x1080 */
+.sc-capsule-words {
+  position: relative;
+  font: 760 clamp(12px, 2.95cqw, 57px) / 1.18 "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  letter-spacing: -0.024em;
+  overflow-wrap: break-word;
+}
+
+.sc-kword {
+  position: relative;
+  display: inline-block;
+  margin-right: 0.25em;
+}
+
+.sc-kword:last-child {
+  margin-right: 0;
+}
+
+.sc-kword-dim {
+  color: rgba(248, 239, 226, 0.27);
+}
+
+.sc-kword-lit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-kword-finger {
+  position: absolute;
+  bottom: -0.08em;
+  height: clamp(2px, 0.34cqw, 6.5px);
+  border-radius: 99px;
+  pointer-events: none;
+}
+
+.sc-capsule-tail {
+  position: relative;
+  top: -1.5px;
+  width: clamp(16px, 1.85cqw, 36px);
+  height: clamp(8px, 0.92cqw, 18px);
+  transform: translateX(-50%);
+  display: block;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+@media (max-width: 650px) {
+  .sc-stage {
+    min-height: 236px;
+  }
+  .sc-capsule-role {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .sc-cast .sc-puppet .name-tag {
+    left: 50%;
+    right: auto;
+    width: max-content;
+    transform: translateX(-50%);
+    font-size: 8.5px;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(12, 5, 6, 0.8);
+  }
+  .sc-cast .sc-puppet:nth-child(odd) .name-tag {
+    bottom: -9%;
+  }
+  .sc-cast .sc-puppet:nth-child(even) .name-tag {
+    bottom: -23%;
+  }
+  .sc-critics-tag {
+    font-size: 8.5px;
+    letter-spacing: 0.01em;
+    bottom: -22%;
+  }
+}

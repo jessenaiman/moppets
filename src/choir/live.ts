@@ -26,7 +26,7 @@ import type { MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
 import { SILENT_POSE, visemeFrom, type Pose } from "./pose.ts";
 
-export type LiveMode = "off" | "puppet" | "words";
+export type LiveMode = "off" | "puppet" | "words" | "edit";
 
 /**
  * A knob of puppeteer mode: an articulator, its range (CHIMERA's own, in its units: cm for most),
@@ -67,7 +67,25 @@ interface LiveState {
   /** the syllables the keys sing, and the next one */
   words: string[];
   next: number;
+  /** melody step-edit cursor (event index in the selected Moppet's track) */
+  editIndex: number;
+  setEditIndex: (i: number) => void;
   setMode: (m: LiveMode) => Promise<void>;
+}
+
+type MelodyEditHook = (midi: number, index: number) => { nextIndex: number; label: string } | null;
+let melodyEditHook: MelodyEditHook | null = null;
+export function setMelodyEditHook(fn: MelodyEditHook | null): void {
+  melodyEditHook = fn;
+}
+
+type StaffMidiHook = (midi: number, velocity: number) => boolean;
+let staffMidiHook: StaffMidiHook | null = null;
+export function setStaffMidiHook(fn: StaffMidiHook | null): void {
+  staffMidiHook = fn;
+}
+export function offerStaffMidi(midi: number, velocity: number): boolean {
+  return staffMidiHook ? staffMidiHook(midi, velocity) : false;
 }
 
 let node: AudioWorkletNode | null = null;
@@ -119,11 +137,23 @@ export const useLive = create<LiveState>((set, get) => ({
   pose: null,
   words: [],
   next: 0,
+  editIndex: 0,
+  setEditIndex: (editIndex) => set({ editIndex: Math.max(0, editIndex) }),
   setMode: async (mode) => {
     allOff();
-    set({ mode, last: mode === "puppet" ? "Turn a knob or tap a pad, then play a key" : mode === "words" ? "Play the tune: each key sings the next word" : "" });
+    set({
+      mode,
+      last:
+        mode === "puppet"
+          ? "Turn a knob or tap a pad, then play a key"
+          : mode === "words"
+            ? "Play the tune: each key sings the next word"
+            : mode === "edit"
+              ? "Play a MIDI key to set the highlighted melody note and step forward"
+              : "",
+    });
     if (mode !== "off") await ensureNode();
-    if (mode === "words" && !g2p.loaded) {
+    if ((mode === "words" || mode === "edit") && !g2p.loaded) {
       await g2p.load();
       if (wordsOf) setLiveWords(wordsOf.piece, wordsOf.id);
     }
@@ -156,7 +186,7 @@ export function setLiveWords(piece: Piece, id: string): void {
       return [];
     }
   });
-  useLive.setState({ words: syllables.map((s) => s.text), next: 0 });
+  useLive.setState({ words: syllables.map((s) => s.text), next: 0, editIndex: 0 });
 }
 
 /** A knob of puppeteer mode turned to `x` (0..1 of its range). */
@@ -176,29 +206,97 @@ export function padVowel(i: number): void {
   post({ type: "mouth", values: target as Record<string, number> });
 }
 
+let auditionTimer: ReturnType<typeof setTimeout> | null = null;
+let auditionActive: { tag: number; syl: Syllable; midi: number; body: MoppetVoice["body"] } | null = null;
+
+function releaseAudition(): void {
+  if (auditionTimer !== null) {
+    clearTimeout(auditionTimer);
+    auditionTimer = null;
+  }
+  if (!auditionActive) return;
+  const a = auditionActive;
+  auditionActive = null;
+  post({ type: "release", tag: a.tag });
+  post({ type: "schedule", gestures: planNoteOff(a.syl, a.midi, a.body) });
+}
+
+function auditionSyllable(text?: string): Syllable {
+  const clean = (text ?? "").replace(/[~–_]/g, "").trim();
+  if (clean) {
+    try {
+      const list = sungSyllables(clean).filter((s) => !s.melisma);
+      if (list.length) return list[0];
+    } catch {
+      // fall back to vowel
+    }
+  }
+  return sungSyllables("ah")[0];
+}
+
+/** Audition a single Moppet singing `midi` (concert pitch) on an optional syllable without advancing live cursors. */
+export async function auditionNote(v: MoppetVoice, midi: number, syllableText?: string, durationMs = 420): Promise<void> {
+  await ensureNode();
+  if (!g2p.loaded) await g2p.load();
+  setLiveVoice(v);
+  releaseAudition();
+  const syl = auditionSyllable(syllableText);
+  const tag = nextTag++;
+  const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: PLAN_VIBRATO, tag }).map((g) => shapeGesture(g, v, false));
+  post({ type: "schedule", gestures });
+  auditionActive = { tag, syl, midi, body: v.body };
+  const holdMs = Math.max(220, Math.min(900, durationMs));
+  auditionTimer = setTimeout(() => {
+    auditionTimer = null;
+    if (auditionActive?.tag === tag) releaseAudition();
+  }, holdMs);
+}
+
 /** A key went down. Returns true when the live voice took it. */
 export function liveNoteOn(midi: number, velocity = 100): boolean {
   const { mode } = useLive.getState();
   if (mode === "off" || !voice) return false;
-  ensureNode().catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
+  const activeVoice = voice;
   if (mode === "puppet") {
     held.set(midi, { tag: 0, syl: null as unknown as Syllable, midi });
-    post({ type: "source", values: { f0: midiToHz(midi + (voice.octave ?? 0)), pressure: 6 + 4 * (velocity / 127) } });
-    post({ type: "gate", level: 1 });
+    const fire = () => {
+      if (!held.has(midi)) return;
+      post({ type: "source", values: { f0: midiToHz(midi + (activeVoice.octave ?? 0)), pressure: 6 + 4 * (velocity / 127) } });
+      post({ type: "gate", level: 1 });
+    };
+    if (node) fire();
+    else ensureNode().then(fire).catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
     return true;
   }
   if (!syllables.length) return true;
   const st = useLive.getState();
-  const syl = syllables[st.next % syllables.length];
-  const sung = midi + (voice.octave ?? 0);
+  const idx = mode === "edit" ? st.editIndex : st.next;
+  const syl = syllables[idx % syllables.length];
+  const sung = midi + (activeVoice.octave ?? 0);
   // legato: a key still held hands its vowel over to this one
   const prev = [...held.values()].pop();
   const tag = nextTag++;
-  const gestures = planNoteOn(syl, sung, { body: voice.body, vibrato: PLAN_VIBRATO, tag, ...(prev ? { legatoFrom: { syl: prev.syl, midi: prev.midi } } : {}) }).map((g) => shapeGesture(g, voice!, false));
-  if (prev) post({ type: "release", tag: prev.tag });
-  post({ type: "schedule", gestures });
+  const gestures = planNoteOn(syl, sung, { body: activeVoice.body, vibrato: PLAN_VIBRATO, tag, ...(prev ? { legatoFrom: { syl: prev.syl, midi: prev.midi } } : {}) }).map((g) => shapeGesture(g, activeVoice, false));
+  const scheduleIt = () => {
+    if (prev) post({ type: "release", tag: prev.tag });
+    post({ type: "schedule", gestures });
+    if (!held.has(midi)) {
+      post({ type: "release", tag });
+      post({ type: "schedule", gestures: planNoteOff(syl, sung, activeVoice.body) });
+    }
+  };
   held.set(midi, { tag, syl, midi: sung });
-  useLive.setState({ next: (st.next + 1) % syllables.length, last: `"${syl.text}"` });
+  if (node) scheduleIt();
+  else ensureNode().then(scheduleIt).catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
+  if (mode === "edit") {
+    const res = melodyEditHook?.(midi, st.editIndex);
+    useLive.setState({
+      editIndex: res ? res.nextIndex : (st.editIndex + 1) % syllables.length,
+      last: res ? res.label : `Set "${syl.text}" → MIDI ${midi}`,
+    });
+  } else {
+    useLive.setState({ next: (st.next + 1) % syllables.length, last: `"${syl.text}"` });
+  }
   return true;
 }
 

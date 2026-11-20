@@ -16,10 +16,10 @@
  */
 import { create } from "zustand";
 import { useAudio } from "../audio/audio.ts";
-import { connectMidi, disconnectMidi, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
+import { connectMidi, disconnectMidi, midiSupported, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
 import { useMoppet } from "./store.ts";
 import { editVoice, play } from "./ensemble.ts";
-import { liveNoteOff, liveNoteOn, MOUTH, moveMouth, padVowel, useLive } from "./live.ts";
+import { liveNoteOff, liveNoteOn, MOUTH, moveMouth, offerStaffMidi, padVowel, useLive } from "./live.ts";
 
 /** The voice recipe, grouped the way CHIMERA builds a voice: size and body, airway posture, then the folds. */
 export const CONTROLS = [
@@ -142,13 +142,18 @@ export const useController = create<ControllerState>((set, get) => ({
       set({ midi: { status: "off", inputs: [] } });
       return;
     }
+    if (!midiSupported()) {
+      set({ midi: { status: "unsupported", inputs: [] } });
+      return;
+    }
     set({ midi: { status: "connecting", inputs: [] } });
     // the click that connects is also the gesture that may start audio
     void useAudio.getState().start();
     connectMidi({
-      // the keys play the live Moppet (puppeteer or singing the words), when it's on
+      // staff step-input gets first claim when a staff note is selected; otherwise keys play the live Moppet
       noteOn: (n, v) => {
         touchControl("key", n);
+        if (offerStaffMidi(n, v)) return;
         liveNoteOn(n, v);
       },
       noteOff: (n) => void liveNoteOff(n),

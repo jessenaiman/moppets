@@ -1,0 +1,14 @@
+{
+  "artKey": "tabby",
+  "name": "Tabby",
+  "width": 384,
+  "height": 512,
+  "fps": 24,
+  "durationSec": 2.0,
+  "clips": {
+    "idle": "/clips/tabby/idle.webm",
+    "sing": "/clips/tabby/sing.webm",
+    "belt": "/clips/tabby/belt.webm",
+    "chuckle": "/clips/tabby/chuckle.webm"
+  }
+}

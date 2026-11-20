@@ -6,28 +6,28 @@ import { checkSung, holdAt, holdFix, lineStarts, splitFix, splitNote, unholdAt }
 import type { Line, Section, Sung } from "../choir/songbook.ts";
 import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
-import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, pause, play, pose, poseAt, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
+import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, play, pose, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
 import { CHORUS, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";
-import { Choreographer, featuredAt, sceneFeatured } from "../choir/choreo.ts";
+import { Choreographer, featuredAt, sceneFeatured, type Actor } from "../choir/choreo.ts";
 import { SKITS } from "../choir/skits.ts";
-import { gestureAt, type GesturePose } from "../choir/gestures.ts";
-import { cuesFor } from "../choir/cues.ts";
-import { captionsFor, shownWords, type Caption } from "../choir/captions.ts";
+import { shownWords } from "../choir/captions.ts";
+import { stageTalkAt } from "../choir/bubbles.ts";
 import { effectOf, PropFx, updateProp } from "./props.tsx";
-import { BandStage, updateBand } from "./band-stage.tsx";
+import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { LaunchkeyMap } from "./launchkey-map.tsx";
-import { bandFor } from "../choir/band.ts";
-import { moppet } from "../choir/cast/index.ts";
-import { livePose, liveNoteOff, liveNoteOn, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
+import { bandEnabled, bandFor } from "../choir/band.ts";
+import { livePose, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
+import type { Pose } from "../choir/pose.ts";
+import { ShotcraftStage, type LiveMidiSpeech } from "../stage/ShotcraftStage.tsx";
+import { RehearsalStaffPanel, VexStaffLine, type StaffNoteItem } from "./StaffEditor.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
-import solo from "../choir/vee-solo.json";
 import "./moppet.css";
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
@@ -53,95 +53,18 @@ function PlayLabel({ piece }: { piece: Piece }) {
   return <>{again}&nbsp;{name}</>;
 }
 
-/** Video capture (tools/moppet-video.ts): while on, the stage draws only when a frame is asked for. */
-let capturing = false;
-let drawCaptureFrame: ((time: number, dt: number) => void) | null = null;
-
-/**
- * The video export's handle (tools/moppet-video.ts drives it through window.__choir.capture):
- * render a performance to the end, then draw any frame of it on demand.
- */
-const captureApi = {
-  /** Load a lesson, render it all, and return its WAV (base64), length and captions. */
-  async prepare(lesson: string): Promise<{ wav: string; seconds: number; title: string; kind: string; captions: Caption[] }> {
-    const m = useMoppet.getState();
-    m.setLesson(lesson as Lesson);
-    const piece = useMoppet.getState().piece;
-    const out = await exportWav(useAudio.getState().start);
-    let bin = "";
-    const bytes = new Uint8Array(out.bytes);
-    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    const names = Object.fromEntries(useMoppet.getState().voices.map((v) => [v.id, v.name]));
-    return { wav: btoa(bin), seconds: pieceSeconds(piece), title: piece.title, kind: piece.kind, captions: captionsFor(piece, names) };
-  },
-  /** Take over the stage's clock: from now on it draws only frames asked for. */
-  begin(): void {
-    capturing = true;
-    document.querySelector(".stage")?.classList.add("capturing");
-  },
-  frame(time: number, dt: number): void {
-    drawCaptureFrame?.(time, dt);
-  },
-  end(): void {
-    capturing = false;
-    document.querySelector(".stage")?.classList.remove("capturing");
-  },
-};
-
-/** Room kept above a front-row puppet's cel for gestures to stretch and lean into (px). */
-const HEADROOM = 40;
-
-/** The AniCraft clip a Moppet is playing at this beat (the latest cue that hasn't finished). */
-function gestureNow(piece: Piece, id: string, beat: number): GesturePose | null {
-  let pose: GesturePose | null = null;
-  for (const c of cuesFor(piece)) {
-    if (c.who !== id || c.beat > beat) continue;
-    pose = gestureAt(c.gesture, (beat - c.beat) * beatSeconds(piece)) ?? pose;
-  }
-  return pose;
-}
-
-/** A clip's pose on the puppet's sprite, pivoting at its feet and mirrored when it faces left. */
-function setGesture(el: HTMLElement, g: GesturePose | null, h: number, face: number): void {
-  const side = face < 0 ? -1 : 1;
-  el.style.setProperty("--gx", `${((g?.dx ?? 0) * h * side).toFixed(1)}px`);
-  el.style.setProperty("--gy", `${((g?.dy ?? 0) * h).toFixed(1)}px`);
-  el.style.setProperty("--grot", `${((g?.rot ?? 0) * side).toFixed(2)}deg`);
-  el.style.setProperty("--gsx", (g?.sx ?? 1).toFixed(3));
-  el.style.setProperty("--gsy", (g?.sy ?? 1).toFixed(3));
-}
-
 /** The words a Moppet is singing at `beat`, and how far through them it is (0..1). */
 function lineAt(piece: Piece, id: string, beat: number): { text: string; at: number } | null {
   const t = piece.tracks.find((x) => x.id === id);
   const words = t?.phrases ?? t?.lines;
   const e = t?.events.find((x) => beat >= x.beat && beat < x.beat + x.beats && x.line !== undefined);
   if (!t || !words || !e) return null;
-  // this pass through the line: its notes that run on from this one without a gap of a beat
   const same = t.events.filter((x) => x.line === e.line && Math.abs(x.beat - e.beat) < 32);
   const start = Math.min(...same.map((x) => x.beat)), end = Math.max(...same.map((x) => x.beat + x.beats));
   return { text: shownWords(words[e.line!]), at: Math.min(1, (beat - start + 0.5) / Math.max(0.5, end - start)) };
 }
 
-/** One puppet as the stage effects see it, in stage pixels. */
-interface Mark {
-  x: number;
-  /** the floor line under it */
-  floor: number;
-  /** where its feet are (above the floor while hopping) */
-  feet: number;
-  /** drawn height */
-  h: number;
-  hop: number;
-  color: string;
-  singing: boolean;
-  /** speaking a skit line: a voice, but no musical notes rise */
-  talking?: boolean;
-  level: number;
-  bubble: string | null;
-  spot: boolean;
-}
-/** A music note floating up from a singer. */
+/** A music note floating up from a singer (vector shape only, never text). */
 interface Note {
   x: number;
   y: number;
@@ -165,7 +88,6 @@ function fitCanvas(c: HTMLCanvasElement, W: number, H: number): CanvasRenderingC
   return g;
 }
 
-/** A note head with a stem and flag (drawn, not typed, so it is never text on the page). */
 function drawNote(g: CanvasRenderingContext2D, x: number, y: number, double: boolean) {
   const head = (hx: number, hy: number) => {
     g.beginPath();
@@ -186,88 +108,24 @@ function drawNote(g: CanvasRenderingContext2D, x: number, y: number, double: boo
   }
 }
 
-/** Behind the puppets: floor shadows and spotlights. In front: rising notes and chat bubbles. */
-function drawStage(back: HTMLCanvasElement | null, front: HTMLCanvasElement | null, W: number, H: number, marks: Mark[], notes: Note[], dt: number, still: boolean) {
-  if (!back || !front || W < 2 || H < 2) return;
-  const b = fitCanvas(back, W, H), f = fitCanvas(front, W, H);
-  if (!b || !f) return;
-  for (const m of marks) {
-    if (!m.spot) continue;
-    const r = m.h * 0.42;
-    const cone = b.createLinearGradient(0, 0, 0, m.floor);
-    cone.addColorStop(0, "rgba(255,236,190,0.02)");
-    cone.addColorStop(1, "rgba(255,236,190,0.16)");
-    b.fillStyle = cone;
-    b.beginPath();
-    b.moveTo(m.x - 18, 0);
-    b.lineTo(m.x + 18, 0);
-    b.lineTo(m.x + r, m.floor);
-    b.lineTo(m.x - r, m.floor);
-    b.fill();
-    const pool = b.createRadialGradient(m.x, m.floor, 0, m.x, m.floor, r * 1.2);
-    pool.addColorStop(0, "rgba(255,226,160,0.42)");
-    pool.addColorStop(1, "rgba(255,226,160,0)");
-    b.fillStyle = pool;
-    b.beginPath();
-    b.ellipse(m.x, m.floor, r * 1.2, 14, 0, 0, Math.PI * 2);
-    b.fill();
-  }
-  for (const m of [...marks].sort((p, q) => p.floor - q.floor)) {
-    // the shadow tightens as the puppet leaves the floor
-    const k = 1 - Math.min(1, m.hop) * 0.35;
-    b.fillStyle = `rgba(14,10,8,${(0.42 * k).toFixed(3)})`;
-    b.beginPath();
-    b.ellipse(m.x, m.floor - 2, m.h * 0.24 * k, Math.max(3, m.h * 0.025) * k, 0, 0, Math.PI * 2);
-    b.fill();
-  }
-  if (!still) {
-    for (const [i, m] of marks.entries()) {
-      if (!m.singing || m.talking || Math.random() > dt * (1.2 + 5 * m.level)) continue;
-      notes.push({ x: m.x + (Math.random() - 0.5) * m.h * 0.2, y: m.feet - m.h * 0.72, age: 0, life: 1.6 + Math.random() * 0.8, seed: Math.random() * 6 + i, color: m.color, double: Math.random() < 0.35 });
-    }
-  }
-  for (let i = notes.length - 1; i >= 0; i--) {
-    const n = notes[i];
-    n.age += dt;
-    n.y -= dt * 46;
-    if (n.age > n.life || n.y < 24) notes.splice(i, 1);
-  }
-  for (const n of notes) {
-    const t = n.age / n.life;
-    f.globalAlpha = Math.min(1, n.age * 5) * (1 - t * t);
-    f.fillStyle = n.color;
-    drawNote(f, n.x + Math.sin(n.age * 3 + n.seed) * 9, n.y, n.double);
-  }
-  f.globalAlpha = 1;
-  f.font = `600 12px ${getComputedStyle(front).fontFamily}`;
-  f.textBaseline = "middle";
-  for (const m of marks) {
-    if (!m.bubble) continue;
-    // long lines (a skit) wrap, about six words to a row
-    const rows: string[] = [];
-    for (const word of m.bubble.split(" ")) {
-      const last = rows[rows.length - 1];
-      if (last !== undefined && f.measureText(`${last} ${word}`).width <= 190) rows[rows.length - 1] = `${last} ${word}`;
-      else rows.push(word);
-    }
-    const tw = Math.max(...rows.map((r) => f.measureText(r).width)), bw = tw + 18, bh = 10 + rows.length * 15;
-    const bx = Math.max(4, Math.min(W - bw - 4, m.x - bw / 2 + 14)), by = Math.max(4, m.feet - m.h * 0.92 - bh);
-    f.fillStyle = "#f6ecd2";
-    f.strokeStyle = "#2d2620";
-    f.lineWidth = 1.5;
-    f.beginPath();
-    f.roundRect(bx, by, bw, bh, 10);
-    f.moveTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) - 5, by + bh);
-    f.lineTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) - 9, by + bh + 8);
-    f.lineTo(Math.min(bx + bw - 12, Math.max(bx + 12, m.x)) + 3, by + bh);
-    f.fill();
-    f.stroke();
-    f.fillStyle = "#2d2620";
-    rows.forEach((r, k) => f.fillText(r, bx + 9, by + 5 + 7.5 + k * 15 + 0.5));
-  }
+function detSpawnHash(seed: number): number {
+  const s = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
 }
 
-function Stage() {
+interface LiveStageFrame {
+  beat: number;
+  timeSec: number;
+  performing: boolean;
+  dancing: boolean;
+  still: boolean;
+  actors: Actor[];
+  poses: Pose[];
+  bandParts: ReturnType<typeof bandFor>;
+  liveMidiSpeech: LiveMidiSpeech | null;
+}
+
+function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
   const select = useMoppet((s) => s.select);
@@ -275,187 +133,249 @@ function Stage() {
   const status = useEnsemble((s) => s.status);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const stageRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLCanvasElement>(null);
   const frontRef = useRef<HTMLCanvasElement>(null);
   const poke = useRef<{ index: number; at: number } | null>(null);
-  const [lyric, setLyric] = useState({ label: "", text: "Six forgotten props. A brand new song." });
   const [stageLabel, setStageLabel] = useState("READY WHEN YOU ARE");
+  const [cameraFollow, setCameraFollow] = useState(true);
+  const [frameState, setFrameState] = useState<LiveStageFrame>(() => ({
+    beat: 0,
+    timeSec: 0,
+    performing: false,
+    dancing: false,
+    still: false,
+    actors: [],
+    poses: [],
+    bandParts: [],
+    liveMidiSpeech: null,
+  }));
+
   useEffect(() => {
     let raf = 0;
-    let lastText = "";
+    let lastStage = "";
     let lastT = performance.now() / 1000;
     let choreo: Choreographer | null = null;
-    let bandCache: { piece: Piece | null; parts: ReturnType<typeof bandFor> } = { piece: null, parts: [] };
+    let bandCache: { piece: Piece | null; on: boolean; parts: ReturnType<typeof bandFor> } = { piece: null, on: false, parts: [] };
+    let noteTick = 0;
     const notes: Note[] = [];
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    /**
-     * One frame of the stage. Live, the clock is the wall and the audio; capturing a video
-     * (`time` set), it is the song's own clock, a fixed step per frame, and the rendered session's
-     * telemetry at that moment, so every frame matches the WAV exactly.
-     */
-    const draw = (clock: { now: number; dt: number; time: number | null }) => {
+
+    const draw = (now: number, dt: number) => {
       const m = useMoppet.getState();
       const e = useEnsemble.getState();
+      const lv = useLive.getState();
       const active: string[] = [];
-      const { now, dt } = clock;
-      const capturing = clock.time !== null;
-      const songTime = clock.time ?? e.time;
-      const dancing = capturing || e.status === "playing" || e.status === "buffering";
-      // a paused song holds its formation; only a stopped stage wanders
+      const songTime = e.time;
+      const dancing = e.status === "playing" || e.status === "buffering";
       const performing = dancing || e.status === "paused";
       const beat = performing ? beatNow(m.piece, songTime) : now * 1.1;
-      const poses = m.voices.map((v) => (capturing ? poseAt(v.id, songTime) : pose(v.id)));
-      // played live (and no song on): the selected Moppet's face follows the live voice
-      const lp = !performing && !capturing ? livePose() : null;
+      const poses = m.voices.map((v) => pose(v.id));
+      const lp = !performing ? livePose() : null;
       if (lp) poses[m.selected] = lp;
+
       const ids = m.voices.map((v) => v.id);
       if (!choreo || choreo.actors.length !== ids.length) choreo = new Choreographer(ids);
       const featured = !performing ? ids.map(() => false) : m.piece.scenes ? sceneFeatured(m.piece.scenes, ids, beat) : featuredAt(m.piece.tracks, ids, beat);
-      const talk = m.piece.kind === "skit" && performing ? ids.map((id) => m.piece.tracks.find((t) => t.id === id)?.events.find((x) => beat >= x.beat - 0.15 && beat < x.beat + x.beats + 0.3)?.text ?? null) : undefined;
-      const actors = choreo.step({ playing: performing, beat, now, featured, singing: poses.map((p) => p.singing), poke: capturing ? null : poke.current, still, talk }, dt);
-      const spot = featured.filter(Boolean).length;
-      // spotlights only when a few are featured; the whole choir sings in the open
-      const stage = stageRef.current;
-      // the band, when it's on stage: its parts once per piece, then who strikes at this beat
-      if (m.piece.stage?.includes("band")) {
-        if (bandCache.piece !== m.piece) bandCache = { piece: m.piece, parts: bandFor(m.piece) };
-        updateBand(stage?.querySelector<HTMLElement>(".band-row") ?? null, bandCache.parts, beat, dancing);
+      const talk = stageTalkAt(m.piece, ids, beat, performing);
+      const actors = choreo.step({ playing: performing, beat, now, featured, singing: poses.map((p) => p.singing), poke: poke.current, still, talk }, dt);
+
+      const showBand = m.piece.stage ? m.piece.stage.includes("band") : (m.piece.kind !== "skit" && m.piece.chords.length > 0);
+      if (showBand) {
+        const on = bandEnabled();
+        if (bandCache.piece !== m.piece || bandCache.on !== on) bandCache = { piece: m.piece, on, parts: bandFor(m.piece) };
+      } else if (bandCache.parts.length) {
+        bandCache = { piece: m.piece, on: false, parts: [] };
       }
-      const W = stage?.clientWidth ?? 0, H = stage?.clientHeight ?? 0;
-      // read every puppet's resting slot before writing any transform
-      const homes = refs.current.map((el) => (el ? { x: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth, h: (el.offsetWidth * 512) / 384 } : null));
-      const marks: Mark[] = [];
+
+      const selVoice = m.voices[m.selected];
+      let liveMidiSpeech: LiveMidiSpeech | null = null;
+      if (!performing && selVoice && (lp?.singing || (lv.mode !== "off" && lv.last && lp && lp.level > 0.04))) {
+        const rawLast = lv.last.trim();
+        const quoted = /^"([^"]+)"(?:\s*·\s*(.+))?$/.exec(rawLast);
+        const text = quoted ? quoted[1] : (rawLast || (lv.words.length ? lv.words.slice(0, 6).join(" ") : "♪"));
+        const noteSuffix = quoted?.[2] ? ` · ${quoted[2]}` : "";
+        liveMidiSpeech = {
+          voiceId: selVoice.id,
+          text,
+          roleLabel: `${lv.mode === "words" ? "LIVE WORDS" : lv.mode === "puppet" ? "PUPPETEER" : "LIVE VOICE"}${noteSuffix}`,
+          level: lp?.level ?? 0.65,
+        };
+      }
+
+      const stage = stageRef.current;
+      const W = stage?.clientWidth ?? 0;
+      const H = stage?.clientHeight ?? 0;
+
       m.voices.forEach((v, i) => {
-        const el = refs.current[i], home = homes[i], a = actors[i];
-        if (!el || !home) return;
+        const el = refs.current[i];
         const p = poses[i];
-        const lift = a.depth * 44 + a.hop * 34 + (a.walking && !dancing ? Math.abs(Math.sin(now * 12 + i)) * 4 : 0);
-        // never taller than the room left above it, so a hop, a step upstage or a lean stays on the
-        // stage: a lean rotates the puppet from its feet, raising a top corner by half its width × sin.
-        // The 40 px margin is the gestures' headroom (a laugh's stretch and lean reach ~29 px above the
-        // cel on a front-row puppet; the art's transparent top covers the rest), so a gesture never
-        // shrinks its Moppet mid-move.
-        const g = performing ? gestureNow(m.piece, v.id, beat) : null;
-        const tilt = (Math.abs(a.lean) * Math.PI) / 180;
-        const reach = home.h * Math.cos(tilt) + (home.w / 2) * Math.sin(tilt);
-        const scale = Math.min(0.96 - 0.24 * a.depth, (H - HEADROOM - lift) / reach);
-        el.style.transform = `translate(${(a.x * W - home.x).toFixed(1)}px, ${(-lift).toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`;
-        el.style.zIndex = String(Math.round(100 - a.depth * 60 + (p.singing ? 5 : 0)));
-        el.style.setProperty("--face", a.face.toFixed(3));
-        setGesture(el, g, home.h, a.face);
-        const floor = H - 24 - a.depth * 44;
-        marks.push({ x: a.x * W, floor, feet: floor - lift + a.depth * 44, h: home.h * scale, hop: a.hop, color: v.color, singing: p.singing, level: p.level, bubble: a.bubble, talking: m.piece.kind === "skit", spot: !still && spot > 0 && spot < ids.length - 1 && featured[i] });
+        const a = actors[i];
+        if (p?.singing) active.push(m.studio404 ? studio404Name(v.id, v.name) : v.name);
+        if (!el || !a || !p) return;
         const walkFrame = Math.floor(now * 7 + i * 3) % 8;
-        // the 8-frame dance cycle advances on the score's beat (two frames a beat); a rest holds the settle frame
         const cel = dancing ? Math.floor(beat * 2) % 8 : a.walking ? walkFrame : 7;
-        updateProp(el.querySelector<HTMLElement>(".prop"), v.id, cel, p, dt, effectOf(v.id) === "typewriter" ? lineAt(m.piece, v.id, beat) : null, effectOf(v.id) === "scope" && p.singing ? scopeOf(v.id, capturing ? songTime : undefined) : null);
-        if (moppet(v.id)?.art === "solo") {
-          // the fully animated Moppet: a dancing body with a viseme head riding its neck
-          const f = cel;
-          const [nx, ny] = solo.neck[f];
-          const blink = p.viseme === 0 && (now * 0.31 + i) % 1 < 0.04;
-          const cell = blink ? 7 : p.viseme;
-          const hs = solo.headScale;
-          el.style.setProperty("--cel", `${((f % 4) * 100) / 3}% ${Math.floor(f / 4) * 100}%`);
-          el.style.setProperty("--head", `${((cell % 4) * 100) / 3}% ${Math.floor(cell / 4) * 100}%`);
-          el.style.setProperty("--hx", `${(nx - hs / 2) * 100}%`);
-          el.style.setProperty("--hy", `${(ny - solo.headNeckY * hs) * 100}%`);
-          const tilt = dancing ? Math.sin((Math.PI * beat) / 2) * 5 + (p.singing ? p.level * Math.sin(now * 3.1) * 2 : 0) : Math.sin(now * 1.3) * 1.5;
-          el.style.setProperty("--tilt", `${tilt.toFixed(2)}deg`);
-          el.style.setProperty("--sy", (1 + (dancing ? 0.03 * (Math.abs(Math.sin(Math.PI * beat)) - 0.5) : 0)).toFixed(3));
-          el.classList.toggle("singing", p.singing);
-          if (p.singing) active.push(v.name);
-          return;
-        }
-        const frame = cel;
-        const open = p.singing && p.open > 0.2; // the mouth comes from the engine's lip telemetry
-        const col = frame % 4, row = Math.floor(frame / 4);
-        const pos = `${(col * 100) / 3}% ${row * 100}%`;
-        el.style.setProperty("--cel", pos);
-        el.classList.toggle("mouth-open", open);
-        // foot-anchored squash and stretch on the beat, from the planted feet
-        const pulse = dancing ? Math.abs(Math.sin(Math.PI * beat)) : 0;
-        const sy = 1 + (dancing ? 0.04 * (pulse - 0.5) * (p.singing ? 1 : 0.5) : 0.01 * Math.sin(now * 2 + i));
-        el.style.setProperty("--sy", sy.toFixed(3));
-        el.classList.toggle("singing", p.singing);
-        if (p.singing) active.push(v.name);
+        updateProp(
+          el.querySelector<HTMLElement>(".prop"),
+          v.id,
+          cel,
+          p,
+          dt,
+          effectOf(v.id) === "typewriter" ? lineAt(m.piece, v.id, beat) : null,
+          effectOf(v.id) === "scope" && p.singing ? scopeOf(v.id) : null,
+        );
       });
-      drawStage(backRef.current, frontRef.current, W, H, marks, notes, Math.min(dt, 0.05), still);
-      const running = !capturing && (e.status === "playing" || e.status === "buffering");
-      if (running) {
-        const beat = beatNow(m.piece, e.time);
-        const lines = m.piece.tracks.flatMap((t) => {
-          const ev = t.events.find((x) => beat >= x.beat && beat < x.beat + x.beats);
-          if (!ev) return [];
-          const name = m.voices.find((v) => v.id === t.id)?.name ?? t.id;
-          const line = t.phrases && ev.line !== undefined ? t.phrases[ev.line] : t.lines && ev.line !== undefined ? t.lines[ev.line] : ev.text;
-          return [{ id: name, text: shownWords(line) }];
-        });
-        const names = active.length === 6 ? "ALL TOGETHER" : active.length > 1 ? `${active.length} VOICES IN HARMONY` : active[0] ? `${active[0].toUpperCase()} IS SINGING` : "A LITTLE BREATH";
-        const text = lines.length ? (lines.length === 1 ? lines[0].text : lines.map((l) => `${l.id}: ${l.text}`).join(" · ")) : "";
-        if (text + names !== lastText) {
-          lastText = text + names;
-          setStageLabel(names);
-          if (text) setLyric({ label: m.piece.title.toUpperCase(), text });
+
+      // Vector rising eighth-notes on front canvas (no canvas text ever drawn)
+      if (frontRef.current && W > 2 && H > 2) {
+        const f = fitCanvas(frontRef.current, W, H);
+        if (f) {
+          const stepDt = Math.min(dt, 0.05);
+          if (!still && m.piece.kind !== "skit") {
+            const soloStage = (m.piece.stage?.length ?? 0) === 1;
+            m.voices.forEach((v, i) => {
+              if (m.piece.stage && !m.piece.stage.includes(v.id)) return;
+              const p = poses[i];
+              const a = actors[i];
+              if (!p?.singing || !a) return;
+              noteTick += 1;
+              if (detSpawnHash(noteTick + now * 13) > stepDt * (1.1 + 4.2 * p.level)) return;
+              const ax = soloStage ? 0.5 : m.studio404 ? 0.075 + Math.max(0, Math.min(1, (a.x - 0.09) / 0.82)) * 0.645 : a.x;
+              const color = m.studio404 ? (STUDIO_404_CAST[v.id]?.color ?? v.color) : v.color;
+              notes.push({
+                x: ax * W + (detSpawnHash(noteTick + 5) - 0.5) * W * 0.04,
+                y: H * (0.58 - a.depth * 0.05),
+                age: 0,
+                life: 1.5 + detSpawnHash(noteTick + 11) * 0.7,
+                seed: detSpawnHash(noteTick + 19) * 6 + i,
+                color,
+                double: detSpawnHash(noteTick + 29) < 0.35,
+              });
+            });
+          }
+          for (let i = notes.length - 1; i >= 0; i--) {
+            const n = notes[i];
+            n.age += stepDt;
+            n.y -= stepDt * 44;
+            if (n.age > n.life || n.y < 20) notes.splice(i, 1);
+          }
+          for (const n of notes) {
+            const t = n.age / n.life;
+            f.globalAlpha = Math.min(1, n.age * 5) * (1 - t * t);
+            f.fillStyle = n.color;
+            drawNote(f, n.x + Math.sin(n.age * 3 + n.seed) * 8, n.y, n.double);
+          }
+          f.globalAlpha = 1;
         }
-      } else if (lastText) {
-        lastText = "";
+      }
+
+      setFrameState({
+        beat,
+        timeSec: now,
+        performing,
+        dancing,
+        still,
+        actors: actors.map((a) => ({ ...a })),
+        poses: poses.map((p) => ({ ...p })),
+        bandParts: bandCache.parts,
+        liveMidiSpeech,
+      });
+
+      const running = e.status === "playing" || e.status === "buffering";
+      if (running) {
+        const names = active.length >= 6 ? "ALL TOGETHER" : active.length > 1 ? `${active.length} VOICES IN HARMONY` : active[0] ? `${active[0].toUpperCase()} IS SINGING` : "A LITTLE BREATH";
+        if (names !== lastStage) {
+          lastStage = names;
+          setStageLabel(names);
+        }
+      } else if (lastStage) {
+        lastStage = "";
         setStageLabel("READY WHEN YOU ARE");
       }
     };
+
     const tick = () => {
       raf = requestAnimationFrame(tick);
-      if (capturing) return; // a video capture draws each frame itself
       const now = performance.now() / 1000;
       const dt = now - lastT;
       lastT = now;
-      draw({ now, dt, time: null });
+      draw(now, dt);
     };
     raf = requestAnimationFrame(tick);
-    drawCaptureFrame = (time, dt) => draw({ now: time, dt, time });
-    return () => {
-      cancelAnimationFrame(raf);
-      drawCaptureFrame = null;
-    };
+    return () => cancelAnimationFrame(raf);
   }, []);
-  useEffect(() => {
-    setLyric({ label: piece.title.toUpperCase(), text: piece.description });
-  }, [piece]);
+
+  const studio404 = useMoppet((s) => s.studio404);
+  const setStudio404 = useMoppet((s) => s.setStudio404);
+  const lesson = useMoppet((s) => s.lesson);
+  const setLesson = useMoppet((s) => s.setLesson);
+  const midi = useController((s) => s.midi);
+  const setMidi = useController((s) => s.setMidi);
+  const midiOn = midi.status === "on";
+
   return (
     <div className="moppet-stage-wrap">
-      <div className="theatre-top">
-        <span><i /> ON THE LITTLE STAGE</span>
-        <span>{status === "playing" ? stageLabel : status === "rendering" ? "RENDERING" : stageLabel}</span>
-      </div>
-      <div className="stage" ref={stageRef}>
-        <canvas ref={backRef} className="stage-fx back" data-layout="overlay" aria-hidden="true" />
-        <div className="string-lights" data-layout="overlay" aria-hidden="true">●<span>●</span>●<span>●</span>●<span>●</span>●</div>
-        {piece.stage?.includes("band") && <BandStage />}
-        <div className="cast" data-layout="layered">
-          {voices.map((v: MoppetVoice, i: number) => (
-            <button key={v.id} ref={(el) => void (refs.current[i] = el)} className={`puppet${i === selected ? " selected" : ""}${piece.stage && !piece.stage.includes(v.id) ? " offstage" : ""}`} onClick={() => { select(i); poke.current = { index: i, at: performance.now() / 1000 }; }} aria-label={`Select ${v.name}`} aria-pressed={i === selected}>
-              {moppet(v.id)?.art === "solo" ? (
-                <span className="sprite solo" style={{ backgroundImage: `url(/moppets/${v.id}/body.webp)` }} aria-hidden="true">
-                  <span className="solo-head" style={{ backgroundImage: `url(/moppets/${v.id}/head.webp)`, width: `${solo.headScale * 100}%`, transformOrigin: `50% ${solo.headNeckY * 100}%` }} />
-                  <PropFx id={v.id} />
-                </span>
-              ) : (
-                <span className="sprite" style={{ backgroundImage: `url(/moppets/${v.id}/closed.webp)` }} aria-hidden="true">
-                  <span className="sprite-open" style={{ backgroundImage: `url(/moppets/${v.id}/open.webp)` }} />
-                  <PropFx id={v.id} />
-                </span>
-              )}
-              <span className="name-tag">{v.name.toUpperCase()}</span>
+      <div className={`theatre-top${status === "playing" ? " on-air" : ""}`}>
+        <span><i /> STUDIO 404 · {status === "playing" ? "ON AIR" : "REHEARSAL BOOTH"}</span>
+        <span className="booth-actions">
+          <button type="button" className={`booth-btn${lesson === "cue-playbook" ? " on" : ""}`} aria-pressed={lesson === "cue-playbook"} onClick={() => setLesson("cue-playbook" as Lesson)}>
+            ★ Cue Playbook
+          </button>
+          <button type="button" className={`booth-btn${lesson === "neon-playbook" ? " on" : ""}`} aria-pressed={lesson === "neon-playbook"} onClick={() => setLesson("neon-playbook")}>
+            ★ Neon Playbook
+          </button>
+          <button type="button" className={`booth-btn${studio404 ? " on" : ""}`} aria-pressed={studio404} onClick={() => setStudio404(!studio404)}>
+            {studio404 ? "Cast: Studio 404" : "Cast: Workshop"}
+          </button>
+          <button type="button" className={`booth-btn${cameraFollow ? " on" : ""}`} aria-pressed={cameraFollow} onClick={() => setCameraFollow(!cameraFollow)}>
+            {cameraFollow ? "Cam: Follow" : "Cam: Wide"}
+          </button>
+          <button type="button" className={`booth-btn${midiOn ? " on" : ""}`} aria-pressed={midiOn} disabled={!midiSupported()} onClick={() => setMidi(!midiOn)}>
+            {!midiSupported() ? "MIDI: Needs HTTPS" : midi.status === "denied" ? "MIDI: Blocked" : midi.status === "connecting" ? "MIDI: Connecting…" : midiOn ? (midi.inputs[0] ? `MIDI: ${midi.inputs[0]}` : "MIDI: Ready") : "Connect MIDI"}
+          </button>
+          {onOpenVideo && (
+            <button type="button" className="booth-btn" onClick={onOpenVideo}>
+              🎬 Timeline &amp; Export
             </button>
-          ))}
-        </div>
-        <div className="shelf" />
+          )}
+          <span className="booth-state">{status === "playing" ? stageLabel : status === "rendering" ? "RENDERING" : stageLabel}</span>
+        </span>
+      </div>
+      <nav className="solo-strip" aria-label="Solos">
+        <span className="solo-strip-label">Solos</span>
+        {SOLOS.map((s) => (
+          <button key={s.song} type="button" className={`solo-chip${lesson === s.song ? " on" : ""}`} aria-pressed={lesson === s.song} onClick={() => setLesson(s.song)}>
+            <img src={`/rehearsal/img/${s.art}-rest.webp`} alt="" width={22} height={32} />
+            {s.name}
+          </button>
+        ))}
+      </nav>
+      <div className={`stage${studio404 ? " studio404" : ""}`} ref={stageRef}>
+        <ShotcraftStage
+          piece={piece}
+          voices={voices}
+          studio404={studio404}
+          beat={frameState.beat}
+          timeSec={frameState.timeSec}
+          performing={frameState.performing}
+          dancing={frameState.dancing}
+          still={frameState.still}
+          selectedIndex={selected}
+          cameraFollow={cameraFollow}
+          actors={frameState.actors.length === voices.length ? frameState.actors : undefined}
+          poses={frameState.poses.length === voices.length ? frameState.poses : undefined}
+          bandParts={frameState.bandParts}
+          liveMidiSpeech={frameState.liveMidiSpeech}
+          onSelectActor={(i) => {
+            select(i);
+            poke.current = { index: i, at: performance.now() / 1000 };
+          }}
+          puppetRef={(i, el) => {
+            refs.current[i] = el;
+          }}
+          renderPropFx={(id) => <PropFx id={id} />}
+        />
         <canvas ref={frontRef} className="stage-fx front" data-layout="overlay" aria-hidden="true" />
       </div>
-      <div className="caption">
-        <span>{lyric.label}</span>
-        <p aria-live="polite">{lyric.text}</p>
-      </div>
+      {piece.kind !== "skit" && <RehearsalStaffPanel />}
       <Transport />
     </div>
   );
@@ -604,6 +524,8 @@ function NoteStrip({ s, syllables, diff, onHold, onUnhold, onSplit }: { s: Sung;
 
 function WordsEditor() {
   const lesson = useMoppet((s) => s.lesson);
+  const piece = useMoppet((s) => s.piece);
+  const shiftTrackNote = useMoppet((s) => s.shiftTrackNote);
   const edits = useMoppet((s) => s.songEdits);
   const editSongFile = useMoppet((s) => s.editSongFile);
   const revert = useMoppet((s) => s.revertSongFile);
@@ -611,6 +533,7 @@ function WordsEditor() {
   const voices = useMoppet((s) => s.voices);
   const [open, setOpen] = useState(false);
   const [dictionary, setDictionary] = useState(g2p.loaded);
+  const [selNote, setSelNote] = useState<{ key: string; idx: number } | null>(null);
   useEffect(() => {
     if (open && !dictionary) void g2p.load().then(() => setDictionary(true), () => setDictionary(true));
   }, [open, dictionary]);
@@ -660,10 +583,56 @@ function WordsEditor() {
     const check = dictionary ? checkSung(s, start) : null;
     const diff = check ? check.syllables.length - check.notes : 0;
     const split = check && check.syllables.length && diff > 0 ? splitFix(s, diff) : null;
+    const whoId = s.who ?? song.lead;
+    const lineVoice = voices.find((v) => v.id === whoId) ?? voices[0];
+    const lineTrack = piece.tracks.find((t) => t.id === whoId);
+    const targetAi = ai ?? -1;
+    const seenNi = new Set<number>();
+    const staffItems: StaffNoteItem[] = [];
+    if (lineTrack) {
+      lineTrack.events.forEach((ev, evIdx) => {
+        if (!ev.src || ev.src[0] !== si || ev.src[1] !== li || ev.src[2] !== targetAi) return;
+        const ni = ev.src[3];
+        if (seenNi.has(ni)) return;
+        seenNi.add(ni);
+        const syl = check?.syllables[ni];
+        staffItems.push({
+          beat: ev.beat,
+          beats: ev.beats,
+          midi: ev.midi,
+          syllable: syl === "~" ? "–" : (syl ?? ""),
+          index: evIdx,
+          canEdit: true,
+        });
+      });
+    }
+    const lineKey = `${si}-${li}-${targetAi}`;
     return (
       <div key={`${li}-${ai}`} className={`words-line${ai !== null ? " answer" : ""}`}>
         <b>{ai !== null ? "+ " : ""}{name(s.who, song.lead)}</b>
         <input value={s.words} aria-invalid={check ? !check.ok : undefined} onChange={(e) => change(si, li, ai, (x) => void (x.words = sheetWords(e.target.value)))} />
+        {staffItems.length > 0 && (
+          <div className="words-staff">
+            <VexStaffLine
+              compact
+              events={staffItems}
+              piece={piece}
+              voice={lineVoice}
+              selectedIndex={selNote?.key === lineKey ? selNote.idx : null}
+              onSelect={(idx) => {
+                setSelNote({ key: lineKey, idx });
+                const item = staffItems.find((n) => n.index === idx);
+                if (item) void auditionNote(lineVoice, item.midi, item.syllable, item.beats * beatSeconds(piece) * 1000);
+              }}
+              onShift={(idx, steps) => {
+                setSelNote({ key: lineKey, idx });
+                const item = staffItems.find((n) => n.index === idx);
+                const nextMidi = shiftTrackNote(whoId, idx, steps);
+                if (item && nextMidi !== null) void auditionNote(lineVoice, nextMidi, item.syllable, item.beats * beatSeconds(piece) * 1000);
+              }}
+            />
+          </div>
+        )}
         {check && <NoteStrip s={s} syllables={check.syllables} diff={diff} onHold={(k) => change(si, li, ai, (x) => void (x.words = holdAt(x.words, k) ?? x.words))} onUnhold={(k) => change(si, li, ai, (x) => void (x.words = unholdAt(x.words, k) ?? x.words))} onSplit={(i) => change(si, li, ai, (x) => void Object.assign(x, splitNote(x, i) ?? {}))} />}
         {check && <small className={check.ok ? (check.hint ? "hint" : "ok") : "bad"} title={check.hint || check.problem}>{check.ok ? `${check.notes} notes ✓` : check.problem}{check.ok && check.hint ? ` · ${check.hint}` : ""}</small>}
         {check && check.syllables.length > 0 && diff < 0 && (
@@ -786,6 +755,17 @@ interface NoteEdit {
   length: (src: NonNullable<ScoreEvent["src"]>, beats: number) => void;
 }
 /** A scale step is about 12/7 semitones on the score. */
+/** One solo per singer: that Moppet alone on stage, to focus on its design (songs/<song>.song). */
+const SOLOS: { name: string; art: string; song: Lesson }[] = [
+  { name: "Tabby", art: "tabby", song: "tabby-solo" as Lesson },
+  { name: "Neon", art: "neon", song: "take-two" as Lesson },
+  { name: "Cue", art: "cue", song: "line" as Lesson },
+  { name: "Clank", art: "clank", song: "late-answer" as Lesson },
+  { name: "Watt", art: "watt", song: "every-socket" as Lesson },
+  { name: "Gruff", art: "gruff", song: "close-up" as Lesson },
+  { name: "Chip", art: "chip", song: "one-more-thing" as Lesson },
+  { name: "Zap", art: "zap", song: "zap" as Lesson },
+];
 const STEP = 12 / 7;
 const SNAP = 0.25;
 
@@ -810,6 +790,7 @@ function syllablesOf(t: Track): (string | null)[] {
 
 function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   const voices = useMoppet((s) => s.voices);
+  const studio404 = useMoppet((s) => s.studio404);
   const cursor = useRef<SVGPathElement>(null);
   const svg = useRef<SVGSVGElement>(null);
   /** the note being dragged: its event, how, and how far so far (in score units) */
@@ -860,11 +841,12 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   for (let b = 0; b <= piece.beats; b += 4) bars.push(b);
   return (
     <svg ref={svg} className={edit ? "editing" : undefined} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
-      <rect width={w} height={h} fill="#20382e" />
-      {octaves.map((n) => <g key={n}><path d={`M${left} ${top + (range[1] - n) * sy}H${w}`} stroke="#ffffff18" /><text x={5} y={top + (range[1] - n) * sy + 3} fill="#bbccba" fontSize={9}>{noteName(n)}</text></g>)}
-      {bars.map((b) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff16" /><text x={left + b * sx + 3} y={h - 4} fill="#8caa94" fontSize={8}>{b / 4 + 1}</text></g>)}
+      <rect width={w} height={h} fill="#1b1612" />
+      {octaves.map((n) => <g key={n}><path d={`M${left} ${top + (range[1] - n) * sy}H${w}`} stroke="#ffffff14" /><text x={5} y={top + (range[1] - n) * sy + 3} fill="#9c8e7b" fontSize={9}>{noteName(n)}</text></g>)}
+      {bars.map((b) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff12" /><text x={left + b * sx + 3} y={h - 4} fill="#9c8e7b" fontSize={8}>{b / 4 + 1}</text></g>)}
       {piece.tracks.map((t) => {
-        const color = voices.find((v) => v.id === t.id)?.color ?? "#fff";
+        const baseColor = voices.find((v) => v.id === t.id)?.color ?? "#fff";
+        const color = studio404 ? (STUDIO_404_CAST[t.id]?.color ?? baseColor) : baseColor;
         const mine = edit?.id === t.id;
         const words = mine ? syllablesOf(t) : null;
         // a syllable is labelled only where it doesn't run into the one before (about 5 units a letter)
@@ -904,6 +886,8 @@ function ScorePanel() {
   const midiName = piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" || piece.kind === "skit" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
   const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
   const selected = useMoppet((s) => s.voices[s.selected]);
+  const studio404 = useMoppet((s) => s.studio404);
+  const selectedName = studio404 ? studio404Name(selected.id, selected.name) : selected.name;
   const editSongFile = useMoppet((s) => s.editSongFile);
   const [editing, setEditing] = useState(false);
   // notes can be edited where a lead sheet wrote them: the songbook songs
@@ -947,10 +931,13 @@ function ScorePanel() {
       <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
-      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools">{editable && <button className={editing ? "on" : ""} aria-pressed={editing} onClick={() => setEditing(!editing)} title={`Drag ${selected.name}'s notes up or down; drag a note's right edge to lengthen it`}>{editing ? `Done editing ${selected.name}` : `✎ Edit ${selected.name}'s notes`}</button>}<BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
+      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools">{editable && <button className={editing ? "on" : ""} aria-pressed={editing} onClick={() => setEditing(!editing)} title={`Drag ${selectedName}'s notes up or down; drag a note's right edge to lengthen it`}>{editing ? `Done editing ${selectedName}` : `✎ Edit ${selectedName}'s notes`}</button>}<BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
       <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} edit={noteEdit} /></div>
-      {noteEdit && <p className="score-help">Drag {selected.name}’s notes up or down a scale step at a time, or a note’s right edge to lengthen it (the next note gives up the time, so the line keeps its length). Pick another Moppet on the stage to edit its part. Notes on strong beats move to fit the chord. Saving works as for words: Save to songs/… above.</p>}
-      <div className="score-legend">{voices.map((v) => <span key={v.id}><i style={{ background: v.color }} />{v.name}</span>)}<span className="score-help">Higher on the page = higher pitch</span></div></>}
+      {noteEdit && <p className="score-help">Drag {selectedName}’s notes up or down a scale step at a time, or a note’s right edge to lengthen it (the next note gives up the time, so the line keeps its length). Pick another Moppet on the stage to edit its part. Notes on strong beats move to fit the chord. Saving works as for words: Save to songs/… above.</p>}
+      <div className="score-legend">{voices.map((v) => {
+        const s404 = studio404 ? STUDIO_404_CAST[v.id] : undefined;
+        return <span key={v.id}><i style={{ background: s404?.color ?? v.color }} />{s404?.name ?? v.name}</span>;
+      })}<span className="score-help">Higher on the page = higher pitch</span></div></>}
     </div>
   );
 }
@@ -1035,40 +1022,45 @@ function MidiStrip() {
   const status = midi.status === "connecting" ? "Connecting…" : midi.status === "denied" ? "Blocked by the browser" : on ? (midi.inputs.length ? midi.inputs.join(", ") : "Plug one in") : "Off";
   return (
     <div className="midi-strip">
-      <button className={on ? "on" : ""} aria-pressed={on} onClick={() => setMidi(!on)}>{on ? "MIDI on" : "Connect MIDI controller"}</button>
+      <button type="button" className={on ? "on" : ""} aria-pressed={on} onClick={() => setMidi(!on)}>{on ? "MIDI on" : "Connect MIDI controller"}</button>
       <span className="midi-what">{learning ? "Turn the knob to use" : last || status}</span>
-      <button className="link" onClick={resetMap}>Launchkey layout</button>
+      <button type="button" className="link" onClick={resetMap} title="Restore default Launchkey Mini CC 21–28 knob assignments">Reset CC map</button>
     </div>
   );
 }
 
-/** Play the selected Moppet live: as its mouth (puppeteer), or singing its words from the keys. */
+/** Live Organ manual inspector: Puppeteer mouth drawbars, Sing-the-words prompter, and Melody step-editor chips (the layered 25-key manual sits right above in LaunchkeyMap). */
 function LivePanel({ name }: { name: string }) {
   const mode = useLive((s) => s.mode);
-  const setMode = useLive((s) => s.setMode);
   const last = useLive((s) => s.last);
   const mouth = useLive((s) => s.mouth);
   const words = useLive((s) => s.words);
   const next = useLive((s) => s.next);
-  const down = useRef(new Set<number>());
-  const key = (n: number, on: boolean) => {
-    if (on && !down.current.has(n)) {
-      down.current.add(n);
-      touchControl("key", n);
-      liveNoteOn(n, 100);
-    } else if (!on && down.current.delete(n)) liveNoteOff(n);
+  const editIndex = useLive((s) => s.editIndex);
+  const setEditIndex = useLive((s) => s.setEditIndex);
+  const piece = useMoppet((s) => s.piece);
+  const voice = useMoppet((s) => s.voices[s.selected]);
+  const track = piece.tracks.find((t) => t.id === voice?.id) ?? piece.tracks[0];
+  const events = track?.events ?? [];
+  const curIdx = events.length ? Math.min(editIndex, events.length - 1) : 0;
+  const hearCurrent = () => {
+    const ev = events[curIdx];
+    if (!ev || !voice) return;
+    void auditionNote(voice, ev.midi, words[curIdx], (ev.beats * 60000) / Math.max(40, piece.bpm));
+    setEditIndex(curIdx);
   };
-  const black = (n: number) => [1, 3, 6, 8, 10].includes(n % 12);
-  const modes: [LiveMode, string][] = [["off", "Off"], ["puppet", "Puppeteer"], ["words", "Sing the words"]];
+  if (mode === "off") return null;
   return (
-    <div className="live-panel">
+    <div className="live-panel organ-expression-tray">
       <div className="live-head">
-        <h3>Play {name} live</h3>
-        <div className="live-modes" role="radiogroup" aria-label="Play live">
-          {modes.map(([m, label]) => <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? "on" : ""} onClick={() => void setMode(m)}>{label}</button>)}
-        </div>
+        <h3>
+          {mode === "puppet"
+            ? `${name} · Mouth Drawbars`
+            : mode === "words"
+              ? `${name} · Word Teleprompter`
+              : `${name} · Melody Step Editor`}
+        </h3>
       </div>
-      {mode === "off" && <p className="status">Puppeteer: you are {name}’s mouth (knobs, pads and keys on a Launchkey, or here). Sing the words: each key sings {name}’s next word in this song.</p>}
       {mode === "puppet" && (
         <>
           <div className="live-pads">{PAD_VOWELS.map(([, label], i) => <button key={label} onClick={() => padVowel(i)}>{label}</button>)}</div>
@@ -1087,14 +1079,30 @@ function LivePanel({ name }: { name: string }) {
           {words.length ? words.map((w, i) => <span key={i} className={i === next ? "next" : i < next ? "sung" : ""}>{w}</span>) : `${name} has no words in this piece.`}
         </p>
       )}
-      {mode !== "off" && (
-        <div className="live-keys" data-layout="layered" aria-label="Keys">
-          {Array.from({ length: 25 }, (_, i) => 48 + i).map((n) => (
-            <button key={n} className={black(n) ? "black" : "white"} aria-label={`Key ${n}`} onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); key(n, true); }} onPointerUp={() => key(n, false)} onPointerCancel={() => key(n, false)} />
-          ))}
+      {mode === "edit" && (
+        <div className="melody-edit">
+          <div className="melody-edit-bar">
+            <button onClick={() => setEditIndex(Math.max(0, curIdx - 1))} disabled={curIdx <= 0}>← Prev</button>
+            <button onClick={hearCurrent} disabled={!events.length}>Hear note {curIdx + 1}/{events.length}</button>
+            <button onClick={() => setEditIndex(Math.min(events.length - 1, curIdx + 1))} disabled={curIdx >= events.length - 1}>Next →</button>
+          </div>
+          <p className="live-words" aria-label="Melody notes to edit">
+            {events.length
+              ? events.map((ev, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`melody-chip${i === curIdx ? " next" : i < curIdx ? " sung" : ""}`}
+                    onClick={() => setEditIndex(i)}
+                  >
+                    {words[i] ?? ev.text ?? `#${i + 1}`} <em>{noteName(ev.midi, piece.key, piece.mode)}</em>
+                  </button>
+                ))
+              : `${name} has no melody notes in this piece.`}
+          </p>
         </div>
       )}
-      {mode !== "off" && <p className="status" role="status">{last}</p>}
+      <p className="status" role="status">{last}</p>
     </div>
   );
 }
@@ -1102,6 +1110,7 @@ function LivePanel({ name }: { name: string }) {
 function Workbench() {
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
+  const studio404 = useMoppet((s) => s.studio404);
   const select = useMoppet((s) => s.select);
   const reset = useMoppet((s) => s.reset);
   const savePreset = useMoppet((s) => s.savePreset);
@@ -1112,6 +1121,9 @@ function Workbench() {
   const learning = useController((s) => s.learning);
   const learn = useController((s) => s.learn);
   const v = voices[selected];
+  const s404V = studio404 ? STUDIO_404_CAST[v.id] : undefined;
+  const vName = s404V?.name ?? v.name;
+  const vRole = s404V?.role ?? v.role;
   const [note, setNote] = useState("Controls act on this Moppet's own engine.");
   const file = useRef<HTMLInputElement>(null);
   const change = (key: ControlKey, group: ControlGroup, n: number) => {
@@ -1139,23 +1151,28 @@ function Workbench() {
   return (
     <div className="moppet-workbench">
       <div className="cards">
-        {voices.map((c, i) => (
-          <button key={c.id} className={`card${i === selected ? " selected" : ""}`} onClick={() => select(i)} aria-pressed={i === selected}>
-            <span className="card-top"><span className="swatch" style={{ background: c.color }} /><span className="card-num">0{i + 1}</span></span>
-            <strong>{c.name}</strong>
-            <small>{c.role}</small>
-          </button>
-        ))}
+        {voices.map((c, i) => {
+          const s404C = studio404 ? STUDIO_404_CAST[c.id] : undefined;
+          return (
+            <button key={c.id} className={`card${i === selected ? " selected" : ""}`} onClick={() => select(i)} aria-pressed={i === selected}>
+              <span className="card-top"><span className="swatch" style={{ background: s404C?.color ?? c.color }} /><span className="card-num">0{i + 1}</span></span>
+              <strong>{s404C?.name ?? c.name}</strong>
+              <small>{s404C?.role ?? c.role}</small>
+            </button>
+          );
+        })}
       </div>
       <div className="voice-panel">
-        <div className="panel-title"><h2>{v.name}</h2><span>{v.role}</span></div>
-        <div className="panel-actions">
-          <button onClick={solo}>▶ Sing my introduction</button>
-          <button className="download" onClick={() => void wav()}>↓ WAV</button>
+        <div className="voice-panel-head">
+          <div className="panel-title"><h2>{vName}</h2><span>{vRole}</span></div>
+          <div className="panel-actions">
+            <button type="button" onClick={solo}>▶ Sing my introduction</button>
+            <button type="button" className="download" onClick={() => void wav()}>↓ WAV</button>
+          </div>
         </div>
         <MidiStrip />
         <LaunchkeyMap />
-        <LivePanel name={v.name} />
+        <LivePanel name={vName} />
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
@@ -1183,10 +1200,12 @@ function Workbench() {
   );
 }
 
-export function MoppetRight() {
+export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) {
   const selected = useMoppet((s) => s.selected);
   const voices = useMoppet((s) => s.voices);
-  const name = voices[selected].name;
+  const studio404 = useMoppet((s) => s.studio404);
+  const v = voices[selected];
+  const name = studio404 ? studio404Name(v.id, v.name) : v.name;
   const piece = useMoppet((s) => s.piece);
   useEffect(() => {
     // load the score on first arrival
@@ -1194,18 +1213,18 @@ export function MoppetRight() {
       loadPiece(piece);
       useMoppet.getState().select(useMoppet.getState().selected);
     }
-    (window as unknown as { __choir: unknown }).__choir = { capture: captureApi, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
+    (window as unknown as { __choir: unknown }).__choir = { seek, play: () => play(useAudio.getState().start), stop, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div className="right right-moppet right-stage">
-      <Screen className="s-stage warm" title="The Moppet Choir" sub="Studio 404">
-        <Stage />
+      <Screen className="s-stage warm" title="The Moppet Choir" sub="Proscenium Case">
+        <Stage onOpenVideo={onOpenVideo} />
       </Screen>
-      <Screen className="s-score warm" title="Music school" sub="Score">
+      <Screen className="s-score warm" title="Music Desk" sub="Score & Stops">
         <ScorePanel />
       </Screen>
-      <Screen className="s-cast warm" title={`Workbench: ${name}`} sub="Character">
+      <Screen className="s-cast warm" title={`Organ Console · ${name}`} sub="Voice & Manuals">
         <Workbench />
       </Screen>
       <p className="moppet-credit">Experimental character voices · Studio 404. Physical voice synthesis by <a href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer">CHIMERA</a>, MIT licensed.</p>

@@ -44,6 +44,10 @@ the README.
   where the engine isn't. Engine-calling helpers go in their own module (`roundCheck.ts`, `plan.ts`).
   Check: `tests/engine-free.test.ts`.
 - **DOM content flows in `.screen-body`, never absolutely positioned.** Check: `bun run lint:layout`.
+- **Use the Craft apps (`photocraft`, `anicraft`, `effectcraft`, `filmcraft`, `vectorcraft`)** via
+  their MCP `--bridge` / `--automation-read-root` or `<app>-cli` for keying, matting, animation,
+  and compositing instead of hand-rolling image/video processing in Python or JS. Read
+  `<app>-cli --help` (`mcp --help`) and `commands` before writing any tool.
 - **Nothing copyrighted goes in git.**
 
 ## Checks

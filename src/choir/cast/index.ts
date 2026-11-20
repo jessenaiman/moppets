@@ -10,10 +10,11 @@ import { pip } from "./pip.ts";
 import { gruff } from "./gruff.ts";
 import { tabby } from "./tabby.ts";
 import { chip } from "./chip.ts";
+import { zap } from "./zap.ts";
 
 export type { Moppet, MoppetArtic, MoppetSource, MoppetVoice, PropEffect } from "./moppet.ts";
 
-export const MOPPETS: readonly Moppet[] = [vee, scribe, clank, pip, gruff, tabby, chip];
+export const MOPPETS: readonly Moppet[] = [vee, scribe, clank, pip, gruff, tabby, chip, zap];
 
 const byId = new Map(MOPPETS.map((m) => [m.voice.id, m]));
 /** A Moppet by id (a voice id that isn't one, such as a guest's, gets "oo" and no seat). */

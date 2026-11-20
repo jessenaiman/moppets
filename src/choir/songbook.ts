@@ -61,7 +61,7 @@ export interface Song {
 }
 
 /** A chord under a line, in absolute beats. */
-interface Span {
+export interface ChordSpan {
   start: number;
   end: number;
   deg: number;
@@ -76,7 +76,7 @@ const chordTones = (deg: number) => new Set([0, 2, 4].map((k) => (((deg + k) % 7
  * (The first hand-written songs held non-chord notes on the downbeat, 26 times in "Still
  * Loading" against none in "Chip Reads the Manual", and it sounded wrong.)
  */
-function fitChord(d: number, beat: number, beats: number, spans: Span[]): number {
+export function fitChord(d: number, beat: number, beats: number, spans: ChordSpan[]): number {
   const onBeat = Math.abs(beat - Math.round(beat)) < 1e-9, strong = onBeat && Math.round(beat) % 2 === 0;
   if (!strong && !(onBeat && beats >= 1) && beats < 1.5) return d;
   const covering = spans.filter((sp) => sp.end > beat + 1e-9 && sp.start < beat + beats - 1e-9);
@@ -111,7 +111,7 @@ export function buildSong(s: Song): Piece {
   };
   const cues: NonNullable<Piece["cues"]> = [];
   let previous: string | null = null;
-  const sing = (who: string, sung: Sung, at: number, spans: Span[], src?: [number, number, number]) => {
+  const sing = (who: string, sung: Sung, at: number, spans: ChordSpan[], src?: [number, number, number]) => {
     if (sung.do) cues.push({ beat: at, who, gesture: sung.do });
     if (sung.react && previous && previous !== who) cues.push({ beat: at + sum(sung.rhythm) - 0.25, who: previous, gesture: sung.react });
     previous = who;
@@ -142,7 +142,7 @@ export function buildSong(s: Song): Piece {
         at += l.rest;
         continue;
       }
-      const spans: Span[] = [];
+      const spans: ChordSpan[] = [];
       for (const [deg, beats] of l.chords) spans.push({ start: spans.length ? spans[spans.length - 1].end : at, end: (spans.length ? spans[spans.length - 1].end : at) + beats, deg });
       const length = sing(l.who ?? s.lead, l, at, spans, [si, li, -1]);
       const busy = new Set([l.who ?? s.lead]);

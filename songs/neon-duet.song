@@ -1,0 +1,38 @@
+title: Neon Playbook I: Two Tubes Agree
+id: neon-duet
+tab: 15 · Neon Playbook I: Two Tubes Agree
+about: 15 · Acts I–II: Neon learns a 4-note spark with Cue, then braids counter-melodies with Tabby until Watt trips on the cord
+lead: vee
+key: D
+bpm: 108
+beat: B . t K | . t B . | t B . K | . B t .
+backing: 
+bass: none
+finale: "Shine" on 7
+
+tune hook = 0 2 4 5 | I 4
+
+[act 1]
+# Act I — One Crooked Tube: Neon tests a 4-note starter hook; Cue holds the scroll upside down.
+vee: "One tube wakes up" = hook ; do tilt
+scribe: "Wait my page is upside down" = 0 2 4 3 1 0 -1/2 | IV 4, V 4 ; do shrug ; react laugh
+rest 2
+vee: "One more time with both bright rings" = 0 2 4 5 4 2 4/2 | I 4, VI 4 ; do nod
+  + scribe @2: "Twin tubes chime" = 4 5 4/2
+
+[act 2]
+# Act II — Two Glows Better Than One: Call-and-response, then two simultaneous contrary melodies.
+vee: "Left tube hums a warm low call" = 0 2 4 5 4 2 0/2 | I 4, IV 4 ; do nod
+tabby: "Right tube answers sweet and tall" = 7 5 4 5 7 8 7/2 | V 4, I 4 ; do cheer
+vee: "Low ring holds the line with me" = 0 2 4 2 4 5 7/2 | I 4, IV 4 ; do nod
+  + tabby: "High ring climbs in harmony" = 9 7 5 7 5 4 2/2
+vee: "Look two voices braid as one" = 4 5 7 5 4 2 0/2 | VI 4, V 4
+  + tabby: "Glow shines back when both are done" = 2 4 5 7 8 9 7/2
+
+# Slapstick mishap: Watt tugs the cord too tight and pulls the stage plug.
+pip: "Watch my cord it pulled too tight" = 4 5 6 7 8 7 8/2 | IV 4, V 4 ; do gasp
+rest 2
+gruff: "Watt unplugged the stage again" = 4 4 3 2 1 0 -1/2 | II 4, V 4 ; do shrug ; react laugh
+vee: "Plug back in and sing it bright" = 0 2 4 5 7 5 4/2 | IV 4, I 4 ; do bow
+  + tabby: "Plug back in and sing it bright" = 4 5 7 8 9 7 7/2
+  + scribe @4: "Tape still rolls" = 4 2 0/2

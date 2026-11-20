@@ -1,0 +1,14 @@
+{
+  "artKey": "hertz",
+  "name": "Hertz",
+  "width": 384,
+  "height": 512,
+  "fps": 24,
+  "durationSec": 2.0,
+  "clips": {
+    "idle": "/clips/hertz/idle.webm",
+    "sing": "/clips/hertz/sing.webm",
+    "duet": "/clips/hertz/duet.webm",
+    "react": "/clips/hertz/react.webm"
+  }
+}

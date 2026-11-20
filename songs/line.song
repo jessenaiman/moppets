@@ -1,0 +1,26 @@
+title: Line?
+id: line
+tab: 20 · Line?
+about: 20 · Cue gives everyone their line before they ask
+lead: scribe
+key: G dorian
+bpm: 96
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .3)
+backing:
+bass: none
+stage: scribe
+finale: "Line" on 7
+
+# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+
+[verse]
+"I hold the words for all the shows" = 4/.5 4/.5 4/.5 4/.5 4/.5 5/.5 4 2/4 | I 4, IV 4
+"I give them out at night" = 2/.5 2/.5 2/.5 2/.5 3 0/5 | VII 4, I 4 ; do nod
+"I know your line before you do" = 4/.5 4/.5 4/.5 4/.5 6/.5 6/.5 7 4/4 | I 4, IV 4
+"I'm almost always right" = 7/.5 6/.5 5/.5 4/.5 2/2 0/4 | IV 4, I 4
+
+[chorus]
+"Here is your next line" = 0/.5 2 2/.5 4/2 4/4 | I 4, VII 4 ; do gasp
+"Read it nice and slow" = 4/2 3/2 2 1 0/2 | IV 4, I 4
+"The last page has no words yet" = 0/.5 0/.5 2 4 5 7/2 6/2 | I 4, VII 4
+"That's the one I'll never show" = 6 5 4/.5 2/.5 3 2 0/3 | IV 4, I 4 ; do bow

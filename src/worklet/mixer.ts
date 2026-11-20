@@ -35,6 +35,7 @@ class MixerProcessor extends AudioWorkletProcessor {
   private playing = false;
   private frame = 0;
   private solo = 0;
+  private soloMix = -1;
   private underruns = 0;
   private underrunFrames = 0;
   private buffering = false;
@@ -67,6 +68,7 @@ class MixerProcessor extends AudioWorkletProcessor {
         this.early.length = 0;
         this.playing = false;
         this.frame = 0;
+        this.soloMix = -1;
         this.underruns = this.underrunFrames = 0;
         break;
       case "chunk":
@@ -99,6 +101,9 @@ class MixerProcessor extends AudioWorkletProcessor {
         break;
       case "solo":
         this.solo = m.voice;
+        break;
+      case "soloMix":
+        this.soloMix = m.voice;
         break;
     }
   }
@@ -156,9 +161,13 @@ class MixerProcessor extends AudioWorkletProcessor {
     const mix = this.mix, solo = this.soloBuf;
     mix.fill(0);
     solo.fill(0);
+    const soloActive = this.soloMix >= 0 && this.soloMix < this.queues.length;
     for (let v = 0; v < this.queues.length; v++) {
       if (this.frame >= this.ends[v]) continue;
-      const g = (this.section && this.frame >= this.section.frame ? this.section.gains[v] : this.gains[v]) * BUS_GAIN, isSolo = v === this.solo;
+      const g = soloActive
+        ? (v === this.soloMix ? 1 : 0) * BUS_GAIN
+        : (this.section && this.frame >= this.section.frame ? this.section.gains[v] : this.gains[v]) * BUS_GAIN;
+      const isSolo = v === this.solo;
       const q = this.queues[v];
       let i = 0, f = this.frame;
       for (let c = 0; c < q.length && i < n; c++) {

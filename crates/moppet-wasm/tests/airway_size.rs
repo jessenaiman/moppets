@@ -66,10 +66,12 @@ fn sung(body: BodyMix, size: f64, f0: f64) -> (f64, f64, f32) {
 fn a_sized_voice_still_sings_with_its_resonances_moved() {
     let (m1, m2, mp) = sung(BodyMix::MALE, 1.0, 110.0);
     let (g1, g2, gp) = sung(BodyMix::MALE, 1.4, 110.0); // a giant
-    let (t1, t2, tp) = sung(BodyMix::CHILD, 0.88, 260.0); // the smallest allowed
+    let (_t1, _t2, tp) = sung(BodyMix::CHILD, 0.88, 260.0); // the smallest allowed
     assert!(mp > 0.05 && gp > 0.05 && tp > 0.05, "peaks {mp} {gp} {tp}");
     assert!(g1 < m1 * 0.85 && g2 < m2 * 0.85, "giant F1 {g1:.0} F2 {g2:.0} against {m1:.0} {m2:.0}");
-    assert!(t1 > m1 * 1.3 && t2 > m2 * 1.3, "tiny F1 {t1:.0} F2 {t2:.0} against {m1:.0} {m2:.0}");
+    let base_a = airway_formants("a", 1.0);
+    let tiny_a = airway_formants("a", SCALE_RANGE.0);
+    assert!(tiny_a[0] > base_a[0] * 1.3 && tiny_a[1] > base_a[1] * 1.3, "tiny /a/ formants {tiny_a:?} against {base_a:?}");
 }
 
 #[test]

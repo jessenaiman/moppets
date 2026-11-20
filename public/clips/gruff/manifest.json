@@ -1,0 +1,14 @@
+{
+  "artKey": "gruff",
+  "name": "Gruff",
+  "width": 384,
+  "height": 512,
+  "fps": 24,
+  "durationSec": 2.0,
+  "clips": {
+    "idle": "/clips/gruff/idle.webm",
+    "sing": "/clips/gruff/sing.webm",
+    "belt": "/clips/gruff/belt.webm",
+    "chuckle": "/clips/gruff/chuckle.webm"
+  }
+}

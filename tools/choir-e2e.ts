@@ -33,7 +33,7 @@ page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
 await page.goto(url, { waitUntil: "networkidle" });
 await page.waitForTimeout(300);
 
-type W = Window & { __choir: { debug(): { workersAlive: number; sessionsMade: number; hasSession: boolean; singers: { id: string; rendered: number; frames: number; rtf: number }[] }; ensemble: { getState(): { status: string; time: number; duration: number; underruns: number; message: string; howPlaying: string; peak: number; limited: number; rtf: number; progress: number } }; moppet: { getState(): Record<string, never> }; telemetry: { getState(): { id: string; tele: { t: { outRms: number; f0: number } } | null } }; bench(): Promise<unknown> } };
+type W = Window & { __choir: { debug(): { workersAlive: number; sessionsMade: number; hasSession: boolean; singers: { id: string; rendered: number; frames: number; rtf: number }[] }; ensemble: { getState(): { status: string; time: number; duration: number; underruns: number; message: string; howPlaying: string; peak: number; limited: number; rtf: number; progress: number } }; moppet: { getState(): { voices: { id: string }[]; piece: unknown } }; telemetry: { getState(): { id: string; tele: { t: { outRms: number; f0: number } } | null } }; bench(): Promise<unknown> } };
 
 const start = page.getByRole("button", { name: /start the choir stage/i });
 if (await start.count()) await start.click();
@@ -74,7 +74,7 @@ await page.screenshot({ path: `${outDir}/moppet-playing.png`, fullPage: true });
 const measures = await page.evaluate(() => {
   const c = (window as unknown as W).__choir;
   const t = c.telemetry.getState();
-  return { peak: c.ensemble.getState().peak, telemetryOf: t.id, outRms: t.tele?.t.outRms, f0: t.tele?.t.f0, puppets: [...document.querySelectorAll<HTMLElement>(".puppet")].map((p) => ({ cel: p.style.getPropertyValue("--cel"), mouthOpen: p.classList.contains("mouth-open"), singing: p.classList.contains("singing") })) };
+  return { peak: c.ensemble.getState().peak, telemetryOf: t.id, outRms: t.tele?.t.outRms, f0: t.tele?.t.f0, puppets: [...document.querySelectorAll<HTMLElement>(".puppet")].map((p) => ({ cel: (p.querySelector<HTMLElement>(".sprite") ?? p).style.getPropertyValue("--cel"), mouthOpen: p.classList.contains("mouth-open"), singing: p.classList.contains("singing") })) };
 });
 report.playingMeasures = measures;
 ok(measures.peak > 0.05, `the mix is audible (peak ${measures.peak.toFixed(2)})`);
@@ -87,8 +87,11 @@ const cels = new Set<string>();
 let mouthChanges = 0, lastMouth: boolean | null = null;
 for (let i = 0, t0 = Date.now(); i < 40 || (mouthChanges < 2 && Date.now() - t0 < 8000); i++) {
   const state = await page.evaluate(() => {
-    const el = document.querySelectorAll<HTMLElement>(".puppet")[1]; // Scribe, the lead
-    return { cel: el.style.getPropertyValue("--cel"), open: el.classList.contains("mouth-open") };
+    const voices = (window as unknown as W).__choir.moppet.getState().voices;
+    const scribeIdx = Math.max(0, voices.findIndex((v) => v.id === "scribe"));
+    const el = document.querySelectorAll<HTMLElement>(".puppet")[scribeIdx];
+    const sprite = el?.querySelector<HTMLElement>(".sprite") ?? el;
+    return { cel: sprite?.style.getPropertyValue("--cel") ?? "", open: Boolean(el?.classList.contains("mouth-open")) };
   });
   cels.add(state.cel);
   if (lastMouth !== null && state.open !== lastMouth) mouthChanges++;
@@ -99,7 +102,8 @@ ok(cels.size >= 3, `the lead dances through sprite frames (${cels.size} frames s
 ok(mouthChanges >= 2, `the lead's mouth opens and closes with telemetry (${mouthChanges} changes)`);
 
 // ---- picking another Moppet during playback moves the telemetry to that voice
-await page.locator(".puppet").nth(2).click();
+const clankIdx = await page.evaluate(() => (window as unknown as W).__choir.moppet.getState().voices.findIndex((v) => v.id === "clank"));
+await page.locator(".puppet").nth(clankIdx).click();
 await page.waitForTimeout(400);
 const picked = await page.evaluate(() => (window as unknown as W).__choir.telemetry.getState().id);
 ok(picked === "clank", `the telemetry switched to the third Moppet during playback (${picked})`);

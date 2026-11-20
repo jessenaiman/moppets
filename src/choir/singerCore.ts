@@ -3,7 +3,7 @@
  * tests). Renders forward, keeps the stem, and records the engine's telemetry block every `hop`
  * frames so the puppets and instrument views can follow what was actually rendered.
  */
-import { writeGestures, writeSteps, fromUtf8, utf8 } from "@chimera/wasm/wire.ts";
+import { CONTROL_KEYS, writeGestures, writeSteps, fromUtf8, utf8 } from "@chimera/wasm/wire.ts";
 import type { BeatStep } from "@chimera/wasm/types.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
 import { CHARACTER_TAG, characterGesture, shapeGesture } from "./character.ts";
@@ -12,7 +12,7 @@ import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 type Fn = (...a: number[]) => number;
 export type EngineExports = { memory: WebAssembly.Memory } & Record<string, Fn>;
 
-export const ARTIC_KEYS = ["jaw", "tbX", "tbY", "ttX", "ttY", "ttCurl", "root", "lipAp", "lipProt", "lipWidth", "labiodental", "velum", "larynx", "epilarynx", "ventricular", "lateral", "dorsum"];
+export const ARTIC_KEYS: readonly string[] = CONTROL_KEYS.slice(0, 17);
 export const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension", "fry", "roughness", "vibratoDepth", "vibratoRate", "drift", "voiced", "brightness"];
 export const TELE_HEADER = 16;
 /** indices into a telemetry record */
@@ -95,7 +95,7 @@ export class SingerCore {
     return new Float64Array(this.x.memory.buffer, this.x.moppet_values(this.h), 32).fill(NaN);
   }
 
-  private patch(keys: string[], values: Partial<Record<string, number>>): void {
+  private patch(keys: readonly string[], values: Partial<Record<string, number>>): void {
     const v = this.values();
     for (const [k, val] of Object.entries(values)) {
       const i = keys.indexOf(k);

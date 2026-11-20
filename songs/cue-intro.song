@@ -1,0 +1,33 @@
+title: Cue Playbook I: Meet the Moppets
+id: cue-intro
+tab: 26 · Cue Playbook I: Meet the Moppets
+about: 26 · Cue introduces each Moppet, and each answers with a phrase from its own solo (Clank answers late)
+lead: scribe
+key: G
+bpm: 100
+beat: B . t . | Pf . t K | B . t . | Pf . t . (swing .12)
+backing:
+bass: none
+finale: "Lines" on 7
+
+tune prompt = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4
+
+[act 1]
+# Cue reads the cast list; each Moppet steps up with its solo's signature phrase.
+"Here's the cast I've known so long" = prompt ; do nod
+"Here is Neon two tubes bright" = prompt
+vee: "Twice for me and twice for me" = 4 5 4 2 4 5 4/2 | I 4, IV 4 ; do nod
+"Here is Tabby she's the star" = prompt
+tabby: "Hear me hear me sing" = 7/1.5 5/.5 7/1.5 5/.5 9/4 | I 4, IV 4 ; do tilt
+"Here is Gruff so warm and low" = prompt
+gruff: "Look I am so small" = 4/2 3 2 1 0/3 | I 4, IV 4 ; react laugh
+"Here is Clank who thinks a lot" = prompt
+rest 2
+clank: "Yes" = 0/4 | I 4 ; do nod ; react laugh
+"Here is Watt who keeps us on" = prompt
+pip: "Plug in plug in friends" = 0/.5 7/.5 0/.5 7/.5 9/2 | I 4
+"Here is Chip who tries it all" = prompt
+chip: "One more thing to try" = 4/.5 5/.5 6/.5 7/.5 8/2 | IV 4 ; do gasp
+"Here is Zap the newest friend" = prompt
+zap: "Zap cut to the moon" = 7 7 5 4 4/4 | I 4, IV 4 ; do gasp
+"And I'm Cue I read the lines" = 4 5 7 5 4 2 0/2 | IV 4, I 4 ; do bow

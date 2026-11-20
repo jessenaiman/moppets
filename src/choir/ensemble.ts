@@ -40,6 +40,8 @@ export interface EnsembleState {
   renderMode: RenderMode;
   peak: number;
   limited: number;
+  soloMix: boolean;
+  loopRange: { startSec: number; endSec: number; label: string } | null;
 }
 
 /**
@@ -48,7 +50,7 @@ export interface EnsembleState {
  */
 export const useTelemetry = create<{ id: string; tele: TelemetryMessage | null }>(() => ({ id: "", tele: null }));
 
-export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, renderMode: "auto", peak: 0, limited: 0 }));
+export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, renderMode: "auto", peak: 0, limited: 0, soloMix: false, loopRange: null }));
 
 /** How far ahead of the playhead live mode renders: the delay before a control is heard. */
 const LOOKAHEAD = 0.3;
@@ -72,6 +74,7 @@ let raf = 0;
 let workersAlive = 0;
 let sessionsMade = 0;
 let waiting: "probe" | "complete" | null = null;
+let pendingStartFrame = 0;
 
 const post = (m: MixerIn, t: Transferable[] = []) => node?.port.postMessage(m, t);
 
@@ -205,8 +208,9 @@ class Session {
     if (waiting === "probe" && allAt(Math.round(AUTO_PROBE * this.sampleRate))) {
       waiting = null;
       if (get().renderMode === "auto" && rtf >= AUTO_MAX_RTF) {
+        resumeAt = pendingStartFrame;
         beginPrerender(`This device renders one voice at ${rtf.toFixed(2)}× real time, too slow for six live.`);
-      } else beginPlaying(0, "live");
+      } else beginPlaying(pendingStartFrame, "live");
     } else if (waiting === "complete" && allAt(this.frames)) {
       waiting = null;
       beginPlaying(resumeAt, "prerender");
@@ -292,8 +296,16 @@ function tick(): void {
     const hop = Math.floor(frame / s.hop);
     const tele = s.telemetry(s.indexOf(soloId), hop);
     if (tele) useTelemetry.setState({ id: soloId, tele });
-    set({ time: frame / s.sampleRate });
+    const sec = frame / s.sampleRate;
+    set({ time: sec });
+    const loop = get().loopRange;
+    if (st === "playing" && loop && sec >= loop.endSec) seek(loop.startSec);
   }
+}
+
+function soloMixIndex(): number {
+  if (!session || !get().soloMix) return -1;
+  return session.indexOf(soloId);
 }
 
 function beginPlaying(frame: number, how: "live" | "prerender"): void {
@@ -301,6 +313,7 @@ function beginPlaying(frame: number, how: "live" | "prerender"): void {
   generation++;
   post({ type: "gains", gains: session.gains });
   post({ type: "solo", voice: Math.max(0, session.indexOf(soloId)) });
+  post({ type: "soloMix", voice: soloMixIndex() });
   post({ type: "play", generation, frame });
   for (const s of session.singers) {
     s.worker.postMessage({ type: "seek", frame, generation } satisfies ToSinger);
@@ -327,6 +340,14 @@ function fallBackToPrerender(): void {
 }
 
 function finishPlaying(frame: number): void {
+  const loop = get().loopRange;
+  if (loop && session) {
+    const startFrame = Math.max(0, Math.min(session.frames, Math.round(loop.startSec * session.sampleRate)));
+    resumeAt = startFrame;
+    set({ time: startFrame / session.sampleRate });
+    beginPlaying(startFrame, get().howPlaying ?? "prerender");
+    return;
+  }
   stopVisuals();
   set({ status: "ended", time: frame / (session?.sampleRate ?? 48000), message: "The workshop is awake.", howPlaying: null });
 }
@@ -340,7 +361,8 @@ function stopVisuals(): void {
 export function loadPiece(next: Piece): void {
   disposeSession();
   piece = next;
-  set({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0 });
+  pendingStartFrame = 0;
+  set({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0, loopRange: null });
 }
 
 let piece: Piece | null = null;
@@ -363,13 +385,13 @@ function sessionFresh(): boolean {
   return !!session && !session.singers.some((s) => s.edited);
 }
 
-export async function play(start: () => Promise<void>): Promise<void> {
+export async function play(start: () => Promise<void>, startSec = 0): Promise<void> {
   const st = get().status;
   if (!piece || st === "preparing" || st === "rendering" || st === "buffering") return;
   if (st === "playing") return pause();
   if (st === "paused" && session) return resume();
   const token = ++playToken;
-  set({ status: "preparing", time: 0, message: "Waking the singers…" });
+  set({ status: "preparing", time: startSec, message: "Waking the singers…" });
   try {
     await start();
   } catch (e) {
@@ -390,6 +412,7 @@ export async function play(start: () => Promise<void>): Promise<void> {
   if (token !== playToken) return;
   const mode = get().renderMode;
   const reuse = sessionFresh() && session!.sampleRate === audio.ctx.sampleRate;
+  pendingStartFrame = startSec > 0 ? Math.round(startSec * audio.ctx.sampleRate) : 0;
   if (!reuse) {
     const paced = mode !== "prerender";
     disposeSession();
@@ -400,9 +423,10 @@ export async function play(start: () => Promise<void>): Promise<void> {
       set({ status: "idle", message: `Could not plan the song: ${e instanceof Error ? e.message : String(e)}` });
       return;
     }
+    pendingStartFrame = Math.max(0, Math.min(session.frames, pendingStartFrame));
     set({ duration: session.frames / session.sampleRate, progress: 0 });
     if (mode === "prerender") {
-      resumeAt = 0;
+      resumeAt = pendingStartFrame;
       beginPrerender("Pre-render mode chosen.");
     } else if (mode === "auto") {
       // probe with a full second before committing to live
@@ -414,13 +438,13 @@ export async function play(start: () => Promise<void>): Promise<void> {
       set({ status: "rendering", message: "Gathering the singers…" });
     }
   } else if (session!.singers.every((s) => s.rendered >= s.frames)) {
-    beginPlaying(0, "prerender");
+    beginPlaying(pendingStartFrame, "prerender");
   } else {
     waiting = "probe";
     set({ status: "rendering", message: "Gathering the singers…" });
     if (session!.singers.every((s) => s.rendered >= Math.round(AUTO_PROBE * session!.sampleRate))) {
       waiting = null;
-      beginPlaying(0, get().renderMode === "prerender" ? "prerender" : "live");
+      beginPlaying(pendingStartFrame, get().renderMode === "prerender" ? "prerender" : "live");
     }
   }
 }
@@ -444,16 +468,18 @@ function resume(): void {
 export function stop(): void {
   playToken++;
   waiting = null;
+  pendingStartFrame = 0;
   post({ type: "pause" });
   stopVisuals();
-  set({ status: "idle", time: 0, message: "", howPlaying: null });
+  set({ status: "idle", time: 0, message: "", howPlaying: null, loopRange: null });
 }
 
 /** Abandon a render in progress. */
 export function cancel(): void {
   playToken++;
+  pendingStartFrame = 0;
   disposeSession();
-  set({ status: "idle", time: 0, progress: 0, message: "Rendering cancelled. Nothing is playing.", howPlaying: null });
+  set({ status: "idle", time: 0, progress: 0, message: "Rendering cancelled. Nothing is playing.", howPlaying: null, loopRange: null });
 }
 
 export function seek(seconds: number): void {
@@ -472,10 +498,36 @@ export function setRenderMode(mode: RenderMode): void {
   set({ renderMode: mode });
 }
 
+/** Solo one Moppet in the main mix (or restore the full choir). */
+export function setSoloMix(on: boolean): void {
+  set({ soloMix: on });
+  if (session) post({ type: "soloMix", voice: soloMixIndex() });
+}
+
+/** Set or clear a rehearsal loop range in seconds. */
+export function setLoopRange(range: { startSec: number; endSec: number; label: string } | null): void {
+  set({ loopRange: range });
+}
+
+/** Start or seek playback into a loop over `range`. */
+export async function playLoop(start: () => Promise<void>, range: { startSec: number; endSec: number; label: string }): Promise<void> {
+  set({ loopRange: range });
+  const st = get().status;
+  if (session && sessionFresh() && (st === "playing" || st === "buffering" || st === "paused")) {
+    seek(range.startSec);
+    if (st === "paused") resume();
+    return;
+  }
+  await play(start, range.startSec);
+}
+
 /** Choose which singer the instruments inspect. */
 export function inspect(id: string): void {
   soloId = id;
-  if (session) post({ type: "solo", voice: Math.max(0, session.indexOf(id)) });
+  if (session) {
+    post({ type: "solo", voice: Math.max(0, session.indexOf(id)) });
+    post({ type: "soloMix", voice: soloMixIndex() });
+  }
   tick();
 }
 

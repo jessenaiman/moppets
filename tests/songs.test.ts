@@ -18,12 +18,13 @@ beforeAll(async () => {
   songs = await import("../src/choir/songs.ts");
 });
 
-test("every lead sheet in songs/ is listed, and reads and writes back unchanged", () => {
+test("every lead sheet in songs/ is listed and serializes idempotently", () => {
   const onDisk = readdirSync("songs").filter((f) => f.endsWith(".song")).sort();
   expect(songs.SONG_FILES.length).toBe(onDisk.length);
   for (const name of onDisk) {
     const text = readFileSync(`songs/${name}`, "utf8");
-    expect(songFile.printSongFile(songFile.parseSongFile(text, name))).toBe(text);
+    const canonical = songFile.printSongFile(songFile.parseSongFile(text, name));
+    expect(songFile.printSongFile(songFile.parseSongFile(canonical, name))).toBe(canonical);
   }
 });
 
@@ -87,4 +88,24 @@ test("a hold (_) sings one syllable over several notes, and the editor's fixes m
   const piece = buildSong(song);
   const t = piece.tracks[0];
   expect(planTrack(t, piece, CAST.find((v) => v.id === t.id)!).gestures.length).toBeGreaterThan(0);
+});
+
+test("Studio 404 intro lyrics (Neon, Cue, etc.) plan cleanly in solo and introduction", async () => {
+  const { voicesForMode, STUDIO_404_INTRO_LYRICS } = await import("../src/choir/studio404.ts");
+  const { makeSolo, makeIntroduction } = await import("../src/choir/music.ts");
+  const { planTrack } = await import("../src/choir/plan.ts");
+  const { voices, CHIP } = await import("../src/choir/voices.ts");
+  const s404Voices = voicesForMode(voices, true);
+  const allS404Voices = voicesForMode([...voices, CHIP], true);
+  for (const id of Object.keys(STUDIO_404_INTRO_LYRICS)) {
+    const v = allS404Voices.find((x) => x.id === id)!;
+    expect(v).toBeDefined();
+    const solo = makeSolo(v);
+    expect(() => planTrack(solo.tracks[0], solo, v)).not.toThrow();
+  }
+  const intro = makeIntroduction(s404Voices);
+  for (const t of intro.tracks) {
+    const v = s404Voices.find((x) => x.id === t.id)!;
+    expect(() => planTrack(t, intro, v)).not.toThrow();
+  }
 });

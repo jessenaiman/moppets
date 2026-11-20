@@ -1,0 +1,36 @@
+title: Cue Playbook II: Duets and Trios
+id: cue-pairs
+tab: 27 · Cue Playbook II: Duets and Trios
+about: 27 · Cue sets the tests: Gruff and Chip sing low and high at once, Neon and Tabby call and answer, and Watt, Clank and Zap come in one after another
+lead: scribe
+key: D
+bpm: 108
+beat: B . t K | . t B . | t B . K | . B t . (swing .1)
+backing:
+bass: none
+finale: "Three" on 7
+
+[duet, high and low]
+# Two lines at once: Gruff below, Chip an octave and more above, moving in parallel.
+"First a duet high and low" = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4 ; do nod
+gruff: "I sing low beneath the floor" = 0 -1 -3 -1 0 2 0/2 | I 4, IV 4
+  + chip: "I sing high above the door" = 7 6 4 6 7 9 7/2
+gruff: "Low and high we meet halfway" = 0 2 4 2 0 -1 0/2 | IV 4, I 4
+  + chip: "High and low we meet halfway" = 7 5 4 5 7 8 7/2
+
+[duet, call and answer]
+"Now a duet call and reply" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do tilt
+vee: "Is it twice" = 4 5 7/2 | I 4
+tabby: "Yes it's twice" = 7 5 4/2 | V 4
+vee: "Is it bright" = 4 5 7/2 | IV 4
+tabby: "Shining bright" = 7 5 4/2 | I 4 ; do nod
+
+[trio, one after another]
+# Watt starts, Clank joins two beats in, Zap four beats in.
+"Now a trio three in a row" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do nod
+pip: "Plug it in and turn it on" = 0 2 4 5 4 2 0/2 | I 4, V 4
+  + clank @2: "Turn it on and wait" = 0 2 4 2 0/2
+  + zap @4: "Click it on" = 7 5 4/2
+pip: "Three of us all humming now" = 4 5 4 2 4 2 0/2 | IV 4, I 4 ; do gasp
+  + clank @2: "Humming now" = 0 -1 0/4
+  + zap @4: "Click click click" = 7 7 7/2

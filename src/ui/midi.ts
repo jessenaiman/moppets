@@ -4,14 +4,8 @@
  * channels sounds until the last of them lets go. All-notes-off and unplugging release what
  * that input (channel) was holding.
  */
-export type MidiStatus = "off" | "connecting" | "on" | "unsupported" | "denied";
-
-export interface MidiHandlers {
-  noteOn: (note: number, velocity: number) => void;
-  noteOff: (note: number) => void;
-  /** names of the connected inputs (on every change) */
-  inputs: (names: string[]) => void;
-}
+import { midiSupported, type MidiHandlers, type MidiStatus } from "@chimera/ui/midi.ts";
+export { midiSupported, type MidiHandlers, type MidiStatus };
 
 /** A knob or fader (control change), or a note offered to the controller before it plays. */
 export interface MidiControl {
@@ -38,8 +32,6 @@ function offer(c: MidiControl): boolean {
   for (const fn of controlListeners) if (fn(c)) taken = true;
   return taken;
 }
-
-export const midiSupported = (): boolean => typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function";
 
 let handlers: MidiHandlers | null = null;
 let access: MIDIAccess | null = null;

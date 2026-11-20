@@ -35,7 +35,7 @@ export function shapeGesture(g: Gesture, v: MoppetVoice, nasal: boolean): Gestur
   if (vibrato !== undefined) targets.vibrato = vibrato * scale;
   if (g.label && VOWEL.test(g.label)) {
     if (targets.root !== undefined) targets.root = Math.max(-1, Math.min(1, targets.root + (v.artic.root || 0)));
-    if (nasal && targets.velum !== undefined) targets.velum = v.artic.velum;
+    if (nasal) targets.velum = v.artic.velum;
   }
   return { ...g, targets };
 }

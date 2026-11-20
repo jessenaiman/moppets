@@ -45,6 +45,8 @@ export const SILENT_POSE: Pose = { open: 0, jaw: 0, round: 0, level: 0, singing:
 
 /** Quiet floor below which a singer counts as resting (the telemetry's RMS of the stem). */
 const SINGING_RMS = 0.012;
+/** Mouth-open threshold shared by the stage sprite swap and telemetry tests. */
+export const MOUTH_OPEN_THRESHOLD = 0.2;
 
 export function poseFromRecord(rec: Float32Array, at = 0): Pose {
   const jaw = rec[at + JAW], lipAp = rec[at + LIP_AP], lipProt = rec[at + LIP_PROT], rms = rec[at + TELE.outRms];

@@ -27,25 +27,28 @@ const W = 480, H = 600, FPS = 24, REST = { x: 240, y: 570 };
 /** The cel is 384 × 512 and its feet are 96 % of the way down (the stage's transform-origin). */
 const CEL = { w: 384, h: 512, feet: 492 };
 
-type Key = [frame: number, dx: number, dy: number, sx: number, sy: number, rot: number];
+type Key = [frame: number, dx: number, dy: number, sx: number, sy: number, rot: number, headRot?: number];
 /**
  * The first draft of each gesture: keys at frames relative to the clip's start (offsets in stage
- * px from rest, scales in %), eased with `ease` between keys. Each ends where it began.
+ * px from rest, scales in %, body rot and independent headRot in degrees), eased with `ease`
+ * between keys. Each ends where it began.
  */
 const DRAFT: { name: string; frames: number; ease: string; keys: Key[] }[] = [
   // a belly laugh: three squashed bounces, rocking side to side
-  { name: "laugh", frames: 26, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0], [3, 0, -14, 96, 106, -4], [6, 0, 0, 106, 92, 0], [9, 0, -12, 96, 105, 4], [12, 0, 0, 105, 93, 0], [15, 0, -10, 97, 104, -3], [18, 0, 0, 104, 95, 0], [25, 0, 0, 100, 100, 0]] },
+  { name: "laugh", frames: 26, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0, 0], [3, 0, -14, 96, 106, -3, -8], [6, 0, 0, 106, 92, 0, 4], [9, 0, -12, 96, 105, 3, 8], [12, 0, 0, 105, 93, 0, -4], [15, 0, -10, 97, 104, -2, -6], [18, 0, 0, 104, 95, 0, 2], [25, 0, 0, 100, 100, 0, 0]] },
   // a shrug: shoulders up and a little head tilt, held, then a drop
-  { name: "shrug", frames: 22, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0], [5, 0, -6, 97, 107, -5], [13, 0, -6, 97, 107, -5], [17, 0, 2, 103, 96, 0], [21, 0, 0, 100, 100, 0]] },
+  { name: "shrug", frames: 22, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0, 0], [5, 0, -6, 97, 107, -3, -10], [13, 0, -6, 97, 107, -3, -10], [17, 0, 2, 103, 96, 0, 2], [21, 0, 0, 100, 100, 0, 0]] },
   // a gasp: a jolt upward and a lean back, then it settles. Kept inside the stage's headroom
   // (a 112 % stretch with an 18 px lift put the head ~45 px above the cel on a front-row puppet)
-  { name: "gasp", frames: 20, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0], [3, 0, -8, 95, 105, -9], [10, 0, -4, 97, 103, -6], [19, 0, 0, 100, 100, 0]] },
-  // a nod: two dips forward
-  { name: "nod", frames: 18, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0], [4, 0, 3, 101, 98, 7], [8, 0, 0, 100, 100, 0], [12, 0, 3, 101, 98, 7], [17, 0, 0, 100, 100, 0]] },
+  { name: "gasp", frames: 20, ease: "CubicOut", keys: [[0, 0, 0, 100, 100, 0, 0], [3, 0, -8, 95, 105, -6, -12], [10, 0, -4, 97, 103, -4, -8], [19, 0, 0, 100, 100, 0, 0]] },
+  // a nod: two crisp head dips forward with subtle body dip
+  { name: "nod", frames: 18, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0, 0], [4, 0, 2, 101, 98, 2.5, 14], [8, 0, 0, 100, 100, 0, 0], [12, 0, 2, 101, 98, 2.5, 14], [17, 0, 0, 100, 100, 0, 0]] },
   // a question: a slow head-cock, held while it waits
-  { name: "tilt", frames: 30, ease: "Smooth", keys: [[0, 0, 0, 100, 100, 0], [7, 0, -2, 99, 102, -11], [22, 0, -2, 99, 102, -11], [29, 0, 0, 100, 100, 0]] },
+  { name: "tilt", frames: 30, ease: "Smooth", keys: [[0, 0, 0, 100, 100, 0, 0], [7, 0, -2, 99, 102, -3.5, -15], [22, 0, -2, 99, 102, -3.5, -15], [29, 0, 0, 100, 100, 0, 0]] },
   // a bow from the feet, with a little anticipation back first
-  { name: "bow", frames: 32, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0], [4, 0, 0, 100, 102, -4], [12, 0, 4, 100, 94, 24], [22, 0, 4, 100, 94, 24], [31, 0, 0, 100, 100, 0]] },
+  { name: "bow", frames: 32, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0, 0], [4, 0, 0, 100, 102, -4, -6], [12, 0, 4, 100, 94, 22, 14], [22, 0, 4, 100, 94, 22, 14], [31, 0, 0, 100, 100, 0, 0]] },
+  // a cheer: two energetic celebratory bounces
+  { name: "cheer", frames: 24, ease: "QuadInOut", keys: [[0, 0, 0, 100, 100, 0, 0], [4, 0, -14, 96, 106, -4, -8], [8, 0, 0, 104, 95, 0, 3], [13, 0, -12, 96, 105, 4, 8], [18, 0, 0, 103, 96, 0, 0], [23, 0, 0, 100, 100, 0, 0]] },
 ];
 
 function cli(args: string[]): string {
@@ -78,26 +81,33 @@ async function author(): Promise<void> {
   // the bitmap inside the symbol moves so the feet sit on its registration point
   const saved = JSON.parse(readFileSync(DOC, "utf8"));
   const bitmap = saved.document.library.find((x: { id: number }) => x.id === symbol).timeline.layers[0].keyframes[0].elements[0].id;
-  const steps: { cmd: string; params: object }[] = [
+  const setup = run(DOC, [
     { cmd: "layer.rename", params: { layer, name: "moppet" } },
     { cmd: "layer.rename", params: { layer: labels, name: "gestures" } },
     { cmd: "symbol.edit", params: { symbol } },
     { cmd: "element.select", params: { ids: [bitmap] } },
     { cmd: "element.set_transform", params: { x: -CEL.w / 2, y: -CEL.feet } },
     { cmd: "symbol.exit", params: {} },
-  ];
-  steps.push({ cmd: "element.select", params: { ids: [instance] } }, { cmd: "element.set_transform", params: { x: REST.x, y: REST.y } });
-  steps.push({ cmd: "timeline.insert_frame", params: { layers: [layer, labels], frame: 0, count: total - 1 } });
+    { cmd: "element.select", params: { ids: [instance] } },
+    { cmd: "element.set_transform", params: { x: REST.x, y: REST.y } },
+    { cmd: "layer.new", params: { name: "head" } },
+    { cmd: "library.place", params: { symbol, x: REST.x, y: REST.y } },
+    { cmd: "element.set_transform", params: { x: REST.x, y: REST.y } },
+  ], DOC) as unknown[];
+  const headLayer = (setup[8] as { layer: number }).layer;
+  const steps: { cmd: string; params: object }[] = [];
+  steps.push({ cmd: "timeline.insert_frame", params: { layers: [layer, headLayer, labels], frame: 0, count: total - 1 } });
   let at = 0;
   for (const g of DRAFT) {
-    if (at) steps.push({ cmd: "timeline.insert_keyframe", params: { layers: [layer, labels], frame: at } });
+    if (at) steps.push({ cmd: "timeline.insert_keyframe", params: { layers: [layer, headLayer, labels], frame: at } });
     steps.push({ cmd: "timeline.set_label", params: { label: g.name, layer: labels, frame: at } });
     at += g.frames;
   }
   at = 0;
   for (const g of DRAFT) {
     steps.push({ cmd: "timeline.create_motion_tween", params: { layer, frame: at } });
-    for (const [f, dx, dy, sx, sy, rot] of g.keys) {
+    steps.push({ cmd: "timeline.create_motion_tween", params: { layer: headLayer, frame: at } });
+    for (const [f, dx, dy, sx, sy, rot, headRot = 0] of g.keys) {
       const frame = at + f;
       steps.push(
         { cmd: "motion.set_key", params: { layer, frame, property: "x", value: REST.x + dx } },
@@ -105,9 +115,13 @@ async function author(): Promise<void> {
         { cmd: "motion.set_key", params: { layer, frame, property: "scale_x", value: sx } },
         { cmd: "motion.set_key", params: { layer, frame, property: "scale_y", value: sy } },
         { cmd: "motion.set_key", params: { layer, frame, property: "rotation", value: rot } },
+        { cmd: "motion.set_key", params: { layer: headLayer, frame, property: "rotation", value: headRot } },
       );
     }
-    for (const [f] of g.keys.slice(0, -1)) steps.push({ cmd: "motion.set_ease", params: { layer, frame: at + f + 1, easing: g.ease } });
+    for (const [f] of g.keys.slice(0, -1)) {
+      steps.push({ cmd: "motion.set_ease", params: { layer, frame: at + f + 1, easing: g.ease } });
+      steps.push({ cmd: "motion.set_ease", params: { layer: headLayer, frame: at + f + 1, easing: g.ease } });
+    }
     at += g.frames;
   }
   run(DOC, steps, DOC);
@@ -122,25 +136,31 @@ interface Info {
 function sample(): void {
   const info = (run(DOC, [{ cmd: "doc.info", params: {} }]) as Info[])[0];
   const moppet = info.layers.find((l) => l.name === "moppet");
+  const head = info.layers.find((l) => l.name === "head");
   if (!moppet || !info.layers.some((l) => l.name === "gestures")) throw new Error(`${DOC} needs a "moppet" layer and a "gestures" layer of labels`);
   // frame labels live in the saved document (doc.info lists keyframes without them)
   const raw = JSON.parse(readFileSync(DOC, "utf8"));
   const labelLayer = raw.document.scenes[0].timeline.layers.find((l: { name: string }) => l.name === "gestures");
   const spans: { name: string; start: number; frames: number }[] = labelLayer.keyframes.filter((k: { label: string }) => k.label).map((k: { label: string; start: number; duration: number }) => ({ name: k.label, start: k.start, frames: k.duration }));
-  const steps = spans.flatMap((s) => Array.from({ length: s.frames }, (_, f) => ({ cmd: "motion.info", params: { layer: moppet.id, frame: s.start + f } })));
-  const values = (run(DOC, steps) as { values: Record<string, number> }[]).map((r) => r.values);
+  const moppetSteps = spans.flatMap((s) => Array.from({ length: s.frames }, (_, f) => ({ cmd: "motion.info", params: { layer: moppet.id, frame: s.start + f } })));
+  const values = (run(DOC, moppetSteps) as { values: Record<string, number> }[]).map((r) => r.values);
+  const headValues = head
+    ? (run(DOC, spans.flatMap((s) => Array.from({ length: s.frames }, (_, f) => ({ cmd: "motion.info", params: { layer: head.id, frame: s.start + f } })))) as { values: Record<string, number> }[]).map((r) => r.values)
+    : [];
   const clips: Record<string, number[][]> = {};
   let k = 0;
   for (const s of spans) {
     const rows: number[][] = [];
     for (let f = 0; f < s.frames; f++) {
-      const v = values[k++];
+      const v = values[k];
+      const h = headValues[k];
+      k++;
       const r = (n: number) => +n.toFixed(4);
-      rows.push([r((v.x - REST.x) / CEL.h), r((v.y - REST.y) / CEL.h), r(v.scale_x / 100), r(v.scale_y / 100), r(v.rotation)]);
+      rows.push([r((v.x - REST.x) / CEL.h), r((v.y - REST.y) / CEL.h), r(v.scale_x / 100), r(v.scale_y / 100), r(v.rotation), r(h?.rotation ?? 0)]);
     }
     clips[s.name] = rows;
   }
-  writeFileSync(OUT, JSON.stringify({ source: DOC, fps: info.stage.fps, columns: ["dx", "dy", "sx", "sy", "rot"], clips }, null, 1) + "\n");
+  writeFileSync(OUT, JSON.stringify({ source: DOC, fps: info.stage.fps, columns: ["dx", "dy", "sx", "sy", "rot", "headRot"], clips }, null, 1) + "\n");
   for (const s of spans) cli(["gif", DOC, "--out", `out/gestures/${s.name}.gif`, "--from", String(s.start + 1), "--to", String(s.start + s.frames), "--scale", "0.5", "--overwrite", "yes"]);
   console.log(`wrote ${OUT}: ${spans.map((s) => `${s.name} ${s.frames}f`).join(", ")} · GIFs in out/gestures/`);
 }

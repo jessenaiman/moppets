@@ -65,6 +65,35 @@ const spread = (n: number, from: number, to: number) => Array.from({ length: n }
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 const LEFT = 0.09, RIGHT = 0.91;
 
+/** Keep horizontal spacing >= `minGap` within `[lo, hi]` so puppets & name tags never stack. */
+export function enforceSeparation<T extends { x: number }>(items: readonly T[], minGap: number, lo = LEFT, hi = RIGHT): void {
+  const n = items.length;
+  if (n < 2) return;
+  const maxFeasible = (hi - lo) / (n - 1);
+  const gap = Math.min(minGap, maxFeasible * 0.98);
+  const order = items.map((_, i) => i).sort((a, b) => items[a].x - items[b].x);
+  for (let k = 1; k < n; k++) {
+    const prev = items[order[k - 1]].x;
+    if (items[order[k]].x < prev + gap) items[order[k]].x = prev + gap;
+  }
+  const last = order[n - 1];
+  if (items[last].x > hi) {
+    items[last].x = hi;
+    for (let k = n - 2; k >= 0; k--) {
+      const next = items[order[k + 1]].x;
+      if (items[order[k]].x > next - gap) items[order[k]].x = next - gap;
+    }
+  }
+  const first = order[0];
+  if (items[first].x < lo) {
+    items[first].x = lo;
+    for (let k = 1; k < n; k++) {
+      const prev = items[order[k - 1]].x;
+      if (items[order[k]].x < prev + gap) items[order[k]].x = prev + gap;
+    }
+  }
+}
+
 interface Target {
   x: number;
   depth: number;
@@ -86,13 +115,13 @@ const wave = (beat: number, i: number) => {
 function onStage(c: Cue, ids: readonly string[], current: readonly Actor[]): Target[] {
   const n = ids.length;
   const home = spread(n, LEFT, RIGHT);
-  if (c.still) return home.map((x) => ({ x, depth: 0, face: 1, hop: 0, lean: 0, bubble: null }));
+  if (c.still) return home.map((x, i) => ({ x, depth: 0, face: 1, hop: 0, lean: 0, bubble: c.talk?.[i] ?? null }));
   const featured = ids.map((_, i) => i).filter((i) => c.featured[i]);
   const k = featured.length;
   if (k === 0 || k >= n - 1) {
     // a breath: a loose huddle facing the middle; the whole choir: one line, a wave of hops each bar
     const all = k > 0;
-    return home.map((x, i) => ({ x, depth: all ? 0 : 0.3, face: all ? 1 : x < 0.5 ? 1 : -1, hop: all ? wave(c.beat, i) * 0.6 : 0, lean: 0, bubble: null }));
+    return home.map((x, i) => ({ x, depth: all ? 0 : 0.3, face: all ? 1 : x < 0.5 ? 1 : -1, hop: all ? wave(c.beat, i) * 0.6 : 0, lean: 0, bubble: c.talk?.[i] ?? null }));
   }
   // the featured singers downstage centre, the rest upstage watching them
   const gap = Math.min(0.2, 0.7 / k);
@@ -100,7 +129,7 @@ function onStage(c: Cue, ids: readonly string[], current: readonly Actor[]): Tar
   const back = spread(n - k, LEFT, RIGHT);
   const centre = front.reduce((a, b) => a + b, 0) / k;
   let f = 0, b = 0;
-  return ids.map((_, i) => {
+  const targets = ids.map((_, i) => {
     if (c.featured[i]) {
       const x = front[f++];
       const face = k === 2 ? (f === 1 ? 1 : -1) : k === 1 ? 1 : x <= centre ? 1 : -1;
@@ -109,25 +138,37 @@ function onStage(c: Cue, ids: readonly string[], current: readonly Actor[]): Tar
     const x = back[b++];
     // each watcher looks at the nearest singer, as it actually stands now
     const near = featured.reduce((best, j) => (Math.abs(current[j].x - x) < Math.abs(current[best].x - x) ? j : best), featured[0]);
-    return { x, depth: 0.85, face: current[near].x >= x ? 1 : -1, hop: 0, lean: 0, bubble: null };
+    return { x, depth: 0.72, face: current[near].x >= x ? 1 : -1, hop: 0, lean: 0, bubble: c.talk?.[i] ?? null };
   });
+  enforceSeparation(targets, 0.115, LEFT, RIGHT);
+  return targets;
 }
 
-/** At rest: everyone wanders, and every nine seconds two of them meet in the middle for a chat. */
+/** At rest: everyone sways gently in their stage lane, and every nine seconds neighboring peers chat without crowding. */
 function atRest(c: Cue, ids: readonly string[]): Target[] {
   const n = ids.length;
-  if (c.still) return spread(n, LEFT, RIGHT).map((x) => ({ x, depth: 0, face: 1, hop: 0, lean: 0, bubble: null }));
-  const out: Target[] = ids.map((_, i) => {
+  const home = spread(n, LEFT, RIGHT);
+  if (c.still) return home.map((x) => ({ x, depth: 0, face: 1, hop: 0, lean: 0, bubble: null }));
+  const out: Target[] = home.map((hx, i) => {
     const epoch = Math.floor((c.now + i * 2.3) / 6);
-    return { x: LEFT + (RIGHT - LEFT) * hash(i, epoch), depth: 0.75 * hash(i + 50, epoch), face: NaN, hop: 0, lean: 0, bubble: null };
+    const drift = (hash(i, epoch) - 0.5) * 0.065;
+    return {
+      x: clamp(hx + drift, LEFT, RIGHT),
+      depth: 0.06 + 0.18 * hash(i + 50, epoch),
+      face: Math.abs(drift) > 0.008 ? Math.sign(drift) : 1,
+      hop: 0,
+      lean: 0,
+      bubble: null,
+    };
   });
   if (n < 2) return out;
   const m = Math.floor(c.now / 9), t = c.now - m * 9;
   if (t > 0.5 && t < 7.5) {
-    const a = Math.floor(hash(99, m) * n), b = (a + 1 + Math.floor(hash(98, m) * (n - 1))) % n;
-    const mx = 0.3 + 0.4 * hash(97, m);
-    out[a] = { x: mx - 0.08, depth: 0.15, face: 1, hop: 0, lean: 0, bubble: null };
-    out[b] = { x: mx + 0.08, depth: 0.15, face: -1, hop: 0, lean: 0, bubble: null };
+    const a = Math.floor(hash(99, m) * (n - 1));
+    const b = a + 1;
+    const mx = (home[a] + home[b]) * 0.5;
+    out[a] = { x: mx - 0.064, depth: 0.08, face: 1, hop: 0, lean: 0, bubble: null };
+    out[b] = { x: mx + 0.064, depth: 0.08, face: -1, hop: 0, lean: 0, bubble: null };
     const say = (who: number, from: number) => {
       const s = t - from;
       if (s < 0 || s > 1.7) return;
@@ -139,6 +180,7 @@ function atRest(c: Cue, ids: readonly string[]): Target[] {
     say(a, 2.4);
     say(b, 4.4);
   }
+  enforceSeparation(out, 0.12, LEFT, RIGHT);
   return out;
 }
 
@@ -163,13 +205,13 @@ export class Choreographer {
       const t = c.now - poke.at, p = poke.index, me = targets[p];
       me.hop = t < 0.8 ? Math.abs(Math.sin((Math.PI * t) / 0.4)) : 0;
       if (t < 0.8) Object.assign(me, { face: Math.cos((2 * Math.PI * t) / 0.8), snap: true });
-      me.bubble = t > 0.3 ? HELLO[poke.index % HELLO.length] : null;
+      if (!me.bubble) me.bubble = t > 0.3 ? HELLO[poke.index % HELLO.length] : null;
       targets.forEach((o, i) => {
         if (i !== p && !(c.playing && c.featured[i])) o.face = this.actors[p].x >= this.actors[i].x ? 1 : -1;
       });
     }
     const w = 3.2, wd = 3, maxV = 0.45;
-    return this.actors.map((a, i) => {
+    this.actors.forEach((a, i) => {
       const t = targets[i];
       // critically damped spring: slow in, slow out, no overshoot
       this.vx[i] = clamp(this.vx[i] + (w * w * (t.x - a.x) - 2 * w * this.vx[i]) * dt, -maxV, maxV);
@@ -178,12 +220,20 @@ export class Choreographer {
       a.depth = clamp(a.depth + this.vd[i] * dt, 0, 1);
       a.walking = Math.abs(this.vx[i]) > 0.03 || Math.abs(this.vd[i]) > 0.06;
       const want = Number.isNaN(t.face) ? (Math.abs(this.vx[i]) > 0.02 ? Math.sign(this.vx[i]) : Math.sign(a.face) || 1) : t.face;
-      a.face = t.snap ? want : a.face + clamp(want - a.face, -7 * dt, 7 * dt);
+      const wantSign = want >= 0 ? 1 : -1;
+      if (t.snap) {
+        a.face = Math.abs(want) < 0.35 ? wantSign * 0.35 : want;
+      } else {
+        const next = a.face + clamp(wantSign - a.face, -7 * dt, 7 * dt);
+        // Never dwell near scaleX(0) while turning, which squashes sprites into vertical slivers
+        a.face = Math.abs(next) < 0.84 ? wantSign * 0.84 : next;
+      }
       a.hop = t.hop;
       a.lean += (t.lean - a.lean) * Math.min(1, 8 * dt);
       a.bubble = t.bubble;
-      return a;
     });
+    if (!c.still) enforceSeparation(this.actors, 0.11, LEFT, RIGHT);
+    return this.actors;
   }
 }
 

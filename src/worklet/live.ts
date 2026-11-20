@@ -13,7 +13,7 @@
  */
 import { writeGestures } from "@chimera/wasm/wire.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
-import { ARTIC_KEYS, SOURCE_KEYS } from "../choir/singerCore.ts";
+import { ARTIC_KEYS, SOURCE_KEYS, TELE_HEADER } from "../choir/singerCore.ts";
 
 declare function registerProcessor(name: string, ctor: unknown): void;
 declare class AudioWorkletProcessor {
@@ -43,7 +43,6 @@ export interface FromLive {
 type Fn = (...a: number[]) => number;
 type X = { memory: WebAssembly.Memory } & Record<string, Fn>;
 const POST_EVERY = 6; // quanta between poses (~16 ms)
-const TELE_HEADER = 16;
 
 class LiveMoppet extends AudioWorkletProcessor {
   private readonly x: X;
@@ -56,7 +55,7 @@ class LiveMoppet extends AudioWorkletProcessor {
     this.port.onmessage = (e: MessageEvent<ToLive>) => this.on(e.data);
   }
 
-  private patch(keys: string[], values: Record<string, number>): void {
+  private patch(keys: readonly string[], values: Record<string, number>): void {
     const v = new Float64Array(this.x.memory.buffer, this.x.moppet_values(this.h), 32).fill(NaN);
     for (const [k, n] of Object.entries(values)) {
       const i = keys.indexOf(k);

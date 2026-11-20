@@ -1,0 +1,796 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Player, type PlayerRef } from "@remotion/player";
+import { Screen } from "@chimera/ui/components/Screen.tsx";
+import { useAudio } from "../audio/audio.ts";
+import { exportWav } from "../choir/ensemble.ts";
+import { MoppetComposition } from "../remotion/MoppetComposition.tsx";
+import { SKITS } from "../choir/skits.ts";
+import { SONGBOOK } from "../choir/songbook.ts";
+import { useMoppet, type Lesson } from "../choir/store.ts";
+import { AVAILABLE_CLIP_MANIFESTS } from "../choir/clipTimeline.ts";
+import { useController } from "../choir/controller.ts";
+import { midiBytes } from "../choir/midi.ts";
+import { midiSupported } from "./midi.ts";
+import { STUDIO_404_CAST } from "../choir/studio404.ts";
+import {
+  buildVideoProject,
+  compositionDimensions,
+  lessonSlug,
+  totalDurationFrames,
+  type AspectMode,
+  type MoppetVideoProps,
+  type VideoBubbleClip,
+} from "../choir/videoProject.ts";
+
+type Selection =
+  | { kind: "stage" }
+  | { kind: "intro" }
+  | { kind: "outro" }
+  | { kind: "bubble"; id: string };
+
+interface BridgeAssets {
+  slug: string;
+  hasAudio: boolean;
+  audioUrl: string | null;
+  exports: { file: string; url: string }[];
+}
+
+interface BridgeJob {
+  id: number;
+  kind: "render" | null;
+  status: "idle" | "running" | "done" | "error";
+  progress: number;
+  message: string;
+  outputUrl: string | null;
+  error: string | null;
+}
+
+const BUBBLE_PRESETS: { label: string; bg: string; fg: string; color: string }[] = [
+  { label: "Velvet Glass", bg: "rgba(20, 12, 15, 0.88)", fg: "#f8efe2", color: "#57d3e8" },
+  { label: "Neon Cyan", bg: "rgba(14, 22, 28, 0.88)", fg: "#f4fbff", color: "#57d3e8" },
+  { label: "Stage Gold", bg: "rgba(24, 18, 12, 0.88)", fg: "#fff8ec", color: "#e3bd7f" },
+  { label: "Studio Teal", bg: "rgba(12, 24, 21, 0.88)", fg: "#f2fff9", color: "#3fbfa0" },
+  { label: "Tally Ember", bg: "rgba(28, 13, 12, 0.90)", fg: "#fff5f2", color: "#e06a4f" },
+];
+
+const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
+
+export function VideoStudio({ onBack }: { onBack?: () => void }) {
+  const lesson = useMoppet((s) => s.lesson);
+  const setLesson = useMoppet((s) => s.setLesson);
+  const freshSkit = useMoppet((s) => s.freshSkit);
+  const piece = useMoppet((s) => s.piece);
+  const voices = useMoppet((s) => s.voices);
+  const studio404 = useMoppet((s) => s.studio404);
+  const singMidi = useMoppet((s) => s.singMidi);
+  const midi = useController((s) => s.midi);
+  const setMidi = useController((s) => s.setMidi);
+  const midiFileRef = useRef<HTMLInputElement | null>(null);
+  const prevSlugRef = useRef<string | null>(null);
+  const pieceSignature = useMemo(() => JSON.stringify({ piece, voices }), [piece, voices]);
+  const [synthSignature, setSynthSignature] = useState<string | null>(null);
+  const audioStale = synthSignature !== pieceSignature;
+
+  const playerRef = useRef<PlayerRef>(null);
+  const [project, setProject] = useState<MoppetVideoProps>(() => buildVideoProject(piece, voices, studio404));
+  const [selection, setSelection] = useState<Selection>({ kind: "stage" });
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [zoom, setZoom] = useState<1 | 2>(1);
+  const [bridgeOn, setBridgeOn] = useState(false);
+  const [assets, setAssets] = useState<BridgeAssets | null>(null);
+  const [job, setJob] = useState<BridgeJob | null>(null);
+
+  const slug = useMemo(() => lessonSlug(piece.title), [piece.title]);
+
+  const refreshAssets = useCallback(async (targetSlug: string) => {
+    if (!import.meta.env.DEV) return null;
+    try {
+      const r = await fetch(`/__video/assets?slug=${encodeURIComponent(targetSlug)}`);
+      if (!r.ok) return null;
+      const data = (await r.json()) as BridgeAssets;
+      setAssets(data);
+      return data;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    fetch("/__video/ping").then((r) => setBridgeOn(r.status === 204), () => setBridgeOn(false));
+  }, []);
+
+  useEffect(() => {
+    const next = buildVideoProject(piece, voices, studio404);
+    const slugChanged = prevSlugRef.current !== next.slug;
+    prevSlugRef.current = next.slug;
+    setSynthSignature(null);
+    setProject(next);
+    setSelection(next.bubbles.length ? { kind: "bubble", id: next.bubbles[0].id } : { kind: "stage" });
+    setCurrentFrame(0);
+    if (import.meta.env.DEV) {
+      void refreshAssets(next.slug).then((a) => {
+        if (!a) return;
+        setProject((cur) => {
+          if (cur.slug !== next.slug) return cur;
+          const attachAudio = slugChanged && Boolean(a.audioUrl);
+          if (attachAudio) setSynthSignature(pieceSignature);
+          return {
+            ...cur,
+            audioUrl: attachAudio ? a.audioUrl : cur.audioUrl,
+          };
+        });
+      });
+    }
+  }, [piece, voices, studio404, refreshAssets, pieceSignature]);
+
+  useEffect(() => {
+    const p = playerRef.current;
+    if (!p) return;
+    const onFrame = (e: { detail: { frame: number } }) => setCurrentFrame(e.detail.frame);
+    p.addEventListener("frameupdate", onFrame);
+    return () => p.removeEventListener("frameupdate", onFrame);
+  }, [project.aspect, project.fps]);
+
+  useEffect(() => {
+    if (!bridgeOn || job?.status !== "running") return;
+    const t = setInterval(() => {
+      void fetch("/__video/job")
+        .then((r) => (r.ok ? (r.json() as Promise<BridgeJob>) : null))
+        .then((next) => {
+          if (!next) return;
+          setJob(next);
+          if (next.status === "done") {
+            void refreshAssets(slug).then((a) => {
+              if (!a) return;
+              setProject((cur) => ({ ...cur, audioUrl: a.audioUrl }));
+            });
+          }
+        });
+    }, 650);
+    return () => clearInterval(t);
+  }, [bridgeOn, job?.status, refreshAssets, slug]);
+
+  const dims = compositionDimensions(project.aspect);
+  const totalFrames = totalDurationFrames(project);
+  const fps = Math.max(1, project.fps || 30);
+  const introSec = project.intro.enabled ? Math.max(0.4, project.intro.durationSec) : 0;
+  const outroSec = project.outro.enabled ? Math.max(0.4, project.outro.durationSec) : 0;
+  const totalSec = introSec + project.stageDurationSec + outroSec;
+  const curSec = Math.min(totalSec, currentFrame / fps);
+  const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introSec));
+
+  const seekToSec = (sec: number) => {
+    const f = Math.max(0, Math.min(totalFrames - 1, Math.round(sec * fps)));
+    playerRef.current?.seekTo(f);
+    setCurrentFrame(f);
+  };
+
+  const resetFromScore = () => {
+    const next = buildVideoProject(piece, voices, studio404, {
+      aspect: project.aspect,
+      audioUrl: project.audioUrl ?? assets?.audioUrl ?? null,
+    });
+    setProject(next);
+    setSelection(next.bubbles.length ? { kind: "bubble", id: next.bubbles[0].id } : { kind: "stage" });
+  };
+
+  const updateBubble = (id: string, patch: Partial<VideoBubbleClip>) => {
+    setProject((cur) => ({
+      ...cur,
+      bubbles: cur.bubbles.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }));
+  };
+
+  const [synthBusy, setSynthBusy] = useState(false);
+  const blobAudioRef = useRef<string | null>(null);
+  const startAudio = useAudio((s) => s.start);
+
+  useEffect(() => {
+    return () => {
+      if (blobAudioRef.current) URL.revokeObjectURL(blobAudioRef.current);
+    };
+  }, []);
+
+  const synthesizeLiveAudio = async (): Promise<string | null> => {
+    const sig = pieceSignature;
+    setSynthBusy(true);
+    try {
+      const out = await exportWav(startAudio);
+      if (blobAudioRef.current) {
+        URL.revokeObjectURL(blobAudioRef.current);
+        blobAudioRef.current = null;
+      }
+      let nextAudioUrl: string;
+      if (bridgeOn) {
+        const resp = await fetch(`/__video/audio?slug=${encodeURIComponent(slug)}`, {
+          method: "POST",
+          headers: { "content-type": "audio/wav" },
+          body: new Blob([out.bytes as BlobPart], { type: "audio/wav" }),
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = (await resp.json()) as { audioUrl: string };
+        nextAudioUrl = data.audioUrl;
+      } else {
+        const url = URL.createObjectURL(new Blob([out.bytes as BlobPart], { type: "audio/wav" }));
+        blobAudioRef.current = url;
+        nextAudioUrl = url;
+      }
+      setProject((cur) => ({ ...cur, audioUrl: nextAudioUrl }));
+      setSynthSignature(sig);
+      return nextAudioUrl;
+    } catch {
+      return null;
+    } finally {
+      setSynthBusy(false);
+    }
+  };
+
+  const midiOn = midi.status === "on";
+  const downloadScoreMidi = () => {
+    const url = URL.createObjectURL(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${slug}.mid`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const handleMidiFile = async (file?: File | null) => {
+    if (!file) return;
+    singMidi(new Uint8Array(await file.arrayBuffer()));
+  };
+
+  const addBubbleAtPlayhead = () => {
+    const id = `bubble-${Date.now().toString(36)}`;
+    const clip: VideoBubbleClip = {
+      id,
+      speakerId: voices[0]?.id ?? "vee",
+      speaker: studio404 ? (STUDIO_404_CAST[voices[0]?.id ?? "vee"]?.name ?? "Neon") : (voices[0]?.name ?? "Singer"),
+      text: "New Studio 404 caption",
+      startSec: Number(Math.min(Math.max(0, project.stageDurationSec - 1), curStageSec).toFixed(2)),
+      durationSec: 2.2,
+      x: 0.5,
+      y: 0.1,
+      bg: "rgba(20, 12, 15, 0.88)",
+      fg: "#f8efe2",
+      color: "#57d3e8",
+      tail: "down",
+    };
+    setProject((cur) => ({ ...cur, bubbles: [...cur.bubbles, clip] }));
+    setSelection({ kind: "bubble", id });
+    seekToSec(introSec + clip.startSec + 0.1);
+  };
+
+  const duplicateBubble = (src: VideoBubbleClip) => {
+    const id = `bubble-${Date.now().toString(36)}`;
+    const clone: VideoBubbleClip = {
+      ...src,
+      id,
+      startSec: Number(Math.min(project.stageDurationSec - 0.5, src.startSec + 0.5).toFixed(2)),
+      y: Math.min(0.72, Number((src.y + 0.12).toFixed(2))),
+    };
+    setProject((cur) => ({ ...cur, bubbles: [...cur.bubbles, clone] }));
+    setSelection({ kind: "bubble", id });
+  };
+
+  const deleteBubble = (id: string) => {
+    setProject((cur) => ({ ...cur, bubbles: cur.bubbles.filter((b) => b.id !== id) }));
+    setSelection({ kind: "stage" });
+  };
+
+  const triggerRender = async () => {
+    let nextProps = project;
+    if (!nextProps.audioUrl || nextProps.audioUrl.startsWith("blob:") || audioStale) {
+      const uploadedUrl = await synthesizeLiveAudio();
+      if (!uploadedUrl || uploadedUrl.startsWith("blob:")) {
+        setJob({
+          id: 0,
+          kind: "render",
+          status: "error",
+          progress: 0,
+          message: "Audio synthesis failed before render.",
+          outputUrl: null,
+          error: "Could not synthesize and upload CHIMERA WAV mix.",
+        });
+        return;
+      }
+      nextProps = { ...project, audioUrl: uploadedUrl };
+    }
+    const r = await fetch("/__video/render", { method: "POST", body: JSON.stringify({ slug, props: nextProps }) });
+    if (r.ok) setJob((await r.json()) as BridgeJob);
+    else setJob({ id: 0, kind: "render", status: "error", progress: 0, message: "Render failed to start.", outputUrl: null, error: await r.text() });
+  };
+
+  const cancelJob = async () => {
+    const r = await fetch("/__video/cancel", { method: "POST" });
+    if (r.ok) setJob((await r.json()) as BridgeJob);
+  };
+
+  const downloadPropsJson = () => {
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = u;
+    a.download = `${project.slug}-remotion.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(u), 1000);
+  };
+
+  const selectedBubble = selection.kind === "bubble" ? project.bubbles.find((b) => b.id === selection.id) ?? null : null;
+  const activeSelKind: Selection["kind"] = selection.kind === "bubble" && !selectedBubble ? "stage" : selection.kind;
+  const opt = (l: Lesson, label: string) => <option key={l} value={l}>{label}</option>;
+  const pct = (sec: number) => `${((sec / Math.max(0.1, totalSec)) * 100).toFixed(3)}%`;
+
+  return (
+    <Screen className="s-video warm" title="Video Studio" sub="Remotion Workbench">
+      <div className="vs-wrap">
+        <div className="vs-toolbar">
+          <label className="vs-pick">
+            <span>Song / Skit</span>
+            <select aria-label="Video lesson" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
+              <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
+              <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => opt(x.id, x.tab))}</optgroup>
+              <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{freshSkit && opt("newskit", `New: ${freshSkit.title}`)}</optgroup>
+            </select>
+          </label>
+
+          <div className="vs-aspect" role="group" aria-label="Aspect ratio">
+            {(["16:9", "9:16"] as AspectMode[]).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                className={project.aspect === mode ? "on" : ""}
+                aria-pressed={project.aspect === mode}
+                onClick={() => setProject((cur) => ({ ...cur, aspect: mode }))}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className={project.cameraAutoFollow ? "on" : ""}
+            aria-pressed={project.cameraAutoFollow}
+            onClick={() => setProject((cur) => ({ ...cur, cameraAutoFollow: !cur.cameraAutoFollow }))}
+          >
+            {project.cameraAutoFollow ? "Camera: Auto-follow" : "Camera: Wide"}
+          </button>
+
+          <button type="button" disabled={synthBusy} onClick={() => void synthesizeLiveAudio()}>
+            {synthBusy
+              ? "Synthesizing WAV…"
+              : project.audioUrl && !audioStale
+                ? "↻ Refresh CHIMERA Audio"
+                : audioStale && project.audioUrl
+                  ? "↻ Re-sync CHIMERA Audio"
+                  : "🔊 Attach CHIMERA Audio"}
+          </button>
+
+          {/* Occasional tools live in one menu so the toolbar stays a single row. */}
+          <details className="vs-more">
+            <summary>More ▾</summary>
+            <div className="vs-more-menu">
+            <button
+              type="button"
+              className={midiOn ? "on" : ""}
+              aria-pressed={midiOn}
+              disabled={!midiSupported()}
+              onClick={() => setMidi(!midiOn)}
+            >
+              {!midiSupported()
+                ? "MIDI: Needs HTTPS"
+                : midi.status === "denied"
+                  ? "MIDI: Blocked"
+                  : midi.status === "connecting"
+                    ? "MIDI: Connecting…"
+                    : midiOn
+                      ? midi.inputs[0]
+                        ? `MIDI: ${midi.inputs[0]}`
+                        : "MIDI: Ready"
+                      : "Connect MIDI"}
+            </button>
+
+            <input
+              ref={midiFileRef}
+              type="file"
+              accept=".mid,.midi,audio/midi"
+              hidden
+              onChange={(e) => {
+                void handleMidiFile(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+
+            <button type="button" onClick={() => midiFileRef.current?.click()}>
+              ↑ Import .mid
+            </button>
+
+            <button type="button" onClick={downloadScoreMidi}>
+              ↓ Export .mid
+            </button>
+
+            <button type="button" onClick={resetFromScore}>
+              Reset from Score
+            </button>
+
+            <button type="button" onClick={downloadPropsJson}>
+              ↓ Export JSON
+            </button>
+            </div>
+          </details>
+
+          {bridgeOn && (
+            <button type="button" className="primary" disabled={job?.status === "running" || synthBusy} onClick={() => void triggerRender()}>
+              Export MP4
+            </button>
+          )}
+
+          {onBack && (
+            <button type="button" className="vs-back" onClick={onBack}>
+              ← Booth & Stage
+            </button>
+          )}
+        </div>
+
+        {(job && job.status !== "idle") || assets?.exports.length ? (
+          <div className="vs-jobbar" role="status">
+            <span>
+              {job && job.status !== "idle" ? job.message : "Ready for local Remotion MP4 export."}
+              {job?.status === "error" && job.error ? ` (${job.error.slice(0, 120)})` : ""}
+            </span>
+            <span className="vs-job-links">
+              {job?.status === "running" && <button type="button" onClick={() => void cancelJob()}>Cancel</button>}
+              {job?.outputUrl && (
+                <a className="vs-dl" href={job.outputUrl} download>
+                  ↓ Download rendered MP4
+                </a>
+              )}
+              {!job?.outputUrl &&
+                assets?.exports.map((ex) => (
+                  <a key={ex.file} className="vs-dl" href={ex.url} download={ex.file}>
+                    ↓ {ex.file}
+                  </a>
+                ))}
+            </span>
+          </div>
+        ) : null}
+
+        <div className="vs-main">
+          <div className="vs-stage-col">
+            <div className={`vs-player-frame${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay">
+              <Player
+                ref={playerRef}
+                component={MoppetComposition}
+                inputProps={project}
+                durationInFrames={totalFrames}
+                compositionWidth={dims.width}
+                compositionHeight={dims.height}
+                fps={fps}
+                controls
+                clickToPlay
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
+          </div>
+
+          <aside className="vs-inspector" aria-label="Track inspector">
+            <div className="vs-ins-tabs" role="group" aria-label="Inspect layer">
+              <button type="button" className={activeSelKind === "stage" ? "on" : ""} onClick={() => setSelection({ kind: "stage" })}>Stage & Audio</button>
+              <button type="button" className={activeSelKind === "intro" ? "on" : ""} onClick={() => setSelection({ kind: "intro" })}>Intro</button>
+              <button type="button" className={activeSelKind === "outro" ? "on" : ""} onClick={() => setSelection({ kind: "outro" })}>Outro</button>
+              {selectedBubble && <button type="button" className="on" onClick={() => setSelection({ kind: "bubble", id: selectedBubble.id })}>Bubble</button>}
+            </div>
+
+            {selectedBubble ? (
+              <div className="vs-ins-body">
+                <label className="vs-field">
+                  <span>Bubble text</span>
+                  <input
+                    aria-label="Bubble text"
+                    value={selectedBubble.text}
+                    onChange={(e) => updateBubble(selectedBubble.id, { text: e.target.value })}
+                  />
+                </label>
+                <label className="vs-field">
+                  <span>Speaker</span>
+                  <input
+                    aria-label="Bubble speaker"
+                    value={selectedBubble.speaker}
+                    onChange={(e) => updateBubble(selectedBubble.id, { speaker: e.target.value })}
+                  />
+                </label>
+                <div className="vs-two">
+                  <label className="vs-field">
+                    <span>Start (s)</span>
+                    <input
+                      type="number"
+                      step={0.1}
+                      min={0}
+                      max={Math.max(0, project.stageDurationSec - 0.3)}
+                      value={selectedBubble.startSec}
+                      onChange={(e) => updateBubble(selectedBubble.id, { startSec: Math.max(0, Number(e.target.value) || 0) })}
+                    />
+                  </label>
+                  <label className="vs-field">
+                    <span>Length (s)</span>
+                    <input
+                      type="number"
+                      step={0.1}
+                      min={0.3}
+                      max={60}
+                      value={selectedBubble.durationSec}
+                      onChange={(e) => updateBubble(selectedBubble.id, { durationSec: Math.max(0.3, Number(e.target.value) || 0.3) })}
+                    />
+                  </label>
+                </div>
+                <div className="vs-two">
+                  <label className="vs-field">
+                    <span>X ({Math.round(selectedBubble.x * 100)}%)</span>
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={0.9}
+                      step={0.01}
+                      value={selectedBubble.x}
+                      onChange={(e) => updateBubble(selectedBubble.id, { x: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label className="vs-field">
+                    <span>Y ({Math.round(selectedBubble.y * 100)}%)</span>
+                    <input
+                      type="range"
+                      min={0.06}
+                      max={0.78}
+                      step={0.01}
+                      value={selectedBubble.y}
+                      onChange={(e) => updateBubble(selectedBubble.id, { y: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                <div className="vs-two">
+                  <label className="vs-field">
+                    <span>Tail</span>
+                    <select
+                      value={selectedBubble.tail}
+                      onChange={(e) => updateBubble(selectedBubble.id, { tail: e.target.value as VideoBubbleClip["tail"] })}
+                    >
+                      <option value="down">Down pointer</option>
+                      <option value="none">Pill (no tail)</option>
+                    </select>
+                  </label>
+                  <div className="vs-field">
+                    <span>Bubble / Text colors</span>
+                    <div className="vs-colors">
+                      <input type="color" aria-label="Bubble accent color" value={selectedBubble.color} onChange={(e) => updateBubble(selectedBubble.id, { color: e.target.value })} />
+                      <input type="color" aria-label="Bubble text color" value={selectedBubble.fg} onChange={(e) => updateBubble(selectedBubble.id, { fg: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="vs-swatches">
+                  {BUBBLE_PRESETS.map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => updateBubble(selectedBubble.id, { bg: p.bg, fg: p.fg, color: p.color })}
+                      style={{ background: p.bg, color: p.color, borderColor: `${p.color}66` }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="vs-ins-actions">
+                  <button type="button" onClick={() => duplicateBubble(selectedBubble)}>Duplicate</button>
+                  <button type="button" className="danger" onClick={() => deleteBubble(selectedBubble.id)}>Delete</button>
+                </div>
+              </div>
+            ) : activeSelKind === "intro" || activeSelKind === "outro" ? (
+              <div className="vs-ins-body">
+                {(() => {
+                  const key = activeSelKind;
+                  const card = project[key];
+                  const updateCard = (patch: Partial<typeof card>) =>
+                    setProject((cur) => ({ ...cur, [key]: { ...cur[key], ...patch } }));
+                  return (
+                    <>
+                      <label className="vs-check">
+                        <input type="checkbox" checked={card.enabled} onChange={(e) => updateCard({ enabled: e.target.checked })} />
+                        Show {key === "intro" ? "intro title card" : "outro card"}
+                      </label>
+                      <label className="vs-field">
+                        <span>Duration (s)</span>
+                        <input type="number" step={0.1} min={0.4} max={10} value={card.durationSec} onChange={(e) => updateCard({ durationSec: Math.max(0.4, Number(e.target.value) || 0.4) })} />
+                      </label>
+                      <label className="vs-field">
+                        <span>Heading</span>
+                        <input value={card.heading} onChange={(e) => updateCard({ heading: e.target.value })} />
+                      </label>
+                      <label className="vs-field">
+                        <span>Subheading</span>
+                        <input value={card.subheading} onChange={(e) => updateCard({ subheading: e.target.value })} />
+                      </label>
+                      <div className="vs-two">
+                        <label className="vs-field">
+                          <span>Accent</span>
+                          <input type="color" value={card.accent} onChange={(e) => updateCard({ accent: e.target.value })} />
+                        </label>
+                        <label className="vs-field">
+                          <span>Background</span>
+                          <input type="color" value={card.bg} onChange={(e) => updateCard({ bg: e.target.value })} />
+                        </label>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="vs-ins-body">
+                <p className="vs-meta">
+                  Stage engine: <b>Live React ShotcraftStage + EffectCraft VP9 alpha clips ({Object.values(AVAILABLE_CLIP_MANIFESTS).map((m) => m.name).join(", ") || "none"})</b>
+                </p>
+                <p className="vs-meta">
+                  Audio bed: <b>{project.audioUrl ? (audioStale ? "Score updated — will re-sync 48 kHz CHIMERA mix on render" : "48 kHz CHIMERA studio mix attached") : "Visual preview ready — click Attach CHIMERA Audio or Export MP4"}</b>
+                </p>
+                <label className="vs-field">
+                  <span>Audio mix volume ({Math.round(project.audioVolume * 100)}%)</span>
+                  <input type="range" min={0} max={1} step={0.05} value={project.audioVolume} onChange={(e) => setProject((cur) => ({ ...cur, audioVolume: Number(e.target.value) }))} />
+                </label>
+                <label className="vs-check">
+                  <input type="checkbox" checked={project.cameraAutoFollow} onChange={(e) => setProject((cur) => ({ ...cur, cameraAutoFollow: e.target.checked }))} />
+                  Auto-follow soloists (2.5D stage framing)
+                </label>
+              </div>
+            )}
+          </aside>
+        </div>
+
+        <div className="vs-timeline">
+          <div className="vs-tl-head">
+            <span className="vs-time">{fmtSec(curSec)} / {fmtSec(totalSec)}</span>
+            <div className="vs-tl-actions">
+              <div className="vs-zoom" role="group" aria-label="Timeline zoom">
+                {([1, 2] as const).map((z) => (
+                  <button key={z} type="button" className={zoom === z ? "on" : ""} onClick={() => setZoom(z)}>{z}×</button>
+                ))}
+              </div>
+              <button type="button" onClick={addBubbleAtPlayhead}>+ Add Bubble</button>
+            </div>
+          </div>
+
+          <div className="vs-tracks-scroll">
+            <div className="vs-tracks-canvas" style={{ minWidth: zoom === 2 ? "1440px" : "100%" }}>
+              <div className="vs-track-row">
+                <span className="vs-track-label">Time</span>
+                <div
+                  className="vs-track-lane vs-ruler"
+                  role="slider"
+                  aria-label="Seek timeline"
+                  aria-valuemin={0}
+                  aria-valuemax={Number(totalSec.toFixed(1))}
+                  aria-valuenow={Number(curSec.toFixed(1))}
+                  tabIndex={0}
+                  onClick={(e) => {
+                    const box = e.currentTarget.getBoundingClientRect();
+                    const frac = Math.max(0, Math.min(1, (e.clientX - box.left) / Math.max(1, box.width)));
+                    seekToSec(frac * totalSec);
+                  }}
+                >
+                  {Array.from({ length: Math.min(30, Math.ceil(totalSec / 5) + 1) }, (_, idx) => {
+                    const sec = idx * 5;
+                    if (sec >= totalSec) return null;
+                    return (
+                      <span key={sec} className="vs-tick" style={{ left: pct(sec) }}>
+                        {Math.round(sec)}s
+                      </span>
+                    );
+                  })}
+                  <span className="vs-playhead" data-layout="overlay" style={{ left: pct(curSec) }} />
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Cards</span>
+                <div className="vs-track-lane" data-layout="layered">
+                  {project.intro.enabled && (
+                    <button
+                      type="button"
+                      className={`vs-clip vs-clip-card${activeSelKind === "intro" ? " sel" : ""}`}
+                      style={{ left: "0%", width: pct(introSec) }}
+                      onClick={() => {
+                        setSelection({ kind: "intro" });
+                        seekToSec(0.3);
+                      }}
+                    >
+                      <span>Intro: {project.intro.heading}</span>
+                    </button>
+                  )}
+                  {project.outro.enabled && (
+                    <button
+                      type="button"
+                      className={`vs-clip vs-clip-card${activeSelKind === "outro" ? " sel" : ""}`}
+                      style={{ left: pct(introSec + project.stageDurationSec), width: pct(outroSec) }}
+                      onClick={() => {
+                        setSelection({ kind: "outro" });
+                        seekToSec(introSec + project.stageDurationSec + 0.3);
+                      }}
+                    >
+                      <span>Outro: {project.outro.heading}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Stage</span>
+                <div className="vs-track-lane">
+                  <button
+                    type="button"
+                    className={`vs-clip vs-clip-stage${activeSelKind === "stage" ? " sel" : ""}`}
+                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
+                    onClick={() => setSelection({ kind: "stage" })}
+                  >
+                    <span>
+                      Live ShotcraftStage · {project.cameraAutoFollow ? "Auto-follow" : "Wide"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Bubbles ({project.bubbles.length})</span>
+                <div className="vs-track-lane vs-lane-bubbles" data-layout="layered" style={{ height: 60 }}>
+                  {(() => {
+                    const rowEnds = [-1, -1];
+                    return project.bubbles.map((b) => {
+                      const s0 = introSec + b.startSec;
+                      const dur = Math.max(0.8, b.durationSec);
+                      let row = rowEnds.findIndex((end) => s0 >= end + 0.05);
+                      if (row < 0) row = rowEnds[0] <= rowEnds[1] ? 0 : 1;
+                      rowEnds[row] = s0 + dur;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          className={`vs-clip vs-clip-bubble${selectedBubble?.id === b.id ? " sel" : ""}`}
+                          style={{
+                            left: pct(s0),
+                            top: row === 0 ? 4 : 32,
+                            width: pct(dur),
+                            borderLeftColor: b.color,
+                          }}
+                          title={`${b.speaker}: ${b.text}`}
+                          onClick={() => {
+                            setSelection({ kind: "bubble", id: b.id });
+                            seekToSec(introSec + b.startSec + Math.min(0.4, b.durationSec / 2));
+                          }}
+                        >
+                          <span>{b.text}</span>
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Audio</span>
+                <div className="vs-track-lane">
+                  <button
+                    type="button"
+                    className="vs-clip vs-clip-audio"
+                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
+                    onClick={() => setSelection({ kind: "stage" })}
+                  >
+                    <span>{project.audioUrl ? "48 kHz CHIMERA studio mix" : "CHIMERA audio bed (click Attach CHIMERA Audio)"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Screen>
+  );
+}
+
+export default VideoStudio;

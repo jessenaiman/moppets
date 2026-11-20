@@ -11,7 +11,9 @@ export type MixerIn =
   | { type: "clear"; generation: number }
   | { type: "gains"; gains: number[] }
   /** which stem feeds the analysers (the inspected Moppet) */
-  | { type: "solo"; voice: number };
+  | { type: "solo"; voice: number }
+  /** solo a single stem in the main mix output (-1: full mix) */
+  | { type: "soloMix"; voice: number };
 
 export type MixerOut =
   | { type: "pos"; frame: number; contextFrame: number; playing: boolean; underruns: number; underrunFrames: number; load: number; limited: number; peak: number; buffering: boolean; missing: number }

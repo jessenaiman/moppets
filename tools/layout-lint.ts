@@ -289,7 +289,7 @@ async function main() {
     await page.waitForSelector(".s-stage", { timeout: 15000 });
     await check("stage");
     // playing: the stage's speech, notes and labels move
-    await button(/^▶|Play/).click();
+    await page.locator(".moppet-play").first().click();
     await page.waitForFunction(() => (window as unknown as { __choir: { ensemble: { getState(): { status: string } } } }).__choir.ensemble.getState().status === "playing", undefined, { timeout: 30000 });
     await check("stage, playing", 2500);
     await button(/Stop playback/).click();
