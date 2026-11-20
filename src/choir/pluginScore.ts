@@ -39,3 +39,11 @@ export async function scoredStemPath(piece: Piece, track: Track, voice: MoppetVo
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
   return "/scored-vocals/" + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("") + ".ogg";
 }
+
+
+export async function scoredBeatPath(piece: Piece): Promise<string | undefined> {
+  if (piece.title !== "Found Things" || !piece.beat) return;
+  const data = JSON.stringify([1, piece.bpm, pieceSeconds(piece), piece.beat]);
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+  return "/scored-vocals/beat-" + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("") + ".ogg";
+}

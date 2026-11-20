@@ -142,7 +142,7 @@ class Session {
   section: GainSection | undefined;
   planError: string | null = null;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: (Float32Array | null)[]) {
+  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: Awaited<ReturnType<typeof pluginStems>>) {
     sessionsMade++;
     this.sampleRate = ctx.sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
@@ -164,10 +164,10 @@ class Session {
       this.singers.push(s);
       ends.push(this.frames);
     };
-    const plans = piece.tracks.map((track, i) => stems[i] ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
+    const plans = piece.tracks.map((track, i) => stems.vocals[i] ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
     piece.tracks.forEach((track,i)=>{
       const voice=voices.find(v=>v.id===track.id)!;
-      const samples = stems[i];
+      const samples = stems.vocals[i];
       if (!samples) {
         const plan = plans[i]!;
         spawn(i, {sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
@@ -193,6 +193,10 @@ class Session {
       let index = this.singers.length;
       for (const e of extraStems(piece)) {
         if (e === "beat") {
+          if (stems.beat) {
+            spawn(index++, null, null, stems.beat);
+            continue;
+          }
           const b = piece.beat!;
           spawn(index++, null, null, undefined, { sampleRate, frames, hop, beat: { steps: parseBeat(b.text), bpm: piece.bpm, swing: b.swing, startSeconds: start, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } });
         } else {

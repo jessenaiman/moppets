@@ -3,18 +3,35 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { initEngine, wasmModule } from "../tests/harness";
-import { scoredStemPath } from "../src/choir/pluginScore";
+import { scoredBeatPath, scoredStemPath } from "../src/choir/pluginScore";
 await initEngine();
-const { EnglishG2P } = await import("@chimera/wasm/engine.ts");
+const { beatReady, EnglishG2P, parseBeat } = await import("@chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync("public/data/cmudict.txt.gz")).toString());
 const { SONGBOOK } = await import("../src/choir/songbook");
 const { CAST } = await import("../src/choir/voices");
 const { planTrack, pieceSeconds, LEAD_IN, beatSeconds } = await import("../src/choir/plan");
-const { SingerCore, midiToHz, hopFor } = await import("../src/choir/singerCore");
+const { CueCore, SingerCore, midiToHz, hopFor } = await import("../src/choir/singerCore");
 const piece = SONGBOOK.find(s => s.id === "found")!.make();
 const sampleRate = 48000;
 const frames = Math.ceil(pieceSeconds(piece) * sampleRate);
 mkdirSync("public/scored-vocals", {recursive:true});
+
+function writeStem(file: string, samples: Float32Array) {
+  execFileSync("ffmpeg", ["-v","error","-y","-f","f32le","-ar",String(sampleRate),"-ac","1","-i","pipe:0","-c:a","libopus","-b:a","64k",file+".partial.ogg"], {input:Buffer.from(samples.buffer as ArrayBuffer)});
+  renameSync(file+".partial.ogg", file);
+}
+
+const beatPath = await scoredBeatPath(piece);
+if ((!process.argv[2] || process.argv[2] === "beat") && piece.beat && beatPath && !existsSync("public" + beatPath)) {
+  const beat = new CueCore(new WebAssembly.Instance(wasmModule).exports as never, {
+    sampleRate, frames, hop: hopFor(sampleRate),
+    beat: { steps: parseBeat(piece.beat.text), bpm: piece.bpm, swing: piece.beat.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } },
+  });
+  try {
+    while (beat.rendered < frames) beat.step();
+    writeStem("public" + beatPath, beat.stem);
+  } finally { beat.dispose(); }
+}
 for (const track of piece.tracks) {
   if (process.argv[2] && track.id !== process.argv[2]) continue;
   const voice = CAST.find(v => v.id === track.id)!;
@@ -40,8 +57,7 @@ for (const track of piece.tracks) {
         core.stem[i] = preserved[i] * blend + core.stem[i] * (1 - blend);
       }
     }
-    execFileSync("ffmpeg", ["-v","error","-y","-f","f32le","-ar","48000","-ac","1","-i","pipe:0","-c:a","libopus","-b:a","64k",file+".partial.ogg"], {input:Buffer.from(core.stem.buffer as ArrayBuffer)});
-    renameSync(file+".partial.ogg", file);
+    writeStem(file, core.stem);
     console.log(voice.name, file);
   } finally { core.dispose(); }
 }

@@ -17,4 +17,4 @@ In the local app, select a solo, open **Stage tools**, then **Open vocal instrum
 
 The app's former chord-fitting rule altered 1,041 of 3,005 authored note events in this scorebook. The score compiler now preserves the written scale degrees. Whole-part octave placement still assigns the cast's score registers. Incoming keyboard notes use their original MIDI numbers. The regression check is in `tests/songs.test.ts`.
 
-Found Things uses the scored CHIMERA singer for phrase-level consonant timing and the complete cast voice recipes, including tract size. Run `bun tools/render-found-vocals.ts` to build its stock recordings, then `ONLY=14-found bun tools/choir-render.ts out/listen` for the mix. Edited parts use the scored singer workers when their pre-rendered stem is absent.
+Found Things uses the scored CHIMERA singer for phrase-level consonant timing and the complete cast voice recipes, including tract size. Run `bun tools/render-found-vocals.ts` to build its stock vocal and beatbox stems, then `ONLY=14-found bun tools/choir-render.ts out/listen` for the mix. Edited parts use the scored singer workers when their pre-rendered stem is absent.

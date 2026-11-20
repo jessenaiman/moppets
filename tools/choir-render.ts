@@ -6,7 +6,7 @@
 import { gunzipSync } from "node:zlib";
 import { execFileSync } from "node:child_process";
 import { bouncePart } from "./plugin-host.ts";
-import { instrumentPart, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
+import { instrumentPart, scoredBeatPath, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "../tests/harness.ts";
@@ -52,6 +52,14 @@ for (const [name, piece] of Object.entries(pieces)) {
   const backing = renderAccompaniment(piece, FS, frames);
   if (backing) stems.push(backing);
   for (const e of extraStems(piece)) {
+    const path = e === "beat" && await scoredBeatPath(piece);
+    if (path && existsSync("public" + path)) {
+      const raw = execFileSync("ffmpeg", ["-v","error","-i","public" + path,"-ac","1","-ar",String(FS),"-f","f32le","-"], {maxBuffer:frames*4+65536});
+      const pcm = new Float32Array(frames);
+      pcm.set(new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)).subarray(0,frames));
+      stems.push(pcm);
+      continue;
+    }
     const x = new WebAssembly.Instance(wasmModule, {}).exports as never;
     const core = e === "beat" ? new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), beat: { steps: parseBeat(piece.beat!.text), bpm: piece.bpm, swing: piece.beat!.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } }) : new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), creature: { id: e, calls: piece.cameos!.filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) })) } });
     while (core.rendered < frames) core.step();

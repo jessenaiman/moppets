@@ -1,4 +1,4 @@
-import { instrumentPart, partKey, scoredStemPath, type InstrumentPart } from "./pluginScore.ts";
+import { instrumentPart, partKey, scoredBeatPath, scoredStemPath, type InstrumentPart } from "./pluginScore.ts";
 import type { Piece } from "./music.ts";
 import { pieceSeconds } from "./timeline.ts";
 import { CAST, type MoppetVoice } from "./voices.ts";
@@ -29,18 +29,24 @@ async function loadRecording(ctx: AudioContext, key: string, part: InstrumentPar
   return ctx.decodeAudioData(await res.arrayBuffer());
 }
 
+async function scoredRecording(ctx: AudioContext, path: string) {
+  const response = await fetch(path);
+  if (response.status === 404 || response.headers.get("content-type")?.includes("text/html")) return null;
+  if (!response.ok) throw new Error("Could not load the scored audio");
+  return ctx.decodeAudioData(await response.arrayBuffer());
+}
+
 export async function pluginStems(piece: Piece, voices: MoppetVoice[], ctx: AudioContext) {
   const frames = Math.ceil(pieceSeconds(piece)*ctx.sampleRate);
   const playbackVoices = import.meta.env.DEV ? voices : CAST;
-  return Promise.all(piece.tracks.map(async track => {
+  const vocals = Promise.all(piece.tracks.map(async track => {
     if (!track.events.length) return new Float32Array(frames);
     const voice = playbackVoices.find(v => v.id === track.id)!;
     let buffer: AudioBuffer;
     if (piece.title === "Found Things") {
-      const response = await fetch(await scoredStemPath(piece, track, voice));
-      if (response.status === 404 || response.headers.get("content-type")?.includes("text/html")) return null;
-      if (!response.ok) throw new Error("Could not load the scored vocal for " + voice.name);
-      buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+      const recording = await scoredRecording(ctx, await scoredStemPath(piece, track, voice));
+      if (!recording) return null;
+      buffer = recording;
     } else if (piece.kind === "school") {
       // Each invention has its own score and may never have been bounced.
       return null;
@@ -51,4 +57,13 @@ export async function pluginStems(piece: Piece, voices: MoppetVoice[], ctx: Audi
     pcm.set(buffer.getChannelData(0).subarray(0, frames));
     return pcm;
   }));
+  const beat = scoredBeatPath(piece).then(async path => {
+    const buffer = path && await scoredRecording(ctx, path);
+    if (!buffer) return null;
+    const pcm = new Float32Array(frames);
+    pcm.set(buffer.getChannelData(0).subarray(0, frames));
+    return pcm;
+  });
+  const [vocalStems, beatStem] = await Promise.all([vocals, beat]);
+  return { vocals: vocalStems, beat: beatStem };
 }
