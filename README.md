@@ -36,7 +36,7 @@ bun run test       # wasm build, cargo test, bun test ./tests
 ## Public screening page
 
 Vercel serves the static files in `watch/`. The screening page plays rendered MP4s
-through the browser's video player and includes the full Found Things mix. Update
+through the browser's video player and offers all 33 songs and three skits as MP3s. Update
 the media in `watch/` to publish a new screening version. The rehearsal editor runs
 locally with `bun run dev`.
 
