@@ -1040,3 +1040,102 @@
 .performer-volume output {min-width:4ch;font-variant-numeric:tabular-nums;}
 .performer-volume small {color:#dfbb85;}
 .performer-volume button {margin-left:auto;}
+
+/* Stage and music rack — the full desk stays in playing order at every size. */
+.performance-menu,.cast-library,.desk-roll header {display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 9px;}
+.performance-menu {background:#202927;border-bottom:1px solid #566059;}
+.s-stage .performance-menu button,.s-stage .performance-menu select {font-size:11px;padding:4px 7px;max-width:200px;background:#26312c;color:#eee7d6;}
+.cast-library {background:#18211e;display:grid;grid-template-columns:auto repeat(9,minmax(0,1fr));gap:4px;}
+.cast-library>strong {max-width:45px;font:600 12px/1.05 var(--ui);color:#dfd5bc;}
+.s-stage .cast-library button {display:flex;align-items:center;gap:4px;text-align:left;padding:2px 4px;min-width:0;background:#26312c;border-color:#48574f;color:#f1e8d6;}
+.s-stage .cast-library button[aria-pressed=true] {background:#423826;border-color:var(--cast-accent);box-shadow:inset 0 -2px var(--cast-accent);}
+.cast-library button img {width:24px;height:35px;object-fit:contain;}
+.cast-library button b,.cast-library button small {display:block;white-space:normal;font:600 11px/1.1 var(--ui);color:var(--cast-accent);}
+.cast-library button small {font:10px/1.1 var(--ui);color:#eee5d6;}
+.performance-top {background:#17201e;gap:5px;}
+.performance-top .music-rack {margin:0;grid-template-rows:auto minmax(0,1fr) auto;}
+.performance-top .stage {background:#0c1413;}
+.performance-top .moppet-stage-wrap {justify-content:center;background:#0c1413;}
+.rack-chord {fill:#764624;stroke:none;font:bold 14px Georgia,serif;}
+.rack-cursor {stroke:#a76726;stroke-width:1.5;pointer-events:none;}
+.desk-roll {background:#192722;color:#e4ebde;border:1px solid #4a6155;}
+.desk-roll header {padding:2px 8px;}
+.s-stage .desk-roll h2 {font:600 13px var(--ui);margin:0;}
+.desk-roll small {font-size:10px;}
+.s-stage .desk-roll button {padding:2px 6px;font-size:10px;}
+.desk-roll svg {width:100%;height:clamp(54px,8vh,94px);display:block;}
+.desk-roll svg.editing {height:180px;}
+.s-stage .organ-cabinet {background:linear-gradient(#343c36,#222a25);border-color:#6b7667;}
+.s-stage .organ-deck {display:grid;grid-template-columns:minmax(54px,6%) minmax(59px,6%) minmax(0,1fr) minmax(85px,11%);gap:6px;}
+.desk-left-buttons {display:flex;flex-direction:column;gap:2px;justify-content:end;}
+.desk-left-buttons .hw-oct-group {display:flex;flex-direction:column-reverse;gap:2px;}
+.desk-left-buttons .hw-oct-val {display:none;}
+.desk-right-buttons {display:grid;align-content:end;grid-template-columns:1fr 1fr;gap:4px;}
+.s-stage .desk-right-buttons button,.s-stage .desk-left-buttons button {font-size:10px;padding:2px;min-height:17px;white-space:normal;}
+.s-stage .performer-volume {background:transparent;border:0;padding:0;}
+.s-stage .organ-crest {padding:0;}
+.s-stage .organ-controls-bay {display:grid;grid-template-columns:minmax(0,1fr) 50px;gap:2px 5px;}
+.s-stage .organ-drawbar-bank,.desk-pad-modes {grid-column:1;grid-template-columns:repeat(8,minmax(0,1fr));}
+.s-stage .organ-drawbar-bank {padding:1px 2px;background:transparent;border:0;gap:3px;}
+.desk-pad-modes {display:grid;text-align:center;color:#becabd;font:9px var(--ui);}
+.s-stage .organ-pad-matrix {grid-column:1/-1;grid-template-columns:minmax(0,1fr) 50px;}
+.s-stage .organ-pad-grid {grid-template-columns:repeat(8,minmax(0,1fr));gap:3px;}
+.s-stage .lk-pad.organ-stop {min-height:19px;padding:2px;}
+.s-stage .organ-knob-label {font-size:10px;}
+.s-stage .organ-strip-track {min-height:35px;}
+.s-stage .organ-keys {height:clamp(40px,6.5vh,74px);}
+.s-stage .organ-key-legends {display:grid;grid-template-columns:7fr 5fr 4fr 5fr 4fr;gap:3px;padding:2px 4px;}
+.s-stage .organ-key-legends .legend-group {display:block;min-width:0;}
+.s-stage .organ-key-legends .legend-sub {display:block;white-space:normal;color:#d4c8b0;font-size:9px;}
+.s-stage .hide-keys .organ-key-legends {display:none;}
+@media(min-width:901px) {
+ .performance-top {grid-template-columns:1fr 1fr;}
+ .performance-top .sc-stage {max-width:min(100%,max(310px,calc((100dvh - 493px)*1.78)));margin:auto;}
+ .s-stage .transport {padding:4px 8px;gap:7px;}
+ .s-stage .transport button,.s-stage .transport select {padding:4px 7px;min-height:24px;font-size:11px;}
+ .s-stage .organ-drawbar i {height:21px;width:21px;}
+}
+@media(max-width:1000px){.cast-library{grid-template-columns:repeat(5,minmax(0,1fr));}.cast-library>strong{max-width:none;}}
+@media(max-width:650px){
+ .performance-menu{gap:4px}.s-stage .performance-menu select{max-width:150px;}
+ .cast-library {grid-template-columns:repeat(3,minmax(0,1fr));}.cast-library>strong{grid-column:1/-1;}
+ .s-stage .organ-deck {grid-template-columns:60px 1fr 1fr;}
+ .s-stage .organ-controls-bay{grid-column:1/-1;grid-row:2;}
+ .s-stage .desk-left-buttons,.s-stage .desk-right-buttons{display:grid;grid-template-columns:1fr 1fr;gap:3px;align-content:center;}
+ .desk-left-buttons .hw-oct-group{display:contents;}
+ .s-stage .organ-controls-bay,.s-stage .organ-pad-matrix{grid-template-columns:minmax(0,1fr);}
+ .s-stage .organ-pad-grid {grid-template-columns:repeat(8,minmax(0,1fr));}
+ .s-stage .lk-pad.organ-stop{font-size:9px;white-space:normal;min-width:0;}
+ .s-stage .organ-stop .pad-led{display:none;}
+ .s-stage .organ-drawbar-bank .organ-knob-label{overflow-wrap:anywhere;font-size:9px;}
+ .s-stage .organ-key-legends{grid-template-columns:repeat(5,minmax(0,1fr));}
+ .desk-roll svg {height:92px;}
+}
+.cast-library button span {display:grid;gap:2px;min-width:0;}
+.cast-library button b,.cast-library button small {line-height:1.4;}
+.desk-roll .transport {flex:1 1 385px;min-width:0;background:transparent;border:0;}
+.s-stage .desk-roll .transport {padding:0 4px;margin:0;}
+.desk-roll .transport .timeline {min-width:60px;}
+.s-stage .organ-felt-strip {height:3px;margin-bottom:1px;}
+.s-stage .organ-controls-bay {align-content:end;}
+@media(min-width:901px) and (max-height:820px) {
+ .performance-top .sc-stage {max-width:min(100%,max(300px,calc((100dvh - 532px)*1.7778)));}
+ .s-stage .organ-deck .organ-drawbar i {height:20px;width:20px;}
+ .s-stage .organ-pad-grid .lk-pad {min-height:19px;}
+ .s-stage .organ-cabinet {gap:3px;}
+}
+@media(max-width:650px){
+ .s-stage .desk-left-buttons .hw-oct-group{display:flex;grid-column:1/-1;flex-direction:row-reverse;overflow:visible;}
+ .desk-left-buttons .hw-oct-group button {flex:1;}
+ .desk-roll .transport{order:2;flex-basis:100%;}
+}
+.repertoire-grid{flex:1 0 100%;display:grid;grid-template-columns:1fr 2fr 1fr;gap:12px;padding:8px 0;}
+.repertoire-grid h3 {margin:0 0 6px;font-size:13px;}
+.repertoire-grid button {margin:2px;}
+.s-stage .organ-strips {gap:1px;padding:4px 1px;}
+.s-stage .organ-pad-grid .lk-pad {white-space:normal;min-width:0;}
+.s-stage .organ-pad-grid .lk-pad span {overflow-wrap:anywhere;}
+@media(max-width:650px){.repertoire-grid{grid-template-columns:1fr;}}
+.s-stage .organ-stop:not(.on) {background:color-mix(in srgb,var(--pad-color) 46%,#1b231f);}
+.s-stage .organ-pad-grid .organ-stop.sub {background:color-mix(in srgb,var(--pad-color) 24%,#1c241f);}
+.desk-roll svg>rect:first-child {fill:#15241f;}

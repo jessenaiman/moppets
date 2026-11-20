@@ -88,7 +88,9 @@ function controlValue(v: MoppetVoice, key: ControlKey): { norm: number; text: st
 }
 
 export function LaunchkeyMap() {
-  const [keys, showKeys] = useState(false);
+  const [keys, showKeys] = useState(true);
+  const [transpose,setTranspose]=useState(0);
+  const [transposeMode,setTransposeMode]=useState(false);
   const learnPads = useController(s=>s.learningPads);
   const last = useController(s=>s.last);
   const mode = useLive((s) => s.mode);
@@ -106,7 +108,7 @@ export function LaunchkeyMap() {
 
   const curVoice = voices[selected];
   const volume = useVoiceLevels(s => s.levels[curVoice.id] ?? 1);
-  const [showVoiceTools,setShowVoiceTools] = useState(false);
+
   const name = studio404 ? studio404Name(curVoice.id, curVoice.name) : curVoice.name;
 
   // Interactive Launchkey Mini MK3 hardware state
@@ -114,6 +116,9 @@ export function LaunchkeyMap() {
   const [shift, setShift] = useState(false);
   const [arpOn, setArpOn] = useState(false);
   const [fixedChord, setFixedChord] = useState(false);
+  const [learningChord,setLearningChord] = useState(false);
+  const [chordShape,setChordShape] = useState([0,4,7]);
+  const chordTaps = useRef<number[]>([]);
   const [captureFlash, setCaptureFlash] = useState(false);
   const [pitchBend, setPitchBend] = [useController(s=>s.bend), (bend:number)=>useController.setState({bend})] as const;
   const [pitchDragging, setPitchDragging] = useState(false);
@@ -122,6 +127,7 @@ export function LaunchkeyMap() {
   const [lastPlayedMidi, setLastPlayedMidi] = useState<number | null>(null);
 
   const down = useRef(new Set<number>());
+  const soundingKeys = useRef(new Map<number,number>());
   const recentNotes = useRef<number[]>([]);
   const knobDrag = useRef<{ i: number; startY: number; startNorm: number } | null>(null);
   const [, redraw] = useState(0);
@@ -134,16 +140,16 @@ export function LaunchkeyMap() {
 
   const releaseAllKeys = () => {
     if (!down.current.size) return;
-    for (const m of down.current) {
-      if (mode !== "off") liveNoteOff(m);
-    }
+    for (const pitch of soundingKeys.current.values()) liveNoteOff(pitch);
+    soundingKeys.current.clear();
     down.current.clear();
     setPressedMidis([]);
   };
 
   useEffect(() => {
     return () => {
-      for (const m of down.current) liveNoteOff(m);
+      for (const pitch of soundingKeys.current.values()) liveNoteOff(pitch);
+      soundingKeys.current.clear();
       down.current.clear();
     };
   }, []);
@@ -178,6 +184,14 @@ export function LaunchkeyMap() {
   };
 
   const toggleFixedChord = () => {
+    if (learningChord) {
+      const taps=chordTaps.current;
+      if (taps.length) setChordShape(taps.map(n=>n-taps[0]));
+      setLearningChord(false);
+      setFixedChord(true);
+      useController.setState({last: "Fixed chord saved"});
+      return;
+    }
     const nextChord = !fixedChord;
     setFixedChord(nextChord);
     useController.setState({ last: nextChord ? "Fixed Chord active · Major triad voicing" : "Fixed Chord off" });
@@ -247,7 +261,13 @@ export function LaunchkeyMap() {
           ? `${name} sings next: “${words[next]}”`
           : `${name} has no words in this piece`;
 
+  const changeTranspose=(delta:number)=>{releaseAllKeys();setTranspose(t=>clamp(t+delta,-11,11));};
   const pressKey = (midi: number, active: boolean) => {
+    if (active && learningChord) {
+      if(!chordTaps.current.includes(midi)) chordTaps.current.push(midi);
+      useController.setState({last: "Chord · " + chordTaps.current.map(noteLabel).join(" ")});
+      return;
+    }
     if (active) {
       if (down.current.has(midi)) return;
       down.current.add(midi);
@@ -256,18 +276,21 @@ export function LaunchkeyMap() {
       recentNotes.current = [...recentNotes.current.slice(-15), midi];
       touchControl("key", midi);
       if (mode === "off") {
-        void auditionNote(curVoice, midi, "la", 280);
+        void auditionNote(curVoice, midi+transpose, "la", 280);
       } else {
-        liveNoteOn(midi, 100);
+        soundingKeys.current.set(midi,midi+transpose);
+        liveNoteOn(midi+transpose, 100);
       }
       if (fixedChord) {
         useController.setState({
-          last: `Fixed Chord: ${noteLabel(midi)} · ${noteLabel(midi + 4)} · ${noteLabel(midi + 7)}`,
+          last: `Fixed Chord · ${chordShape.map(offset=>noteLabel(midi+transpose+offset)).join(" · ")}`,
         });
       }
     } else if (down.current.delete(midi)) {
       setPressedMidis([...down.current]);
-      if (mode !== "off") liveNoteOff(midi);
+      const pitch = soundingKeys.current.get(midi);
+      if(pitch!==undefined)liveNoteOff(pitch);
+      soundingKeys.current.delete(midi);
     }
   };
 
@@ -311,7 +334,7 @@ export function LaunchkeyMap() {
     fixedChord &&
     activeChordRoot !== null &&
     midi !== activeChordRoot &&
-    (midi === activeChordRoot + 4 || midi === activeChordRoot + 7);
+    chordShape.includes(midi - activeChordRoot);
 
   return (
     <div className={`launchkey organ-console ${keys ? "show-keys" : "hide-keys"}`}>
@@ -340,79 +363,21 @@ export function LaunchkeyMap() {
         {/* Brass Crest Bar: Nameplate + Interactive MK3 Hardware Switches & Transport */}
         <div className="organ-crest">
           <div className="organ-crest-brand">
-            <span className="organ-plaque-badge">STUDIO 404 PARLOR ORGAN · MK3</span>
+            <span className="organ-plaque-badge">Launchkey Mini · MK3</span>
             <span className="organ-crest-readout">
-              {rangeLabel}
+              {rangeLabel}{transpose!==0 ? ` · ${transpose>0?"+":""}${transpose} st` : ""}
               {arpOn ? " · Arp" : ""}
               {fixedChord ? " · Chord" : ""}
             </span>
           </div>
-          <div className="organ-hw-tags">
-            <button
-              type="button"
-              className={`hw-btn${shift ? " on" : ""}`}
-              aria-pressed={shift}
-              onClick={toggleShift}
-              title="Toggle Shift — illuminates secondary Launchkey legends"
-            >
-              Shift
-            </button>
-            <div className="hw-oct-group" role="group" aria-label="Manual octave shift">
-              <button
-                type="button"
-                className="hw-btn"
-                disabled={octave <= MIN_OCTAVE}
-                onClick={() => shiftOctave(-1)}
-                aria-label="Octave down"
-                title={shift ? "Transpose / Program −" : "Shift manual down 1 octave"}
-              >
-                Oct −
-              </button>
-              <span className="hw-oct-val">{octave >= 0 ? `+${octave}` : octave}</span>
-              <button
-                type="button"
-                className="hw-btn"
-                disabled={octave >= MAX_OCTAVE}
-                onClick={() => shiftOctave(1)}
-                aria-label="Octave up"
-                title={shift ? "Transpose / Program +" : "Shift manual up 1 octave"}
-              >
-                Oct +
-              </button>
+            <div className="performer-volume">
+              <label><strong>{name} volume</strong>
+                <input aria-label={name + " volume"} type="range" min="0" max="100" step="1"
+                  value={Math.round(volume*100)} onChange={e=>setVoiceLevel(curVoice.id,Number(e.target.value)/100)} />
+                <output>{Math.round(volume*100)}%</output>
+              </label>
+              <small>{!map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
             </div>
-            <button
-              type="button"
-              className={`hw-btn${arpOn ? " on" : ""}`}
-              aria-pressed={arpOn}
-              onClick={toggleArp}
-              title="Toggle Arpeggiator stop & key-top legends"
-            >
-              Arp
-            </button>
-            <button
-              type="button"
-              className={`hw-btn${fixedChord ? " on" : ""}`}
-              aria-pressed={fixedChord}
-              onClick={toggleFixedChord}
-              title="Toggle Fixed Chord — highlights major triad intervals on manual"
-            >
-              Fixed Chord
-            </button>
-            <button type="button" className="hw-btn" onClick={() => void play(startAudio)}>
-              ▶ Play
-            </button>
-            <button type="button" className="hw-btn stop" onClick={stop}>
-              ■ Stop
-            </button>
-            <button
-              type="button"
-              className={`hw-btn capture${captureFlash ? " on" : ""}`}
-              onClick={handleCapture}
-              title="Capture MIDI — recall last manual notes"
-            >
-              ● Capture
-            </button>
-          </div>
         </div>
 
         {/* Upper MK3 Hardware Deck: Left Pitch/Mod Touch Strips + Right 1×8 Knobs & 2×8 Pads */}
@@ -509,17 +474,43 @@ export function LaunchkeyMap() {
             </div>
           </div>
 
-          <div className="organ-controls-bay">
-            <div className="performer-volume">
-              <label><strong>{name} volume</strong>
-                <input aria-label={name + " volume"} type="range" min="0" max="100" step="1"
-                  value={Math.round(volume*100)} onChange={e=>setVoiceLevel(curVoice.id,Number(e.target.value)/100)} />
-                <output>{Math.round(volume*100)}%</output>
-              </label>
-              <small>{!map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
-              <button type="button" aria-expanded={showVoiceTools} onClick={()=>setShowVoiceTools(!showVoiceTools)}>{showVoiceTools?"Hide voice controls":"Voice controls"}</button>
+          <div className="desk-left-buttons">
+            <button
+              type="button"
+              className={`hw-btn${shift ? " on" : ""}`}
+              aria-pressed={shift}
+              onClick={toggleShift}
+              title="Toggle Shift — illuminates secondary Launchkey legends"
+            >
+              Shift
+            </button>
+            <button type="button" className={`hw-btn${transposeMode?" on":""}`} aria-pressed={transposeMode} onClick={()=>setTransposeMode(!transposeMode)}>Transpose</button>
+            <div className="hw-oct-group" role="group" aria-label="Manual octave shift">
+              <button
+                type="button"
+                className="hw-btn"
+                disabled={transposeMode ? transpose<=-11 : octave <= MIN_OCTAVE}
+                onClick={() => transposeMode ? changeTranspose(-1) : shiftOctave(-1)}
+                aria-label={transposeMode?"Transpose down":"Octave down"}
+                title={shift ? "Transpose / Program −" : "Shift manual down 1 octave"}
+              >
+                {transposeMode?"Semi −":"Oct −"}
+              </button>
+              <span className="hw-oct-val">{octave >= 0 ? `+${octave}` : octave}</span>
+              <button
+                type="button"
+                className="hw-btn"
+                disabled={transposeMode ? transpose>=11 : octave >= MAX_OCTAVE}
+                onClick={() => transposeMode ? changeTranspose(1) : shiftOctave(1)}
+                aria-label={transposeMode?"Transpose up":"Octave up"}
+                title={shift ? "Transpose / Program +" : "Shift manual up 1 octave"}
+              >
+                {transposeMode?"Semi +":"Oct +"}
+              </button>
             </div>
-            {showVoiceTools && <div className="organ-drawbar-bank">
+</div>
+          <div className="organ-controls-bay">
+            <div className="organ-drawbar-bank">
               {knobs.map((knob) => {
                 const k = knob.i === 0 && !map[21] ? { ...knob, label: "Volume", norm:volume, text:Math.round(volume*100)+"%", setNorm:(v:number)=>setVoiceLevel(curVoice.id,v) } : knob;
                 const deg = -135 + k.norm * 270;
@@ -531,7 +522,13 @@ export function LaunchkeyMap() {
                   >
                     <small className="arp-tag">{ARP_KNOB_TAGS[k.i]}</small>
                     <i
-                      aria-hidden="true"
+                      role="slider" tabIndex={0} aria-label={k.label+" encoder"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(k.norm*100)} aria-valuetext={k.text}
+                      onKeyDown={e=>{
+                        const delta = e.key==="ArrowUp" || e.key==="ArrowRight" ? 1 : e.key==="ArrowDown" || e.key==="ArrowLeft" ? -1 : 0;
+                        if (!delta && e.key!=="Home" && e.key!=="End") return;
+                        e.preventDefault();
+                        k.setNorm(e.key==="Home" ? 0 : e.key==="End" ? 1 : clamp(k.norm+delta/127,0,1));
+                      }}
                       style={{ "--knob-rot": `${deg.toFixed(1)}deg`, "--knob-norm": k.norm.toFixed(3) } as React.CSSProperties}
                       onPointerDown={(e) => {
                         e.currentTarget.setPointerCapture(e.pointerId);
@@ -553,9 +550,10 @@ export function LaunchkeyMap() {
                   </div>
                 );
               })}
-            </div>}
+            </div>
 
             {/* Row 2: 2×8 Illuminated Stop-Pads + Scene/> & Stop/Mute Column */}
+            <div className="desk-pad-modes" aria-label="Shift pad modes">{["Session","Drum","Custom","Device","Volume","Pan","Sends","Custom"].map((label,i)=><span key={i}>{label}</span>)}</div>
             <div className="organ-pad-matrix">
               <div className="organ-pad-grid">
                 {topPads.map((pad, i) => (
@@ -595,35 +593,46 @@ export function LaunchkeyMap() {
                 <button
                   type="button"
                   className="lk-pad organ-scene-btn stop"
-                  title="Stop / Solo — Mute or stop playback"
+                  title="Stop playback"
                   onClick={stop}
                 >
-                  ■ Mute
+                  ■ Stop
                 </button>
               </div>
             </div>
           </div>
-        </div>
+<div className="desk-right-buttons">            <button
+              type="button"
+              className={`hw-btn${arpOn ? " on" : ""}`}
+              aria-pressed={arpOn}
+              onClick={toggleArp}
+              title="Toggle Arpeggiator stop & key-top legends"
+            >
+              Arp
+            </button>
+            <button
+              type="button"
+              className={`hw-btn${fixedChord ? " on" : ""}`}
+              aria-pressed={fixedChord}
+              onClick={toggleFixedChord}
+              onDoubleClick={()=>{releaseAllKeys(); chordTaps.current=[]; setLearningChord(true); useController.setState({last:"Play the chord keys, then press Fixed Chord to save"});}}
+              title="Show chord fingering. Double-click to enter a shape on the keys, then press again to save."
+            >
+              {learningChord?"Save chord":"Fixed Chord"}
+            </button>
+            <button type="button" className="hw-btn" onClick={() => void play(startAudio)}>
+              ▶ Play
+            </button>
 
-        {/* Mode Stop Strip & Etched Key-Top Legends right above the Upper Manual Felt */}
-        <div className="organ-mode-rail">
-          <button type="button" aria-expanded={keys} onClick={()=>{releaseAllKeys();showKeys(!keys)}}>{keys ? "Hide keys" : "Show keys"}</button>
-          <button type="button" onClick={()=>useController.setState({learningPads:learnPads ? null : []})}>{learnPads ? "Cancel · press " + (learnPads.length < 8 ? "upper " : "lower ") + (learnPads.length % 8 + 1) : "Learn pads"}</button>
-          <output>{last || name + " · MIDI ready"}</output>
-          <div className="live-modes organ-mode-pills" role="radiogroup" aria-label="Upper manual mode">
-            {MODE_BUTTONS.map(([m, label]) => (
-              <button
-                key={m}
-                type="button"
-                role="radio"
-                aria-checked={mode === m}
-                className={mode === m ? "on" : ""}
-                onClick={() => void setMode(m)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+            <button
+              type="button"
+              className={`hw-btn capture${captureFlash ? " on" : ""}`}
+              onClick={handleCapture}
+              title="Capture MIDI — recall last manual notes"
+            >
+              ● Capture
+            </button>
+</div>
         </div>
 
         <div className={`organ-key-legends${arpOn ? " active" : ""}`} aria-label="Key-top Arp and Latch legends">
@@ -685,6 +694,27 @@ export function LaunchkeyMap() {
                 />
               );
             })}
+          </div>
+        </div>
+
+        {/* Mode Stop Strip & Etched Key-Top Legends right above the Upper Manual Felt */}
+        <div className="organ-mode-rail">
+          <button type="button" aria-expanded={keys} onClick={()=>{releaseAllKeys();showKeys(!keys)}}>{keys ? "Hide keys" : "Show keys"}</button>
+          <button type="button" onClick={()=>useController.setState({learningPads:learnPads ? null : []})}>{learnPads ? "Cancel · press " + (learnPads.length < 8 ? "upper " : "lower ") + (learnPads.length % 8 + 1) : "Learn pads"}</button>
+          <output>{last || name + " · MIDI ready"}</output>
+          <div className="live-modes organ-mode-pills" role="radiogroup" aria-label="Upper manual mode">
+            {MODE_BUTTONS.map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                className={mode === m ? "on" : ""}
+                onClick={() => void setMode(m)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 

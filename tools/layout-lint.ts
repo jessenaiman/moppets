@@ -239,11 +239,10 @@ function hookCanvasText() {
 
 /** Pick a performance by (part of) its name, from the tabs or the menu. */
 async function choose(page: import("playwright-core").Page, name: string): Promise<void> {
-  const select = page.locator("select.lesson-select");
-  if (await select.count()) {
-    const value = await select.locator("option", { hasText: name }).first().getAttribute("value");
-    await select.selectOption(value!);
-  } else await page.getByRole("tab", { name: new RegExp(name) }).first().click();
+  const solo = page.getByRole("navigation", {name:"Solo library"}).getByRole("button", {name:new RegExp(name,"i")});
+  if (await solo.count()) return solo.first().click();
+  await page.getByRole("button", { name:"Repertoire",exact:true }).click();
+  await page.locator("#repertoire").getByRole("button",{name:new RegExp(name,"i")}).first().click();
 }
 
 async function main() {

@@ -64,15 +64,11 @@ function systems(piece: Piece, track: Track | undefined, compact: boolean) {
   }
   return lines;
 }
-function engrave(
-  root: HTMLDivElement,
-  piece: Piece,
-  track: Track,
-  lines: ReturnType<typeof systems>,
-) {
+function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: ReturnType<typeof systems>) {
   const clef = clefForVoice(track.events.map((e) => e.midi)),
     sig = vexKeySignature(piece.key, piece.mode);
   const words = trackSyllables(track);
+  const positions: { beat: number; x: number; row: HTMLDivElement }[] = [];
   root.replaceChildren();
   for (const { first, count } of lines) {
     const row = document.createElement("div");
@@ -96,17 +92,14 @@ function engrave(
         ties: [StaveNote | null, StaveNote | null][] = [];
       const accidentals = keySigAccidentals(sig);
       const end = 4 * (bar + 1);
+      const starts: number[] = [];
       let cursor = bar * 4;
       function emit(until: number, index?: number) {
         const e = index === undefined ? undefined : track.events[index];
         while (cursor < until - 0.001) {
           const remaining = until - cursor;
-          const [duration, code] =
-            durations.find(([d]) => d <= remaining + 0.001) ??
-            durations[durations.length - 1];
-          const pitch = e
-            ? midiToVexNote(e.midi, piece.key, piece.mode, accidentals)
-            : null;
+          const [duration, code] = durations.find(([d]) => d <= remaining + 0.001) ?? durations[durations.length - 1];
+          const pitch = e ? midiToVexNote(e.midi, piece.key, piece.mode, accidentals) : null;
           const dotted = code.endsWith("d");
           const note = new StaveNote({
             clef,
@@ -116,29 +109,21 @@ function engrave(
             autoStem: true,
           });
           if (dotted) Dot.buildAndAttach([note], { all: true });
-          if (pitch?.accidental)
-            note.addModifier(new Accidental(pitch.accidental));
+          if (pitch?.accidental) note.addModifier(new Accidental(pitch.accidental));
           if (e && index !== undefined) {
             if (cursor > e.beat + 0.001) ties.push([prior, note]);
             else if (words[index])
               note.addModifier(
-                new Annotation(words[index]!)
-                  .setFont("Georgia", 12)
-                  .setVerticalJustification(Annotation.VerticalJustify.BOTTOM),
+                new Annotation(words[index]!).setFont("Georgia", 12).setVerticalJustification(Annotation.VerticalJustify.BOTTOM),
               );
             note.setAttribute("id", "rack-note-" + bar + "-" + notes.length);
             note.setAttribute("data-index", String(index));
           }
+          starts.push(cursor);
           notes.push(note);
           prior = e ? note : null;
           cursor = Math.min(until, cursor + duration);
-          if (
-            e &&
-            cursor === end &&
-            bar === first + count - 1 &&
-            e.beat + e.beats > end + 0.001
-          )
-            ties.push([note, null]);
+          if (e && cursor === end && bar === first + count - 1 && e.beat + e.beats > end + 0.001) ties.push([note, null]);
         }
       }
       track.events.forEach((e, i) => {
@@ -147,14 +132,26 @@ function engrave(
         emit(Math.min(end, e.beat + e.beats), i);
       });
       emit(end);
-      const voice = new Voice({ numBeats: 4, beatValue: 4 })
-        .setMode(Voice.Mode.SOFT)
-        .addTickables(notes);
+      const voice = new Voice({ numBeats: 4, beatValue: 4 }).setMode(Voice.Mode.SOFT).addTickables(notes);
       const beams = Beam.generateBeams(notes);
-      new Formatter()
-        .joinVoices([voice])
-        .format([voice], width / count - (stave.getNoteStartX() - x) - 12);
+      new Formatter().joinVoices([voice]).format([voice], width / count - (stave.getNoteStartX() - x) - 12);
       voice.draw(ctx, stave);
+      const anchors = starts.map((beat, i) => ({ beat, x: notes[i].getAbsoluteX(), row }));
+      positions.push(...anchors);
+      anchors.push({ beat: end, x: x + width / count, row });
+      for (const chord of piece.chords.filter((c) => c.beat >= bar * 4 && c.beat < end)) {
+        const next = anchors.findIndex((a) => a.beat > chord.beat);
+        const left = anchors[next - 1],
+          right = anchors[next];
+        if (!left || !right) continue;
+        const at = left.x + ((right.x - left.x) * (chord.beat - left.beat)) / (right.beat - left.beat);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", String(at));
+        text.setAttribute("y", "16");
+        text.setAttribute("class", "rack-chord");
+        text.textContent = chord.name;
+        row.querySelector("svg")!.append(text);
+      }
       beams.forEach((b) => b.setContext(ctx).draw());
       for (const note of notes) {
         const index = note.getAttribute("data-index");
@@ -179,7 +176,12 @@ function engrave(
     svg.removeAttribute("height");
     svg.removeAttribute("style");
     row.style.removeProperty("width");
+    positions.push({ beat: (first + count) * 4, x: width, row });
+    const cursor = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    cursor.setAttribute("class", "rack-cursor");
+    svg.append(cursor);
   }
+  return positions;
 }
 export function MusicRack() {
   const piece = useMoppet((s) => s.piece),
@@ -211,10 +213,20 @@ export function MusicRack() {
     (e) => e.beat <= beat && e.beat + e.beats > beat,
   );
   const sounding = useEnsemble((s) => s.status === "playing");
+  const anchors=useRef<ReturnType<typeof engrave>>([]);
   useEffect(() => {
-    if (paper.current && track?.events.length)
-      engrave(paper.current, piece, track, lines);
+    anchors.current = paper.current && track?.events.length ? engrave(paper.current, piece, track, lines) : [];
   }, [piece, track, lines]);
+  useEffect(()=>{
+    const points=anchors.current;
+    const i=points.findIndex(p=>p.beat>beat);
+    const a=points[i-1],b=points[i];
+    if(!a || !b || a.row!==b.row)return;
+    const path=a.row.querySelector(".rack-cursor");
+    const x=a.x+(b.x-a.x)*(beat-a.beat)/(b.beat-a.beat);
+    path?.setAttribute("d",`M${x} 24v64`);
+    return ()=>path?.removeAttribute("d");
+  },[beat,piece,track,lines]);
   useEffect(() => {
     const root = paper.current;
     if (!root) return;
@@ -361,32 +373,6 @@ export function MusicRack() {
               : "Ready"}
         </output>
       </footer>
-      <svg
-        className="rack-timeline"
-        viewBox={`0 0 600 ${piece.tracks.length * 4 + 2}`}
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="Full ensemble timeline"
-      >
-        {piece.tracks.map((t, i) => (
-          <path
-            key={t.id}
-            stroke={STUDIO_404_CAST[t.id]?.color ?? "#a48262"}
-            strokeWidth="2.6"
-            d={t.events
-              .map(
-                (e) =>
-                  `M${(e.beat * 600) / piece.beats} ${i * 4 + 2}h${(e.beats * 600) / piece.beats}`,
-              )
-              .join(" ")}
-          />
-        ))}
-        <path
-          stroke="white"
-          strokeWidth="2"
-          d={`M${(Math.max(0, beat) * 600) / piece.beats} 0v${piece.tracks.length * 4 + 2}`}
-        />
-      </svg>
     </section>
   );
 }

@@ -127,7 +127,7 @@ interface LiveStageFrame {
   liveMidiSpeech: LiveMidiSpeech | null;
 }
 
-function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
+function Stage({ cameraFollow }: { cameraFollow: boolean }) {
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
   const select = useMoppet((s) => s.select);
@@ -138,7 +138,7 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
   const frontRef = useRef<HTMLCanvasElement>(null);
   const poke = useRef<{ index: number; at: number } | null>(null);
   const [stageLabel, setStageLabel] = useState("READY WHEN YOU ARE");
-  const [cameraFollow, setCameraFollow] = useState(true);
+
   const [frameState, setFrameState] = useState<LiveStageFrame>(() => ({
     beat: 0,
     timeSec: 0,
@@ -308,51 +308,9 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
 
   const [failedClips, setFailedClips] = useState<ReadonlySet<string>>(new Set());
   const studio404 = useMoppet((s) => s.studio404);
-  const setStudio404 = useMoppet((s) => s.setStudio404);
-  const lesson = useMoppet((s) => s.lesson);
-  const setLesson = useMoppet((s) => s.setLesson);
-  const midi = useController((s) => s.midi);
-  const setMidi = useController((s) => s.setMidi);
-  const midiOn = midi.status === "on";
-
+  const lesson = useMoppet(s=>s.lesson);
   return (
-    <div className="moppet-stage-wrap">
-      <div className="desk-selection"><LessonTabs /><button type="button" onClick={()=>setMidi(!midiOn)} disabled={!midiSupported()}>{midiOn ? midi.inputs[0] || "MIDI · no device" : "Connect MIDI"}</button></div>
-      <details className="stage-options"><summary>Solos &amp; stage settings</summary><div className={`theatre-top${status === "playing" ? " on-air" : ""}`}>
-        <span><i /> STUDIO 404 · {status === "playing" ? "ON AIR" : "REHEARSAL BOOTH"}</span>
-        <span className="booth-actions">
-          <button type="button" className={`booth-btn${lesson === "cue-playbook" ? " on" : ""}`} aria-pressed={lesson === "cue-playbook"} onClick={() => setLesson("cue-playbook" as Lesson)}>
-            ★ Cue Playbook
-          </button>
-          <button type="button" className={`booth-btn${lesson === "neon-playbook" ? " on" : ""}`} aria-pressed={lesson === "neon-playbook"} onClick={() => setLesson("neon-playbook")}>
-            ★ Neon Playbook
-          </button>
-          <button type="button" className={`booth-btn${studio404 ? " on" : ""}`} aria-pressed={studio404} onClick={() => setStudio404(!studio404)}>
-            {studio404 ? "Cast: Studio 404" : "Cast: Workshop"}
-          </button>
-          <button type="button" className={`booth-btn${cameraFollow ? " on" : ""}`} aria-pressed={cameraFollow} onClick={() => setCameraFollow(!cameraFollow)}>
-            {cameraFollow ? "Cam: Follow" : "Cam: Wide"}
-          </button>
-          <button type="button" className={`booth-btn${midiOn ? " on" : ""}`} aria-pressed={midiOn} disabled={!midiSupported()} onClick={() => setMidi(!midiOn)}>
-            {!midiSupported() ? "MIDI: Needs HTTPS" : midi.status === "denied" ? "MIDI: Blocked" : midi.status === "connecting" ? "MIDI: Connecting…" : midiOn ? (midi.inputs[0] ? `MIDI: ${midi.inputs[0]}` : "MIDI: Ready") : "Connect MIDI"}
-          </button>
-          {onOpenVideo && (
-            <button type="button" className="booth-btn" onClick={onOpenVideo}>
-              🎬 Timeline &amp; Export
-            </button>
-          )}
-          <span className="booth-state">{status === "playing" ? stageLabel : status === "rendering" ? "RENDERING" : stageLabel}</span>
-        </span>
-      </div>
-      <nav className="solo-strip" aria-label="Solos">
-        <span className="solo-strip-label">Solos</span>
-        {SOLOS.map((s) => (
-          <button key={s.song} type="button" className={`solo-chip${lesson === s.song ? " on" : ""}`} aria-pressed={lesson === s.song} onClick={() => setLesson(s.song)}>
-            <img src={`/rehearsal/img/${s.art}-rest.webp`} alt="" width={22} height={32} />
-            {s.name}
-          </button>
-        ))}
-      </nav></details>
+    <div className="moppet-stage-wrap" aria-label={status === "playing" ? stageLabel : "Stage"}>
       <div className={`stage${studio404 ? " studio404" : ""}`} ref={stageRef}>
         <ShotcraftStage
           piece={piece}
@@ -397,7 +355,6 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
 
 function Transport() {
   const piece = useMoppet((s) => s.piece);
-  const lesson = useMoppet((s) => s.lesson);
   const status = useEnsemble((s) => s.status);
   const duration = useEnsemble((s) => s.duration);
   const time = useEnsemble((s) => s.time);
@@ -408,20 +365,9 @@ function Transport() {
   const setVolume = useAudio((s) => s.setVolume);
   const shown = duration || pieceSeconds(piece);
   const busy = status === "preparing" || status === "rendering";
-  const [wavBusy, setWavBusy] = useState(false);
-  const wav = async () => {
-    setWavBusy(true);
-    try {
-      const out = await exportWav(start);
-      download(new Blob([out.bytes], { type: "audio/wav" }), piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.wav` : piece.kind === "intro" ? "studio-404-introduction.wav" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.wav` : piece.kind === "motesong" || piece.kind === "skit" ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.wav` : `moppet-invention-${piece.seed}.wav`);
-    } catch (e) {
-      useEnsemble.setState({ message: `WAV export: ${e instanceof Error ? e.message : String(e)}` });
-    }
-    setWavBusy(false);
-  };
   return (
     <div className="transport">
-      <button className="primary moppet-play" onClick={() => void play(start)} disabled={busy || wavBusy} data-kind={piece.kind}>
+      <button className="primary moppet-play" onClick={() => void play(start)} disabled={busy} data-kind={piece.kind}>
         <PlayLabel piece={piece} />
       </button>
       <button className="square" aria-label="Stop playback" onClick={stop} disabled={status === "idle"}>■</button>
@@ -439,31 +385,166 @@ function Transport() {
           <option value="prerender">Pre-render</option>
         </select>
       </label>
-      <button className="download" onClick={() => void wav()} disabled={busy || wavBusy}>↓ <span>{wavBusy ? "Rendering WAV…" : lesson === "round" ? "Round WAV" : piece.kind === "intro" ? "Song WAV" : "WAV"}</span></button>
       <span className="how">{howPlaying === "live" ? "Live" : howPlaying === "prerender" ? "Pre-rendered" : ""}</span>
     </div>
   );
 }
 
 /** Every performance in one menu, grouped: the lessons, the songs, the skits. */
-function LessonTabs() {
-  const lesson = useMoppet((s) => s.lesson);
-  const setLesson = useMoppet((s) => s.setLesson);
-  const fresh = useMoppet((s) => s.freshSkit);
-  const isSolo = (entry: (typeof SONGBOOK)[number]) => entry.song.stage?.length === 1 && entry.song.stage[0] === entry.song.lead;
-  const opt = (l: Lesson, label: string) => <option key={l} value={l}>{label}</option>;
+const soloSongs = SONGBOOK.filter((e) => e.song.stage?.length === 1 && e.song.stage[0] === e.song.lead);
+
+function SoloLibrary() {
+  const lesson = useMoppet((s) => s.lesson),
+    setLesson = useMoppet((s) => s.setLesson);
   return (
-    <label className="lesson-pick">
-      <span>Performance</span>
-      <select aria-label="Choose a solo, song or skit" className="lesson-select" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
-        <optgroup label="Moppet solos">{SONGBOOK.filter(isSolo).map(entry =>
-          opt(entry.id, `Solo · ${studio404Name(entry.song.lead, entry.song.lead)} — ${entry.song.title}`)
-        )}</optgroup>
-        <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
-        <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.filter(x => !isSolo(x)).map(x => opt(x.id, x.tab))}</optgroup>
-        <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{fresh && opt("newskit", `New: ${fresh.title}`)}</optgroup>
-      </select>
-    </label>
+    <nav className="cast-library" aria-label="Solo library">
+      <strong>Solo library</strong>
+      {soloSongs.map(({ id, song }) => {
+        const cast = STUDIO_404_CAST[song.lead];
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={lesson === id}
+            onClick={() => setLesson(id)}
+            style={{ "--cast-accent": cast.color } as React.CSSProperties}
+          >
+            <img src={`/rehearsal/img/${cast.artKey}-rest.webp`} alt="" />
+            <span>
+              <b>{cast.name}</b>
+              <small>{song.title}</small>
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+function PerformanceMenu({
+  cameraFollow,
+  toggleCamera,
+  onOpenVideo,
+}: {
+  cameraFollow: boolean;
+  toggleCamera: () => void;
+  onOpenVideo?: () => void;
+}) {
+  const piece = useMoppet((s) => s.piece),
+    lesson = useMoppet((s) => s.lesson),
+    setLesson = useMoppet((s) => s.setLesson);
+  const studio = useMoppet((s) => s.studio404),
+    setStudio = useMoppet((s) => s.setStudio404),
+    fresh = useMoppet((s) => s.freshSkit);
+  const midiState = useController((s) => s.midi),
+    setMidi = useController((s) => s.setMidi);
+  const start = useAudio((s) => s.start);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const midiName =
+    piece.kind === "round"
+      ? `${piece.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")}.mid`
+      : piece.kind === "intro"
+        ? "studio-404-introduction.mid"
+        : piece.kind === "solo"
+          ? `${piece.tracks[0].id}-introduction.mid`
+          : piece.kind === "motesong" || piece.kind === "skit"
+            ? `${piece.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-|-$/g, "")}.mid`
+            : `moppet-invention-${piece.seed}.mid`;
+  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
+  const [wavBusy, setWavBusy] = useState(false);
+  const wav = async () => {
+    setWavBusy(true);
+    try {
+      const out = await exportWav(start);
+      download(
+        new Blob([out.bytes], { type: "audio/wav" }),
+        piece.kind === "round"
+          ? `${piece.title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "")}.wav`
+          : piece.kind === "intro"
+            ? "studio-404-introduction.wav"
+            : piece.kind === "solo"
+              ? `${piece.tracks[0].id}-introduction.wav`
+              : piece.kind === "motesong" || piece.kind === "skit"
+                ? `${piece.title.toLowerCase().replace(/\s+/g, "-")}.wav`
+                : `moppet-invention-${piece.seed}.wav`,
+      );
+    } catch (e) {
+      useEnsemble.setState({ message: `WAV export: ${e instanceof Error ? e.message : String(e)}` });
+    }
+    setWavBusy(false);
+  };
+  return (
+    <nav className="performance-menu" aria-label="Performance menu">
+      <button type="button" aria-expanded={libraryOpen} aria-controls="repertoire" onClick={() => setLibraryOpen(!libraryOpen)}>
+        Repertoire
+      </button>
+      <SoundCraftButtons name={midiName} />
+      <button onClick={midi}>Export MIDI</button>
+      <button onClick={() => void wav()} disabled={wavBusy}>
+        {wavBusy ? "Rendering WAV…" : "Export WAV"}
+      </button>
+      {onOpenVideo && <button onClick={onOpenVideo}>Video studio</button>}
+      <button onClick={toggleCamera} aria-pressed={cameraFollow}>
+        {cameraFollow ? "Follow camera" : "Wide camera"}
+      </button>
+      <button onClick={() => setStudio(!studio)}>{studio ? "Studio 404 cast" : "Workshop cast"}</button>
+      <button disabled={!midiSupported() || midiState.status === "connecting"} onClick={() => setMidi(midiState.status !== "on")}>
+        {midiState.status === "on"
+          ? (midiState.inputs.find((n) => /launchkey/i.test(n)) ?? "MIDI connected")
+          : midiState.status === "connecting"
+            ? "Connecting…"
+            : "Connect MIDI"}
+      </button>
+      {libraryOpen && (
+        <div id="repertoire" className="repertoire-grid" aria-label="Performance library">
+          {[
+            {
+              label: "Lessons",
+              items: [
+                ["intro", "The first hello"],
+                ["school", "Music school"],
+                ["round", "The jam round"],
+              ],
+            },
+            {
+              label: "Songs with the choir",
+              items: [
+                ["chip", "Chip’s song"],
+                ["tabby", "Tabby’s song"],
+                ["gruff", "Gruff’s shanty"],
+                ...SONGBOOK.filter((s) => !soloSongs.includes(s)).map((s) => [s.id, s.song.title]),
+              ],
+            },
+            { label: "Skits", items: [...SKITS.map((s) => [s.id, s.title]), ...(fresh ? [["newskit", fresh.title]] : [])] },
+          ].map((group) => (
+            <section key={group.label}>
+              <h3>{group.label}</h3>
+              {group.items.map(([id, title]) => (
+                <button
+                  type="button"
+                  key={id}
+                  aria-pressed={lesson === id}
+                  onClick={() => {
+                    setLesson(id as Lesson);
+                    setLibraryOpen(false);
+                  }}
+                >
+                  {title}
+                </button>
+              ))}
+            </section>
+          ))}
+        </div>
+      )}
+    </nav>
   );
 }
 
@@ -773,17 +854,6 @@ interface NoteEdit {
   length: (src: NonNullable<ScoreEvent["src"]>, beats: number) => void;
 }
 /** A scale step is about 12/7 semitones on the score. */
-/** One solo per singer: that Moppet alone on stage, to focus on its design (songs/<song>.song). */
-const SOLOS: { name: string; art: string; song: Lesson }[] = [
-  { name: "Tabby", art: "tabby", song: "tabby-solo" as Lesson },
-  { name: "Neon", art: "neon", song: "take-two" as Lesson },
-  { name: "Cue", art: "cue", song: "line" as Lesson },
-  { name: "Clank", art: "clank", song: "late-answer" as Lesson },
-  { name: "Watt", art: "watt", song: "every-socket" as Lesson },
-  { name: "Gruff", art: "gruff", song: "close-up" as Lesson },
-  { name: "Chip", art: "chip", song: "one-more-thing" as Lesson },
-  { name: "Zap", art: "zap", song: "zap" as Lesson },
-];
 const STEP = 12 / 7;
 const SNAP = 0.25;
 
@@ -813,9 +883,12 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   const svg = useRef<SVGSVGElement>(null);
   /** the note being dragged: its event, how, and how far so far (in score units) */
   const [drag, setDrag] = useState<{ track: string; i: number; how: "pitch" | "length"; x0: number; y0: number; dx: number; dy: number } | null>(null);
-  const w = 1100, h = 245, left = 38, top = 20;
+  const bandOn = useMoppet(s=>s.band);
+  const accompaniment = bandOn ? bandFor(piece) : [];
+  const w = 1100, h = edit ? 200 : 76, left = 38, top = 8;
   const midis = piece.tracks.flatMap((t) => t.events.map((e) => e.midi));
-  const range = [Math.min(...midis) - 2, Math.max(...midis) + 2];
+  for (const part of accompaniment) for (const note of part.notes) midis.push(note.midi);
+  const range = midis.length ? [Math.min(...midis)-2, Math.max(...midis)+2] : [48,72];
   const sx = (w - left - 15) / piece.beats, sy = (h - top - 25) / (range[1] - range[0]);
   useEffect(() => {
     let raf = 0;
@@ -827,7 +900,7 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [piece, sx]);
+  }, [piece, sx, h]);
   // a drag in viewBox units, whatever size the score is drawn at
   const scale = () => w / (svg.current?.getBoundingClientRect().width || w);
   const start = (ev: React.PointerEvent, track: string, i: number, how: "pitch" | "length") => {
@@ -839,7 +912,7 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
     }
     setDrag({ track, i, how, x0: ev.clientX, y0: ev.clientY, dx: 0, dy: 0 });
   };
-  const move = (ev: React.PointerEvent) => drag && setDrag({ ...drag, dx: (ev.clientX - drag.x0) * scale(), dy: (ev.clientY - drag.y0) * scale() });
+  const move = (ev: React.PointerEvent) => drag && setDrag({ ...drag, dx: (ev.clientX - drag.x0) * scale(), dy: (ev.clientY - drag.y0) * h / (svg.current?.getBoundingClientRect().height || h) });
   const end = () => {
     if (!drag || !edit) return setDrag(null);
     const e = piece.tracks.find((t) => t.id === drag.track)?.events[drag.i];
@@ -854,14 +927,19 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
     }
   };
   const octaves: number[] = [];
-  for (let n = Math.ceil(range[0] / 12) * 12; n <= range[1]; n += 12) octaves.push(n);
+  const octaveStep = 12 * Math.max(1, Math.ceil(15 / (12 * sy)));
+  for (let n = Math.ceil(range[0] / 12) * 12; n <= range[1]; n += octaveStep) octaves.push(n);
   const bars: number[] = [];
   for (let b = 0; b <= piece.beats; b += 4) bars.push(b);
   return (
-    <svg ref={svg} className={edit ? "editing" : undefined} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
+    <svg ref={svg} className={edit ? "editing" : undefined} preserveAspectRatio="none" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
       <rect width={w} height={h} fill="#1b1612" />
       {octaves.map((n) => <g key={n}><path d={`M${left} ${top + (range[1] - n) * sy}H${w}`} stroke="#ffffff14" /><text x={5} y={top + (range[1] - n) * sy + 3} fill="#9c8e7b" fontSize={9}>{noteName(n)}</text></g>)}
       {bars.map((b) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff12" /><text x={left + b * sx + 3} y={h - 4} fill="#9c8e7b" fontSize={8}>{b / 4 + 1}</text></g>)}
+      {accompaniment.map(part=><path key={part.id} data-band={part.id} stroke="#9aaea0" strokeWidth={1.7} opacity={.6}
+        d={part.notes.map(n=>`M${left+n.beat*sx} ${top+(range[1]-n.midi)*sy}h${Math.max(1,n.beats*sx-1)}`).join(" ")}>
+        <title>{part.id}</title>
+      </path>)}
       {piece.tracks.map((t) => {
         const baseColor = voices.find((v) => v.id === t.id)?.color ?? "#fff";
         const color = studio404 ? (STUDIO_404_CAST[t.id]?.color ?? baseColor) : baseColor;
@@ -892,17 +970,9 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   );
 }
 
-function ScorePanel() {
-  const piece = useMoppet((s) => s.piece);
-  const voices = useMoppet((s) => s.voices);
-  const status = useMoppet((s) => s.status);
-  const lesson = useMoppet((s) => s.lesson);
-  const eStatus = useEnsemble((s) => s.status);
-  const message = useEnsemble((s) => s.message);
-  const progress = useEnsemble((s) => s.progress);
-  const harmonic = piece.kind === "round" ? piece.chords.slice(0, 4) : piece.chords.slice(0, 16);
-  const midiName = piece.kind === "round" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : piece.kind === "intro" ? "studio-404-introduction.mid" : piece.kind === "solo" ? `${piece.tracks[0].id}-introduction.mid` : piece.kind === "motesong" || piece.kind === "skit" ? `${piece.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.mid` : `moppet-invention-${piece.seed}.mid`;
-  const midi = () => download(new Blob([midiBytes(piece) as BlobPart], { type: "audio/midi" }), midiName);
+function PianoRoll() {
+  const piece = useMoppet((s) => s.piece),
+    lesson = useMoppet((s) => s.lesson);
   const selected = useMoppet((s) => s.voices[s.selected]);
   const studio404 = useMoppet((s) => s.studio404);
   const selectedName = studio404 ? studio404Name(selected.id, selected.name) : selected.name;
@@ -915,22 +985,58 @@ function ScorePanel() {
     const l = [...new Set(x.song.sections)][si]?.lines[li];
     return !l || "rest" in l ? null : ai < 0 ? l : (l.with?.[ai] ?? null);
   };
-  const noteEdit: NoteEdit | null = editing && editable ? {
-    id: selected.id,
-    pitch: (src, steps) => editSongFile((x) => {
-      const s = sung(x, src);
-      if (s) s.degrees[src[3]] += steps;
-    }),
-    length: (src, beats) => editSongFile((x) => {
-      const s = sung(x, src), n = src[3];
-      // the line keeps its length: the next note gives (or takes) the beats
-      if (!s || n + 1 >= s.rhythm.length) return;
-      const a = s.rhythm[n] + beats, b = s.rhythm[n + 1] - beats;
-      if (a < SNAP || b < SNAP) return;
-      s.rhythm[n] = a;
-      s.rhythm[n + 1] = b;
-    }),
-  } : null;
+  const noteEdit: NoteEdit | null =
+    editing && editable
+      ? {
+          id: selected.id,
+          pitch: (src, steps) =>
+            editSongFile((x) => {
+              const s = sung(x, src);
+              if (s) s.degrees[src[3]] += steps;
+            }),
+          length: (src, beats) =>
+            editSongFile((x) => {
+              const s = sung(x, src),
+                n = src[3];
+              // the line keeps its length: the next note gives (or takes) the beats
+              if (!s || n + 1 >= s.rhythm.length) return;
+              const a = s.rhythm[n] + beats,
+                b = s.rhythm[n + 1] - beats;
+              if (a < SNAP || b < SNAP) return;
+              s.rhythm[n] = a;
+              s.rhythm[n + 1] = b;
+            }),
+        }
+      : null;
+  return (
+    <section className="desk-roll" aria-label="Full MIDI score">
+      <header>
+        <h2>Full MIDI score</h2>
+        <small>
+          {Math.ceil(piece.beats / 4)} bars · {piece.bpm} BPM
+        </small>
+        <Transport />
+        <BandToggle />
+        {editable && (
+          <button onClick={() => setEditing(!editing)} aria-pressed={editing}>
+            {editing ? "Finish note edits" : `Edit ${selectedName}’s notes`}
+          </button>
+        )}
+      </header>
+      <ScoreSvg piece={piece} edit={noteEdit} />
+      {noteEdit && <small>Drag a note to change its pitch or drag its right edge to change its length.</small>}
+    </section>
+  );
+}
+
+function ScorePanel() {
+  const piece = useMoppet((s) => s.piece);
+  const voices = useMoppet((s) => s.voices);
+  const status = useMoppet((s) => s.status);
+  const lesson = useMoppet((s) => s.lesson);
+  const eStatus = useEnsemble((s) => s.status);
+  const message = useEnsemble((s) => s.message);
+  const progress = useEnsemble((s) => s.progress);
   return (
     <div className="moppet-score">
       <div className="lesson-header">
@@ -945,16 +1051,9 @@ function ScorePanel() {
       {piece.kind === "skit" && <SkitTools />}
       <p className="moppet-status" role="status">{message || status || (eStatus === "idle" ? "Ready. Press play." : "")}{eStatus === "rendering" ? ` (${Math.round(progress * 100)} %)` : ""}</p>
       {lessonFile(lesson) && <WordsEditor key={lesson} />}
-      <div className="chord-strip">{harmonic.map((c, i) => <span key={i}><b>{c.name}</b><small>{c.roman}</small></span>)}{piece.kind === "round" && <em>Every eight beats, the harmony comes home.</em>}</div>
       {piece.kind === "round" && <RoundWords piece={piece} />}
       {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
-      {piece.kind === "skit" ? <Script piece={piece} /> : <><div className="score-header"><span>THE SCORE <small>{piece.key} {piece.mode === "minor" ? "harmonic minor" : "major"} · {piece.bpm} BPM · {piece.beats} beats</small></span><span className="score-tools">{editable && <button className={editing ? "on" : ""} aria-pressed={editing} onClick={() => setEditing(!editing)} title={`Drag ${selectedName}'s notes up or down; drag a note's right edge to lengthen it`}>{editing ? `Done editing ${selectedName}` : `✎ Edit ${selectedName}'s notes`}</button>}<BandToggle /><SoundCraftButtons name={midiName} /><button onClick={midi}>↓ MIDI</button></span></div>
-      <div className="score" aria-label="Six-part musical score"><ScoreSvg piece={piece} edit={noteEdit} /></div>
-      {noteEdit && <p className="score-help">Drag {selectedName}’s notes up or down a scale step at a time, or a note’s right edge to lengthen it (the next note gives up the time, so the line keeps its length). Pick another Moppet on the stage to edit its part. Notes on strong beats move to fit the chord. Saving works as for words: Save to songs/… above.</p>}
-      <div className="score-legend">{voices.map((v) => {
-        const s404 = studio404 ? STUDIO_404_CAST[v.id] : undefined;
-        return <span key={v.id}><i style={{ background: s404?.color ?? v.color }} />{s404?.name ?? v.name}</span>;
-      })}<span className="score-help">Higher on the page = higher pitch</span></div></>}
+      {piece.kind === "skit" && <Script piece={piece} />}
     </div>
   );
 }
@@ -1019,7 +1118,7 @@ function SoundCraftButtons({ name }: { name: string }) {
   };
   return (
     <>
-      {linked && <button onClick={() => void open()} disabled={busy}>Open in SoundCraft</button>}
+      <button onClick={() => void open()} disabled={!linked || busy} title={linked ? "Open the current score" : "Available with the local SoundCraft bridge"}>Open in SoundCraft</button>
       {linked && opened && <button onClick={() => void pull()} disabled={busy}>Sing SoundCraft’s notes</button>}
       <button onClick={() => file.current?.click()} title="Sing the score on an edited .mid file's notes">Load MIDI…</button>
       <input ref={file} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => (void load(e.target.files?.[0]), (e.target.value = ""))} />
@@ -1218,6 +1317,7 @@ function Workbench() {
 }
 
 export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) {
+  const [cameraFollow,setCameraFollow]=useState(true);
   const selected = useMoppet((s) => s.selected);
   const voices = useMoppet((s) => s.voices);
   const studio404 = useMoppet((s) => s.studio404);
@@ -1235,9 +1335,12 @@ export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) 
   }, []);
   return (
     <div className="right right-moppet right-stage">
-      <Screen className="s-stage warm" title="The Moppet Choir" sub="Proscenium Case">
-        <div className="performance-top"><Stage onOpenVideo={onOpenVideo} /><MusicRack /></div>
-        <Transport /><LaunchkeyMap />
+      <Screen className="s-stage warm" label="The Moppet Choir">
+        <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)} onOpenVideo={onOpenVideo}/>
+        <SoloLibrary />
+        <div className="performance-top"><Stage cameraFollow={cameraFollow} /><MusicRack /></div>
+        {piece.kind==="skit" ? <Transport/> : <PianoRoll/>}
+        <LaunchkeyMap />
       </Screen>
       <Screen className="s-score warm" title="Music Desk" sub="Score & Stops">
         <ScorePanel />
