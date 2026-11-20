@@ -15,8 +15,8 @@ import { g2p } from "../audio/g2p.ts";
 import type { TelemetryMessage } from "@chimera/worklet/protocol.ts";
 import type { MixerIn, MixerOut } from "../worklet/mixerProtocol.ts";
 import type { Backing, FromSinger, ToSinger } from "./singer.worker.ts";
-import { beatSeconds, LEAD_IN, pieceSeconds } from "./plan.ts";
-import { hopFor, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
+import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
+import { midiToHz, hopFor, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
 import { beatReady, parseBeat } from "@chimera/wasm/engine.ts";
 import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
 import { bandFor } from "./band.ts";
@@ -64,7 +64,7 @@ const AUTO_MAX_RTF = 0.7;
 /** Auto: this many live underruns in one performance switch it to pre-render. */
 const MAX_UNDERRUNS = 3;
 
-type Singer = { worker: Worker; voice: MoppetVoice | null; index: number; rendered: number; frames: number; rtf: number; tele: Float32Array | null; recordSize: number; nArtic: number; nPh: number; nOr: number; nScope: number; edited: boolean };
+type Singer = { nativeEnvelope?: number[]; worker: Worker; voice: MoppetVoice | null; index: number; rendered: number; frames: number; rtf: number; tele: Float32Array | null; recordSize: number; nArtic: number; nPh: number; nOr: number; nScope: number; edited: boolean };
 
 const set = useEnsemble.setState;
 const get = useEnsemble.getState;
@@ -139,7 +139,7 @@ class Session {
   section: GainSection | undefined;
   planError: string | null = null;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: Float32Array[]) {
+  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: (Float32Array | null)[]) {
     sessionsMade++;
     this.sampleRate = ctx.sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
@@ -161,9 +161,19 @@ class Session {
       this.singers.push(s);
       ends.push(this.frames);
     };
+    const plans = piece.tracks.map((track, i) => stems[i] ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
     piece.tracks.forEach((track,i)=>{
       const voice=voices.find(v=>v.id===track.id)!;
       const samples = stems[i];
+      if (!samples) {
+        const plan = plans[i]!;
+        spawn(i, {sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
+          gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi)}, voice);
+        const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
+        this.singers[i].nativeEnvelope = envelope;
+        this.vocalTiming.envelopes[track.id] = envelope;
+        return;
+      }
       const envelope = new Array<number>(Math.ceil(samples.length / this.hop));
       for(let j=0;j<envelope.length;j++){
         let energy=0;const start=j*this.hop,end=Math.min(samples.length,start+this.hop);
@@ -220,6 +230,11 @@ class Session {
           s.tele = new Float32Array(m.recordSize * Math.ceil(this.frames / this.hop));
         }
         s.tele.set(m.records, m.from * m.recordSize);
+        if (s.nativeEnvelope) {
+          for (let i = 0; i < m.records.length / m.recordSize; i++) {
+            s.nativeEnvelope[m.from + i] = m.records[i * m.recordSize + TELE.outRms];
+          }
+        }
         break;
       case "error":
         fail(`${s.voice?.name ?? "Accompaniment"}: ${m.message}`);

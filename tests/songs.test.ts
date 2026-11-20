@@ -130,3 +130,13 @@ test("authored notes reach the plug-in unchanged apart from the singer's octave 
     }
   }
 });
+
+test("Found Things opens with Scribe's original keys-by-the-back-door phrase", async () => {
+  const { SONGBOOK } = await import("../src/choir/songbook.ts");
+  const piece = SONGBOOK.find(song => song.id === "found")!.make();
+  const scribe = piece.tracks.find(track => track.id === "scribe")!;
+  expect(scribe.phrases?.[0]).toBe("I was the keys by the back door");
+  const notes = scribe.events.filter(event => event.line === 0);
+  expect(notes.map(note => note.midi)).toEqual([67,71,74,74,71,69,64,64]);
+  expect(notes.map(note => note.beats)).toEqual([1,.5,.5,1,1,1,1,2]);
+});

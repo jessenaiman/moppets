@@ -6,7 +6,7 @@
 import { gunzipSync } from "node:zlib";
 import { execFileSync } from "node:child_process";
 import { bouncePart } from "./plugin-host.ts";
-import { instrumentPart, partKey } from "../src/choir/pluginScore.ts";
+import { instrumentPart, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "../tests/harness.ts";
@@ -35,7 +35,8 @@ for (const [name, piece] of Object.entries(pieces)) {
   for (const t of piece.tracks) {
     const v = voices.find((x) => x.id === t.id)!;
     const part=instrumentPart(piece,t,v),key=await partKey(part);
-    const cached=`public/plugin-vocals/${key}.ogg`;
+    const cached=piece.title === "Found Things" ? "public" + await scoredStemPath(piece,t,v) : `public/plugin-vocals/${key}.ogg`;
+    if (piece.title === "Found Things" && !existsSync(cached)) throw Error("Run bun tools/render-found-vocals.ts first");
     const file=existsSync(cached)?cached:`${out}/${key}.wav`;
     if(!existsSync(file))await bouncePart(part,file);
     const raw=execFileSync("ffmpeg",["-v","error","-i",file,"-af","pan=mono|c0=c0","-ar",String(FS),"-f","f32le","-"],{maxBuffer:frames*4+65536});

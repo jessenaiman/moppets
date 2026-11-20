@@ -1,4 +1,4 @@
-import { instrumentPart, partKey, type InstrumentPart } from "./pluginScore.ts";
+import { instrumentPart, partKey, scoredStemPath, type InstrumentPart } from "./pluginScore.ts";
 import type { Piece } from "./music.ts";
 import { pieceSeconds } from "./timeline.ts";
 import { CAST, type MoppetVoice } from "./voices.ts";
@@ -34,6 +34,15 @@ export async function pluginStems(piece: Piece, voices: MoppetVoice[], ctx: Audi
   return Promise.all(piece.tracks.map(async track=>{
     const pcm=new Float32Array(frames);
     if (!track.events.length) return pcm;
+    if (piece.title === "Found Things") {
+      const voice = voices.find(v => v.id === track.id)!;
+      const response = await fetch(await scoredStemPath(piece, track, voice));
+      if (response.status === 404 || response.headers.get("content-type")?.includes("text/html")) return null;
+      if (!response.ok) throw new Error("Could not load the scored vocal for " + voice.name);
+      const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+      pcm.set(buffer.getChannelData(0).subarray(0, frames));
+      return pcm;
+    }
     const voice=(import.meta.env.DEV?voices:CAST).find(v=>v.id===track.id)!;
     const buf=await pluginRecording(ctx,instrumentPart(piece,track,voice));
     pcm.set(buf.getChannelData(0).subarray(0,frames));

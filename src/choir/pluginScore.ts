@@ -16,15 +16,7 @@ export function instrumentPart(piece: Piece, track: Track, voice: MoppetVoice) {
     lyrics: lines.join(piece.kind === "skit" ? "\n" : " ").replaceAll("_"," - "),
     body: voice.body, source: { pressed:voice.source.tension, breath:voice.source.pressure, bright:voice.source.brightness,
       breathy:voice.source.breathiness, rough:voice.source.roughness },
-    notes: track.events.map((event, index) => {
-      const note = [event.beat, event.beats, event.midi];
-      if (piece.title === "Found Things") {
-        const phraseStart = index === 0 || event.line !== track.events[index - 1].line;
-        const velocity = event.line === undefined ? 64 : phraseStart ? 100 : event.beats >= 2 ? 95 : event.beats < 1 ? 82 : 90;
-        note.push(velocity);
-      }
-      return note;
-    }) };
+    notes: track.events.map(e=>[e.beat,e.beats,e.midi]) };
 }
 export type InstrumentPart = ReturnType<typeof instrumentPart> & {artic?: Record<string,number>};
 export async function partKey(part: InstrumentPart) {
@@ -36,4 +28,12 @@ export function instrumentNote(voice: MoppetVoice, midi:number, lyric:string) : 
   return {version:1,voice:voice.id,mode:"sing",bpm:120,lead:0,duration:1.8,lyrics:lyric||"la",body:voice.body,
     source:{pressed:voice.source.tension,breath:voice.source.pressure,bright:voice.source.brightness,breathy:voice.source.breathiness,rough:voice.source.roughness},
     notes:[[0,3.2,midi]]};
+}
+
+
+/** The scored renderer uses the full cast recipe and the lyric assigned to each note. */
+export async function scoredStemPath(piece: Piece, track: Track, voice: MoppetVoice) {
+  const data = JSON.stringify([1, piece.bpm, piece.beats, track, voice.body, voice.size, voice.artic, voice.source, voice.vibrato]);
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+  return "/scored-vocals/" + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("") + ".ogg";
 }
