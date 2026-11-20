@@ -9,7 +9,7 @@ export { midiSupported, type MidiHandlers, type MidiStatus };
 
 /** A knob or fader (control change), or a note offered to the controller before it plays. */
 export interface MidiControl {
-  kind: "cc" | "note";
+  kind: "cc" | "note" | "bend";
   /** 0-based channel (a Launchkey's pads arrive on 9, MIDI channel 10) */
   channel: number;
   /** controller number, or note number */
@@ -83,6 +83,7 @@ function attach(a: MIDIAccess): void {
         if (claimed.delete(owner + SEP + d[1])) offer({ kind: "note", channel, number: d[1], value: 0 });
         else lift(owner, d[1]);
       } else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
+      else if (kind === 0xe0 && d.length > 2) offer({kind:"bend",channel,number:0,value:((d[2]<<7)+d[1]-8192)/8192});
       else if (kind === 0xb0 && d.length > 2) offer({ kind: "cc", channel, number: d[1], value: d[2] });
     };
   });

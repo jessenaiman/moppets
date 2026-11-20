@@ -67,10 +67,23 @@ function keysNote(out: Float32Array, start: number, n: BandNote, fs: number, len
 }
 
 /** The kit: a pitched-down sine kick, a noisy snare, hats of high noise. */
-function drumHit(out: Float32Array, start: number, n: BandNote, fs: number, rand: () => number): void {
+function drumHit(out: Float32Array, start: number, n: BandNote, fs: number, rand: () => number, len: number): void {
   const g = n.vel / 127;
   const span = (s: number) => Math.min(out.length - start, Math.floor(s * fs));
-  if (n.midi === KICK) {
+  if (n.midi >= 73 && n.midi <= 75) {
+    // Two directions of a rubber-key scrape and a single bottoming-out clack.
+    const taps = n.midi === 75 ? 1 : 9;
+    const length = Math.min(len, span(0.6));
+    for (let i = 0; i < taps; i++) {
+      const at = start + Math.floor(length * i / taps);
+      const height = n.midi === 73 ? taps-i : i;
+      const freq = 760 + height*105;
+      for(let j=0; j<Math.min(out.length-at,fs*.042); j++){
+        const t=j/fs;
+        out[at+j] += g * Math.exp(-t*130) * (.16*tsin(freq*t)+.065*rand()*Math.exp(-t*280));
+      }
+    }
+  } else if (n.midi === KICK) {
     let phase = 0;
     for (let j = 0, m = span(0.35); j < m; j++) {
       const t = j / fs;
@@ -109,7 +122,7 @@ export function renderBand(piece: Piece, sampleRate: number, frames: number): Fl
       const len = Math.floor(n.beats * beat * sampleRate);
       if (p.id === "bass") bassNote(out, start, n, sampleRate, len);
       else if (p.id === "keys") keysNote(out, start, n, sampleRate, len);
-      else drumHit(out, start, n, sampleRate, rand);
+      else drumHit(out, start, n, sampleRate, rand, len);
     }
   return out;
 }

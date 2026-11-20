@@ -604,3 +604,67 @@
     bottom: -22%;
   }
 }
+
+.sc-solo-setting {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.sc-stage[data-solo-set] .sc-stage-mics,
+.sc-stage[data-solo-set] .sc-floor,
+.sc-stage[data-solo-set] .sc-floor-lip,
+.sc-stage[data-solo-set] .sc-floor-pools { display: none; }
+.sc-stage[data-solo-set] .sc-cast .sc-puppet[data-art-key] { width: 34%; }
+.zap-solo { display: block; width: 100%; aspect-ratio: 290 / 420; position: relative; }
+.zap-solo img { display: block; width: 100%; height: 100%; }
+.zap-solo i {
+  position: absolute; border-radius: 30%; background: currentColor;
+  box-shadow: 0 0 0.5em currentColor; mix-blend-mode: screen; pointer-events: none;
+  transition: opacity 80ms ease-out;
+}
+.zap-solo .zap-transmit { left: 28%; top: 8%; width: 22%; height: 3.3%; color: #ff4837; transform: rotate(-6deg); }
+
+.zap-solo .zap-cue-arm { position: absolute; inset: 0; transform-origin: 58% 41%; transition: transform 120ms ease-out; }
+.zap-solo .zap-body { position: relative; }
+.sc-stage[data-solo-set] .sc-capsule-words { font-size: clamp(12px, 1.8cqw, 32px); }
+@container (max-width: 540px) {
+  .sc-stage[data-solo-set] .sc-capsule-head { display: none; }
+}
+
+.sc-stage[data-solo-set] .sc-cast .sc-puppet .name-tag { bottom: -5%; }
+
+.sc-stage[data-solo-set="zap"] .sc-solo-setting { background-size: 100% 100%; }
+.sc-cart-crt { position:absolute;left:76.145833%;top:5.555556%;width:15.625%;height:27.777778%; }
+.sc-stage[data-solo-set="zap"] .sc-cast .sc-puppet[data-art-key="zap"] { height:83.333333%;width:auto;aspect-ratio:370/450; }
+.sc-stage[data-solo-set="zap"] .sc-foot-shadow { display:none; }
+.sc-stage[data-solo-set="zap"] .sc-svg-layer,
+.sc-stage[data-solo-set="zap"] .sc-puppet.selected::after { display: none; }
+
+.sc-stage[data-solo-set="gruff"] .sc-solo-setting { background-size: 100% 100%; }
+.sc-stage[data-solo-set="gruff"] .sc-cast .sc-puppet[data-art-key="gruff"] { height: 84%; width: auto; aspect-ratio: 3/4; }
+.sc-stage[data-solo-set="gruff"] .solo-live-rig { transform: none; }
+.sc-stage[data-solo-set="gruff"] .sc-foot-shadow { bottom: 2%; width: 36%; }
+
+/* Glass, deck lamp and reflected light register to the photographed AV cart. */
+.zap-room-spill { position:absolute; inset:0; mix-blend-mode:screen; }
+.zap-tv-glass { position:absolute; left:78.85%; top:11.65%; width:11.2%; height:21.8%; border-radius:16% / 19%; transform:rotate(-2deg); overflow:hidden; isolation:isolate; }
+.zap-tv-glass::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:repeating-linear-gradient(0deg,#18221922 0 1px,transparent 1px 3px); box-shadow:inset 0 0 .8cqw .25cqw #191e17aa; }
+.zap-tv-picture,.zap-tv-self,.zap-tv-archive,.zap-tv-roll { position:absolute; }
+.zap-tv-picture { inset:0; }
+.zap-tv-self { height:105%;width:100%;object-fit:contain;bottom:-9%; }
+.zap-tv-archive { width:140%;height:140%;left:-18%;top:-26%; }
+.zap-tv-roll { height:12%;left:0;right:0;background:#e1f0d3aa; }
+.zap-deck-lamp { position:absolute; left:85.7%;top:44.8%;width:1%;height:.75%; border-radius:30%; box-shadow:0 0 .5cqw #c1df9d; }
+.zap-crt-spark {position:absolute;left:48%;top:49%;width:4%;height:2%;border-radius:50%;background:#e9ffd6;box-shadow:0 0 .45cqw #acdfa2;}
+.zap-sunshower {position:absolute;inset:0;background:repeating-linear-gradient(108deg,transparent 0 13%,#c2dfeb96 14%,transparent 16%);}
+.sc-stage[data-solo-set="zap"] .zap-solo {filter:drop-shadow(0 .28cqw .16cqw #402a1e78);}
+
+.sc-stage[data-solo-set="neon"]:has(.neon-performer) .sc-cast .sc-puppet[data-art-key="neon"] {height:87%;width:auto;aspect-ratio:3/4;}
+.neon-performer {display:block;width:100%;height:100%;background-repeat:no-repeat;}
+.sc-stage:has(.neon-performer) .sc-svg-layer,.sc-stage:has(.neon-performer) .sc-puppet.selected::after,.sc-stage:has(.neon-performer) .sc-foot-shadow {display:none;}
+.neon-bay-lights,.neon-bay-lights i {position:absolute;inset:0;pointer-events:none;}
+.neon-cyan-spill {background:radial-gradient(ellipse at 14% 52%,#04d4ef66,transparent 34%),radial-gradient(ellipse at 28% 88%,#21c9c538,transparent 22%);mix-blend-mode:screen;}
+.neon-rose-spill {background:radial-gradient(ellipse at 92% 51%,#fd458466,transparent 35%),radial-gradient(ellipse at 72% 87%,#eb65643d,transparent 22%);mix-blend-mode:screen;}

@@ -23,6 +23,13 @@ export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: nu
   if (hasAccompaniment(piece)) gains.push(pluckGain);
   const extras = extraStems(piece);
   for (const e of extras) gains.push(e === "beat" ? 1 : 0.32);
+  // A staged solo from a lead sheet is a motesong. Use solo headroom for
+  // its whole arrangement so the voice and accompaniment keep their balance.
+  if (piece.kind === "motesong" && piece.tracks.length === 1 &&
+      piece.stage?.filter(id => id !== "band").length === 1 &&
+      piece.stage.includes(piece.tracks[0].id)) {
+    for (let i = 0; i < gains.length; i++) gains[i] *= 0.8 / BUS_GAIN;
+  }
   let section: GainSection | undefined;
   if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => (0.19 / BUS_GAIN) * (levels[t.id] ?? 1)), ...(hasAccompaniment(piece) ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 1 : 0.32))] };
   return { gains, section };
@@ -62,13 +69,13 @@ export class Limiter {
 }
 
 /** Mix finished stems into one block of samples through the same bus as playback. */
-export function mixStems(stems: readonly Float32Array[], gains: readonly number[], frames: number, section?: GainSection): { samples: Float32Array; limited: number; peak: number; nonFinite: number } {
+export function mixStems(stems: readonly Float32Array[], gains: readonly number[], frames: number, section?: GainSection, voiceLevels: readonly number[] = []): { samples: Float32Array; limited: number; peak: number; nonFinite: number } {
   const samples = new Float32Array(frames);
   let nonFinite = 0;
   stems.forEach((s, v) => {
     const n = Math.min(frames, s.length);
     for (let i = 0; i < n; i++) {
-      const g = (section && i >= section.frame ? section.gains[v] : gains[v]) * BUS_GAIN;
+      const g = (section && i >= section.frame ? section.gains[v] : gains[v]) * BUS_GAIN * (voiceLevels[v] ?? 1);
       if (Number.isFinite(s[i])) samples[i] += s[i] * g;
       else nonFinite++;
     }

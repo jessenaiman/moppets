@@ -27,6 +27,7 @@ import {
   type MoppetVideoProps,
   type TitleCardConfig,
 } from "../choir/videoProject.ts";
+import { neonAtlas } from "../stage/NeonSolo.tsx";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
 import { CharacterClip } from "./CharacterClip.tsx";
 
@@ -221,6 +222,10 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
   const showBand = piece.stage?.includes("band") || (piece.kind !== "skit" && piece.chords.length > 0);
   const preloadUrls = React.useMemo(() => {
     const urls = new Set<string>();
+    if (props.studio404 && piece.title === "Take Two") {
+      urls.add(resolveAsset("/rehearsal/sets/neon-repair.webp"));
+      for (const rolling of [true,false]) for (const open of [true,false]) urls.add(resolveAsset(neonAtlas(rolling,open)));
+    }
     for (const v of voices) {
       if (manifestForCharacter(v.id, props.studio404)) continue;
       const s404 = props.studio404 ? STUDIO_404_CAST[v.id] : undefined;
@@ -251,7 +256,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       }
     }
     return [...urls];
-  }, [voices, props.studio404, showBand, resolveAsset]);
+  }, [voices, props.studio404, showBand, resolveAsset,piece.title]);
 
   const preloadLayer = preloadUrls.length > 0 && (
     <div

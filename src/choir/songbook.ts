@@ -37,6 +37,7 @@ export interface Rest {
   rest: number;
 }
 export interface Section {
+  name?: string;
   lines: (Line | Rest)[];
   /** the choir pads the chords (otherwise only the bass plays) */
   choir?: boolean;
@@ -134,9 +135,11 @@ export function buildSong(s: Song): Piece {
   chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: BAR });
   if (bass !== "none") pad(bass, 0, 0, BAR);
   let at = BAR;
+  const sections = [{name:"Intro",beat:0}];
   const distinct = [...new Set(s.sections)];
   for (const section of s.sections) {
     const si = distinct.indexOf(section);
+    sections.push({name:section.name ?? "Section " + (si+1),beat:at});
     for (const [li, l] of section.lines.entries()) {
       if (isRest(l)) {
         at += l.rest;
@@ -182,7 +185,8 @@ export function buildSong(s: Song): Piece {
     tracks.push({ id, events, ...(p.phrases.length ? { phrases: p.phrases } : {}) });
   }
   tracks.sort((a, b) => (a.id === s.lead ? -1 : b.id === s.lead ? 1 : 0));
-  return { kind: "motesong", title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
+  sections.push({name:"Finale",beat:at});
+  return { kind: "motesong", sections, title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
 }
 
 // ---------------------------------------------------------------------------------- the songs

@@ -9,6 +9,7 @@ export type MixerIn =
   | { type: "play"; generation: number; frame: number }
   | { type: "pause" }
   | { type: "clear"; generation: number }
+  | { type: "voiceLevels"; values: number[] }
   | { type: "gains"; gains: number[] }
   /** which stem feeds the analysers (the inspected Moppet) */
   | { type: "solo"; voice: number }

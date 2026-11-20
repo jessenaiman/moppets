@@ -1,3 +1,4 @@
+import { MusicRack } from "./MusicRack.tsx";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
@@ -21,13 +22,14 @@ import { effectOf, PropFx, updateProp } from "./props.tsx";
 import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { LaunchkeyMap } from "./launchkey-map.tsx";
 import { bandEnabled, bandFor } from "../choir/band.ts";
-import { livePose, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
+import { livePose, liveMidiPitch, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import type { Pose } from "../choir/pose.ts";
 import { ShotcraftStage, type LiveMidiSpeech } from "../stage/ShotcraftStage.tsx";
 import { RehearsalStaffPanel, VexStaffLine, type StaffNoteItem } from "./StaffEditor.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
+import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
@@ -195,6 +197,7 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
         const noteSuffix = quoted?.[2] ? ` · ${quoted[2]}` : "";
         liveMidiSpeech = {
           voiceId: selVoice.id,
+          midi: liveMidiPitch(),
           text,
           roleLabel: `${lv.mode === "words" ? "LIVE WORDS" : lv.mode === "puppet" ? "PUPPETEER" : "LIVE VOICE"}${noteSuffix}`,
           level: lp?.level ?? 0.65,
@@ -303,6 +306,7 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  const [failedClips, setFailedClips] = useState<ReadonlySet<string>>(new Set());
   const studio404 = useMoppet((s) => s.studio404);
   const setStudio404 = useMoppet((s) => s.setStudio404);
   const lesson = useMoppet((s) => s.lesson);
@@ -313,7 +317,8 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
 
   return (
     <div className="moppet-stage-wrap">
-      <div className={`theatre-top${status === "playing" ? " on-air" : ""}`}>
+      <div className="desk-selection"><LessonTabs /><button type="button" onClick={()=>setMidi(!midiOn)} disabled={!midiSupported()}>{midiOn ? midi.inputs[0] || "MIDI · no device" : "Connect MIDI"}</button></div>
+      <details className="stage-options"><summary>Solos &amp; stage settings</summary><div className={`theatre-top${status === "playing" ? " on-air" : ""}`}>
         <span><i /> STUDIO 404 · {status === "playing" ? "ON AIR" : "REHEARSAL BOOTH"}</span>
         <span className="booth-actions">
           <button type="button" className={`booth-btn${lesson === "cue-playbook" ? " on" : ""}`} aria-pressed={lesson === "cue-playbook"} onClick={() => setLesson("cue-playbook" as Lesson)}>
@@ -347,7 +352,7 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
             {s.name}
           </button>
         ))}
-      </nav>
+      </nav></details>
       <div className={`stage${studio404 ? " studio404" : ""}`} ref={stageRef}>
         <ShotcraftStage
           piece={piece}
@@ -368,15 +373,24 @@ function Stage({ onOpenVideo }: { onOpenVideo?: () => void }) {
             select(i);
             poke.current = { index: i, at: performance.now() / 1000 };
           }}
+          padGesture={useController.getState().gesture}
           puppetRef={(i, el) => {
             refs.current[i] = el;
+          }}
+          renderCharacterOverride={(id, art, style) => {
+            if (!studio404 || frameState.still || failedClips.has(art)) return null;
+            if (art !== "tabby" && !(art === "gruff" && lesson === "close-up")) return null;
+            if (piece.stage && !piece.stage.includes(id)) return null;
+            return (
+              <SoloPuppet art={art} solo={lesson === "tabby-solo" || lesson === "close-up"} bpm={piece.bpm} style={style}
+                onError={() => setFailedClips(previous => new Set(previous).add(art))} />
+            );
           }}
           renderPropFx={(id) => <PropFx id={id} />}
         />
         <canvas ref={frontRef} className="stage-fx front" data-layout="overlay" aria-hidden="true" />
       </div>
-      {piece.kind !== "skit" && <RehearsalStaffPanel />}
-      <Transport />
+
     </div>
   );
 }
@@ -436,13 +450,17 @@ function LessonTabs() {
   const lesson = useMoppet((s) => s.lesson);
   const setLesson = useMoppet((s) => s.setLesson);
   const fresh = useMoppet((s) => s.freshSkit);
+  const isSolo = (entry: (typeof SONGBOOK)[number]) => entry.song.stage?.length === 1 && entry.song.stage[0] === entry.song.lead;
   const opt = (l: Lesson, label: string) => <option key={l} value={l}>{label}</option>;
   return (
     <label className="lesson-pick">
       <span>Performance</span>
-      <select className="lesson-select" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
+      <select aria-label="Choose a solo, song or skit" className="lesson-select" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
+        <optgroup label="Moppet solos">{SONGBOOK.filter(isSolo).map(entry =>
+          opt(entry.id, `Solo · ${studio404Name(entry.song.lead, entry.song.lead)} — ${entry.song.title}`)
+        )}</optgroup>
         <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
-        <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => opt(x.id, x.tab))}</optgroup>
+        <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.filter(x => !isSolo(x)).map(x => opt(x.id, x.tab))}</optgroup>
         <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{fresh && opt("newskit", `New: ${fresh.title}`)}</optgroup>
       </select>
     </label>
@@ -915,7 +933,6 @@ function ScorePanel() {
   } : null;
   return (
     <div className="moppet-score">
-      <LessonTabs />
       <div className="lesson-header">
         <div>
           <p className="eyebrow">{piece.kind === "round" ? (piece.title.includes("Jam") ? "SAME TUNE. ONE VERY STICKY HAT." : "SAME TUNE. NEW WORDS.") : piece.kind === "intro" ? "SIX VERSES, ONE CHORUS" : piece.kind === "solo" ? "ONE MOPPET, ALONE" : piece.kind === "motesong" ? "A MOPPET ORIGINAL" : piece.kind === "skit" ? "A MOPPET SKIT" : "AN INVENTION, NOT A REPEAT"}</p>
@@ -1171,7 +1188,7 @@ function Workbench() {
           </div>
         </div>
         <MidiStrip />
-        <LaunchkeyMap />
+
         <LivePanel name={vName} />
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
@@ -1219,14 +1236,17 @@ export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) 
   return (
     <div className="right right-moppet right-stage">
       <Screen className="s-stage warm" title="The Moppet Choir" sub="Proscenium Case">
-        <Stage onOpenVideo={onOpenVideo} />
+        <div className="performance-top"><Stage onOpenVideo={onOpenVideo} /><MusicRack /></div>
+        <Transport /><LaunchkeyMap />
       </Screen>
       <Screen className="s-score warm" title="Music Desk" sub="Score & Stops">
         <ScorePanel />
+        {piece.kind !== "skit" && <RehearsalStaffPanel />}
       </Screen>
       <Screen className="s-cast warm" title={`Organ Console · ${name}`} sub="Voice & Manuals">
         <Workbench />
       </Screen>
+      <details className="layout-studies"><summary>Earlier desk layouts</summary><div>{["Center music rack","Side desk","Pinned rehearsal console"].map((name,i)=><figure key={name}><a href={`/layouts/layout-${String.fromCharCode(97+i)}.webp`}><img loading="lazy" src={`/layouts/layout-${String.fromCharCode(97+i)}.webp`} alt={name}/></a><figcaption>{name}</figcaption></figure>)}</div></details>
       <p className="moppet-credit">Experimental character voices · Studio 404. Physical voice synthesis by <a href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer">CHIMERA</a>, MIT licensed.</p>
     </div>
   );

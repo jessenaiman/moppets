@@ -22,12 +22,16 @@
  */
 import React, { useMemo } from "react";
 import "./shotcraft-stage.css";
+import { zapCues, zapTake } from "./zapDirection.ts";
+import { NeonSolo, neonScore, neonTake, RepairBayLights } from "./NeonSolo.tsx";
+import { ZapSolo, ZapTelevision, zapFrame } from "./ZapSolo.tsx";
+import soloSets from "./soloSets.json";
 import type { Piece } from "../choir/music.ts";
 import { MOUTH_OPEN_THRESHOLD, type Pose } from "../choir/pose.ts";
 import type { Actor } from "../choir/choreo.ts";
 import { featuredAt, sceneFeatured } from "../choir/choreo.ts";
 import { cuesFor } from "../choir/cues.ts";
-import { gestureAt, type GesturePose } from "../choir/gestures.ts";
+import { gestureAt, gestureSeconds, type GesturePose } from "../choir/gestures.ts";
 import { beatSeconds } from "../choir/timeline.ts";
 import { STUDIO_404_CAST, STUDIO_404_CREW, studio404Name } from "../choir/studio404.ts";
 import { duetCriticsStateAt, studio404DanceAt } from "../choir/studio404Anim.ts";
@@ -125,6 +129,7 @@ export interface StageVoiceInfo {
 }
 
 export interface LiveMidiSpeech {
+  midi?: number;
   voiceId: string;
   text: string;
   roleLabel?: string;
@@ -166,6 +171,7 @@ export interface ShotcraftStageProps {
   /** Optional render slot inside each puppet button for CHIMERA PropFx DOM overlays */
   renderPropFx?: (voiceId: string, index: number) => React.ReactNode;
   /** Optional button ref callback so live PropFx updater can address puppet DOM nodes */
+  padGesture?: {id:string; action:import("../choir/gestures.ts").GestureName | "double nod"; at:number} | null;
   puppetRef?: (index: number, el: HTMLButtonElement | null) => void;
   /** Optional URL resolver (e.g. Remotion `staticFile` during headless rendering) */
   resolveAsset?: (path: string) => string;
@@ -544,6 +550,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   bandParts: externalBandParts,
   onSelectActor,
   renderPropFx,
+  padGesture,
   puppetRef,
   resolveAsset = (p) => p,
   renderCharacterOverride,
@@ -556,6 +563,19 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   );
   const isSoloStage = onstageVoiceIds.length === 1;
   const soloVoiceId = isSoloStage ? onstageVoiceIds[0] : null;
+
+  const soloArt = studio404 && soloVoiceId ? STUDIO_404_CAST[soloVoiceId]?.artKey : undefined;
+  const soloSet = soloArt ? soloSets.find(set => set.art === soloArt) : undefined;
+  const onCart = soloSet?.art === "zap";
+  const inRepairBay = soloSet?.art === "neon" && piece.title === "Take Two";
+  const neonCues = useMemo(()=>inRepairBay ? neonScore(piece) : null,[inRepairBay,piece]);
+  const neon = neonCues ? neonTake(neonCues,beat,performing,still) : null;
+  const onValveBench = soloSet?.art === "gruff";
+  const cartFrame = zapFrame(performing && !still ? beat : 0);
+  const directing = onCart && piece.title === "Every Button";
+  const cuts = useMemo(() => directing ? zapCues(piece) : null, [piece, directing]);
+  const take = cuts ? zapTake(cuts, performing ? beat : -2) : null;
+  const crt = cartFrame >= 50 && cartFrame < 86 ? "bars" : cartFrame >= 39 && cartFrame < 50 ? "playing" : null;
 
   // Remap actor X range in Studio 404 mode so the 8 singers fill [0.07..0.68] cleanly and leave stage right clear for Tracking & Hertz,
   // or center cleanly when a solo song clears the stage (`stage: tabby`)
@@ -683,7 +703,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
 
   // Subtle 2.5D stage framing toward solo/duet singer or active MIDI Moppet (R4 compliant: smooth, zero beat-shake)
   const framing = useMemo(() => {
-    if (!cameraFollow || still) return { zoom: 1, focusX: 0.5 };
+    if (soloSet || !cameraFollow || still) return { zoom: 1, focusX: 0.5 };
     if (!performing && liveMidiSpeech) {
       const idx = Math.max(0, voices.findIndex((v) => v.id === liveMidiSpeech.voiceId));
       return { zoom: 1.035, focusX: clamp(actors[idx]?.x ?? 0.45, 0.25, 0.72) };
@@ -693,7 +713,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
       return { zoom: 1.04, focusX: clamp(avgX, 0.25, 0.72) };
     }
     return { zoom: 1, focusX: 0.5 };
-  }, [cameraFollow, still, performing, liveMidiSpeech, voices, actors, singingIndices]);
+  }, [soloSet, cameraFollow, still, performing, liveMidiSpeech, voices, actors, singingIndices]);
 
   const maxShiftPct = (framing.zoom - 1) * 46;
   const stageShiftXPct = clamp(-(framing.focusX - 0.5) * 100 * framing.zoom, -maxShiftPct, maxShiftPct);
@@ -808,17 +828,25 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const vhsOffsetY = isVhsRoll && !still ? Math.sin(timeSec * 22) * 1.4 : 0;
 
   return (
-    <div className={`sc-stage${studio404 ? " studio404" : ""}${isBlackout ? " blackout" : ""}`}>
+    <div data-solo-set={soloSet?.art} className={`sc-stage${studio404 ? " studio404" : ""}${isBlackout ? " blackout" : ""}`}>
       {/* Framed 2.5D stage plane */}
       <div
         className="sc-plane"
         style={{
-          transform:
-            framing.zoom === 1 && vhsOffsetY === 0
+          transformOrigin: neon?.detail && cameraFollow ? "40% 84%" : undefined,
+          transform: neon?.detail && cameraFollow
+            ? `translate(${neon.detail*8}%, ${-neon.detail*16}%) scale(${1+neon.detail*1.45})`
+            : framing.zoom === 1 && vhsOffsetY === 0
               ? undefined
               : `translate(${stageShiftXPct.toFixed(2)}%, ${vhsOffsetY.toFixed(2)}%) scale(${framing.zoom.toFixed(3)})`,
         }}
       >
+        {soloSet && <div className="sc-solo-setting" aria-hidden="true" data-layout="overlay"
+          style={{ backgroundImage: `url("${resolveAsset(`/rehearsal/sets/${neon ? "neon-repair" : onValveBench ? "gruff-bench" : soloSet.art}.webp`)}")` }}>
+          {neon && <RepairBayLights take={neon} />}
+          {take && <ZapTelevision take={take} still={still} resolveAsset={resolveAsset} />}
+          {onCart && !take && crt && <img className="sc-cart-crt" src={resolveAsset(`/rehearsal/sets/zap-crt-${crt}.webp`)} alt="" />}
+        </div>}
         {/* 1. Far Plane: Unlit Pleated Curtain */}
         <div
           className="sc-curtain-base"
@@ -1112,7 +1140,12 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
             const a = actors[i] ?? { x: 0.5, depth: 0, face: 1, hop: 0, lean: 0, walking: false, bubble: null };
             const p = poses[i] ?? { singing: false, level: 0, open: 0, viseme: 0 };
 
-            const g = performing ? gestureNow(piece, v.id, beat) : null;
+            const cue = padGesture;
+            const age = cue ? (performance.now()-cue.at)/1000 : 0;
+            const clip = cue?.action === "double nod" ? "nod" : cue?.action;
+            const repeat = cue?.action === "double nod" && age >= gestureSeconds("nod");
+            const liveGesture = !still && cue?.id === v.id && clip ? gestureAt(clip, age - (repeat ? gestureSeconds("nod") : 0)) : null;
+            const g = liveGesture ?? (performing ? gestureNow(piece, v.id, beat) : null);
             const dance = studio404 && dancing ? studio404DanceAt(v.id, beat, p.singing, p.level, still) : null;
             const gxPct = ((g?.dx ?? 0) + (dance?.dx ?? 0)) * (a.face < 0 ? -1 : 1) * 100;
             const gyPct = ((g?.dy ?? 0) + (dance?.dy ?? 0)) * 100;
@@ -1168,10 +1201,10 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
 
             const puppetCls = `puppet sc-puppet${i === selectedIndex ? " selected" : ""}${p.singing ? " singing" : ""}${mouthOpen ? " mouth-open" : ""}${singClosedUrl ? " has-sing-closed" : ""}${offstage ? " offstage" : ""}`;
             const puppetStyle: React.CSSProperties = {
-              left: `${(a.x * 100).toFixed(2)}%`,
-              bottom: `${(10.5 + liftPct).toFixed(2)}%`,
+              left: neon ? `${neon.x}%` : onCart ? "41.98%" : onValveBench ? "45%" : `${(a.x * 100).toFixed(2)}%`,
+              bottom: neon ? "11%" : onCart ? "15%" : onValveBench ? "13%" : `${(10.5 + liftPct).toFixed(2)}%`,
               zIndex: Math.round(100 - a.depth * 55 + (p.singing ? 6 : 0)),
-              transform: `translateX(-50%) scale(${depthScale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`,
+              transform: neon || onCart || onValveBench ? "translateX(-50%)" : `translateX(-50%) scale(${depthScale.toFixed(3)}) rotate(${a.lean.toFixed(2)}deg)`,
               filter: `brightness(${brightness.toFixed(2)}) saturate(${(p.singing ? 1.06 : 0.94).toFixed(2)})${emissiveShadow}`,
             };
 
@@ -1186,7 +1219,12 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
               "--grot": `${grot.toFixed(2)}deg`,
             } as React.CSSProperties;
 
-            const customClip = renderCharacterOverride?.(v.id, artKey, spriteVars) ?? null;
+            const sungNote = soloSet?.art === "zap" && !offstage
+              ? piece.tracks.find(track => track.id === v.id)?.events.find(event => beat >= event.beat && beat < event.beat + event.beats)
+              : undefined;
+            const customClip = neon && !offstage ? <NeonSolo take={neon} open={mouthOpen} resolveAsset={resolveAsset} /> : soloSet?.art === "zap" && !offstage
+              ? <ZapSolo take={take} still={still} beat={performing && !still ? beat : 0} level={p.singing ? p.level : 0} midi={liveMidiSpeech?.voiceId === v.id ? (liveMidiSpeech.midi ?? 60) : (sungNote?.midi ?? 60)} open={mouthOpen} resolveAsset={resolveAsset} />
+              : renderCharacterOverride?.(v.id, artKey, spriteVars) ?? null;
 
             const puppetBody = (
               <>
@@ -1273,12 +1311,12 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
           {placedCapsules.map(({ capsule, bg, fg, showTail }) => (
             <ShotcraftSpeechCapsule
               key={capsule.key}
-              capsule={capsule}
+              capsule={soloSet ? { ...capsule, centerX: 0.82, topY: onCart ? 0.55 : 0.15, maxWidthPct: 29 } : capsule}
               beat={beat}
               timeSec={timeSec}
               bgOverride={bg}
               fgOverride={fg}
-              showTail={showTail}
+              showTail={showTail && !soloSet}
             />
           ))}
         </div>

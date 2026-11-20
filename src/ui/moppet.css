@@ -951,3 +951,92 @@
   .vs-wrap { padding: 10px 12px; }
   .vs-track-row { grid-template-columns: 74px minmax(0, 1fr); }
 }
+
+.puppet .sprite.solo-live-rig {
+  display: grid;
+  transform: translate(var(--gx), var(--gy)) rotate(var(--grot)) scaleX(var(--face));
+}
+.solo-live-rig video {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.solo-live-rig video:last-child,
+.mouth-open .solo-live-rig video:first-child { visibility: hidden; }
+.mouth-open .solo-live-rig video:last-child { visibility: visible; }
+
+.performance-top { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:stretch; background:#231710; }
+.performance-top .moppet-stage-wrap { min-width:0; justify-content:end; }
+.performance-top .solo-strip { flex-wrap:wrap; gap:3px; padding:3px 6px; }
+.performance-top .solo-chip img { height:20px; width:15px; }
+.performance-top .booth-actions { flex-wrap:wrap; }
+.performance-top .music-rack { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto 24px; margin:8px 10px 0; border:solid #946738; border-width:1px 2px 7px; border-radius:5px; overflow:hidden; background:#f5edda; color:#33241d; }
+.music-rack header,.music-rack footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 12px; }
+.music-rack header { border-bottom:1px solid #c8b898; }
+.music-rack h2 { margin:0; font: bold 20px Georgia,serif; color:#412b20; }
+.music-rack small { color:#74583d; font-size:11px; }
+.music-rack .rack-paper { height:100%; min-height:0; overflow:auto; contain:size; overscroll-behavior:contain; }
+.rack-paper svg { width:100%; display:block; }
+.rack-paper .current { background:#efe1bb; }
+.rack-timeline { width:100%; height:24px; background:#35261e; }
+.rack-tacet { padding:16px; }
+.s-stage .organ-console { margin:0; }
+.s-stage .organ-welcome,.hide-keys .organ-key-legends,.hide-keys .organ-manual-shell,.s-stage .arp-tag { display:none; }
+.s-stage .organ-cabinet { gap:5px; padding:6px 10px; }
+.s-stage .organ-crest { padding-bottom:4px; }
+.s-stage .organ-controls-bay { gap:4px; }
+.s-stage .organ-deck { grid-template-columns:82px minmax(0,1fr); }
+.s-stage .organ-drawbar-bank { padding:3px 8px; }
+.s-stage .organ-drawbar i { width:26px; height:26px; }
+.s-stage .organ-strip-track { min-height:42px; height:auto; }
+.s-stage .lk-pad.organ-stop { min-height:30px; padding:4px; border-bottom:3px solid var(--pad-color); background:color-mix(in srgb,var(--pad-color) 32%,#20150e); }
+.s-stage .lk-pad.organ-stop.on { background:var(--pad-color); color:#16110a; }
+.s-stage .organ-mode-rail { flex-wrap:wrap; gap:5px; }
+.s-stage .organ-mode-rail output { flex:1; color:#efcc90; }
+.layout-studies {grid-column:1/-1; padding:10px; }
+.layout-studies > div {display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;}
+.layout-studies figure {margin:8px 0;}
+.layout-studies img {width:100%;}
+@media(min-width:901px) and (max-height:820px) {
+  .performance-top { grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); }
+  .performance-top .stage { background:#150f10; }
+  .performance-top .sc-stage { max-width: min(100%,45vh); margin:auto; }
+}
+@media(max-width:900px) {
+ .performance-top {grid-template-columns:minmax(0,1fr);}
+ .performance-top .music-rack {height:240px;}
+ .performance-top .moppet-stage-wrap {background:#211610;}
+ .s-stage .organ-deck {grid-template-columns:minmax(0,1fr);}
+}
+.stage-options {background:#201810;color:#efe1c7;padding:3px 8px;}
+.stage-options summary,.organ-cabinet summary,.layout-studies summary {cursor:pointer;}
+.performance-top .desk-selection {display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:3px 6px;background:#291c13;}
+.desk-selection .lesson-pick {margin:0;gap:5px;flex:1;}
+.desk-selection select {max-width:100%;}
+@media(min-width:901px) and (max-height:820px) {
+ .performance-top .sc-stage {max-width:min(100%,61vh);}
+ .s-stage .organ-mode-rail {min-height:28px;}
+}
+.desk-selection .lesson-pick {min-width:0;flex:1 1 170px;border:0;padding:0;}
+.desk-selection .lesson-pick span {display:none;}
+.desk-selection .lesson-select {min-width:0;width:100%;}
+.rack-paper svg {overflow:visible;}
+.rack-paper [data-event] {cursor:pointer;}
+.rack-paper .rack-sounding,.rack-paper .rack-sounding * {fill:#b14229;stroke:#b14229;}
+@media(min-width:901px) and (max-height:820px) {
+ .performance-top .sc-stage {max-width:min(100%,56vh);}
+}
+.wall-moppet .right-stage:has(.performance-top) {grid-template-areas:"stage stage stage stage stage stage" "score score score score score score" "cast cast cast cast cast cast" "studies studies studies studies studies studies" "credit credit credit credit credit credit";}
+.right-stage .layout-studies {grid-area:studies;}
+.s-stage .music-rack h2 {color:#422e22;}
+.rack-paper svg [data-event] {pointer-events:all;}
+.music-rack footer select {max-width:145px;}
+
+.performer-volume {display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:5px 8px;border:1px solid #745438;border-radius:6px;background:#24190f;}
+.performer-volume label {display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#f8e5c3;}
+.performer-volume input[type=range] {width:clamp(76px,14vw,180px);accent-color:#50cfad;}
+.performer-volume output {min-width:4ch;font-variant-numeric:tabular-nums;}
+.performer-volume small {color:#dfbb85;}
+.performer-volume button {margin-left:auto;}

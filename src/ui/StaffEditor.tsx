@@ -40,7 +40,7 @@ export interface StaffPhrase {
   notes: StaffNoteItem[];
 }
 
-function trackSyllables(track: Track): (string | null)[] {
+export function trackSyllables(track: Track): (string | null)[] {
   const byLine = new Map<number, string[]>();
   const seen = new Map<number, number>();
   return track.events.map((e) => {
@@ -414,10 +414,7 @@ export function RehearsalStaffPanel() {
     () => voices.map((v, i) => ({ v, i })).filter(({ v }) => piece.tracks.some((t) => t.id === v.id && t.events.length > 0) && (!piece.stage || piece.stage.includes(v.id))),
     [voices, piece],
   );
-  // A piece the selected Moppet sits out opens on its first singer instead.
-  useEffect(() => {
-    if (singers.length && !singers.some((s) => s.i === selected)) select(singers[0].i);
-  }, [singers, selected, select]);
+
   const voice = voices[selected];
   const displayName = studio404 ? studio404Name(voice.id, voice.name) : voice.name;
   const track = piece.tracks.find((t) => t.id === voice?.id);

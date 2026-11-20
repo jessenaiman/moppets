@@ -9,6 +9,8 @@
  * already has a drummer, so its kit sits out. Where the chords stop (a songbook rest), the band does.
  */
 import type { Chord, Piece } from "./music.ts";
+import { zapBand } from "./zapBand.ts";
+import { neonBand } from "./neonBand.ts";
 
 export type BandId = "bass" | "keys" | "drums";
 export interface BandNote {
@@ -63,6 +65,8 @@ const near = (pc: number, centre: number) => {
 };
 
 export function arrange(piece: Piece): BandPart[] {
+  if (piece.title === "Take Two" && piece.stage?.includes("vee")) return neonBand(piece);
+  if (piece.title === "Every Button" && piece.stage?.includes("zap") && piece.chords.length) return zapBand(piece);
   const chords = piece.chords;
   if (!chords.length) return [];
   const end = Math.max(...chords.map((c) => c.beat + c.beats));
@@ -70,8 +74,18 @@ export function arrange(piece: Piece): BandPart[] {
   // swung songs push the off-beat eighth late, as the beatbox does
   const off = 0.5 + (piece.beat?.swing ?? 0) * 0.17;
   const bass: BandNote[] = [], keys: BandNote[] = [], drums: BandNote[] = [];
+  const gruffSolo = piece.stage?.length === 1 && piece.stage[0] === "gruff";
   for (const c of chords) {
     const root = near(c.tones[0], 38), fifth = near(c.tones[2], root + 7);
+    if (gruffSolo) {
+      // A long downbeat and a short answering fifth leave room for the sung line.
+      const finalChord = c.beat + c.beats === end;
+      bass.push({ beat: c.beat, beats: finalChord ? c.beats : Math.min(1.6, c.beats), midi: root, vel: 102 });
+      if (!finalChord && c.beats >= 3) {
+        bass.push({ beat: c.beat + c.beats - 1, beats: 0.67, midi: fifth, vel: 88 });
+      }
+      continue;
+    }
     const voicing = c.tones.map((pc) => near(pc, 62)).sort((a, b) => a - b);
     if (ballad) {
       // long notes: the root under a held chord
@@ -92,6 +106,7 @@ export function arrange(piece: Piece): BandPart[] {
       if (inBar === 3) for (const m of voicing) keys.push({ beat: b + off, beats: 0.3, midi: m, vel: 48 });
     }
   }
+  if (gruffSolo) return [{ id: "bass", channel: BAND_SETUP.bass.channel, program: BAND_SETUP.bass.program, notes: bass }];
   if (!piece.beat) {
     // the kit: kick on 1 and 3, snare on 2 and 4, eighth hats; a crash where the band starts
     let started = false;

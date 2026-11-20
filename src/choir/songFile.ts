@@ -156,7 +156,7 @@ export function parseSongFile(text: string, file = "song"): SongFile {
           section = null;
           return;
         }
-        section = { lines: [], ...(flags.includes("choir") ? { choir: true } : {}) };
+        section = { name, lines: [], ...(flags.includes("choir") ? { choir: true } : {}) };
         named.set(name, section);
         sections.push(section);
         lastLine = null;

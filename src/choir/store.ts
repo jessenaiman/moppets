@@ -91,7 +91,7 @@ interface MoppetState {
   invent: () => void;
   rehearse: () => void;
   singSolo: () => void;
-  edit: (fn: (v: MoppetVoice) => void) => void;
+  edit: (fn: (v: MoppetVoice) => void, index?:number) => void;
   reset: () => void;
   savePreset: () => void;
   loadPreset: (file: File) => Promise<void>;
@@ -370,6 +370,11 @@ export const useMoppet = create<MoppetState>((set, get) => {
     const { piece, baseBpm } = applyTempo(scoreFor(next), s.tempoScale);
     set({ lesson, bpm, baseBpm, mode: next.mode, piece, status: "" });
     loadPiece(piece);
+    const singing = (id:string) => piece.tracks.some(t => t.id === id && t.events.length) && (!piece.stage || piece.stage.includes(id));
+    if (!singing(s.voices[s.selected].id)) {
+      const first = s.voices.findIndex(v=>singing(v.id));
+      if (first >= 0) get().select(first);
+    }
   },
   setSettings: (changes) => {
     set(changes);
@@ -398,9 +403,9 @@ export const useMoppet = create<MoppetState>((set, get) => {
     set({ piece, baseBpm, status: "" });
     loadPiece(piece);
   },
-  edit: (fn) => {
+  edit: (fn, index=get().selected) => {
     const voices = structuredClone(get().voices);
-    fn(voices[get().selected]);
+    fn(voices[index]);
     set({ voices });
     persist(voices);
   },

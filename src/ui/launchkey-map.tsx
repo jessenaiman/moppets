@@ -1,3 +1,4 @@
+import { setVoiceLevel, useVoiceLevels } from "../choir/voiceLevels.ts";
 /**
  * Grandfather's Imaginative Walnut Organ + Launchkey Mini MK3 Console:
  * Mirrors the physical Novation Launchkey Mini MK3 overhead panel (Pitch/Mod capacitive touch
@@ -12,8 +13,7 @@ import {
   applyControl,
   CONTROLS,
   handleControl,
-  PAD_AUDITION,
-  PAD_FIRST,
+  ACTIONS, triggerPad,
   touchControl,
   useController,
   type ControlKey,
@@ -25,8 +25,7 @@ import {
   liveNoteOn,
   MOUTH,
   moveMouth,
-  PAD_VOWELS,
-  padVowel,
+
   useLive,
   type LiveMode,
 } from "../choir/live.ts";
@@ -43,7 +42,7 @@ const MIN_OCTAVE = -2;
 const MAX_OCTAVE = 2;
 
 const ARP_KNOB_TAGS = ["Tempo", "Swing", "Gate", "Mutate", "Deviate", "Tone", "Warmth", "Air"];
-const BOTTOM_STOP_LABELS = ["“nod”", "“tilt”", "“grin”", "“shrug”", "“gasp”", "“bow”", "“cheer”", "Choir"];
+
 const BOTTOM_PAD_COLORS = ["#e8a849", "#57d3e8", "#a98fc4", "#3fbfa0", "#e06a4f", "#d9b440", "#c9c2ae", "#e0533c"];
 const MODE_BUTTONS: [LiveMode, string][] = [
   ["off", "Off"],
@@ -89,6 +88,9 @@ function controlValue(v: MoppetVoice, key: ControlKey): { norm: number; text: st
 }
 
 export function LaunchkeyMap() {
+  const [keys, showKeys] = useState(false);
+  const learnPads = useController(s=>s.learningPads);
+  const last = useController(s=>s.last);
   const mode = useLive((s) => s.mode);
   const setMode = useLive((s) => s.setMode);
   const mouth = useLive((s) => s.mouth);
@@ -103,6 +105,8 @@ export function LaunchkeyMap() {
   const startAudio = useAudio((s) => s.start);
 
   const curVoice = voices[selected];
+  const volume = useVoiceLevels(s => s.levels[curVoice.id] ?? 1);
+  const [showVoiceTools,setShowVoiceTools] = useState(false);
   const name = studio404 ? studio404Name(curVoice.id, curVoice.name) : curVoice.name;
 
   // Interactive Launchkey Mini MK3 hardware state
@@ -111,9 +115,9 @@ export function LaunchkeyMap() {
   const [arpOn, setArpOn] = useState(false);
   const [fixedChord, setFixedChord] = useState(false);
   const [captureFlash, setCaptureFlash] = useState(false);
-  const [pitchBend, setPitchBend] = useState(0); // -1..+1, springs back to 0 on release
+  const [pitchBend, setPitchBend] = [useController(s=>s.bend), (bend:number)=>useController.setState({bend})] as const;
   const [pitchDragging, setPitchDragging] = useState(false);
-  const [modValue, setModValue] = useState(0); // 0..127, holds on release
+  const [modValue, setModValue] = [useController(s=>s.mod), (mod:number)=>useController.setState({mod})] as const;
   const [pressedMidis, setPressedMidis] = useState<number[]>([]);
   const [lastPlayedMidi, setLastPlayedMidi] = useState<number | null>(null);
 
@@ -228,26 +232,11 @@ export function LaunchkeyMap() {
           };
         });
 
-  const topPads = Array.from({ length: PAD_AUDITION - PAD_FIRST + 1 }, (_, i) => {
-    const v = voices[i];
-    const s404 = studio404 && v ? STUDIO_404_CAST[v.id] : undefined;
-    const isIntro = i === PAD_AUDITION - PAD_FIRST;
-    return {
-      label: isIntro ? "Sing intro" : (s404?.name ?? v?.name ?? ""),
-      color: isIntro ? "#f2cf5b" : (s404?.color ?? v?.color ?? "#d7b97c"),
-    };
-  });
-
-  const bottomPads =
-    mode === "puppet"
-      ? PAD_VOWELS.map(([, label], i) => ({
-          label: `“${label}”`,
-          color: i === 7 ? "#e0533c" : "#3fbfa0",
-        }))
-      : BOTTOM_STOP_LABELS.map((label, i) => ({
-          label,
-          color: BOTTOM_PAD_COLORS[i],
-        }));
+  const topPads = voices.slice(0,8).map(v => ({
+    label: studio404 ? studio404Name(v.id,v.name) : v.name,
+    color:(studio404 && STUDIO_404_CAST[v.id]?.color) || v.color
+  }));
+  const bottomPads = ACTIONS.map((label,i)=>({label,color:BOTTOM_PAD_COLORS[i]}));
 
   const keyGuidance =
     mode === "off"
@@ -257,33 +246,6 @@ export function LaunchkeyMap() {
         : words.length
           ? `${name} sings next: “${words[next]}”`
           : `${name} has no words in this piece`;
-
-  const triggerTopPad = (i: number) => {
-    touchControl("pad", i);
-    if (i === PAD_AUDITION - PAD_FIRST) {
-      useMoppet.getState().singSolo();
-      void play(startAudio);
-    } else if (i < voices.length) {
-      select(i);
-    }
-  };
-
-  const triggerBottomPad = (i: number) => {
-    touchControl("pad", i);
-    if (mode === "puppet") {
-      padVowel(i);
-      return;
-    }
-    if (i === 7) {
-      void play(startAudio);
-      return;
-    }
-    const v = voices[selected];
-    if (v) {
-      const syl = PAD_VOWELS[i]?.[1] ?? "ah";
-      void auditionNote(v, 58 + i * 2, syl, 260);
-    }
-  };
 
   const pressKey = (midi: number, active: boolean) => {
     if (active) {
@@ -352,11 +314,11 @@ export function LaunchkeyMap() {
     (midi === activeChordRoot + 4 || midi === activeChordRoot + 7);
 
   return (
-    <div className="launchkey organ-console">
+    <div className={`launchkey organ-console ${keys ? "show-keys" : "hide-keys"}`}>
       {mode === "off" ? (
         <div className="first-step organ-welcome">
           <p>
-            <b>Seated at Grandfather’s Organ.</b> 1 · Pull a cast stop tab (pads 1–7 or Lower Manual).
+            <b>Seated at Grandfather’s Organ.</b> 1 · Pull a cast stop tab (pads 1–8 or Lower Manual).
             2 · Light <em>Sing the words</em>. 3 · Play the ivory manual and {name} sings.
           </p>
           <button type="button" className="primary" onClick={() => void setMode("words")}>
@@ -467,8 +429,8 @@ export function LaunchkeyMap() {
                 aria-valuemax={100}
                 aria-valuenow={Math.round(pitchBend * 100)}
                 onKeyDown={(e) => {
-                  if (e.key === "ArrowUp") setPitchBend((p) => clamp(p + 0.25, -1, 1));
-                  else if (e.key === "ArrowDown") setPitchBend((p) => clamp(p - 0.25, -1, 1));
+                  if (e.key === "ArrowUp") setPitchBend(clamp(pitchBend + 0.25, -1, 1));
+                  else if (e.key === "ArrowDown") setPitchBend(clamp(pitchBend - 0.25, -1, 1));
                   else if (e.key === "Escape" || e.key === "0") setPitchBend(0);
                 }}
                 onPointerDown={(e) => {
@@ -548,9 +510,18 @@ export function LaunchkeyMap() {
           </div>
 
           <div className="organ-controls-bay">
-            {/* Row 1: 1×8 Rotary Organ Drawbar Stops (Launchkey CC 21–28) */}
-            <div className="organ-drawbar-bank">
-              {knobs.map((k) => {
+            <div className="performer-volume">
+              <label><strong>{name} volume</strong>
+                <input aria-label={name + " volume"} type="range" min="0" max="100" step="1"
+                  value={Math.round(volume*100)} onChange={e=>setVoiceLevel(curVoice.id,Number(e.target.value)/100)} />
+                <output>{Math.round(volume*100)}%</output>
+              </label>
+              <small>{!map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
+              <button type="button" aria-expanded={showVoiceTools} onClick={()=>setShowVoiceTools(!showVoiceTools)}>{showVoiceTools?"Hide voice controls":"Voice controls"}</button>
+            </div>
+            {showVoiceTools && <div className="organ-drawbar-bank">
+              {knobs.map((knob) => {
+                const k = knob.i === 0 && !map[21] ? { ...knob, label: "Volume", norm:volume, text:Math.round(volume*100)+"%", setNorm:(v:number)=>setVoiceLevel(curVoice.id,v) } : knob;
                 const deg = -135 + k.norm * 270;
                 return (
                   <div
@@ -582,7 +553,7 @@ export function LaunchkeyMap() {
                   </div>
                 );
               })}
-            </div>
+            </div>}
 
             {/* Row 2: 2×8 Illuminated Stop-Pads + Scene/> & Stop/Mute Column */}
             <div className="organ-pad-matrix">
@@ -593,7 +564,7 @@ export function LaunchkeyMap() {
                     type="button"
                     className={`lk-pad organ-stop${lit("pad", i) ? " lit" : ""}${i === selected ? " on" : ""}`}
                     style={{ "--pad-color": pad.color } as React.CSSProperties}
-                    onClick={() => triggerTopPad(i)}
+                    onClick={() => triggerPad(i)}
                   >
                     <span className="pad-led" aria-hidden="true" />
                     <span>{pad.label}</span>
@@ -603,9 +574,9 @@ export function LaunchkeyMap() {
                   <button
                     key={`bot-${i}`}
                     type="button"
-                    className={`lk-pad organ-stop sub${lit("pad", i) ? " lit" : ""}`}
+                    className={`lk-pad organ-stop sub${lit("pad", i+8) ? " lit" : ""}`}
                     style={{ "--pad-color": pad.color } as React.CSSProperties}
-                    onClick={() => triggerBottomPad(i)}
+                    onClick={() => triggerPad(i+8)}
                   >
                     <span className="pad-led" aria-hidden="true" />
                     <span>{pad.label}</span>
@@ -636,7 +607,9 @@ export function LaunchkeyMap() {
 
         {/* Mode Stop Strip & Etched Key-Top Legends right above the Upper Manual Felt */}
         <div className="organ-mode-rail">
-          <span className="organ-manual-title">Upper Manual (Swell · 25 Keys · {rangeLabel})</span>
+          <button type="button" aria-expanded={keys} onClick={()=>{releaseAllKeys();showKeys(!keys)}}>{keys ? "Hide keys" : "Show keys"}</button>
+          <button type="button" onClick={()=>useController.setState({learningPads:learnPads ? null : []})}>{learnPads ? "Cancel · press " + (learnPads.length < 8 ? "upper " : "lower ") + (learnPads.length % 8 + 1) : "Learn pads"}</button>
+          <output>{last || name + " · MIDI ready"}</output>
           <div className="live-modes organ-mode-pills" role="radiogroup" aria-label="Upper manual mode">
             {MODE_BUTTONS.map(([m, label]) => (
               <button
@@ -716,7 +689,7 @@ export function LaunchkeyMap() {
         </div>
 
         {/* Stepped Carved Walnut & Brass Divider + Lower Manual (Great / Choir Coupler Tabs) */}
-        <div className="organ-divider-rail">
+        <details><summary>Choir couplers</summary><div className="organ-divider-rail">
           <span>Lower Manual (Great · Choir Registration Couplers)</span>
         </div>
         <div className="organ-lower-manual" role="group" aria-label="Lower manual choir couplers">
@@ -751,7 +724,7 @@ export function LaunchkeyMap() {
             <span className="coupler-led brass" />
             <b>Solo Intro</b>
           </button>
-        </div>
+        </div></details>
       </div>
     </div>
   );

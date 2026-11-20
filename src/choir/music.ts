@@ -68,6 +68,7 @@ export interface Chord {
 export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong" | "skit";
 export interface Piece {
   kind: PieceKind;
+  sections?: {name:string; beat:number}[];
   title: string;
   seed?: number;
   key: KeyName;

@@ -1,26 +1,34 @@
 title: Take Two
 id: take-two
 tab: 19 · Take Two
-about: 19 · Neon sings everything twice, until both tubes agree
+about: Neon rehearses both halves of a late-night duet in the glass repair bay
 lead: vee
 key: D mixolydian
-bpm: 104
-beat: B . t . | Pf . t K | B . t . | Pf . t K (swing .2)
+bpm: 98
 backing:
 bass: none
 stage: vee
-finale: "Two" on 7
+finale: "Two" on 0
 
-# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+[after hours]
+"My left tube hums" = -3/.75 -2/.25 0 2/2 | I 4
+"My right comes late" = 1/.75 2/.25 3 5/2 | IV 4
+"I saved your place" = 2/.75 4/.25 6 4/2 | VII 4
+"Just past the eight" = 2/.75 1/.25 -1 0/2 | V 2, I 2
 
-[verse]
-"My left tube says the take was fine" = 4/.5 5/.5 7/.5 7/.5 6/.5 5/.5 4 2/2 | I 4, VII 2
-"My right tube says again" = 2/.5 3/.5 5/.5 5/.5 4 2/3 | IV 4, I 2 ; do nod
-"We'll sing it till they both agree" = 5/.5 6/.5 8/.5 8/.5 7/.5 6/.5 5 3/2 | II 4, VII 2
-"Then sing it once again" = 4/.5 3/.5 2/.5 1/.5 1 0/3 | VII 2, I 4
+[twin take]
+"One light" = 4 2/2 | I 3
+rest 1
+"One more" = 6 4/2 | VII 3
+rest 1
+"Two lights one song" = 5/1.5 3/.5 2 0 | IV 2, I 2
+"All night long" = 2/.75 1/.25 0/3 | V 1, I 3
 
-[chorus]
-"Take two and take three" = 7/1.5 7/.5 4 6 7/4 | I 4, VII 4 ; do gasp
-"On air and in tune" = 7/1.5 7/.5 4 6 4/4 | I 4, IV 4
-"When the audience gets here" = 0/.5 2/.5 4 4/.5 5/.5 6 7/4 | IV 4, VII 4
-"They will see we're nearly through" = 7 6/.5 5/.5 4 2 1 0/3 | VII 4, I 4 ; do bow
+[the dark]
+"The sign goes dark" = -3 -2 -3 -4 | II 4
+"Can you hear me" = -2/.75 -1/.25 0 1/2 | IV 4
+rest 2
+"Still here" = 2 0 | I 2
+"Count us in" = -3 -1 1/2 | V 4
+
+[repeat twin take]

@@ -1,0 +1,61 @@
+{
+  "comp": 90,
+  "wrist": 91,
+  "digits": {
+    "thumb": {
+      "knuckle": 184,
+      "crease": 196,
+      "proximal": 208,
+      "distal": 231,
+      "pins": [
+        272,
+        276,
+        281
+      ]
+    },
+    "index": {
+      "knuckle": 287,
+      "crease": 299,
+      "proximal": 311,
+      "distal": 334,
+      "pins": [
+        375,
+        379,
+        384
+      ]
+    },
+    "middle": {
+      "knuckle": 390,
+      "crease": 402,
+      "proximal": 414,
+      "distal": 437,
+      "pins": [
+        478,
+        482,
+        487
+      ]
+    },
+    "ring": {
+      "knuckle": 493,
+      "crease": 505,
+      "proximal": 517,
+      "distal": 540,
+      "pins": [
+        581,
+        585,
+        590
+      ]
+    }
+  },
+  "poses": {
+    "open": 0,
+    "point": 6,
+    "two": 12,
+    "pinch": 18,
+    "fist": 24,
+    "thumbs-up": 30,
+    "three": 36,
+    "soft": 42
+  },
+  "fps": 24
+}

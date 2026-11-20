@@ -1,3 +1,4 @@
+import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
 /**
  * The choir on one audio timeline: one singer Worker per voice (the engine is too heavy for six
  * on one audio thread: `bun tools/choir-bench.ts`), one mixer worklet on the app's AudioContext,
@@ -77,6 +78,10 @@ let waiting: "probe" | "complete" | null = null;
 let pendingStartFrame = 0;
 
 const post = (m: MixerIn, t: Transferable[] = []) => node?.port.postMessage(m, t);
+
+useVoiceLevels.subscribe(() => {
+  if (session) post({ type: "voiceLevels", values: session.levels() });
+});
 
 async function ensureMixer(ctx: AudioContext): Promise<void> {
   if (node) return;
@@ -166,6 +171,11 @@ class Session {
     this.section = mixPlan.section;
     const gains = this.gains;
     post({ type: "setup", ends, gains, ports, section: this.section }, ports);
+    post({ type: "voiceLevels", values: this.levels() });
+  }
+
+  levels() {
+    return this.piece.tracks.map(t => voiceLevel(t.id));
   }
 
   private onSinger(m: FromSinger): void {
@@ -614,12 +624,13 @@ export async function exportWav(start: () => Promise<void>, only?: number): Prom
     const stem = stems[only];
     let peak = 0;
     for (let i = 0; i < stem.length; i++) peak = Math.max(peak, Math.abs(stem[i]));
-    const g = peak > 0 ? 0.75 / peak : 1;
+    const level = s.levels()[only] ?? 1;
+    const g = peak > 0 ? level * 0.75 / peak : 1;
     const samples = new Float32Array(stem.length);
     for (let i = 0; i < stem.length; i++) samples[i] = stem[i] * g;
     return { bytes: wavBytes(samples, s.sampleRate), peak, limited: 0, nonFinite: 0 };
   }
-  const { samples, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.section);
+  const { samples, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.section, s.levels());
   return { bytes: wavBytes(samples, s.sampleRate), peak, limited, nonFinite };
 }
 let exportToken = 0;

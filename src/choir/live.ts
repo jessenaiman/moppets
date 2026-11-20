@@ -1,3 +1,4 @@
+import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
 /**
  * Playing a Moppet live, on a Launchkey Mini (or any MIDI keyboard, or the on-screen keys):
  *
@@ -89,6 +90,11 @@ export function offerStaffMidi(midi: number, velocity: number): boolean {
 }
 
 let node: AudioWorkletNode | null = null;
+let volumeNode: GainNode | null = null;
+function updateLiveVolume() {
+  if (volumeNode && voice) volumeNode.gain.setTargetAtTime(voiceLevel(voice.id), volumeNode.context.currentTime, 0.01);
+}
+useVoiceLevels.subscribe(updateLiveVolume);
 let starting: Promise<void> | null = null;
 let voice: MoppetVoice | null = null;
 let syllables: Syllable[] = [];
@@ -121,7 +127,10 @@ async function start(): Promise<void> {
   await ctx.audioWorklet.addModule(liveUrl);
   node = new AudioWorkletNode(ctx, "live-moppet", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { module: chimeraModule() } });
   node.port.onmessage = (e: MessageEvent<FromLive>) => useLive.setState({ pose: e.data });
-  audio.connect(node);
+  volumeNode = ctx.createGain();
+  volumeNode.gain.value = voice ? voiceLevel(voice.id) : 1;
+  node.connect(volumeNode);
+  audio.connect(volumeNode);
   if (voice) sendVoice(voice);
 }
 
@@ -169,6 +178,7 @@ export const useLive = create<LiveState>((set, get) => ({
 export function setLiveVoice(v: MoppetVoice): void {
   const same = voice && voice.id === v.id && voice.body.female === v.body.female && voice.body.child === v.body.child && (voice.size ?? 1) === (v.size ?? 1);
   voice = v;
+  updateLiveVolume();
   if (!same) return sendVoice(v);
   post({ type: "source", values: { ...v.source } as Record<string, number> });
   if (useLive.getState().mode !== "puppet") post({ type: "mouth", values: { ...v.artic } });
@@ -235,9 +245,10 @@ function auditionSyllable(text?: string): Syllable {
 }
 
 /** Audition a single Moppet singing `midi` (concert pitch) on an optional syllable without advancing live cursors. */
-export async function auditionNote(v: MoppetVoice, midi: number, syllableText?: string, durationMs = 420): Promise<void> {
+export async function auditionNote(v: MoppetVoice, midi: number, syllableText?: string, durationMs = 420, heldSignal?: AbortSignal): Promise<void> {
   await ensureNode();
   if (!g2p.loaded) await g2p.load();
+  if (heldSignal?.aborted) return;
   setLiveVoice(v);
   releaseAudition();
   const syl = auditionSyllable(syllableText);
@@ -245,6 +256,10 @@ export async function auditionNote(v: MoppetVoice, midi: number, syllableText?: 
   const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: PLAN_VIBRATO, tag }).map((g) => shapeGesture(g, v, false));
   post({ type: "schedule", gestures });
   auditionActive = { tag, syl, midi, body: v.body };
+  if (heldSignal) {
+    heldSignal.addEventListener("abort", () => { if (auditionActive?.tag === tag) releaseAudition(); }, {once:true});
+    return;
+  }
   const holdMs = Math.max(220, Math.min(900, durationMs));
   auditionTimer = setTimeout(() => {
     auditionTimer = null;
@@ -326,6 +341,10 @@ function allOff(): void {
 }
 
 /** The live voice as a puppet pose (the face on stage), or null when it's off. */
+export function liveMidiPitch(): number | undefined {
+  return Array.from(held.values()).at(-1)?.midi ?? auditionActive?.midi;
+}
+
 export function livePose(): Pose | null {
   const { mode, pose: t } = useLive.getState();
   if (mode === "off" || !t) return null;

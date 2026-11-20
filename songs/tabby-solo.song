@@ -1,24 +1,33 @@
 title: Ribbon and Felt
 id: tabby-solo
 tab: 00 · Tabby Solo
-about: 00 · Tabby alone at center stage — cracked tablet screen, striped felt ears, and rainbow ribbon tail
+about: Two knocks on Tabby's glass start a call that comes back in her own voice.
 lead: tabby
-key: F
+key: D dorian
 bpm: 112
-beat: B . t K | . t B . | t B . K | . B t . (swing .08)
+beat: B . . t | . . K . | B . t . | . K . . (swing .14)
 backing:
 bass: none
 stage: tabby
-finale: "Home" on 7
+finale: "Mew" on 0
 
-[verse 1]
-"Stitched from old cloth on my frame" = 0/.5 2/.5 4/.5 5/.5 4 2 0/2 | I 4, IV 2 ; do nod
-"Cracked white glass still holds my name" = 4/.5 5/.5 7/.5 5/.5 4 2 1/2 | IV 4, V 2 ; do tilt
-"Felt ears perk when warm light glows" = 0/.5 2/.5 4/.5 5/.5 7 5 4/2 | I 4, VI 2 ; do gasp
-"Rainbow tail keeps time and flows" = 4/.5 5/.5 4/.5 2/.5 1 2 0/2 | II 2, V 2, I 2 ; do cheer
+[knock at the glass]
+"Tap tap. Is that me?" = 0/.5 0/.5 4/.5 2/.5 -1/2 | I 2, VII 2 ; do tilt
+"One small voice in a cracked glass sea" = -2/1.5 0/.5 4/2 3/.5 2/.5 1 4 5 | III 4, IV 4
 
-[chorus]
-"Purr and sing my own clear song" = 4/.5 5/.5 7/.5 8/.5 7 5 4/2 | IV 4, I 2 ; do cheer
-"Raise ten fingers all day long" = 2/.5 4/.5 5/.5 5/.5 4 2 1/2 | VI 4, V 2 ; do nod
-"Step left step right spin around" = 0/.5 2/.5 4/.5 5/.5 7 8 9/2 | I 4, IV 2 ; do tilt
-"Warm felt paws on stage are found" = 7/.5 5/.5 4/.5 2/.5 1 2 0/2 | V 4, I 2 ; do bow
+[call and echo]
+"Mew, mew, can you hear?" = 7/1.5 2/.5 2/.5 1/.5 4 | I 2, V 2
+"Here, here, in the seam" = 5/1.5 0/.5 0/.5 -1/.5 2 | IV 2, I 2
+
+[dance break]
+"Left paw, right paw" = -2/.75 2/1.25 -1/.75 3/1.25 | III 2, VII 2
+"Watch me turn around" = 4/.5 4/.5 7 5/.5 2/1.5 | I 2, IV 2
+rest 4
+
+[return]
+"Mew, mew, now I hear" = 7/1.5 2/.5 2/.5 1/.5 5 | I 2, IV 2
+"My own voice rings clear" = 5/.5 4/.5 2/1.5 -1/.5 0 | IV 2, I 2
+
+[curtain call]
+"Take a bow" = 4/1.5 2/.5 0/2 | V 2, I 2 ; do bow
+rest 4
