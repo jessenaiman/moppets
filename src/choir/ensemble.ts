@@ -369,6 +369,16 @@ function soloMixIndex(): number {
 
 function beginPlaying(frame: number, how: "live" | "prerender"): void {
   if (!session) return;
+  if (audio.ctx?.state !== "running") {
+    resumeAt = frame;
+    set({
+      status: "paused",
+      time: frame / session.sampleRate,
+      howPlaying: how,
+      message: "Audio was interrupted. Press Play to resume.",
+    });
+    return;
+  }
   playFromFrame = frame;
   pos = null;
   generation++;

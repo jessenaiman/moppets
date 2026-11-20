@@ -85,6 +85,30 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       await page.getByRole("button", { name: "Pause video", exact: true }).click();
       await seek.press("Home");
       expect((await running()).time).toBe(0);
+
+      await lesson.selectOption("take-two");
+      await page.evaluate(() => {
+        const scope = window as unknown as ChoirWindow;
+        const transport = scope.__choir.ensemble;
+        transport.setState({ renderMode: "prerender" });
+        const unsubscribe = transport.subscribe(state => {
+          if (state.status !== "rendering") return;
+          unsubscribe();
+          void scope.rehearsalAudio!.suspend();
+        });
+      });
+      await play.click();
+      await page.waitForFunction(() => {
+        const { status, progress } = (window as unknown as ChoirWindow).__choir.ensemble.getState();
+        return status === "paused" && progress === 1;
+      });
+      expect((await running()).time).toBe(0);
+      await play.click();
+      await advancePast(0.5);
+      expect((await running()).status).toBe("playing");
+      const time = (await running()).time;
+      const frame = Number(await seek.inputValue());
+      expect(Math.abs(frame / 30 - time)).toBeLessThan(0.1);
     } finally {
       await browser.close();
     }
