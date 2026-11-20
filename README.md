@@ -5,11 +5,11 @@ gravelly monster, a patchwork soprano and a floppy-disk bird, each with a real, 
 voice. An animated stage, songs written as lead sheets, a round, talking skits, a MIDI band, and
 a Launchkey Mini to play with.
 
-SoundCraft renders the vocals with the upstream CHIMERA CLAP instrument. The stage plays each singer’s recording against the MIDI score. For the upstream documentation, build instructions, MIDI routing, and an inspectable host session, see [CHIMERA plug-in vocals](docs/chimera-plugin-vocals.md).
+The stage sings the score through the CHIMERA singer workers. Found Things uses its recorded vocal and beatbox stems against the same score. SoundCraft hosts the upstream CHIMERA CLAP instrument for plug-in recording. For the upstream documentation, build instructions, MIDI routing, and an inspectable host session, see [CHIMERA plug-in vocals](docs/chimera-plugin-vocals.md).
 
 ## What's here
 
-- **The stage** plays the cast’s individual vocal tracks and score-directed puppet animation. Live mouth opening follows the vocal stem’s level.
+- **The stage** plays the cast’s individual vocals and score-directed puppet animation. Mouth opening follows the singer’s measured vocal level.
 - **Songs** are lead sheets in `songs/`, one text file each, with words you can edit in the app
   (a live syllable and stress check, holds and note splits as fixes): see
   [docs/writing-songs.md](docs/writing-songs.md). Claude can write a new round or skit (dev server).

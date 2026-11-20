@@ -1,4 +1,4 @@
-import { pluginStems } from "./pluginPlayback.ts";
+import { foundThingsStems } from "./pluginPlayback.ts";
 import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
 /**
  * The choir on one audio timeline: one singer Worker per voice (the engine is too heavy for six
@@ -123,7 +123,7 @@ class Session {
   section: GainSection | undefined;
   planError: string | null = null;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: Awaited<ReturnType<typeof pluginStems>>) {
+  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems?: Awaited<ReturnType<typeof foundThingsStems>>) {
     sessionsMade++;
     this.sampleRate = ctx.sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
@@ -145,14 +145,18 @@ class Session {
       this.singers.push(s);
       ends.push(this.frames);
     };
-    const plans = piece.tracks.map((track, i) => stems.vocals[i] ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
+    const plans = piece.tracks.map((track, i) => stems?.vocals[i] || !track.events.length ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
     piece.tracks.forEach((track,i)=>{
       const voice=voices.find(v=>v.id===track.id)!;
-      const samples = stems.vocals[i];
+      const samples = stems?.vocals[i];
       if (!samples) {
-        const plan = plans[i]!;
+        const plan = plans[i];
+        if (!plan) {
+          spawn(i, null, voice, new Float32Array(this.frames));
+          return;
+        }
         spawn(i, {sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
-          gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi)}, voice);
+          gestures: plan.gestures, nasal: plan.nasal, speech: piece.kind === "skit", firstF0: midiToHz(plan.firstMidi)}, voice);
         const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
         this.singers[i].nativeEnvelope = envelope;
         this.vocalTiming.envelopes[track.id] = envelope;
@@ -174,7 +178,7 @@ class Session {
       let index = this.singers.length;
       for (const e of extraStems(piece)) {
         if (e === "beat") {
-          if (stems.beat) {
+          if (stems?.beat) {
             spawn(index++, null, null, stems.beat);
             continue;
           }
@@ -458,7 +462,7 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
     disposeSession();
     try {
       const requested = piece, voices = voicesProvider(), ctx = audio.ctx;
-      const stems = await pluginStems(requested, voices, ctx);
+      const stems = requested.title === "Found Things" ? await foundThingsStems(requested, voices, ctx) : undefined;
       if (token !== playToken || piece !== requested) return;
       session = new Session(requested, voices, ctx, true, stems);
     } catch (error) {
@@ -601,7 +605,7 @@ export async function exportWav(start: () => Promise<void>, only?: number) {
     if (!piece) throw new Error("no piece");
     disposeSession();
     const requested=piece,voices=voicesProvider(),ctx=audio.ctx,token=playToken;
-    const stems=await pluginStems(requested,voices,ctx);
+    const stems = requested.title === "Found Things" ? await foundThingsStems(requested, voices, ctx) : undefined;
     if(piece!==requested || token!==playToken)throw new Error("Performance changed during vocal export");
     session = new Session(requested, voices, ctx, false, stems);
     set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering", vocalTiming: session.vocalTiming });

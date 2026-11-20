@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 import { createServer } from "vite";
-import { wavBytes } from "../src/choir/mix.ts";
 
 type ChoirWindow = Window & {
   mixerLevels: number[][];
@@ -35,11 +34,11 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
           return Reflect.apply(send, this, [message, ...rest]);
         };
       });
-      // The plug-in recordings are local assets. Exercise the same decode and worklet paths with PCM fixtures.
-      const samples = new Float32Array(48000);
-      for (let i = 24000; i < 38400; i++) samples[i] = 0.15 * Math.sin(2 * Math.PI * 220 * i / 48000);
-      const vocal = Buffer.from(wavBytes(samples, 48000));
-      await page.route("**/plugin-vocals/*.ogg", route => route.fulfill({ contentType: "audio/wav", body: vocal }));
+      const songRequests: string[] = [];
+      page.on("request", request => {
+        if (request.url().includes("/plugin-vocals/") || request.url().includes("/__plugin-vocal")) songRequests.push(request.url());
+      });
+      await page.route("**/plugin-vocals/*.ogg", route => route.abort());
       await page.goto(server.resolvedUrls!.local[0]);
       const lesson = page.getByRole("combobox", { name: "Video lesson" });
       expect(await lesson.inputValue()).toBe("found");
@@ -59,11 +58,7 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
         (window as unknown as ChoirWindow).__choir.ensemble.getState().time > seconds, time);
       await advancePast(0.2);
       const before = await running();
-      const timing = await page.evaluate(() => {
-        const { vocalTiming } = (window as unknown as ChoirWindow).__choir.ensemble.getState();
-        return vocalTiming?.envelopes.scribe.findIndex(level => level > 0.008);
-      });
-      expect(timing).toBe(30);
+      expect(songRequests).toEqual([]);
       await page.getByRole("slider", { name: "Cue volume", exact: true }).press("Home");
       const expected = Array.from({ length: 2 }, (_, i) => i === before.cue ? 0 : 1);
       await advancePast(before.time + 0.15);
@@ -108,6 +103,12 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       const time = (await running()).time;
       const frame = Number(await seek.inputValue());
       expect(Math.abs(frame / 30 - time)).toBeLessThan(0.1);
+
+      await lesson.selectOption("toaster");
+      await play.click();
+      await advancePast(0.5);
+      expect((await running()).status).toBe("playing");
+      expect(songRequests).toEqual([]);
     } finally {
       await browser.close();
     }
