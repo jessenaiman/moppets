@@ -31,21 +31,24 @@ async function loadRecording(ctx: AudioContext, key: string, part: InstrumentPar
 
 export async function pluginStems(piece: Piece, voices: MoppetVoice[], ctx: AudioContext) {
   const frames = Math.ceil(pieceSeconds(piece)*ctx.sampleRate);
-  return Promise.all(piece.tracks.map(async track=>{
-    const pcm=new Float32Array(frames);
-    if (!track.events.length) return pcm;
+  const playbackVoices = import.meta.env.DEV ? voices : CAST;
+  return Promise.all(piece.tracks.map(async track => {
+    if (!track.events.length) return new Float32Array(frames);
+    const voice = playbackVoices.find(v => v.id === track.id)!;
+    let buffer: AudioBuffer;
     if (piece.title === "Found Things") {
-      const voice = voices.find(v => v.id === track.id)!;
       const response = await fetch(await scoredStemPath(piece, track, voice));
       if (response.status === 404 || response.headers.get("content-type")?.includes("text/html")) return null;
       if (!response.ok) throw new Error("Could not load the scored vocal for " + voice.name);
-      const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
-      pcm.set(buffer.getChannelData(0).subarray(0, frames));
-      return pcm;
+      buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+    } else if (piece.kind === "school") {
+      // Each invention has its own score and may never have been bounced.
+      return null;
+    } else {
+      buffer = await pluginRecording(ctx, instrumentPart(piece, track, voice));
     }
-    const voice=(import.meta.env.DEV?voices:CAST).find(v=>v.id===track.id)!;
-    const buf=await pluginRecording(ctx,instrumentPart(piece,track,voice));
-    pcm.set(buf.getChannelData(0).subarray(0,frames));
+    const pcm = new Float32Array(frames);
+    pcm.set(buffer.getChannelData(0).subarray(0, frames));
     return pcm;
   }));
 }

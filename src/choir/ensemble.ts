@@ -124,7 +124,7 @@ function onMixer(m: MixerOut): void {
 
 function playingMessage(): string {
   const how = get().howPlaying;
-  if (how === "live") return "CHIMERA plug-in vocals · live mix.";
+  if (how === "live") return "CHIMERA vocals · live mix.";
   if (how === "prerender") return "Playing the pre-rendered performance.";
   return "";
 }
