@@ -6,3 +6,11 @@ out
 target/
 src/audio/moppet.wasm
 
+
+# Vendored agent skill (video-shotcraft) with third-party music: reinstall from skills-lock.json.
+.agents/
+.hermes/
+# Storyboard builds: takes, PDF and PPTX regenerate from the DesignCraft sources beside them.
+storyboard/**/exports/
+storyboard/**/*.pdf
+storyboard/**/*.pptx

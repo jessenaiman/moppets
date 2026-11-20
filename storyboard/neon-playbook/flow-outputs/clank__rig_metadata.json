@@ -1,0 +1,190 @@
+{
+  "characterSlug": "clank",
+  "activeMode": "rig",
+  "assetId": "effectcraft_clank_rig_v1",
+  "mediaId": "out/clank.ecproj",
+  "exportedAt": "2026-11-19T22:17:36Z",
+  "gridSettings": {
+    "rows": 2,
+    "cols": 4,
+    "padding": 2,
+    "margin": 2,
+    "fps": 24,
+    "baselineY": 0.9,
+    "chromaKeyColor": "#00ff00",
+    "chromaTolerance": 45
+  },
+  "cutoutParts": [
+    "head_rest",
+    "head_sing",
+    "body_torso",
+    "arm_left",
+    "arm_right",
+    "leg_left",
+    "leg_right",
+    "gaffer_tape",
+    "clank_crt_glow"
+  ],
+  "rigNodes": [
+    {
+      "id": "clank_pelvis",
+      "name": "pelvis",
+      "type": "bone_joint",
+      "x": 0.5,
+      "y": 0.671875,
+      "parentId": null
+    },
+    {
+      "id": "clank_torso",
+      "name": "torso",
+      "type": "bone_joint",
+      "x": 0.5,
+      "y": 0.523438,
+      "parentId": "clank_pelvis"
+    },
+    {
+      "id": "clank_neck",
+      "name": "neck",
+      "type": "bone_joint",
+      "x": 0.5,
+      "y": 0.363281,
+      "parentId": "clank_torso"
+    },
+    {
+      "id": "clank_head",
+      "name": "head",
+      "type": "bone_joint",
+      "x": 0.5,
+      "y": 0.230469,
+      "parentId": "clank_neck"
+    },
+    {
+      "id": "clank_shoulder_l",
+      "name": "shoulder_l",
+      "type": "bone_joint",
+      "x": 0.3125,
+      "y": 0.414062,
+      "parentId": "clank_torso"
+    },
+    {
+      "id": "clank_elbow_l",
+      "name": "elbow_l",
+      "type": "bone_joint",
+      "x": 0.255208,
+      "y": 0.550781,
+      "parentId": "clank_shoulder_l"
+    },
+    {
+      "id": "clank_hand_l",
+      "name": "hand_l",
+      "type": "deform_pin",
+      "x": 0.226562,
+      "y": 0.679688,
+      "parentId": "clank_elbow_l"
+    },
+    {
+      "id": "clank_shoulder_r",
+      "name": "shoulder_r",
+      "type": "bone_joint",
+      "x": 0.6875,
+      "y": 0.414062,
+      "parentId": "clank_torso"
+    },
+    {
+      "id": "clank_elbow_r",
+      "name": "elbow_r",
+      "type": "bone_joint",
+      "x": 0.742188,
+      "y": 0.550781,
+      "parentId": "clank_shoulder_r"
+    },
+    {
+      "id": "clank_hand_r",
+      "name": "hand_r",
+      "type": "deform_pin",
+      "x": 0.768229,
+      "y": 0.683594,
+      "parentId": "clank_elbow_r"
+    },
+    {
+      "id": "clank_gaffer_roll",
+      "name": "gaffer_roll",
+      "type": "deform_pin",
+      "x": 0.757812,
+      "y": 0.703125,
+      "parentId": "clank_hand_r"
+    },
+    {
+      "id": "clank_gaffer_tip",
+      "name": "gaffer_tip",
+      "type": "follow_pin",
+      "x": 0.851562,
+      "y": 0.677734,
+      "parentId": "clank_gaffer_roll"
+    },
+    {
+      "id": "clank_hip_l",
+      "name": "hip_l",
+      "type": "bone_joint",
+      "x": 0.432292,
+      "y": 0.6875,
+      "parentId": "clank_pelvis"
+    },
+    {
+      "id": "clank_foot_l",
+      "name": "foot_l",
+      "type": "starch_pin",
+      "x": 0.369792,
+      "y": 0.953125,
+      "parentId": "clank_hip_l"
+    },
+    {
+      "id": "clank_hip_r",
+      "name": "hip_r",
+      "type": "bone_joint",
+      "x": 0.565104,
+      "y": 0.6875,
+      "parentId": "clank_pelvis"
+    },
+    {
+      "id": "clank_foot_r",
+      "name": "foot_r",
+      "type": "starch_pin",
+      "x": 0.611979,
+      "y": 0.953125,
+      "parentId": "clank_hip_r"
+    }
+  ],
+  "turnaroundRulers": [
+    {
+      "id": "ruler_crown",
+      "name": "crown",
+      "y": 0.12,
+      "color": "#f43f5e"
+    },
+    {
+      "id": "ruler_eyes",
+      "name": "eyes",
+      "y": 0.25,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "ruler_shoulders",
+      "name": "shoulders",
+      "y": 0.42,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "ruler_hips",
+      "name": "hips",
+      "y": 0.68,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "ruler_baseline",
+      "name": "baseline",
+      "y": 0.96,
+      "color": "#10b981"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "characterSlug": "tabby",
+  "activeMode": "rig",
+  "assetId": "effectcraft_tabby_rig_v2",
+  "mediaId": "out/tabby.ecproj",
+  "exportedAt": "2026-11-19T21:57:25Z",
+  "gridSettings": {
+    "rows": 2,
+    "cols": 4,
+    "padding": 2,
+    "margin": 2,
+    "fps": 24,
+    "baselineY": 0.9,
+    "chromaKeyColor": "#00ff00",
+    "chromaTolerance": 45
+  },
+  "cutoutParts": [
+    "head_rest",
+    "head_sing",
+    "body_torso",
+    "arm_left",
+    "arm_right",
+    "leg_left",
+    "leg_right",
+    "tail_ribbon",
+    "tabby_tablet_glow"
+  ],
+  "rigNodes": [
+    {
+      "id": "tabby_pelvis",
+      "name": "pelvis",
+      "type": "bone_joint",
+      "x": 0.533854,
+      "y": 0.693359,
+      "parentId": null
+    },
+    {
+      "id": "tabby_torso",
+      "name": "torso",
+      "type": "bone_joint",
+      "x": 0.554688,
+      "y": 0.605469,
+      "parentId": "tabby_pelvis"
+    },
+    {
+      "id": "tabby_neck",
+      "name": "neck",
+      "type": "bone_joint",
+      "x": 0.53125,
+      "y": 0.4375,
+      "parentId": "tabby_torso"
+    },
+    {
+      "id": "tabby_head",
+      "name": "head",
+      "type": "bone_joint",
+      "x": 0.520833,
+      "y": 0.279297,
+      "parentId": "tabby_neck"
+    },
+    {
+      "id": "tabby_shoulder_l",
+      "name": "shoulder_l",
+      "type": "bone_joint",
+      "x": 0.421875,
+      "y": 0.503906,
+      "parentId": "tabby_torso"
+    },
+    {
+      "id": "tabby_elbow_l",
+      "name": "elbow_l",
+      "type": "bone_joint",
+      "x": 0.320312,
+      "y": 0.490234,
+      "parentId": "tabby_shoulder_l"
+    },
+    {
+      "id": "tabby_hand_l",
+      "name": "hand_l",
+      "type": "deform_pin",
+      "x": 0.182292,
+      "y": 0.4375,
+      "parentId": "tabby_elbow_l"
+    },
+    {
+      "id": "tabby_shoulder_r",
+      "name": "shoulder_r",
+      "type": "bone_joint",
+      "x": 0.619792,
+      "y": 0.507812,
+      "parentId": "tabby_torso"
+    },
+    {
+      "id": "tabby_elbow_r",
+      "name": "elbow_r",
+      "type": "bone_joint",
+      "x": 0.721354,
+      "y": 0.494141,
+      "parentId": "tabby_shoulder_r"
+    },
+    {
+      "id": "tabby_hand_r",
+      "name": "hand_r",
+      "type": "deform_pin",
+      "x": 0.859375,
+      "y": 0.441406,
+      "parentId": "tabby_elbow_r"
+    },
+    {
+      "id": "tabby_hip_l",
+      "name": "hip_l",
+      "type": "bone_joint",
+      "x": 0.40625,
+      "y": 0.75,
+      "parentId": "tabby_pelvis"
+    },
+    {
+      "id": "tabby_foot_l",
+      "name": "foot_l",
+      "type": "starch_pin",
+      "x": 0.351562,
+      "y": 0.949219,
+      "parentId": "tabby_hip_l"
+    },
+    {
+      "id": "tabby_hip_r",
+      "name": "hip_r",
+      "type": "bone_joint",
+      "x": 0.630208,
+      "y": 0.755859,
+      "parentId": "tabby_pelvis"
+    },
+    {
+      "id": "tabby_foot_r",
+      "name": "foot_r",
+      "type": "starch_pin",
+      "x": 0.638021,
+      "y": 0.941406,
+      "parentId": "tabby_hip_r"
+    },
+    {
+      "id": "tabby_tail_mid",
+      "name": "tail_mid",
+      "type": "follow_pin",
+      "x": 0.273438,
+      "y": 0.65625,
+      "parentId": "tabby_pelvis"
+    },
+    {
+      "id": "tabby_tail_tip",
+      "name": "tail_tip",
+      "type": "follow_pin",
+      "x": 0.177083,
+      "y": 0.625,
+      "parentId": "tabby_tail_mid"
+    }
+  ],
+  "turnaroundRulers": [
+    {
+      "id": "ruler_crown",
+      "name": "crown",
+      "y": 0.13,
+      "color": "#f43f5e"
+    },
+    {
+      "id": "ruler_eyes",
+      "name": "eyes",
+      "y": 0.3,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "ruler_shoulders",
+      "name": "shoulders",
+      "y": 0.5,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "ruler_hips",
+      "name": "hips",
+      "y": 0.7,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "ruler_baseline",
+      "name": "baseline",
+      "y": 0.96,
+      "color": "#10b981"
+    }
+  ]
+}

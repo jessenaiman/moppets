@@ -1,0 +1,180 @@
+{
+  "characterSlug": "neon",
+  "activeMode": "rig",
+  "assetId": "gen_1795123216262_1_s7w5",
+  "mediaId": "9a6b8714-fd59-4117-9368-c97b76659315",
+  "exportedAt": "2026-11-19T21:22:28.683Z",
+  "gridSettings": {
+    "rows": 4,
+    "cols": 4,
+    "padding": 2,
+    "margin": 2,
+    "fps": 12,
+    "baselineY": 0.88,
+    "chromaKeyColor": "#00ff00",
+    "chromaTolerance": 45
+  },
+  "cutoutParts": [],
+  "rigNodes": [
+    {
+      "id": "node_1795123332238_1ttc",
+      "name": "pelvis",
+      "type": "bone_joint",
+      "x": 0.5190551890642002,
+      "y": 0.6198611111111111,
+      "parentId": null
+    },
+    {
+      "id": "node_1795123333172_1nge",
+      "name": "torso",
+      "type": "bone_joint",
+      "x": 0.5190551890642002,
+      "y": 0.4998611111111111,
+      "parentId": "node_1795123332238_1ttc"
+    },
+    {
+      "id": "node_1795123334223_klda",
+      "name": "neck",
+      "type": "bone_joint",
+      "x": 0.5190551890642002,
+      "y": 0.4003125,
+      "parentId": "node_1795123333172_1nge"
+    },
+    {
+      "id": "node_1795123335256_zb8k",
+      "name": "head",
+      "type": "bone_joint",
+      "x": 0.5190551890642002,
+      "y": 0.25008680555555557,
+      "parentId": "node_1795123334223_klda"
+    },
+    {
+      "id": "node_1795123336308_hd0k",
+      "name": "shoulder_l",
+      "type": "bone_joint",
+      "x": 0.3993598680631121,
+      "y": 0.4500868055555556,
+      "parentId": "node_1795123333172_1nge"
+    },
+    {
+      "id": "node_1795123337359_p5k4",
+      "name": "elbow_l",
+      "type": "bone_joint",
+      "x": 0.28944079842219805,
+      "y": 0.5203125,
+      "parentId": "node_1795123336308_hd0k"
+    },
+    {
+      "id": "node_1795123338410_11y9",
+      "name": "hand_l",
+      "type": "deform_pin",
+      "x": 0.1697454774211099,
+      "y": 0.5994270833333334,
+      "parentId": "node_1795123337359_p5k4"
+    },
+    {
+      "id": "node_1795123339477_k1eb",
+      "name": "shoulder_r",
+      "type": "bone_joint",
+      "x": 0.6398343988030468,
+      "y": 0.4500868055555556,
+      "parentId": "node_1795123333172_1nge"
+    },
+    {
+      "id": "node_1795123340511_3r3p",
+      "name": "elbow_r",
+      "type": "bone_joint",
+      "x": 0.7388508229053319,
+      "y": 0.5203125,
+      "parentId": "node_1795123339477_k1eb"
+    },
+    {
+      "id": "node_1795123341613_3o4a",
+      "name": "hand_r",
+      "type": "deform_pin",
+      "x": 0.8596300326441785,
+      "y": 0.5994270833333334,
+      "parentId": "node_1795123340511_3r3p"
+    },
+    {
+      "id": "node_1795123342646_eece",
+      "name": "hip_l",
+      "type": "bone_joint",
+      "x": 0.44941002448313383,
+      "y": 0.6500868055555555,
+      "parentId": "node_1795123332238_1ttc"
+    },
+    {
+      "id": "node_1795123343714_mrzq",
+      "name": "foot_l",
+      "type": "starch_pin",
+      "x": 0.43961252040261156,
+      "y": 0.8492013888888889,
+      "parentId": "node_1795123342646_eece"
+    },
+    {
+      "id": "node_1795123344765_f0rx",
+      "name": "hip_r",
+      "type": "bone_joint",
+      "x": 0.5995604937431991,
+      "y": 0.6500868055555555,
+      "parentId": "node_1795123332238_1ttc"
+    },
+    {
+      "id": "node_1795123345832_om3v",
+      "name": "foot_r",
+      "type": "starch_pin",
+      "x": 0.6191555019042437,
+      "y": 0.8794270833333333,
+      "parentId": "node_1795123344765_f0rx"
+    },
+    {
+      "id": "node_1795123346899_9jam",
+      "name": "cable_mid",
+      "type": "follow_pin",
+      "x": 0.3993598680631121,
+      "y": 0.7700868055555555,
+      "parentId": "node_1795123332238_1ttc"
+    },
+    {
+      "id": "node_1795123347934_38gw",
+      "name": "cable_plug",
+      "type": "follow_pin",
+      "x": 0.19913798966267682,
+      "y": 0.8598611111111111,
+      "parentId": "node_1795123346899_9jam"
+    }
+  ],
+  "turnaroundRulers": [
+    {
+      "id": "ruler_crown",
+      "name": "crown",
+      "y": 0.12,
+      "color": "#f43f5e"
+    },
+    {
+      "id": "ruler_eyes",
+      "name": "eyes",
+      "y": 0.22,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "ruler_shoulders",
+      "name": "shoulders",
+      "y": 0.35,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "ruler_hips",
+      "name": "hips",
+      "y": 0.58,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "ruler_baseline",
+      "name": "baseline",
+      "y": 0.9,
+      "color": "#10b981"
+    }
+  ]
+}

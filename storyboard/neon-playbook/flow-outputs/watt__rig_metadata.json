@@ -1,0 +1,196 @@
+{
+  "characterSlug": "watt",
+  "activeMode": "rig",
+  "assetId": "gen_1795124270277_1_tc0g",
+  "mediaId": "d39cf3ff-d9c9-4384-a428-71d737b00c6f",
+  "exportedAt": "2026-11-19T21:39:31.887Z",
+  "gridSettings": {
+    "rows": 2,
+    "cols": 4,
+    "padding": 2,
+    "margin": 2,
+    "fps": 12,
+    "baselineY": 0.88,
+    "chromaKeyColor": "#00ff00",
+    "chromaTolerance": 45
+  },
+  "cutoutParts": [],
+  "rigNodes": [
+    {
+      "id": "node_1795124353356_503a",
+      "name": "pelvis",
+      "type": "bone_joint",
+      "x": 0.4896626768226333,
+      "y": 0.7194270833333334,
+      "parentId": null
+    },
+    {
+      "id": "node_1795124354306_lazn",
+      "name": "torso",
+      "type": "bone_joint",
+      "x": 0.4896626768226333,
+      "y": 0.5603125,
+      "parentId": "node_1795124353356_503a"
+    },
+    {
+      "id": "node_1795124355340_r6na",
+      "name": "neck",
+      "type": "bone_joint",
+      "x": 0.4896626768226333,
+      "y": 0.42963541666666666,
+      "parentId": "node_1795124354306_lazn"
+    },
+    {
+      "id": "node_1795124356375_3m6e",
+      "name": "head",
+      "type": "bone_joint",
+      "x": 0.4896626768226333,
+      "y": 0.3398611111111111,
+      "parentId": "node_1795124355340_r6na"
+    },
+    {
+      "id": "node_1795124357426_hkzk",
+      "name": "hair_plume_mid",
+      "type": "follow_pin",
+      "x": 0.6496319028835691,
+      "y": 0.25008680555555557,
+      "parentId": "node_1795124356375_3m6e"
+    },
+    {
+      "id": "node_1795124358443_f6gt",
+      "name": "hair_plume_tip",
+      "type": "follow_pin",
+      "x": 0.6594081542437432,
+      "y": 0.11053819444444445,
+      "parentId": "node_1795124357426_hkzk"
+    },
+    {
+      "id": "node_1795124359511_kwbj",
+      "name": "shoulder_l",
+      "type": "bone_joint",
+      "x": 0.3797648599020675,
+      "y": 0.4500868055555556,
+      "parentId": "node_1795124354306_lazn"
+    },
+    {
+      "id": "node_1795124360545_6s0b",
+      "name": "elbow_l",
+      "type": "bone_joint",
+      "x": 0.2992383025027203,
+      "y": 0.4998611111111111,
+      "parentId": "node_1795124359511_kwbj"
+    },
+    {
+      "id": "node_1795124361612_l3z8",
+      "name": "hand_l",
+      "type": "deform_pin",
+      "x": 0.21981688656147988,
+      "y": 0.5496354166666667,
+      "parentId": "node_1795124360545_6s0b"
+    },
+    {
+      "id": "node_1795124362663_etie",
+      "name": "shoulder_r",
+      "type": "bone_joint",
+      "x": 0.5995604937431991,
+      "y": 0.4500868055555556,
+      "parentId": "node_1795124354306_lazn"
+    },
+    {
+      "id": "node_1795124363698_swd8",
+      "name": "elbow_r",
+      "type": "bone_joint",
+      "x": 0.6790031624047879,
+      "y": 0.4998611111111111,
+      "parentId": "node_1795124362663_etie"
+    },
+    {
+      "id": "node_1795124364748_6n6o",
+      "name": "hand_r",
+      "type": "deform_pin",
+      "x": 0.759529719804135,
+      "y": 0.5496354166666667,
+      "parentId": "node_1795124363698_swd8"
+    },
+    {
+      "id": "node_1795124365799_t52l",
+      "name": "hip_l",
+      "type": "bone_joint",
+      "x": 0.42981501632208924,
+      "y": 0.7798611111111111,
+      "parentId": "node_1795124353356_503a"
+    },
+    {
+      "id": "node_1795124366866_qfo8",
+      "name": "foot_l",
+      "type": "starch_pin",
+      "x": 0.3993598680631121,
+      "y": 0.8998611111111111,
+      "parentId": "node_1795124365799_t52l"
+    },
+    {
+      "id": "node_1795124367917_rb04",
+      "name": "hip_r",
+      "type": "bone_joint",
+      "x": 0.5593078414036997,
+      "y": 0.7798611111111111,
+      "parentId": "node_1795124353356_503a"
+    },
+    {
+      "id": "node_1795124368969_isna",
+      "name": "foot_r",
+      "type": "starch_pin",
+      "x": 0.569105345484222,
+      "y": 0.8998611111111111,
+      "parentId": "node_1795124367917_rb04"
+    },
+    {
+      "id": "node_1795124370036_ngn8",
+      "name": "plug_tail_mid",
+      "type": "follow_pin",
+      "x": 0.6191555019042437,
+      "y": 0.7496354166666667,
+      "parentId": "node_1795124353356_503a"
+    },
+    {
+      "id": "node_1795124371070_1pzt",
+      "name": "plug_tail_tip",
+      "type": "follow_pin",
+      "x": 0.6888006664853101,
+      "y": 0.8296354166666666,
+      "parentId": "node_1795124370036_ngn8"
+    }
+  ],
+  "turnaroundRulers": [
+    {
+      "id": "ruler_crown",
+      "name": "crown",
+      "y": 0.12,
+      "color": "#f43f5e"
+    },
+    {
+      "id": "ruler_eyes",
+      "name": "eyes",
+      "y": 0.22,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "ruler_shoulders",
+      "name": "shoulders",
+      "y": 0.35,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "ruler_hips",
+      "name": "hips",
+      "y": 0.58,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "ruler_baseline",
+      "name": "baseline",
+      "y": 0.9,
+      "color": "#10b981"
+    }
+  ]
+}
