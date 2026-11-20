@@ -33,6 +33,13 @@ bun run dev        # takes CHIMERA's newest main, builds the wasm, then Vite on 
 bun run test       # wasm build, cargo test, bun test ./tests
 ```
 
+## Public screening page
+
+Vercel serves the static files in `watch/`. The screening page plays rendered MP4s
+through the browser's video player and includes the full Found Things mix. Update
+the media in `watch/` to publish a new screening version. The rehearsal editor runs
+locally with `bun run dev`.
+
 ## How it uses CHIMERA
 
 - **`chimera/`** follows CHIMERA's `main` (`branch = main` in `.gitmodules`). `bun run dev` and
