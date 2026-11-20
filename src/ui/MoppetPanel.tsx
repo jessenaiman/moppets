@@ -1,5 +1,10 @@
-import { MusicRack } from "./MusicRack.tsx";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { measures } from "../choir/meter.ts";
+import { NewRehearsal } from "./NewRehearsal";
+import { CastReferences } from "./CastReferences";
+import VideoStudio from "./VideoStudio";
+import {PortableStage} from "./PortableStage";
+import {buildVideoProject} from "../choir/videoProject";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { currentFile, lessonFile, useMoppet, type Lesson } from "../choir/store.ts";
@@ -12,7 +17,7 @@ import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
-import { CHORUS, type MoppetVoice } from "../choir/voices.ts";
+import { CAST, CHORUS, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured, type Actor } from "../choir/choreo.ts";
 import { SKITS } from "../choir/skits.ts";
@@ -20,15 +25,18 @@ import { shownWords } from "../choir/captions.ts";
 import { stageTalkAt } from "../choir/bubbles.ts";
 import { effectOf, PropFx, updateProp } from "./props.tsx";
 import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
-import { LaunchkeyMap } from "./launchkey-map.tsx";
+import { LaunchkeyConnect, LaunchkeyMap } from "./launchkey-map.tsx";
 import { bandEnabled, bandFor } from "../choir/band.ts";
 import { livePose, liveMidiPitch, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import type { Pose } from "../choir/pose.ts";
 import { ShotcraftStage, type LiveMidiSpeech } from "../stage/ShotcraftStage.tsx";
 import { RehearsalStaffPanel, VexStaffLine, type StaffNoteItem } from "./StaffEditor.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
-import { applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
+import { lockVoiceControls, resetSelectedVocal, applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
+import { instrumentPart, partKey } from "../choir/pluginScore.ts";
+import { EnsemblePuppet } from "./EnsemblePuppet.tsx";
+import { manifestForCharacter } from "../choir/clipTimeline.ts";
 import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
 
@@ -337,8 +345,13 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
           }}
           renderCharacterOverride={(id, art, style) => {
             if (!studio404 || frameState.still || failedClips.has(art)) return null;
-            if (art !== "tabby" && !(art === "gruff" && lesson === "close-up")) return null;
             if (piece.stage && !piece.stage.includes(id)) return null;
+            if (art !== "tabby" && !(art === "gruff" && lesson === "close-up")) {
+              const manifest = manifestForCharacter(id,studio404);
+              if (!manifest || frameState.liveMidiSpeech?.voiceId === id) return null;
+              return <EnsemblePuppet piece={piece} voice={id} manifest={manifest}
+                onError={()=>setFailedClips(previous=>new Set(previous).add(art))}/>;
+            }
             return (
               <SoloPuppet art={art} solo={lesson === "tabby-solo" || lesson === "close-up"} bpm={piece.bpm} style={style}
                 onError={() => setFailedClips(previous => new Set(previous).add(art))} />
@@ -363,6 +376,7 @@ function Transport() {
   const start = useAudio((s) => s.start);
   const volume = useAudio((s) => s.volume);
   const setVolume = useAudio((s) => s.setVolume);
+  const message = useEnsemble(s=>s.message);
   const shown = duration || pieceSeconds(piece);
   const busy = status === "preparing" || status === "rendering";
   return (
@@ -385,6 +399,7 @@ function Transport() {
           <option value="prerender">Pre-render</option>
         </select>
       </label>
+      {status==="idle" && message.includes("plug-in") && <small role="status">{message}</small>}
       <span className="how">{howPlaying === "live" ? "Live" : howPlaying === "prerender" ? "Pre-rendered" : ""}</span>
     </div>
   );
@@ -393,7 +408,7 @@ function Transport() {
 /** Every performance in one menu, grouped: the lessons, the songs, the skits. */
 const soloSongs = SONGBOOK.filter((e) => e.song.stage?.length === 1 && e.song.stage[0] === e.song.lead);
 
-function SoloLibrary() {
+function SoloLibrary({onPick}: {onPick: () => void}) {
   const lesson = useMoppet((s) => s.lesson),
     setLesson = useMoppet((s) => s.setLesson);
   return (
@@ -406,7 +421,7 @@ function SoloLibrary() {
             key={id}
             type="button"
             aria-pressed={lesson === id}
-            onClick={() => setLesson(id)}
+            onClick={() => {setLesson(id);onPick()}}
             style={{ "--cast-accent": cast.color } as React.CSSProperties}
           >
             <img src={`/rehearsal/img/${cast.artKey}-rest.webp`} alt="" />
@@ -435,8 +450,6 @@ function PerformanceMenu({
   const studio = useMoppet((s) => s.studio404),
     setStudio = useMoppet((s) => s.setStudio404),
     fresh = useMoppet((s) => s.freshSkit);
-  const midiState = useController((s) => s.midi),
-    setMidi = useController((s) => s.setMidi);
   const start = useAudio((s) => s.start);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const midiName =
@@ -486,6 +499,7 @@ function PerformanceMenu({
       <button type="button" aria-expanded={libraryOpen} aria-controls="repertoire" onClick={() => setLibraryOpen(!libraryOpen)}>
         Repertoire
       </button>
+      <details className="stage-tools"><summary>Stage tools</summary><div>
       <SoundCraftButtons name={midiName} />
       <button onClick={midi}>Export MIDI</button>
       <button onClick={() => void wav()} disabled={wavBusy}>
@@ -496,15 +510,11 @@ function PerformanceMenu({
         {cameraFollow ? "Follow camera" : "Wide camera"}
       </button>
       <button onClick={() => setStudio(!studio)}>{studio ? "Studio 404 cast" : "Workshop cast"}</button>
-      <button disabled={!midiSupported() || midiState.status === "connecting"} onClick={() => setMidi(midiState.status !== "on")}>
-        {midiState.status === "on"
-          ? (midiState.inputs.find((n) => /launchkey/i.test(n)) ?? "MIDI connected")
-          : midiState.status === "connecting"
-            ? "Connecting…"
-            : "Connect MIDI"}
-      </button>
+      </div></details>
+      <LaunchkeyConnect />
       {libraryOpen && (
         <div id="repertoire" className="repertoire-grid" aria-label="Performance library">
+          <SoloLibrary onPick={()=>setLibraryOpen(false)} />
           {[
             {
               label: "Lessons",
@@ -520,9 +530,10 @@ function PerformanceMenu({
                 ["chip", "Chip’s song"],
                 ["tabby", "Tabby’s song"],
                 ["gruff", "Gruff’s shanty"],
-                ...SONGBOOK.filter((s) => !soloSongs.includes(s)).map((s) => [s.id, s.song.title]),
+                ...SONGBOOK.filter((s) => !soloSongs.includes(s) && s.id !== "right-on-cue").map((s) => [s.id, s.song.title]),
               ],
             },
+            { label: "Duets", items: SONGBOOK.filter(s => s.id === "right-on-cue").map(s => [s.id, s.tab]) },
             { label: "Skits", items: [...SKITS.map((s) => [s.id, s.title]), ...(fresh ? [["newskit", fresh.title]] : [])] },
           ].map((group) => (
             <section key={group.label}>
@@ -930,12 +941,12 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   const octaveStep = 12 * Math.max(1, Math.ceil(15 / (12 * sy)));
   for (let n = Math.ceil(range[0] / 12) * 12; n <= range[1]; n += octaveStep) octaves.push(n);
   const bars: number[] = [];
-  for (let b = 0; b <= piece.beats; b += 4) bars.push(b);
+  for (const measure of measures(piece)) bars.push(measure.start);
   return (
     <svg ref={svg} className={edit ? "editing" : undefined} preserveAspectRatio="none" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${piece.title}, ${piece.tracks.length} voice parts across ${piece.beats} beats`} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
       <rect width={w} height={h} fill="#1b1612" />
       {octaves.map((n) => <g key={n}><path d={`M${left} ${top + (range[1] - n) * sy}H${w}`} stroke="#ffffff14" /><text x={5} y={top + (range[1] - n) * sy + 3} fill="#9c8e7b" fontSize={9}>{noteName(n)}</text></g>)}
-      {bars.map((b) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff12" /><text x={left + b * sx + 3} y={h - 4} fill="#9c8e7b" fontSize={8}>{b / 4 + 1}</text></g>)}
+      {bars.map((b,i) => <g key={b}><path d={`M${left + b * sx} ${top}V${h - 18}`} stroke="#ffffff12" /><text x={left + b * sx + 3} y={h - 4} fill="#9c8e7b" fontSize={8}>{i + 1}</text></g>)}
       {accompaniment.map(part=><path key={part.id} data-band={part.id} stroke="#9aaea0" strokeWidth={1.7} opacity={.6}
         d={part.notes.map(n=>`M${left+n.beat*sx} ${top+(range[1]-n.midi)*sy}h${Math.max(1,n.beats*sx-1)}`).join(" ")}>
         <title>{part.id}</title>
@@ -1013,7 +1024,7 @@ function PianoRoll() {
       <header>
         <h2>Full MIDI score</h2>
         <small>
-          {Math.ceil(piece.beats / 4)} bars · {piece.bpm} BPM
+          {measures(piece).length} bars · {piece.bpm} BPM
         </small>
         <Transport />
         <BandToggle />
@@ -1104,6 +1115,13 @@ function SoundCraftButtons({ name }: { name: string }) {
       say("In SoundCraft: move, stretch or transpose notes (keep one note per syllable), then press “Sing SoundCraft’s notes”.");
     }
   };
+  const openInstrument = async () => {
+    const state=useMoppet.getState();
+    const voice=state.voices[state.selected],track=piece.tracks.find(t=>t.id===voice.id);
+    if(!track)return say("Select a singer with a part in this score.");
+    const key=await partKey(instrumentPart(piece,track,voice));
+    if(await call(`/__soundcraft/instrument?part=${key}`))say("CHIMERA vocal instrument opened in SoundCraft.");
+  };
   const pull = async () => {
     const r = await call("/__soundcraft/pull");
     if (r) singMidi(new Uint8Array(await r.arrayBuffer()));
@@ -1119,6 +1137,7 @@ function SoundCraftButtons({ name }: { name: string }) {
   return (
     <>
       <button onClick={() => void open()} disabled={!linked || busy} title={linked ? "Open the current score" : "Available with the local SoundCraft bridge"}>Open in SoundCraft</button>
+      {linked && <button onClick={()=>void openInstrument()} disabled={busy}>Open vocal instrument</button>}
       {linked && opened && <button onClick={() => void pull()} disabled={busy}>Sing SoundCraft’s notes</button>}
       <button onClick={() => file.current?.click()} title="Sing the score on an edited .mid file's notes">Load MIDI…</button>
       <input ref={file} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => (void load(e.target.files?.[0]), (e.target.value = ""))} />
@@ -1228,7 +1247,9 @@ function Workbench() {
   const selected = useMoppet((s) => s.selected);
   const studio404 = useMoppet((s) => s.studio404);
   const select = useMoppet((s) => s.select);
-  const reset = useMoppet((s) => s.reset);
+  const reset = resetSelectedVocal;
+  const unlocked = useController(s => s.voiceEditing);
+  useEffect(() => lockVoiceControls, [selected]);
   const savePreset = useMoppet((s) => s.savePreset);
   const loadPreset = useMoppet((s) => s.loadPreset);
   const singSolo = useMoppet((s) => s.singSolo);
@@ -1289,7 +1310,10 @@ function Workbench() {
         <MidiStrip />
 
         <LivePanel name={vName} />
-        <div className="knobs">
+        <button type="button" aria-pressed={unlocked} onClick={() => unlocked ? lockVoiceControls() : useController.setState({voiceEditing:true})}>
+          {unlocked ? "Lock vocal controls" : "Unlock vocal editing"}
+        </button>
+        {unlocked && <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
             const cc = ccFor(ccMap, key);
@@ -1303,8 +1327,9 @@ function Workbench() {
             </div>;
           })}
         </div>
+        }
         <p className="status" role="status">{note}</p>
-        <p className="status">Experimental preset. Melody and harmony always come from the score: nothing here changes a singer’s pitch.</p>
+        <p className="status">{import.meta.env.DEV ? "Vocal edits use the local CHIMERA plug-in host." : "Published songs use recorded CHIMERA plug-in presets. Open the local stage to render a custom voice."}</p>
         <div className="panel-footer">
           <button onClick={reset}>Reset voice</button>
           <button onClick={savePreset}>↓ Save preset</button>
@@ -1316,14 +1341,27 @@ function Workbench() {
   );
 }
 
-export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) {
+export function MoppetRight() {
   const [cameraFollow,setCameraFollow]=useState(true);
+  const [desk, setDesk] = useState(false);
+  const [liveDesk,setLiveDesk]=useState(false);
+  const showLive = liveDesk;
+  const [writing,setWriting]=useState(false);
+  const [references,setReferences]=useState(false);
+  const [editor, setEditor] = useState(false);
+  const lesson = useMoppet(s=>s.lesson);
+  const setLesson = useMoppet(s=>s.setLesson);
   const selected = useMoppet((s) => s.selected);
   const voices = useMoppet((s) => s.voices);
   const studio404 = useMoppet((s) => s.studio404);
   const v = voices[selected];
   const name = studio404 ? studio404Name(v.id, v.name) : v.name;
   const piece = useMoppet((s) => s.piece);
+  const guestPreview = useMemo(()=>{
+    if(!showLive || piece.title!=="Borrowed Light") return null;
+    const project=buildVideoProject(piece,voices,studio404);
+    return {...project,fps:24,intro:{...project.intro,enabled:false},outro:{...project.outro,enabled:false}};
+  },[showLive,piece,voices,studio404]);
   useEffect(() => {
     // load the score on first arrival
     if (useMoppet.getState().piece === piece) {
@@ -1335,21 +1373,34 @@ export function MoppetRight({ onOpenVideo }: { onOpenVideo?: () => void } = {}) 
   }, []);
   return (
     <div className="right right-moppet right-stage">
-      <Screen className="s-stage warm" label="The Moppet Choir">
-        <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)} onOpenVideo={onOpenVideo}/>
-        <SoloLibrary />
-        <div className="performance-top"><Stage cameraFollow={cameraFollow} /><MusicRack /></div>
-        {piece.kind==="skit" ? <Transport/> : <PianoRoll/>}
-        <LaunchkeyMap />
-      </Screen>
-      <Screen className="s-score warm" title="Music Desk" sub="Score & Stops">
+      <VideoStudio controller={<div className="instrument-bay">
+        <aside className="bay-controls" aria-label="Stage controls">
+          <button aria-pressed={references} onClick={()=>setReferences(!references)}>Cast bibles</button>
+          <button aria-pressed={writing} onClick={()=>setWriting(!writing)}>Write &amp; rehearse</button>
+          <button aria-pressed={liveDesk} onClick={()=>{stop();setLiveDesk(!liveDesk)}}>Live puppets</button>
+        </aside>
+        <LaunchkeyMap/>
+        <aside className="bay-controls" aria-label="Music controls">
+          <button aria-pressed={desk} onClick={()=>setDesk(!desk)}>♫ Music desk</button>
+          <button aria-pressed={editor} onClick={()=>{lockVoiceControls();setEditor(!editor)}}>Voice workshop</button>
+          <button onClick={resetSelectedVocal} title="Restore this singer’s factory vocal settings">↺ Reset {name} vocals</button>
+          <small>{!import.meta.env.DEV ? "CHIMERA plug-in voice" : JSON.stringify(v) === JSON.stringify(CAST[selected]) ? "CHIMERA · factory voice" : "CHIMERA · custom voice"}</small>
+        </aside>
+      </div>} livePreview={guestPreview ? <PortableStage project={guestPreview}/> : showLive ? <Stage cameraFollow={cameraFollow}/> : undefined}/>
+      {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">
+        {(desk || liveDesk) && <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)}/>}
+        {desk && piece.kind!=="skit" ? <PianoRoll/> : liveDesk || desk ? <Transport/> : null}
+      </Screen>}
+      {references && <CastReferences/>}
+      {writing && <NewRehearsal/>}
+      {(desk || writing) && <Screen className="s-score warm" title="Music Desk" sub="Score & Stops">
         <ScorePanel />
         {piece.kind !== "skit" && <RehearsalStaffPanel />}
-      </Screen>
-      <Screen className="s-cast warm" title={`Organ Console · ${name}`} sub="Voice & Manuals">
+      </Screen>}
+      {editor && <Screen className="s-cast warm" title={`Organ Console · ${name}`} sub="Voice & Manuals">
         <Workbench />
-      </Screen>
-      <details className="layout-studies"><summary>Earlier desk layouts</summary><div>{["Center music rack","Side desk","Pinned rehearsal console"].map((name,i)=><figure key={name}><a href={`/layouts/layout-${String.fromCharCode(97+i)}.webp`}><img loading="lazy" src={`/layouts/layout-${String.fromCharCode(97+i)}.webp`} alt={name}/></a><figcaption>{name}</figcaption></figure>)}</div></details>
+      </Screen>}
+      {desk && <details className="layout-studies"><summary>Earlier desk layouts</summary><div>{["Center music rack","Side desk","Pinned rehearsal console"].map((name,i)=><figure key={name}><a href={`/layouts/layout-${String.fromCharCode(97+i)}.webp`}><img loading="lazy" src={`/layouts/layout-${String.fromCharCode(97+i)}.webp`} alt={name}/></a><figcaption>{name}</figcaption></figure>)}</div></details>}
       <p className="moppet-credit">Experimental character voices · Studio 404. Physical voice synthesis by <a href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer">CHIMERA</a>, MIT licensed.</p>
     </div>
   );

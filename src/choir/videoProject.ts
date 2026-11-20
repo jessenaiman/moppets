@@ -16,6 +16,7 @@ import {
 import { beatSeconds, LEAD_IN, pieceSeconds } from "./timeline.ts";
 import { STUDIO_404_CAST, studio404Name } from "./studio404.ts";
 import type { MoppetVoice } from "./voices.ts";
+import type { VocalTiming } from "./vocalTiming.ts";
 
 export type AspectMode = "16:9" | "9:16";
 export type BubbleTail = "down" | "left" | "right" | "none";
@@ -63,6 +64,7 @@ export type MoppetVideoProps = {
   stageDurationSec: number;
   audioUrl: string | null;
   audioVolume: number;
+  vocalTiming?: VocalTiming;
   cameraAutoFollow: boolean;
   intro: TitleCardConfig;
   outro: TitleCardConfig;
@@ -79,14 +81,19 @@ export function compositionDimensions(aspect: AspectMode): { width: number; heig
   return aspect === "9:16" ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
 }
 
-export function totalDurationFrames(
+export function videoFrameLayout(
   props: Pick<MoppetVideoProps, "fps" | "intro" | "outro" | "stageDurationSec">,
-): number {
+) {
   const fps = Math.max(1, props.fps || 30);
   const introFrames = props.intro.enabled ? Math.round(Math.max(0.4, props.intro.durationSec) * fps) : 0;
   const stageFrames = Math.round(Math.max(1, props.stageDurationSec) * fps);
   const outroFrames = props.outro.enabled ? Math.round(Math.max(0.4, props.outro.durationSec) * fps) : 0;
-  return Math.max(30, introFrames + stageFrames + outroFrames);
+  return { fps, introFrames, stageFrames, outroFrames };
+}
+
+export function totalDurationFrames(props: Parameters<typeof videoFrameLayout>[0]): number {
+  const { introFrames, stageFrames, outroFrames } = videoFrameLayout(props);
+  return introFrames + stageFrames + outroFrames;
 }
 
 /** Visible stage cast for `piece`, filtered by `piece.stage` / Chip participation and styled for the mode. */
@@ -102,7 +109,7 @@ export function stageVoicesForPiece(
   const slotList = visible.length ? visible : voices;
   return slotList.map((v) => ({
     id: v.id,
-    name: studio404 ? studio404Name(v.id, v.name) : v.name,
+    name: piece.title === "Borrowed Light" && v.id === "vee" ? "Moonbeam" : studio404 ? studio404Name(v.id, v.name) : v.name,
     color: studio404 ? (STUDIO_404_CAST[v.id]?.color ?? v.color) : v.color,
   }));
 }
@@ -265,7 +272,7 @@ export function buildVideoProject(
     aspect: opts?.aspect ?? "16:9",
     fps,
     studio404,
-    stageDurationSec: Number(stageDurationSec.toFixed(2)),
+    stageDurationSec,
     audioUrl: opts?.audioUrl ?? null,
     audioVolume: 1,
     cameraAutoFollow: true,

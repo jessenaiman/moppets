@@ -12,18 +12,17 @@ import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
  * The voice is the selected Moppet's own (body, airway size, posture, folds), in the live worklet.
  */
 import { create } from "zustand";
-import { chimeraModule } from "@chimera/wasm/chimera.ts";
-import { ARTIC_SPECS, NEUTRAL, planNoteOff, planNoteOn, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
+import { instrumentNote, instrumentPart } from "./pluginScore.ts";
+import { pluginRecording } from "./pluginPlayback.ts";
+import { beatSeconds, LEAD_IN } from "./timeline.ts";
+import { ARTIC_SPECS, NEUTRAL, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
 import type { Syllable } from "@chimera/wasm/types.ts";
-import liveUrl from "../worklet/live.ts?worker&url";
-import type { FromLive, ToLive } from "../worklet/live.ts";
+import type { FromLive } from "../worklet/live.ts";
 import { audio, useAudio } from "../audio/audio.ts";
 import { g2p } from "../audio/g2p.ts";
 import { sungSyllables } from "./plan.ts";
-import { shapeGesture } from "./character.ts";
 import { midiToHz } from "./singerCore.ts";
-import { PLAN_VIBRATO } from "./character.ts";
-import type { MoppetVoice } from "./voices.ts";
+import { CAST, type MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
 import { SILENT_POSE, visemeFrom, type Pose } from "./pose.ts";
 
@@ -89,54 +88,24 @@ export function offerStaffMidi(midi: number, velocity: number): boolean {
   return staffMidiHook ? staffMidiHook(midi, velocity) : false;
 }
 
-let node: AudioWorkletNode | null = null;
-let volumeNode: GainNode | null = null;
-function updateLiveVolume() {
-  if (volumeNode && voice) volumeNode.gain.setTargetAtTime(voiceLevel(voice.id), volumeNode.context.currentTime, 0.01);
-}
-useVoiceLevels.subscribe(updateLiveVolume);
-let starting: Promise<void> | null = null;
 let voice: MoppetVoice | null = null;
 let syllables: Syllable[] = [];
-/** the piece and Moppet the words come from (split again once the dictionary has loaded) */
 let wordsOf: { piece: Piece; id: string } | null = null;
-/** keys down: key → the tag its gestures carry and the syllable it sings */
-const held = new Map<number, { tag: number; syl: Syllable; midi: number }>();
-let nextTag = 1;
-
-const post = (m: ToLive) => node?.port.postMessage(m);
-const bodyName = (v: MoppetVoice) => (v.body.child > 0.5 ? "child" : v.body.female > 0.5 ? "female" : "male");
-
-async function ensureNode(): Promise<void> {
-  if (node) return;
-  starting ??= (async () => {
-    // a failed start is tried again on the next note or mode change
-    try {
-      await start();
-    } catch (e) {
-      starting = null;
-      throw e;
-    }
-  })();
-  await starting;
+let volumeNode: GainNode | null = null;
+let analyser: AnalyserNode | null = null;
+const meter = new Float32Array(256);
+const held = new Map<number, { syl: string; velocity: number }>();
+const bodyName = (v: MoppetVoice) => (v.body.child > .5 ? "child" : v.body.female > .5 ? "female" : "male");
+function updateLiveVolume() {
+  if (volumeNode && voice) volumeNode.gain.setTargetAtTime(voiceLevel(voice.id),volumeNode.context.currentTime,.01);
 }
-
-async function start(): Promise<void> {
+useVoiceLevels.subscribe(updateLiveVolume);
+async function ensureNode() {
   await useAudio.getState().start();
-  const ctx = audio.ctx!;
-  await ctx.audioWorklet.addModule(liveUrl);
-  node = new AudioWorkletNode(ctx, "live-moppet", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], processorOptions: { module: chimeraModule() } });
-  node.port.onmessage = (e: MessageEvent<FromLive>) => useLive.setState({ pose: e.data });
-  volumeNode = ctx.createGain();
-  volumeNode.gain.value = voice ? voiceLevel(voice.id) : 1;
-  node.connect(volumeNode);
-  audio.connect(volumeNode);
-  if (voice) sendVoice(voice);
-}
-
-function sendVoice(v: MoppetVoice): void {
-  post({ type: "voice", body: v.body, size: v.size ?? 1, artic: { ...v.artic }, source: { ...v.source } as Record<string, number> });
-  if (useLive.getState().mode === "puppet") post({ type: "mouth", values: useLive.getState().mouth });
+  if(volumeNode)return;
+  const ctx=audio.ctx!;
+  volumeNode=ctx.createGain();analyser=ctx.createAnalyser();analyser.fftSize=meter.length;
+  analyser.connect(volumeNode);audio.connect(volumeNode);updateLiveVolume();
 }
 
 export const useLive = create<LiveState>((set, get) => ({
@@ -166,7 +135,7 @@ export const useLive = create<LiveState>((set, get) => ({
       await g2p.load();
       if (wordsOf) setLiveWords(wordsOf.piece, wordsOf.id);
     }
-    if (mode === "puppet") post({ type: "mouth", values: get().mouth });
+
   },
 }));
 
@@ -176,12 +145,8 @@ export const useLive = create<LiveState>((set, get) => ({
  * rest is a patch at the render head.
  */
 export function setLiveVoice(v: MoppetVoice): void {
-  const same = voice && voice.id === v.id && voice.body.female === v.body.female && voice.body.child === v.body.child && (voice.size ?? 1) === (v.size ?? 1);
-  voice = v;
-  updateLiveVolume();
-  if (!same) return sendVoice(v);
-  post({ type: "source", values: { ...v.source } as Record<string, number> });
-  if (useLive.getState().mode !== "puppet") post({ type: "mouth", values: { ...v.artic } });
+  if(voice && voice.id!==v.id)allOff();
+  voice=v;updateLiveVolume();
 }
 
 /** The keys sing this Moppet's lines in `piece` (the lead's, if it sings none). */
@@ -204,7 +169,7 @@ export function moveMouth(key: MouthKey, x: number): void {
   const [, lo, hi, label] = MOUTH.find((m) => m[0] === key)!;
   const n = +(lo + (hi - lo) * x).toFixed(3);
   useLive.setState((s) => ({ mouth: { ...s.mouth, [key]: n }, last: `${label}: ${n}` }));
-  post({ type: "mouth", values: { [key]: n } });
+
 }
 
 /** A pad of puppeteer mode: the mouth snaps to a vowel (or closes, for "mm"). */
@@ -213,144 +178,84 @@ export function padVowel(i: number): void {
   if (!ipa || !voice) return;
   const target = ipa === "m" ? { lipAp: 0, jaw: 0.3, velum: 1 } : { ...VOWEL_TARGETS[bodyName(voice)]?.[ipa]?.artic, velum: 0.05 };
   useLive.setState((s) => ({ mouth: { ...s.mouth, ...target }, last: `Mouth: "${label}"` }));
-  post({ type: "mouth", values: target as Record<string, number> });
+
 }
 
-let auditionTimer: ReturnType<typeof setTimeout> | null = null;
-let auditionActive: { tag: number; syl: Syllable; midi: number; body: MoppetVoice["body"] } | null = null;
-
-function releaseAudition(): void {
-  if (auditionTimer !== null) {
-    clearTimeout(auditionTimer);
-    auditionTimer = null;
-  }
-  if (!auditionActive) return;
-  const a = auditionActive;
-  auditionActive = null;
-  post({ type: "release", tag: a.tag });
-  post({ type: "schedule", gestures: planNoteOff(a.syl, a.midi, a.body) });
+let active: AudioBufferSourceNode | null = null;
+let activePitch: number | undefined;
+let sequence=0;
+function releaseNote() {
+  sequence++;
+  if(active){active.stop();active=null;}
+  activePitch=undefined;
 }
 
-function auditionSyllable(text?: string): Syllable {
-  const clean = (text ?? "").replace(/[~–_]/g, "").trim();
-  if (clean) {
-    try {
-      const list = sungSyllables(clean).filter((s) => !s.melisma);
-      if (list.length) return list[0];
-    } catch {
-      // fall back to vowel
-    }
-  }
-  return sungSyllables("ah")[0];
-}
-
-/** Audition a single Moppet singing `midi` (concert pitch) on an optional syllable without advancing live cursors. */
-export async function auditionNote(v: MoppetVoice, midi: number, syllableText?: string, durationMs = 420, heldSignal?: AbortSignal): Promise<void> {
+async function soundNote(v:MoppetVoice,midi:number,word:string,seconds:number|undefined,signal?:AbortSignal,velocity=100) {
+  releaseNote();
+  if(!import.meta.env.DEV)v=CAST.find(singer=>singer.id===v.id)??v;
+  const seq=sequence;
   await ensureNode();
-  if (!g2p.loaded) await g2p.load();
-  if (heldSignal?.aborted) return;
-  setLiveVoice(v);
-  releaseAudition();
-  const syl = auditionSyllable(syllableText);
-  const tag = nextTag++;
-  const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: PLAN_VIBRATO, tag }).map((g) => shapeGesture(g, v, false));
-  post({ type: "schedule", gestures });
-  auditionActive = { tag, syl, midi, body: v.body };
-  if (heldSignal) {
-    heldSignal.addEventListener("abort", () => { if (auditionActive?.tag === tag) releaseAudition(); }, {once:true});
-    return;
-  }
-  const holdMs = Math.max(220, Math.min(900, durationMs));
-  auditionTimer = setTimeout(() => {
-    auditionTimer = null;
-    if (auditionActive?.tag === tag) releaseAudition();
-  }, holdMs);
-}
-
-/** A key went down. Returns true when the live voice took it. */
-export function liveNoteOn(midi: number, velocity = 100): boolean {
-  const { mode } = useLive.getState();
-  if (mode === "off" || !voice) return false;
-  const activeVoice = voice;
-  if (mode === "puppet") {
-    held.set(midi, { tag: 0, syl: null as unknown as Syllable, midi });
-    const fire = () => {
-      if (!held.has(midi)) return;
-      post({ type: "source", values: { f0: midiToHz(midi + (activeVoice.octave ?? 0)), pressure: 6 + 4 * (velocity / 127) } });
-      post({ type: "gate", level: 1 });
-    };
-    if (node) fire();
-    else ensureNode().then(fire).catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
-    return true;
-  }
-  if (!syllables.length) return true;
-  const st = useLive.getState();
-  const idx = mode === "edit" ? st.editIndex : st.next;
-  const syl = syllables[idx % syllables.length];
-  const sung = midi + (activeVoice.octave ?? 0);
-  // legato: a key still held hands its vowel over to this one
-  const prev = [...held.values()].pop();
-  const tag = nextTag++;
-  const gestures = planNoteOn(syl, sung, { body: activeVoice.body, vibrato: PLAN_VIBRATO, tag, ...(prev ? { legatoFrom: { syl: prev.syl, midi: prev.midi } } : {}) }).map((g) => shapeGesture(g, activeVoice, false));
-  const scheduleIt = () => {
-    if (prev) post({ type: "release", tag: prev.tag });
-    post({ type: "schedule", gestures });
-    if (!held.has(midi)) {
-      post({ type: "release", tag });
-      post({ type: "schedule", gestures: planNoteOff(syl, sung, activeVoice.body) });
+  if(seq!==sequence || signal?.aborted)return;
+  const ctx=audio.ctx!;
+  let buffer:AudioBuffer, offset=0, limit=Infinity;
+  try {
+    // For a staff audition, reuse the exact sung note including its consonants.
+    const score=wordsOf?.piece,track=score?.tracks.find(t=>t.id===v.id);
+    const note=score && track && word!=="la" && seconds!==undefined
+      ? track.events.find(e=>e.midi===midi && (e.text===word || (e.line!==undefined && track.phrases?.[e.line]?.split(/\s+/).includes(word)))) : null;
+    if(note && score && track){
+      buffer=await pluginRecording(ctx,instrumentPart(score,track,v));
+      offset=LEAD_IN+note.beat*beatSeconds(score);limit=note.beats*beatSeconds(score);
+    }else {
+      const part=instrumentNote(v,midi,word);
+      if(useLive.getState().mode==="puppet" && import.meta.env.DEV) {
+        part.mode="play";
+        part.artic=useLive.getState().mouth as Record<string,number>;
+      }
+      buffer=await pluginRecording(ctx,part);
     }
-  };
-  held.set(midi, { tag, syl, midi: sung });
-  if (node) scheduleIt();
-  else ensureNode().then(scheduleIt).catch((e) => useLive.setState({ last: `The live voice could not start: ${e instanceof Error ? e.message : e}` }));
-  if (mode === "edit") {
-    const res = melodyEditHook?.(midi, st.editIndex);
-    useLive.setState({
-      editIndex: res ? res.nextIndex : (st.editIndex + 1) % syllables.length,
-      last: res ? res.label : `Set "${syl.text}" → MIDI ${midi}`,
-    });
-  } else {
-    useLive.setState({ next: (st.next + 1) % syllables.length, last: `"${syl.text}"` });
-  }
+  }catch(e){if(seq===sequence)useLive.setState({last:e instanceof Error?e.message:"CHIMERA instrument unavailable"});return;}
+  if(seq!==sequence || signal?.aborted)return;
+  const player=ctx.createBufferSource(),gain=ctx.createGain();
+  gain.gain.value=Math.min(1,Math.max(0,velocity/100));player.buffer=buffer;
+  player.connect(gain);gain.connect(analyser!);active=player;activePitch=midi;
+  player.loop=seconds===undefined && !Number.isFinite(limit);
+  player.loopStart=.6;player.loopEnd=Math.min(1.45,buffer.duration);
+  const stop=()=>{if(seq===sequence)releaseNote();};
+  signal?.addEventListener("abort",stop,{once:true});
+  const ended=()=>{signal?.removeEventListener("abort",stop);gain.disconnect();player.disconnect();if(active===player){active=null;activePitch=undefined;}};
+  player.onended=ended;
+  player.start(0,offset);
+  if(seconds!==undefined)player.stop(ctx.currentTime+Math.min(seconds,limit));
+}
+export async function auditionNote(v:MoppetVoice,midi:number,text="la",durationMs=420,signal?:AbortSignal){
+  if(signal?.aborted)return;
+  await soundNote(v,midi,text||"la",signal?undefined:Math.max(.08,durationMs/1000),signal);
+}
+export function liveNoteOn(midi:number,velocity=100):boolean{
+  const s=useLive.getState();if(!voice||s.mode==="off")return false;
+  const index=s.mode==="edit"?s.editIndex:s.next;
+  const syl=s.mode==="puppet"?"la":syllables[index%Math.max(1,syllables.length)]?.text??"la";
+  held.delete(midi);held.set(midi,{syl,velocity});
+  void soundNote(voice,midi,syl,undefined,undefined,velocity);
+  if(s.mode==="edit"){
+    const edit=melodyEditHook?.(midi,index);
+    useLive.setState({editIndex:edit?.nextIndex??index+1,last:edit?.label??`MIDI ${midi}`});
+  }else useLive.setState({next:(index+1)%Math.max(1,syllables.length),last:`"${syl}" · MIDI ${midi}`});
   return true;
 }
-
-/** A key let go. */
-export function liveNoteOff(midi: number): boolean {
-  const { mode } = useLive.getState();
-  const h = held.get(midi);
-  if (mode === "off" || !h) return false;
-  held.delete(midi);
-  if (mode === "puppet") {
-    // back to the newest key still held, or the breath stops
-    const still = [...held.keys()].pop();
-    if (still === undefined) post({ type: "gate", level: 0 });
-    else if (voice) post({ type: "source", values: { f0: midiToHz(still + (voice.octave ?? 0)) } });
-    return true;
-  }
-  post({ type: "release", tag: h.tag });
-  // the last key up ends the syllable: its closing consonants, then breath out
-  if (![...held.values()].some((x) => x.tag > h.tag) && voice) post({ type: "schedule", gestures: planNoteOff(h.syl, h.midi, voice.body) });
+export function liveNoteOff(midi:number):boolean {
+  const last=[...held.keys()].at(-1);
+  if(!held.delete(midi))return false;
+  if(last===midi){releaseNote();const next=[...held.entries()].at(-1);if(next&&voice)void soundNote(voice,next[0],next[1].syl,undefined,undefined,next[1].velocity);}
   return true;
 }
-
-function allOff(): void {
-  for (const h of held.values()) if (h.tag) post({ type: "release", tag: h.tag });
-  held.clear();
-  post({ type: "gate", level: 0 });
-}
-
-/** The live voice as a puppet pose (the face on stage), or null when it's off. */
-export function liveMidiPitch(): number | undefined {
-  return Array.from(held.values()).at(-1)?.midi ?? auditionActive?.midi;
-}
-
-export function livePose(): Pose | null {
-  const { mode, pose: t } = useLive.getState();
-  if (mode === "off" || !t) return null;
-  const singing = t.rms > 0.012;
-  if (!singing) return SILENT_POSE;
-  const level = Math.min(1, t.rms * 5), round = Math.min(1, Math.max(0, t.lipProt));
-  const open = t.lipAp <= 0.02 ? 0 : Math.max(Math.min(1, t.lipAp / 2.2) * (0.55 + 0.45 * level), t.lipProt > 0.9 && t.lipAp > 0.1 ? 0.25 : 0);
-  return { open, jaw: Math.min(1, t.jaw / 1.9), round, level, singing, viseme: visemeFrom(t.lipAp, 0, round, t.jaw, singing), pressure: Math.min(1, t.pLung / 12), f0: 0, voicing: t.voicing };
+function allOff(){held.clear();releaseNote();}
+export const liveMidiPitch=()=>activePitch;
+export function livePose():Pose|null {
+  if(activePitch===undefined||!analyser)return null;
+  analyser.getFloatTimeDomainData(meter);
+  const rms=Math.sqrt(meter.reduce((sum,x)=>sum+x*x,0)/meter.length),level=Math.min(1,rms*5);
+  if(rms<.008)return SILENT_POSE;
+  return {...SILENT_POSE,level,singing:true,open:level,jaw:level,voicing:1,pressure:level,f0:midiToHz(activePitch),viseme:visemeFrom(level*2,0,0,level,true)};
 }

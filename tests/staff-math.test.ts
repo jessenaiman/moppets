@@ -7,7 +7,6 @@ import {
   midiToScaleDegree,
   midiToVexNote,
   shiftMidiByScaleSteps,
-  stepLeadSheetDegree,
   vexKeySignature,
 } from "../src/choir/staffMath.ts";
 import { KeySignature } from "vexflow";
@@ -63,12 +62,4 @@ test("midiToScaleDegree and shiftMidiByScaleSteps preserve key contour", () => {
   expect(midiToScaleDegree(deg4 + 2 - 12, deg4 - 12, 4, "G", "major")).toBe(5);
   expect(shiftMidiByScaleSteps(67, 1, "G", "major")).toBe(69);
   expect(shiftMidiByScaleSteps(67, -1, "G", "major")).toBe(66);
-});
-
-test("stepLeadSheetDegree jumps over strong-beat fitChord snaps so Up/Down always moves pitch", () => {
-  // Strong beat 0 under I chord (tones 0, 2, 4). Degree 0 fitted = 0; degree 1 snaps back to 0!
-  const next = stepLeadSheetDegree(0, 1, 4, 1, [[0, 4]], 4);
-  expect(next).toBe(2);
-  const down = stepLeadSheetDegree(2, -1, 4, 1, [[0, 4]], 4);
-  expect(down).toBe(0);
 });

@@ -239,7 +239,10 @@ export function parseSongFile(text: string, file = "song"): SongFile {
   const bm = beat ? /^(.*?)\s*\(swing\s+([\d.]+)\)$/.exec(beat) : null;
   const fin = /^"(.*)"\s+on\s+(-?\d+)$/.exec(need("finale"));
   if (!fin) throw new SongFileError(file, 1, `finale: "Word" on <degree>`);
+  const meter = meta.get("meter");
+  if (meter !== undefined && !/^(?:[1-9]|[1-9]\d)\/(1|2|4|8|16|32)$/.test(meter)) throw new SongFileError(file,1,"Invalid meter; use a time signature such as 3/4 or 6/8");
   const song: Song = {
+    ...(meter ? {meter} : {}),
     lead: need("lead"),
     title: need("title"),
     description: meta.get("about") ?? "",
@@ -283,6 +286,7 @@ export function printSongFile(f: SongFile): string {
     `lead: ${s.lead}`,
     `key: ${s.key}${s.mode ? ` ${s.mode}` : ""}`,
     `bpm: ${fmt(s.bpm)}`,
+    ...(s.meter ? [`meter: ${s.meter}`] : []),
     ...(s.beat ? [`beat: ${s.beat.text} (swing ${fmt(s.beat.swing)})`] : []),
     `backing: ${s.seats.map(([w, o]) => `${w} +${fmt(o)}`).join(", ")}`,
     ...(s.bass ? [`bass: ${s.bass}`] : []),

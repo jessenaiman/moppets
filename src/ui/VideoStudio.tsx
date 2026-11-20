@@ -1,13 +1,18 @@
+import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
+import {MusicRack} from "./MusicRack";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { useAudio } from "../audio/audio.ts";
-import { exportWav } from "../choir/ensemble.ts";
-import { MoppetComposition } from "../remotion/MoppetComposition.tsx";
+import { exportWav, pause, setPerformanceVolume, stop, useEnsemble } from "../choir/ensemble.ts";
+import { useRehearsalTransport } from "./useRehearsalTransport.ts";
+import { MoppetComposition } from "../remotion/MoppetComposition";
+import { ActionStrip } from "../rehearsal/NeonActions";
+import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
+import { RemotionDock, type StudioComposition } from "./RemotionDock";
 import { SKITS } from "../choir/skits.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { useMoppet, type Lesson } from "../choir/store.ts";
-import { AVAILABLE_CLIP_MANIFESTS } from "../choir/clipTimeline.ts";
 import { useController } from "../choir/controller.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { midiSupported } from "./midi.ts";
@@ -16,7 +21,7 @@ import {
   buildVideoProject,
   compositionDimensions,
   lessonSlug,
-  totalDurationFrames,
+  videoFrameLayout,
   type AspectMode,
   type MoppetVideoProps,
   type VideoBubbleClip,
@@ -30,8 +35,6 @@ type Selection =
 
 interface BridgeAssets {
   slug: string;
-  hasAudio: boolean;
-  audioUrl: string | null;
   exports: { file: string; url: string }[];
 }
 
@@ -55,7 +58,11 @@ const BUBBLE_PRESETS: { label: string; bg: string; fg: string; color: string }[]
 
 const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
-export function VideoStudio({ onBack }: { onBack?: () => void }) {
+export function VideoStudio({livePreview, controller}:{livePreview?:React.ReactNode;controller:React.ReactNode}) {
+  const [timelineOpen,setTimelineOpen] = useState(false);
+  const [audioError,setAudioError] = useState("");
+  const [advancedOpen,setAdvancedOpen]=useState(false);
+  const [composition,setComposition]=useState<StudioComposition>("Rehearsal");
   const lesson = useMoppet((s) => s.lesson);
   const setLesson = useMoppet((s) => s.setLesson);
   const freshSkit = useMoppet((s) => s.freshSkit);
@@ -66,15 +73,10 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
   const midi = useController((s) => s.midi);
   const setMidi = useController((s) => s.setMidi);
   const midiFileRef = useRef<HTMLInputElement | null>(null);
-  const prevSlugRef = useRef<string | null>(null);
-  const pieceSignature = useMemo(() => JSON.stringify({ piece, voices }), [piece, voices]);
-  const [synthSignature, setSynthSignature] = useState<string | null>(null);
-  const audioStale = synthSignature !== pieceSignature;
-
   const playerRef = useRef<PlayerRef>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [project, setProject] = useState<MoppetVideoProps>(() => buildVideoProject(piece, voices, studio404));
   const [selection, setSelection] = useState<Selection>({ kind: "stage" });
-  const [currentFrame, setCurrentFrame] = useState(0);
   const [zoom, setZoom] = useState<1 | 2>(1);
   const [bridgeOn, setBridgeOn] = useState(false);
   const [assets, setAssets] = useState<BridgeAssets | null>(null);
@@ -101,38 +103,6 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
   }, []);
 
   useEffect(() => {
-    const next = buildVideoProject(piece, voices, studio404);
-    const slugChanged = prevSlugRef.current !== next.slug;
-    prevSlugRef.current = next.slug;
-    setSynthSignature(null);
-    setProject(next);
-    setSelection(next.bubbles.length ? { kind: "bubble", id: next.bubbles[0].id } : { kind: "stage" });
-    setCurrentFrame(0);
-    if (import.meta.env.DEV) {
-      void refreshAssets(next.slug).then((a) => {
-        if (!a) return;
-        setProject((cur) => {
-          if (cur.slug !== next.slug) return cur;
-          const attachAudio = slugChanged && Boolean(a.audioUrl);
-          if (attachAudio) setSynthSignature(pieceSignature);
-          return {
-            ...cur,
-            audioUrl: attachAudio ? a.audioUrl : cur.audioUrl,
-          };
-        });
-      });
-    }
-  }, [piece, voices, studio404, refreshAssets, pieceSignature]);
-
-  useEffect(() => {
-    const p = playerRef.current;
-    if (!p) return;
-    const onFrame = (e: { detail: { frame: number } }) => setCurrentFrame(e.detail.frame);
-    p.addEventListener("frameupdate", onFrame);
-    return () => p.removeEventListener("frameupdate", onFrame);
-  }, [project.aspect, project.fps]);
-
-  useEffect(() => {
     if (!bridgeOn || job?.status !== "running") return;
     const t = setInterval(() => {
       void fetch("/__video/job")
@@ -141,10 +111,7 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
           if (!next) return;
           setJob(next);
           if (next.status === "done") {
-            void refreshAssets(slug).then((a) => {
-              if (!a) return;
-              setProject((cur) => ({ ...cur, audioUrl: a.audioUrl }));
-            });
+            void refreshAssets(slug);
           }
         });
     }, 650);
@@ -152,27 +119,60 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
   }, [bridgeOn, job?.status, refreshAssets, slug]);
 
   const dims = compositionDimensions(project.aspect);
-  const totalFrames = totalDurationFrames(project);
-  const fps = Math.max(1, project.fps || 30);
-  const introSec = project.intro.enabled ? Math.max(0.4, project.intro.durationSec) : 0;
-  const outroSec = project.outro.enabled ? Math.max(0.4, project.outro.durationSec) : 0;
-  const totalSec = introSec + project.stageDurationSec + outroSec;
-  const curSec = Math.min(totalSec, currentFrame / fps);
-  const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introSec));
+  const study=exposureCatalog.find(item=>item.id===composition);
+  const { fps, introFrames, stageFrames, outroFrames } = videoFrameLayout(project);
+  const stageEnd = introFrames + stageFrames;
+  const totalFrames = stageEnd + outroFrames;
+  const totalSec = totalFrames / fps;
+  const introSec = introFrames / fps;
+  const outroSec = outroFrames / fps;
+  const showingRehearsal = composition === "Rehearsal" && !livePreview;
+  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames);
+  const ensembleMessage = useEnsemble(s => s.message);
+  const vocalTiming = useEnsemble(s => s.vocalTiming);
+  const previewProject = useMemo(() => ({ ...project, audioUrl: null, vocalTiming }), [project, vocalTiming]);
+  const curSec = transport.frame / fps;
+  const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
+  const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
 
-  const seekToSec = (sec: number) => {
-    const f = Math.max(0, Math.min(totalFrames - 1, Math.round(sec * fps)));
-    playerRef.current?.seekTo(f);
-    setCurrentFrame(f);
+  useEffect(() => {
+    const next = buildVideoProject(piece, voices, studio404);
+    next.intro.enabled = false;
+    next.outro.enabled = false;
+    setAudioError("");
+    setProject(next);
+    setComposition("Rehearsal");
+    transport.reset();
+    setSelection({ kind: "stage" });
+    void refreshAssets(next.slug);
+  }, [piece, voices, studio404, refreshAssets, lesson]);
+
+  useEffect(() => {
+    setPerformanceVolume(project.audioVolume);
+    return () => setPerformanceVolume(1);
+  }, [project.audioVolume]);
+
+  const selectComposition = (id: StudioComposition) => {
+    if (showingRehearsal) {
+      if (transport.busy) stop();
+      else pause();
+    }
+    playerRef.current?.pause();
+    setComposition(id);
+  };
+
+  const seekOnRuler = (event: React.PointerEvent<HTMLDivElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    seekToSec(((event.clientX - box.left) / Math.max(1, box.width)) * totalSec);
   };
 
   const resetFromScore = () => {
     const next = buildVideoProject(piece, voices, studio404, {
       aspect: project.aspect,
-      audioUrl: project.audioUrl ?? assets?.audioUrl ?? null,
+      audioUrl: project.audioUrl,
     });
     setProject(next);
-    setSelection(next.bubbles.length ? { kind: "bubble", id: next.bubbles[0].id } : { kind: "stage" });
+    setSelection({ kind: "stage" });
   };
 
   const updateBubble = (id: string, patch: Partial<VideoBubbleClip>) => {
@@ -192,11 +192,16 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
     };
   }, []);
 
-  const synthesizeLiveAudio = async (): Promise<string | null> => {
-    const sig = pieceSignature;
+  const preparing=useRef(false);
+  const prepareMix = async () => {
+    if(preparing.current)return null;
+    preparing.current=true;
+    const sameScore = () => useMoppet.getState().piece === piece && useMoppet.getState().voices === voices;
+    setAudioError("");
     setSynthBusy(true);
     try {
       const out = await exportWav(startAudio);
+      if (!sameScore()) return null;
       if (blobAudioRef.current) {
         URL.revokeObjectURL(blobAudioRef.current);
         blobAudioRef.current = null;
@@ -216,12 +221,15 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
         blobAudioRef.current = url;
         nextAudioUrl = url;
       }
-      setProject((cur) => ({ ...cur, audioUrl: nextAudioUrl }));
-      setSynthSignature(sig);
-      return nextAudioUrl;
-    } catch {
+      if (!sameScore()) return null;
+      const mix = { audioUrl: nextAudioUrl, vocalTiming: out.vocalTiming, stageDurationSec: out.durationSec };
+      setProject((cur) => ({ ...cur, ...mix }));
+      return mix;
+    } catch(error) {
+      if (sameScore()) setAudioError(error instanceof Error ? error.message : "Could not prepare rehearsal audio.");
       return null;
     } finally {
+      preparing.current=false;
       setSynthBusy(false);
     }
   };
@@ -279,26 +287,16 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
   };
 
   const triggerRender = async () => {
-    let nextProps = project;
-    if (!nextProps.audioUrl || nextProps.audioUrl.startsWith("blob:") || audioStale) {
-      const uploadedUrl = await synthesizeLiveAudio();
-      if (!uploadedUrl || uploadedUrl.startsWith("blob:")) {
-        setJob({
-          id: 0,
-          kind: "render",
-          status: "error",
-          progress: 0,
-          message: "Audio synthesis failed before render.",
-          outputUrl: null,
-          error: "Could not synthesize and upload CHIMERA WAV mix.",
-        });
-        return;
-      }
-      nextProps = { ...project, audioUrl: uploadedUrl };
+    const mix = await prepareMix();
+    if (!mix || mix.audioUrl.startsWith("blob:")) return;
+    try {
+      const props = { ...project, ...mix };
+      const r = await fetch("/__video/render", { method: "POST", body: JSON.stringify({ slug, props }) });
+      if (!r.ok) throw new Error(await r.text());
+      setJob(await r.json() as BridgeJob);
+    } catch (error) {
+      setJob({ id: 0, kind: "render", status: "error", progress: 0, message: "Render failed to start.", outputUrl: null, error: String(error) });
     }
-    const r = await fetch("/__video/render", { method: "POST", body: JSON.stringify({ slug, props: nextProps }) });
-    if (r.ok) setJob((await r.json()) as BridgeJob);
-    else setJob({ id: 0, kind: "render", status: "error", progress: 0, message: "Render failed to start.", outputUrl: null, error: await r.text() });
   };
 
   const cancelJob = async () => {
@@ -357,14 +355,8 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
             {project.cameraAutoFollow ? "Camera: Auto-follow" : "Camera: Wide"}
           </button>
 
-          <button type="button" disabled={synthBusy} onClick={() => void synthesizeLiveAudio()}>
-            {synthBusy
-              ? "Synthesizing WAV…"
-              : project.audioUrl && !audioStale
-                ? "↻ Refresh CHIMERA Audio"
-                : audioStale && project.audioUrl
-                  ? "↻ Re-sync CHIMERA Audio"
-                  : "🔊 Attach CHIMERA Audio"}
+          <button type="button" disabled={synthBusy || transport.busy || job?.status === "running"} onClick={() => void prepareMix()}>
+            {synthBusy ? "Preparing WAV…" : project.audioUrl ? "Refresh CHIMERA WAV" : "Prepare CHIMERA WAV"}
           </button>
 
           {/* Occasional tools live in one menu so the toolbar stays a single row. */}
@@ -420,17 +412,12 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
             </div>
           </details>
 
-          {bridgeOn && (
-            <button type="button" className="primary" disabled={job?.status === "running" || synthBusy} onClick={() => void triggerRender()}>
+          {bridgeOn && composition==="Rehearsal" && (
+            <button type="button" className="primary" disabled={job?.status === "running" || synthBusy || transport.busy} onClick={() => void triggerRender()}>
               Export MP4
             </button>
           )}
 
-          {onBack && (
-            <button type="button" className="vs-back" onClick={onBack}>
-              ← Booth & Stage
-            </button>
-          )}
         </div>
 
         {(job && job.status !== "idle") || assets?.exports.length ? (
@@ -456,25 +443,210 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
           </div>
         ) : null}
 
-        <div className="vs-main">
+        <div className="vs-main vs-score-desk">
           <div className="vs-stage-col">
-            <div className={`vs-player-frame${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay">
-              <Player
-                ref={playerRef}
-                component={MoppetComposition}
-                inputProps={project}
-                durationInFrames={totalFrames}
-                compositionWidth={dims.width}
-                compositionHeight={dims.height}
-                fps={fps}
-                controls
-                clickToPlay
-                style={{ width: "100%", height: "100%" }}
-              />
+            <div className={`vs-player-frame${livePreview ? " live-preview" : ""}${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay" ref={stageRef}>
+              {livePreview ?? (composition==="Rehearsal" ? <Player
+                key="rehearsal" ref={playerRef} component={MoppetComposition} inputProps={previewProject}
+                durationInFrames={totalFrames} compositionWidth={dims.width} compositionHeight={dims.height}
+                fps={fps} numberOfSharedAudioTags={0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
+                : composition==="Cue-Bench-Pack" ? <Player key="cue" ref={playerRef} component={BenchPack}
+                  durationInFrames={cycleLength*2} compositionWidth={1280} compositionHeight={720} fps={24}
+                  controls loop style={{width:"100%",height:"100%"}}/>
+                : study ? <Player key={study.id} ref={playerRef} component={CastExposure} inputProps={{study}} durationInFrames={study.count*study.hold} compositionWidth={960} compositionHeight={720} fps={24} controls loop style={{width:"100%",height:"100%"}}/>
+                : <Player key="neon" ref={playerRef} component={ActionStrip} inputProps={{review:true}}
+                  durationInFrames={720} compositionWidth={820} compositionHeight={680} fps={24}
+                  controls loop style={{width:"100%",height:"100%"}}/>)}
+              {showingRehearsal && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
+                <button type="button" disabled={synthBusy && !transport.playing}
+                  aria-label={transport.playing || transport.busy ? "Pause video" : "Play video"} onClick={transport.toggle}>
+                  <span aria-hidden="true">{transport.playing || transport.busy ? "Ⅱ" : "▶"}</span>
+                </button>
+                <span>{fmtSec(curSec)} / {fmtSec(totalSec)}</span>
+                <input type="range" min={0} max={totalFrames - 1} step={1} value={transport.frame}
+                  aria-label="Seek rehearsal" aria-valuetext={fmtSec(curSec)}
+                  onChange={e => transport.seekTo(Number(e.target.value))} />
+                <button type="button" aria-label="Toggle fullscreen" onClick={() => {
+                  if (document.fullscreenElement) void document.exitFullscreen();
+                  else void stageRef.current?.requestFullscreen();
+                }}><span aria-hidden="true">⛶</span></button>
+              </div>}
+            </div>
+            {showingRehearsal && (transport.busy || ensembleMessage.startsWith("Could not") || ensembleMessage.startsWith("No sound"))
+              && <p role="status" className="vs-meta">{ensembleMessage}</p>}
+          </div>
+
+          <MusicRack timeSec={showingRehearsal ? curStageSec : undefined} playing={showingRehearsal ? transport.playing : undefined}
+            onSeek={showingRehearsal ? seconds => seekToSec(introFrames / fps + seconds) : undefined}/>
+        </div>
+        <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
+        {audioError && <p role="alert">Rehearsal audio: {audioError}</p>}
+        {synthBusy && <p role="status">Preparing the score audio…</p>}
+        <details className="vs-timeline-disclosure" onToggle={event=>{setTimelineOpen(event.currentTarget.open);if(!event.currentTarget.open)setAdvancedOpen(false)}}>
+          <summary>Timeline</summary>
+          {timelineOpen && <>
+
+
+
+        {composition==="Rehearsal" && <div className="vs-timeline" aria-label="Cards, stage, dialogue and audio tracks">
+          <div className="vs-tl-head">
+            <span className="vs-time">{fmtSec(curSec)} / {fmtSec(totalSec)}</span>
+            <div className="vs-tl-actions">
+              <div className="vs-zoom" role="group" aria-label="Timeline zoom">
+                {([1, 2] as const).map((z) => (
+                  <button key={z} type="button" className={zoom === z ? "on" : ""} onClick={() => setZoom(z)}>{z}×</button>
+                ))}
+              </div>
+              <button type="button" onClick={addBubbleAtPlayhead}>+ Add Bubble</button>
             </div>
           </div>
 
-          <aside className="vs-inspector" aria-label="Track inspector">
+          <div className="vs-tracks-scroll">
+            <div className="vs-tracks-canvas" style={{ minWidth: zoom === 2 ? "max(1440px, 100%)" : "max(800px, 100%)" }}>
+              <div className="vs-track-row">
+                <span className="vs-track-label">Time</span>
+                <div
+                  className="vs-track-lane vs-ruler"
+                  role="slider"
+                  aria-label="Seek timeline"
+                  aria-valuemin={0}
+                  aria-valuemax={Number(totalSec.toFixed(1))}
+                  aria-valuenow={Number(curSec.toFixed(1))}
+                  tabIndex={0}
+                  style={{touchAction:"pan-y"}}
+                  onPointerDown={event => {
+                    if (!event.isPrimary || event.button !== 0) return;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    seekOnRuler(event);
+                  }}
+                  onPointerMove={event => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) seekOnRuler(event);
+                  }}
+                  onKeyDown={event => {
+                    const step = event.shiftKey ? 1 : 1 / fps;
+                    const positions: Record<string, number> = {
+                      ArrowLeft: curSec - step, ArrowRight: curSec + step,
+                      PageDown: curSec - 5, PageUp: curSec + 5, Home: 0, End: totalSec,
+                    };
+                    if (!(event.key in positions)) return;
+                    event.preventDefault();
+                    seekToSec(positions[event.key]);
+                  }}
+                >
+                  {Array.from({ length: Math.min(30, Math.ceil(totalSec / 5) + 1) }, (_, idx) => {
+                    const sec = idx * 5;
+                    if (sec > 0 && totalSec - sec < 4) return null;
+                    return (
+                      <span key={sec} className="vs-tick" style={{ left: `min(${pct(sec)}, calc(100% - 4ch - 4px))` }}>
+                        {Math.round(sec)}s
+                      </span>
+                    );
+                  })}
+                  <span className="vs-playhead" data-layout="overlay" style={{ left: pct(curSec) }} />
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Cards</span>
+                <div className="vs-track-lane" data-layout="layered">
+                  {project.intro.enabled && (
+                    <button
+                      type="button"
+                      className={`vs-clip vs-clip-card${activeSelKind === "intro" ? " sel" : ""}`}
+                      style={{ left: "0%", width: pct(introSec) }}
+                      onClick={() => {
+                        setSelection({ kind: "intro" });
+                        seekToSec(0.3);
+                      }}
+                    >
+                      <span>Intro: {project.intro.heading}</span>
+                    </button>
+                  )}
+                  {project.outro.enabled && (
+                    <button
+                      type="button"
+                      className={`vs-clip vs-clip-card${activeSelKind === "outro" ? " sel" : ""}`}
+                      style={{ left: pct(introSec + project.stageDurationSec), width: pct(outroSec) }}
+                      onClick={() => {
+                        setSelection({ kind: "outro" });
+                        seekToSec(introSec + project.stageDurationSec + 0.3);
+                      }}
+                    >
+                      <span>Outro: {project.outro.heading}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Stage</span>
+                <div className="vs-track-lane">
+                  <button
+                    type="button"
+                    className={`vs-clip vs-clip-stage${activeSelKind === "stage" ? " sel" : ""}`}
+                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
+                    onClick={() => setSelection({ kind: "stage" })}
+                  >
+                    <span>
+                      Live ShotcraftStage · {project.cameraAutoFollow ? "Auto-follow" : "Wide"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Dialogue</span>
+                <div className="vs-track-lane vs-lane-bubbles" data-layout="layered" style={{ height: 60 }}>
+                  {(() => {
+                    const rowEnds = [-1, -1];
+                    return project.bubbles.map((b) => {
+                      const s0 = introSec + b.startSec;
+                      const dur = Math.max(0.8, b.durationSec);
+                      let row = rowEnds.findIndex((end) => s0 >= end + 0.05);
+                      if (row < 0) row = rowEnds[0] <= rowEnds[1] ? 0 : 1;
+                      rowEnds[row] = s0 + dur;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          className={`vs-clip vs-clip-bubble${selectedBubble?.id === b.id ? " sel" : ""}`}
+                          style={{
+                            left: pct(s0),
+                            top: row === 0 ? 4 : 32,
+                            width: pct(dur),
+                            borderLeftColor: b.color,
+                          }}
+                          title={`${b.speaker}: ${b.text}`}
+                          onClick={() => {
+                            setSelection({ kind: "bubble", id: b.id });
+                            seekToSec(introSec + b.startSec + Math.min(0.4, b.durationSec / 2));
+                          }}
+                        >
+                          <span>{b.text}</span>
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              <div className="vs-track-row">
+                <span className="vs-track-label">Audio</span>
+                <div className="vs-track-lane">
+                  <button
+                    type="button"
+                    className="vs-clip vs-clip-audio"
+                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
+                    onClick={() => setSelection({ kind: "stage" })}
+                  >
+                    <span>{project.audioUrl ? "48 kHz CHIMERA studio mix" : "CHIMERA rehearsal mix"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>}
+          {composition==="Rehearsal" && <details className="vs-advanced"><summary>Track inspector</summary><aside className="vs-inspector" aria-label="Track inspector">
             <div className="vs-ins-tabs" role="group" aria-label="Inspect layer">
               <button type="button" className={activeSelKind === "stage" ? "on" : ""} onClick={() => setSelection({ kind: "stage" })}>Stage & Audio</button>
               <button type="button" className={activeSelKind === "intro" ? "on" : ""} onClick={() => setSelection({ kind: "intro" })}>Intro</button>
@@ -626,10 +798,7 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
             ) : (
               <div className="vs-ins-body">
                 <p className="vs-meta">
-                  Stage engine: <b>Live React ShotcraftStage + EffectCraft VP9 alpha clips ({Object.values(AVAILABLE_CLIP_MANIFESTS).map((m) => m.name).join(", ") || "none"})</b>
-                </p>
-                <p className="vs-meta">
-                  Audio bed: <b>{project.audioUrl ? (audioStale ? "Score updated — will re-sync 48 kHz CHIMERA mix on render" : "48 kHz CHIMERA studio mix attached") : "Visual preview ready — click Attach CHIMERA Audio or Export MP4"}</b>
+                  Audio bed: <b>CHIMERA mixes the current score and singer levels on export.</b>
                 </p>
                 <label className="vs-field">
                   <span>Audio mix volume ({Math.round(project.audioVolume * 100)}%)</span>
@@ -641,153 +810,14 @@ export function VideoStudio({ onBack }: { onBack?: () => void }) {
                 </label>
               </div>
             )}
-          </aside>
-        </div>
-
-        <div className="vs-timeline">
-          <div className="vs-tl-head">
-            <span className="vs-time">{fmtSec(curSec)} / {fmtSec(totalSec)}</span>
-            <div className="vs-tl-actions">
-              <div className="vs-zoom" role="group" aria-label="Timeline zoom">
-                {([1, 2] as const).map((z) => (
-                  <button key={z} type="button" className={zoom === z ? "on" : ""} onClick={() => setZoom(z)}>{z}×</button>
-                ))}
-              </div>
-              <button type="button" onClick={addBubbleAtPlayhead}>+ Add Bubble</button>
-            </div>
-          </div>
-
-          <div className="vs-tracks-scroll">
-            <div className="vs-tracks-canvas" style={{ minWidth: zoom === 2 ? "1440px" : "100%" }}>
-              <div className="vs-track-row">
-                <span className="vs-track-label">Time</span>
-                <div
-                  className="vs-track-lane vs-ruler"
-                  role="slider"
-                  aria-label="Seek timeline"
-                  aria-valuemin={0}
-                  aria-valuemax={Number(totalSec.toFixed(1))}
-                  aria-valuenow={Number(curSec.toFixed(1))}
-                  tabIndex={0}
-                  onClick={(e) => {
-                    const box = e.currentTarget.getBoundingClientRect();
-                    const frac = Math.max(0, Math.min(1, (e.clientX - box.left) / Math.max(1, box.width)));
-                    seekToSec(frac * totalSec);
-                  }}
-                >
-                  {Array.from({ length: Math.min(30, Math.ceil(totalSec / 5) + 1) }, (_, idx) => {
-                    const sec = idx * 5;
-                    if (sec >= totalSec) return null;
-                    return (
-                      <span key={sec} className="vs-tick" style={{ left: pct(sec) }}>
-                        {Math.round(sec)}s
-                      </span>
-                    );
-                  })}
-                  <span className="vs-playhead" data-layout="overlay" style={{ left: pct(curSec) }} />
-                </div>
-              </div>
-
-              <div className="vs-track-row">
-                <span className="vs-track-label">Cards</span>
-                <div className="vs-track-lane" data-layout="layered">
-                  {project.intro.enabled && (
-                    <button
-                      type="button"
-                      className={`vs-clip vs-clip-card${activeSelKind === "intro" ? " sel" : ""}`}
-                      style={{ left: "0%", width: pct(introSec) }}
-                      onClick={() => {
-                        setSelection({ kind: "intro" });
-                        seekToSec(0.3);
-                      }}
-                    >
-                      <span>Intro: {project.intro.heading}</span>
-                    </button>
-                  )}
-                  {project.outro.enabled && (
-                    <button
-                      type="button"
-                      className={`vs-clip vs-clip-card${activeSelKind === "outro" ? " sel" : ""}`}
-                      style={{ left: pct(introSec + project.stageDurationSec), width: pct(outroSec) }}
-                      onClick={() => {
-                        setSelection({ kind: "outro" });
-                        seekToSec(introSec + project.stageDurationSec + 0.3);
-                      }}
-                    >
-                      <span>Outro: {project.outro.heading}</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="vs-track-row">
-                <span className="vs-track-label">Stage</span>
-                <div className="vs-track-lane">
-                  <button
-                    type="button"
-                    className={`vs-clip vs-clip-stage${activeSelKind === "stage" ? " sel" : ""}`}
-                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
-                    onClick={() => setSelection({ kind: "stage" })}
-                  >
-                    <span>
-                      Live ShotcraftStage · {project.cameraAutoFollow ? "Auto-follow" : "Wide"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="vs-track-row">
-                <span className="vs-track-label">Bubbles ({project.bubbles.length})</span>
-                <div className="vs-track-lane vs-lane-bubbles" data-layout="layered" style={{ height: 60 }}>
-                  {(() => {
-                    const rowEnds = [-1, -1];
-                    return project.bubbles.map((b) => {
-                      const s0 = introSec + b.startSec;
-                      const dur = Math.max(0.8, b.durationSec);
-                      let row = rowEnds.findIndex((end) => s0 >= end + 0.05);
-                      if (row < 0) row = rowEnds[0] <= rowEnds[1] ? 0 : 1;
-                      rowEnds[row] = s0 + dur;
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          className={`vs-clip vs-clip-bubble${selectedBubble?.id === b.id ? " sel" : ""}`}
-                          style={{
-                            left: pct(s0),
-                            top: row === 0 ? 4 : 32,
-                            width: pct(dur),
-                            borderLeftColor: b.color,
-                          }}
-                          title={`${b.speaker}: ${b.text}`}
-                          onClick={() => {
-                            setSelection({ kind: "bubble", id: b.id });
-                            seekToSec(introSec + b.startSec + Math.min(0.4, b.durationSec / 2));
-                          }}
-                        >
-                          <span>{b.text}</span>
-                        </button>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-
-              <div className="vs-track-row">
-                <span className="vs-track-label">Audio</span>
-                <div className="vs-track-lane">
-                  <button
-                    type="button"
-                    className="vs-clip vs-clip-audio"
-                    style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
-                    onClick={() => setSelection({ kind: "stage" })}
-                  >
-                    <span>{project.audioUrl ? "48 kHz CHIMERA studio mix" : "CHIMERA audio bed (click Attach CHIMERA Audio)"}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </aside></details>}
+        {!livePreview && <details className="vs-advanced" onToggle={e=>setAdvancedOpen(e.currentTarget.open)}>
+          <summary>Remotion layers</summary>
+          {advancedOpen&&<RemotionDock project={previewProject} playerRef={playerRef} composition={composition} setComposition={selectComposition}
+            onSeek={showingRehearsal ? transport.seekTo : undefined} onToggle={showingRehearsal ? transport.toggle : undefined}/>}
+        </details>}
+          </>}
+        </details>
       </div>
     </Screen>
   );

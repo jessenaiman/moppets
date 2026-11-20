@@ -1,3 +1,4 @@
+import { beatsPerBar } from "./meter.ts";
 /**
  * Checks for a sung line as it is written: its syllables by the pronouncing dictionary against its
  * notes (the lyric planner needs one each), and words whose stress the rhythm turns round. Uses the
@@ -128,7 +129,7 @@ export function splitNote(s: Pick<Sung, "degrees" | "rhythm">, i: number): Pick<
 /** Where each line of a song starts, in beats (the song opens with a bar of groove), by line object. */
 export function lineStarts(song: Song): Map<Line | Rest, number> {
   const out = new Map<Line | Rest, number>();
-  let at = 4;
+  let at = beatsPerBar(song.meter);
   for (const section of song.sections)
     for (const l of section.lines) {
       if (!out.has(l)) out.set(l, at);

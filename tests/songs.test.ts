@@ -109,3 +109,24 @@ test("Studio 404 intro lyrics (Neon, Cue, etc.) plan cleanly in solo and introdu
     expect(() => planTrack(t, intro, v)).not.toThrow();
   }
 });
+
+test("authored notes reach the plug-in unchanged apart from the singer's octave register", async () => {
+  const { SONGBOOK } = await import("../src/choir/songbook.ts");
+  const { scalePitch } = await import("../src/choir/music.ts");
+  const { instrumentPart } = await import("../src/choir/pluginScore.ts");
+  const { CAST } = await import("../src/choir/voices.ts");
+  for (const { song, make } of SONGBOOK) {
+    const piece=make(), sections=[...new Set(song.sections)];
+    for (const track of piece.tracks) {
+      const part=instrumentPart(piece,track,CAST.find(v=>v.id===track.id)!);
+      track.events.forEach((event,i)=>{
+        if (!event.src) return;
+        const [section,line,answer,note]=event.src;
+        const phrase=sections[section].lines[line];
+        if ("rest" in phrase) throw new Error("note attached to a rest");
+        const degree=(answer<0?phrase:phrase.with![answer]).degrees[note];
+        expect(Math.abs(part.notes[i][2]-scalePitch(degree,piece.key,piece.mode))%12).toBe(0);
+      });
+    }
+  }
+});

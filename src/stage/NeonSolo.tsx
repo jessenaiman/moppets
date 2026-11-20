@@ -35,6 +35,7 @@ export function neonScore(piece: Piece) {
   return {
     gestures,
     dark,
+    reprise: sections.filter(s => s.name === "twin take").at(-1)?.beat,
     secondRoll: dark === undefined ? undefined : dark + 8,
   };
 }
@@ -105,7 +106,11 @@ export function neonTake(
   }
   // On the second catch, leave the singer's face for the cause of the silence.
   const detail = rolling && second ? interpolate([[0,0],[.14,0],[.34,1],[.67,1],[.91,0],[1,0]],t) : 0;
-  return { detail, rolling, frame: still ? 0 : frame, x, cyan, rose, dark };
+  // The answering light finds the empty floor mark during “Sing with me”.
+  const invitation = playing && score.dark !== undefined && beat >= score.dark + 12;
+  const partnerLight = invitation ? interpolate([[0, 0], [2, 1]], beat - score.dark! - 12) : 0;
+  const sharedLight = score.reprise !== undefined && beat >= score.reprise && invitation;
+  return { detail, partnerLight, sharedLight, rolling, frame: still ? 0 : frame, x, cyan, rose, dark };
 }
 
 export function NeonSolo({
@@ -143,6 +148,7 @@ export function RepairBayLights({
       className="neon-bay-lights"
       style={{ backgroundColor: `rgba(12,13,22,${take.dark ? 0.67 : 0.09})` }}
     >
+      <i className="neon-partner-spot" data-shared={take.sharedLight} style={{ opacity: take.partnerLight }} />
       <i className="neon-cyan-spill" style={{ opacity: take.cyan }} />
       <i className="neon-rose-spill" style={{ opacity: take.rose }} />
     </div>

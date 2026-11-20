@@ -1,0 +1,197 @@
+{
+  "benchVersion": "Studio404-v2.4-MoppetChoir",
+  "timestamp": "2026-11-20T16:39:50.254Z",
+  "production": "Moppet Choir Stage",
+  "shotPlan": "Solo Moppet Performance",
+  "cast": [
+    {
+      "id": "cue",
+      "name": "Cue",
+      "role": "Moppet Lead / Caller",
+      "duetRole": "caller",
+      "costumeProps": "Green CRT monitor chest, parchment hood, 2 real pencil eyebrows, felt mitts, 1 turned chair leg, coiled braided power cord and plug",
+      "baselineYPercent": 82,
+      "pins": [
+        {
+          "id": "root",
+          "name": "Root Pelvis",
+          "x": 0.5,
+          "y": 0.65,
+          "type": "root"
+        },
+        {
+          "id": "chest_crt",
+          "name": "CRT Monitor Chest",
+          "x": 0.5,
+          "y": 0.48,
+          "parent": "root",
+          "type": "hinge"
+        },
+        {
+          "id": "neck",
+          "name": "Neck Base",
+          "x": 0.5,
+          "y": 0.35,
+          "parent": "chest_crt",
+          "type": "hinge"
+        },
+        {
+          "id": "hood_head",
+          "name": "Parchment Hood",
+          "x": 0.5,
+          "y": 0.22,
+          "parent": "neck",
+          "type": "hinge"
+        },
+        {
+          "id": "pencil_l",
+          "name": "Left Pencil Eyebrow",
+          "x": 0.44,
+          "y": 0.16,
+          "parent": "hood_head",
+          "type": "pin"
+        },
+        {
+          "id": "pencil_r",
+          "name": "Right Pencil Eyebrow",
+          "x": 0.56,
+          "y": 0.16,
+          "parent": "hood_head",
+          "type": "pin"
+        },
+        {
+          "id": "arm_l_shoulder",
+          "name": "Left Shoulder",
+          "x": 0.36,
+          "y": 0.42,
+          "parent": "chest_crt",
+          "type": "hinge"
+        },
+        {
+          "id": "arm_l_mitt",
+          "name": "Left Felt Mitt",
+          "x": 0.28,
+          "y": 0.58,
+          "parent": "arm_l_shoulder",
+          "type": "ik_tip"
+        },
+        {
+          "id": "arm_r_shoulder",
+          "name": "Right Shoulder",
+          "x": 0.64,
+          "y": 0.42,
+          "parent": "chest_crt",
+          "type": "hinge"
+        },
+        {
+          "id": "arm_r_mitt",
+          "name": "Right Felt Mitt",
+          "x": 0.72,
+          "y": 0.58,
+          "parent": "arm_r_shoulder",
+          "type": "ik_tip"
+        },
+        {
+          "id": "chair_leg_hip",
+          "name": "Chair Leg Hip",
+          "x": 0.48,
+          "y": 0.66,
+          "parent": "root",
+          "type": "hinge"
+        },
+        {
+          "id": "chair_leg_foot",
+          "name": "Chair Leg Tip",
+          "x": 0.48,
+          "y": 0.92,
+          "parent": "chair_leg_hip",
+          "type": "ik_tip"
+        },
+        {
+          "id": "cord_root",
+          "name": "Power Cord Tail Root",
+          "x": 0.54,
+          "y": 0.66,
+          "parent": "root",
+          "type": "hinge"
+        },
+        {
+          "id": "cord_mid",
+          "name": "Cord Floor Loop",
+          "x": 0.62,
+          "y": 0.88,
+          "parent": "cord_root",
+          "type": "pin"
+        },
+        {
+          "id": "cord_plug",
+          "name": "Grounding 3-Prong Plug",
+          "x": 0.74,
+          "y": 0.94,
+          "parent": "cord_mid",
+          "type": "ik_tip"
+        }
+      ]
+    }
+  ],
+  "environment": {
+    "chromaColor": "#FF00FF",
+    "recommendedForCRT": "magenta",
+    "stageScale": "1920x1080",
+    "baselineYNormalized": 0.82
+  },
+  "deliverables": {
+    "turnaround": {
+      "views": [
+        "front_A",
+        "three_quarter_R",
+        "profile_90",
+        "rear_back"
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 1
+      }
+    },
+    "acting_cycle": {
+      "grid": {
+        "columns": 4,
+        "rows": 2,
+        "totalFrames": 8
+      },
+      "frameSequence": [
+        "f01_anticipation",
+        "f02_key1",
+        "f03_apex",
+        "f04_passing",
+        "f05_contact",
+        "f06_accent",
+        "f07_cushion",
+        "f08_settle"
+      ],
+      "fps": 12,
+      "actionCue": "Cue: offer a prompt, see a blank card, raise one pencil, pay out cord as a floor mark."
+    },
+    "singing_sheet": {
+      "grid": {
+        "columns": 4,
+        "rows": 2,
+        "totalFrames": 8
+      },
+      "phonemes": [
+        "neutral_rest",
+        "vowel_ah",
+        "vowel_oh_oo",
+        "phoneme_ee",
+        "fricative_fv",
+        "nasal_m_p",
+        "expression_gasp",
+        "vocal_fortissimo"
+      ]
+    },
+    "isolated_parts": {
+      "rigFormat": "spine2d_compatible_overlapping_tabs",
+      "recommendedDefectRefine": "PhotoCraft Refine Edge"
+    }
+  }
+}

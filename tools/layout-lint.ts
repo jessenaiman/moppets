@@ -239,10 +239,10 @@ function hookCanvasText() {
 
 /** Pick a performance by (part of) its name, from the tabs or the menu. */
 async function choose(page: import("playwright-core").Page, name: string): Promise<void> {
-  const solo = page.getByRole("navigation", {name:"Solo library"}).getByRole("button", {name:new RegExp(name,"i")});
-  if (await solo.count()) return solo.first().click();
-  await page.getByRole("button", { name:"Repertoire",exact:true }).click();
-  await page.locator("#repertoire").getByRole("button",{name:new RegExp(name,"i")}).first().click();
+  const picker=page.getByRole("combobox",{name:"Video lesson"});
+  const option=picker.getByRole("option",{name:new RegExp(name,"i")}).first();
+  await picker.selectOption(await option.getAttribute("value") ?? "");
+
 }
 
 async function main() {
@@ -288,12 +288,15 @@ async function main() {
     await page.waitForSelector(".s-stage", { timeout: 15000 });
     await check("stage");
     // playing: the stage's speech, notes and labels move
+    await button(/^Live puppets$/i).click();
     await page.locator(".moppet-play").first().click();
     await page.waitForFunction(() => (window as unknown as { __choir: { ensemble: { getState(): { status: string } } } }).__choir.ensemble.getState().status === "playing", undefined, { timeout: 30000 });
     await check("stage, playing", 2500);
     await button(/Stop playback/).click();
     // a song with its words editor open: a field and a syllable check per line
+    await button(/^Live puppets$/i).click();
     await choose(page, "Autocomplete");
+    await button(/Music desk/i).click();
     await button(/Edit words/).click();
     await check("Autocomplete, editing words", 1500);
     await button(/Done editing/).click();

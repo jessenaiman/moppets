@@ -1,3 +1,4 @@
+import type {MeterChange} from "./meter";
 /** Multitrack standard MIDI export of a choir score (ported from Studio 404's school.js). */
 import type { Piece } from "./music.ts";
 import { BAND_SETUP, bandFor, type BandId, type BandPart } from "./band.ts";
@@ -15,7 +16,14 @@ export function midiBytes(piece: Piece): Uint8Array {
   const encoder = new TextEncoder();
   const chunk = (tag: string, b: number[]) => [...encoder.encode(tag), (b.length >>> 24) & 255, (b.length >>> 16) & 255, (b.length >>> 8) & 255, b.length & 255, ...b];
   const tempo = Math.round(60000000 / piece.bpm);
-  const tracks = [chunk("MTrk", [0, 255, 81, 3, (tempo >> 16) & 255, (tempo >> 8) & 255, tempo & 255, 0, 255, 88, 4, 4, 2, 24, 8, 0, 255, 47, 0])];
+  const conductor=[0,255,81,3,(tempo>>16)&255,(tempo>>8)&255,tempo&255];
+  let lastTick=0;
+  for(const change of [{beat:0,signature:piece.meter??"4/4"},...(piece.meterChanges??[])]){
+    const [count,unit]=change.signature.split("/").map(Number),tick=Math.round(change.beat*PPQ);
+    conductor.push(...variable(tick-lastTick),255,88,4,count,Math.log2(unit),unit===8 && count>=6 && count%3===0 ? 36 : 24,8);
+    lastTick=tick;
+  }
+  const tracks=[chunk("MTrk",[...conductor,0,255,47,0])];
   // the singers on channels 1.., then the band's parts on their General MIDI channels and programs
   const parts: { name: string; channel: number; program?: number; notes: { beat: number; beats: number; midi: number; vel: number }[] }[] = [
     ...piece.tracks.map((t, i) => ({ name: t.id, channel: i, notes: t.events.map((e) => ({ ...e, vel: 85 })) })),
@@ -49,7 +57,7 @@ export interface MidiTrackIn {
 }
 
 /** Read a standard MIDI file (format 0 or 1): each track's notes, and the first tempo. */
-export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: MidiTrackIn[] } {
+export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: MidiTrackIn[]; meters?:MeterChange[] } {
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const tag = (at: number) => String.fromCharCode(...bytes.subarray(at, at + 4));
   if (tag(0) !== "MThd") throw new Error("Not a MIDI file");
@@ -57,6 +65,7 @@ export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: Midi
   if (division & 0x8000) throw new Error("MIDI timed in SMPTE frames isn't supported; export it in beats");
   let at = 8 + v.getUint32(4), bpm: number | null = null;
   const tracks: MidiTrackIn[] = [];
+  const signatures = new Map<number,string>();
   while (at + 8 <= bytes.length) {
     const len = v.getUint32(at + 4), end = at + 8 + len;
     if (tag(at) !== "MTrk") {
@@ -78,6 +87,7 @@ export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: Midi
       else s = status; // running status
       if (s === 0xff) {
         const type = bytes[p++], n = varlen();
+        if(type===0x58 && n===4 && bytes[p]>0 && bytes[p+1]<=5)signatures.set(tick/division,bytes[p]+"/"+(2**bytes[p+1]));
         if (type === 3 && !name) name = new TextDecoder().decode(bytes.subarray(p, p + n));
         if (type === 0x51 && bpm === null) bpm = 60000000 / ((bytes[p] << 16) | (bytes[p + 1] << 8) | bytes[p + 2]);
         p += n;
@@ -104,7 +114,7 @@ export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: Midi
     tracks.push({ name, notes });
     at = end;
   }
-  return { bpm, tracks };
+  return { bpm, tracks, meters:[...signatures].sort((a,b)=>a[0]-b[0]).map(([beat,signature])=>({beat,signature})) };
 }
 
 /**
@@ -139,5 +149,8 @@ export function scoreFromMidi(piece: Piece, file: ReturnType<typeof parseMidi>):
   // compared at MIDI resolution and in time order, so an untouched round trip reads as unchanged
   const key = (parts: BandPart[]) => JSON.stringify(parts.map((b) => [b.id, b.notes.map((n) => [Math.round(n.beat * PPQ), Math.round((n.beat + n.beats) * PPQ), n.midi]).sort((x, y) => x[0] - y[0] || x[2] - y[2])]).sort());
   if (band.length && key(band) !== key(bandFor(piece))) changed.push("band");
-  return { piece: { ...piece, tracks, beats: Math.ceil(end), bpm: file.bpm ? Math.round(file.bpm) : piece.bpm, ...(band.length ? { band } : {}) }, changed, kept };
+  const meter=file.meters?.length ? file.meters.find(m=>m.beat===0)?.signature??"4/4" : piece.meter;
+  const meterChanges=file.meters?.length ? file.meters.filter(m=>m.beat>0) : piece.meterChanges;
+  if((meter??"4/4")!==(piece.meter??"4/4") || JSON.stringify(meterChanges??[])!==JSON.stringify(piece.meterChanges??[]))changed.push("meter");
+  return { piece: { ...piece, ...(changed.includes("meter") ? { meter, meterChanges } : {}), tracks, beats: end, bpm: file.bpm ? Math.round(file.bpm) : piece.bpm, ...(band.length ? { band } : {}) }, changed, kept };
 }

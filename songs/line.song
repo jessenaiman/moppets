@@ -1,26 +1,37 @@
 title: Line?
 id: line
 tab: 20 · Line?
-about: 20 · Cue gives everyone their line before they ask
+about: Cue can prompt the whole cast. Then he turns over his own card.
 lead: scribe
 key: G dorian
-bpm: 96
-beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .3)
+bpm: 108
 backing:
 bass: none
 stage: scribe
-finale: "Line" on 7
+finale: "Line" on 0
 
-# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+[places]
+"Hat straight" = 0/.5 3/1.5 | I 2
+"Chin up" = 1/.5 4/1.5 | II 2
+"One foot on the mark" = 4/.5 4/.5 2/.5 1/.5 0/2 | I 4
+"I keep your words" = 0 2/.5 3/.5 4/2 | IV 4
+"Safe in the dark" = 6/.75 4/.25 2 1/2 | VII 2, V 2
 
-[verse]
-"I hold the words for all the shows" = 4/.5 4/.5 4/.5 4/.5 4/.5 5/.5 4 2/4 | I 4, IV 4
-"I give them out at night" = 2/.5 2/.5 2/.5 2/.5 3 0/5 | VII 4, I 4 ; do nod
-"I know your line before you do" = 4/.5 4/.5 4/.5 4/.5 6/.5 6/.5 7 4/4 | I 4, IV 4
-"I'm almost always right" = 7/.5 6/.5 5/.5 4/.5 2/2 0/4 | IV 4, I 4
+[prompt]
+"Need a line" = 0/.5 2/.5 4/2 | I 3
+rest 1
+"Take one of mine" = 6 5/.5 3/.5 2/2 | IV 2, I 2
+"I roll it out" = 2 4/.5 3/.5 1/2 | II 4
+"You step inside" = 1 3/.5 2/.5 0/2 | V 2, I 2
 
-[chorus]
-"Here is your next line" = 4/.5 4/.5 4/.5 4/.5 1 | V 2, VII 1 ; do gasp
-"Read it nice and slow" = 1 1 1/1.5 -1/.5 0/2 | VII 4, I 2
-"The last page has no words yet" = 0/.5 0/.5 2 4 5 7/2 6/2 | I 4, VII 4
-"That's the one I'll never show" = 6 5 4/.5 2/.5 3 2 0/3 | IV 4, I 4 ; do bow
+[blank card]
+"Now for my part" = -2 -1 0 2 | VI 4
+rest 4
+"Who took my line" = 2/.5 1/.5 0 -1/2 | V 4
+"Oh" = 0/2 | I 2
+rest 2
+
+[invitation]
+"Need a line" = 0/.5 2/.5 4/2 | I 3
+rest 1
+"Stand here with me" = 5 3/.5 2/.5 0/2 | IV 2, I 2

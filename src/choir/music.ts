@@ -67,6 +67,8 @@ export interface Chord {
 }
 export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong" | "skit";
 export interface Piece {
+  meter?: string;
+  meterChanges?: import("./meter").MeterChange[];
   kind: PieceKind;
   sections?: {name:string; beat:number}[];
   title: string;
@@ -153,7 +155,7 @@ export function compose({ seed = 404, key = "D" as KeyName, mode = "major" as Sc
   const progressions = [[0, 5, 3, 4, 0, 3, 4, 0], [0, 3, 1, 4, 5, 3, 4, 0], [0, 5, 1, 4, 3, 1, 4, 0]];
   const progression = progressions[Math.floor(random() * progressions.length)];
   const chords = progression.map((d, bar) => ({ ...chordInfo(d, key, mode), beat: bar * 4, beats: 4 }));
-  const tracks: Track[] = Object.keys(RANGES).map((id) => ({ id, events: [] }));
+  const tracks: Track[] = ["vee", "scribe", "clank", "pip", "gruff", "tabby"].map((id) => ({ id, events: [] }));
   const byId = Object.fromEntries(tracks.map((t) => [t.id, t]));
   const lead = byId.scribe;
   let previous = scalePitch(0, key, mode);

@@ -84,9 +84,8 @@ test("the same seed and character render identical samples", () => {
 });
 
 test("every Moppet sings: finite, not silent, not clipped raw", () => {
-  const piece = music.compose({ seed: 3, bpm: 132 });
   for (const v of voices) {
-    const core = renderTrack(v.id, piece, 2.5);
+    const core = renderTrack(v.id, music.makeSolo(v), 2.5);
     let peak = 0, sum = 0;
     for (const s of core.stem) {
       if (!Number.isFinite(s)) throw Error(`${v.id} produced non-finite audio`);

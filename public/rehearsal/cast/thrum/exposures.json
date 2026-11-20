@@ -1,0 +1,21 @@
+{
+  "artist": "thrum",
+  "type": "reference exposures",
+  "columns": 8,
+  "count": 13,
+  "sources": [
+    "out/band-anim/thrum-pluck.gif#0",
+    "out/band-anim/thrum-pluck.gif#1",
+    "out/band-anim/thrum-pluck.gif#2",
+    "out/band-anim/thrum-pluck.gif#3",
+    "out/band-anim/thrum-pluck.gif#4",
+    "out/band-anim/thrum-pluck.gif#5",
+    "out/band-anim/thrum-pluck.gif#6",
+    "out/band-anim/thrum-pluck.gif#7",
+    "out/band-anim/thrum-pluck.gif#8",
+    "out/band-anim/thrum-pluck.gif#9",
+    "out/band-anim/thrum-pluck.gif#10",
+    "out/band-anim/thrum-pluck.gif#11",
+    "out/band-anim/thrum-pluck.gif#12"
+  ]
+}

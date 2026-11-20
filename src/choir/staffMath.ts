@@ -3,7 +3,6 @@
  * Engine-free: imports only pure music/songbook modules (verified by tests/engine-free.test.ts).
  */
 import { KEYS, scalePitch, type KeyName, type ScaleMode } from "./music.ts";
-import { fitChord, type ChordSpan } from "./songbook.ts";
 
 const MAJOR_SIGS = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"] as const;
 const MINOR_SIGS = ["Cm", "C#m", "Dm", "Ebm", "Em", "Fm", "F#m", "Gm", "Abm", "Am", "Bbm", "Bm"] as const;
@@ -138,35 +137,4 @@ export function shiftMidiByScaleSteps(midi: number, steps: number, key: KeyName,
   }
   const shifted = scalePitch(d0 + steps, key, mode);
   return Math.max(36, Math.min(92, shifted));
-}
-
-/**
- * Step a lead-sheet note's scale degree by `steps` while jumping over strong-beat `fitChord`
- * snaps so pressing Up/Down on a strong beat always moves to the next valid chord tone.
- */
-export function stepLeadSheetDegree(
-  currentDegree: number,
-  steps: number,
-  noteBeat: number,
-  noteBeats: number,
-  chords: [number, number][],
-  lineStartBeat: number,
-): number {
-  if (!steps) return currentDegree;
-  const spans: ChordSpan[] = [];
-  let cursor = lineStartBeat;
-  for (const [deg, beats] of chords) {
-    spans.push({ start: cursor, end: cursor + beats, deg });
-    cursor += beats;
-  }
-  const baseFitted = fitChord(currentDegree, noteBeat, noteBeats, spans);
-  let cand = currentDegree + steps;
-  if (Math.abs(steps) === 1) {
-    for (let guard = 0; guard < 3; guard++) {
-      const fittedCand = fitChord(cand, noteBeat, noteBeats, spans);
-      if (fittedCand !== baseFitted) return fittedCand;
-      cand += steps;
-    }
-  }
-  return cand;
 }

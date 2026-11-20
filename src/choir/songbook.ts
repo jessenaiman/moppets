@@ -1,3 +1,4 @@
+import {beatsPerBar} from "./meter";
 /**
  * The Moppet songbook: original songs written note by note (as lead sheets in songs/), where each Moppet's found object
  * stands for something a helpful AI does. Unlike the lead songs in music.ts (one singer, one verse
@@ -43,6 +44,7 @@ export interface Section {
   choir?: boolean;
 }
 export interface Song {
+  meter?: string;
   lead: string;
   title: string;
   description: string;
@@ -61,45 +63,13 @@ export interface Song {
   finale: { word: string; degree: number };
 }
 
-/** A chord under a line, in absolute beats. */
-export interface ChordSpan {
-  start: number;
-  end: number;
-  deg: number;
-}
-const chordTones = (deg: number) => new Set([0, 2, 4].map((k) => (((deg + k) % 7) + 7) % 7));
-
-/**
- * A sung note on a strong beat (1 or 3 of the bar), one that lands on any beat and lasts one, or
- * one that is held, must be a tone of the chord under it; one held across a chord change must also fit the chords it lasts a beat into, where some
- * tone fits them all. Otherwise it moves a scale step (down first) to the nearest that does.
- * Shorter off-beat notes stay as written: they are the passing tones that make a melody move.
- * (The first hand-written songs held non-chord notes on the downbeat, 26 times in "Still
- * Loading" against none in "Chip Reads the Manual", and it sounded wrong.)
- */
-export function fitChord(d: number, beat: number, beats: number, spans: ChordSpan[]): number {
-  const onBeat = Math.abs(beat - Math.round(beat)) < 1e-9, strong = onBeat && Math.round(beat) % 2 === 0;
-  if (!strong && !(onBeat && beats >= 1) && beats < 1.5) return d;
-  const covering = spans.filter((sp) => sp.end > beat + 1e-9 && sp.start < beat + beats - 1e-9);
-  if (!covering.length) return d;
-  const first = covering.find((sp) => sp.start <= beat + 1e-9) ?? covering[0];
-  let allowed = chordTones(first.deg);
-  for (const sp of covering) {
-    if (sp === first || Math.min(sp.end, beat + beats) - Math.max(sp.start, beat) < 1) continue;
-    const common = [...allowed].filter((x) => chordTones(sp.deg).has(x));
-    if (common.length) allowed = new Set(common);
-  }
-  const fits = (x: number) => allowed.has(((x % 7) + 7) % 7);
-  for (const step of [0, -1, 1, -2, 2]) if (fits(d + step)) return d + step;
-  return d;
-}
-
 const REGISTER: Record<string, [number, number]> = Object.fromEntries(CAST.map((v) => [v.id, v.register]));
-const BAR = 4;
+
 const isRest = (l: Line | Rest): l is Rest => "rest" in l;
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
 export function buildSong(s: Song): Piece {
+  const barLength=beatsPerBar(s.meter);
   const key = s.key, mode: ScaleMode = s.mode ?? "major";
   const bass = s.bass ?? "clank";
   const chords: Chord[] = [];
@@ -112,7 +82,7 @@ export function buildSong(s: Song): Piece {
   };
   const cues: NonNullable<Piece["cues"]> = [];
   let previous: string | null = null;
-  const sing = (who: string, sung: Sung, at: number, spans: ChordSpan[], src?: [number, number, number]) => {
+  const sing = (who: string, sung: Sung, at: number, src?: [number, number, number]) => {
     if (sung.do) cues.push({ beat: at, who, gesture: sung.do });
     if (sung.react && previous && previous !== who) cues.push({ beat: at + sum(sung.rhythm) - 0.25, who: previous, gesture: sung.react });
     previous = who;
@@ -120,7 +90,7 @@ export function buildSong(s: Song): Piece {
     const p = part(who), line = p.phrases.push(sung.words) - 1;
     let beat = at;
     sung.degrees.forEach((d, j) => {
-      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(fitChord(d, beat, sung.rhythm[j], spans), key, mode), text: "", line, ...(src ? { src: [...src, j] as [number, number, number, number] } : {}) });
+      p.events.push({ beat, beats: sung.rhythm[j], midi: scalePitch(d, key, mode), text: "", line, ...(src ? { src: [...src, j] as [number, number, number, number] } : {}) });
       beat += sung.rhythm[j];
     });
     return beat - at;
@@ -132,9 +102,9 @@ export function buildSong(s: Song): Piece {
   };
 
   // a bar of groove so the song doesn't start cold
-  chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: BAR });
-  if (bass !== "none") pad(bass, 0, 0, BAR);
-  let at = BAR;
+  chords.push({ ...chordInfo(0, key, mode), beat: 0, beats: barLength });
+  if (bass !== "none") pad(bass, 0, 0, barLength);
+  let at = barLength;
   const sections = [{name:"Intro",beat:0}];
   const distinct = [...new Set(s.sections)];
   for (const section of s.sections) {
@@ -145,14 +115,12 @@ export function buildSong(s: Song): Piece {
         at += l.rest;
         continue;
       }
-      const spans: ChordSpan[] = [];
-      for (const [deg, beats] of l.chords) spans.push({ start: spans.length ? spans[spans.length - 1].end : at, end: (spans.length ? spans[spans.length - 1].end : at) + beats, deg });
-      const length = sing(l.who ?? s.lead, l, at, spans, [si, li, -1]);
+      const length = sing(l.who ?? s.lead, l, at, [si, li, -1]);
       const busy = new Set([l.who ?? s.lead]);
       for (const [ai, w] of (l.with ?? []).entries()) {
         busy.add(w.who ?? s.lead);
         if ((w.offset ?? 0) + sum(w.rhythm) > length + 1e-9) throw new Error(`${s.title}: "${w.words}" runs past its line`);
-        sing(w.who ?? s.lead, w, at + (w.offset ?? 0), spans, [si, li, ai]);
+        sing(w.who ?? s.lead, w, at + (w.offset ?? 0), [si, li, ai]);
       }
       if (Math.abs(sum(l.chords.map((c) => c[1])) - length) > 1e-9) throw new Error(`${s.title}: the chords under "${l.words}" last ${sum(l.chords.map((c) => c[1]))} beats, the line ${length}`);
       let t = at;
@@ -166,10 +134,10 @@ export function buildSong(s: Song): Piece {
     }
   }
   // everyone lands on the home chord; the lead holds the last word
-  chords.push({ ...chordInfo(0, key, mode), beat: at, beats: BAR });
+  chords.push({ ...chordInfo(0, key, mode), beat: at, beats: barLength });
   // everyone on stage lands on it (offstage Moppets stay quiet)
-  for (const [id, d] of FINALE_SEATS) if (id !== s.lead && (!s.stage || s.stage.includes(id))) pad(id, at, d, BAR);
-  sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [BAR] }, at, [{ start: at, end: at + BAR, deg: 0 }]);
+  for (const [id, d] of FINALE_SEATS) if (id !== s.lead && (!s.stage || s.stage.includes(id))) pad(id, at, d, barLength);
+  sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [barLength] }, at);
 
   // each singer's sung part moves by whole octaves into its register, keeping its contour
   const tracks: Track[] = [];
@@ -186,7 +154,7 @@ export function buildSong(s: Song): Piece {
   }
   tracks.sort((a, b) => (a.id === s.lead ? -1 : b.id === s.lead ? 1 : 0));
   sections.push({name:"Finale",beat:at});
-  return { kind: "motesong", sections, title: s.title, key, mode, bpm: s.bpm, beats: at + BAR, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
+  return { kind: "motesong", sections, title: s.title, key, mode, bpm: s.bpm, ...(s.meter?{meter:s.meter}:{}), beats: at + barLength, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
 }
 
 // ---------------------------------------------------------------------------------- the songs

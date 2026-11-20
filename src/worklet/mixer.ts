@@ -120,8 +120,8 @@ class MixerProcessor extends AudioWorkletProcessor {
     for (const p of this.ports) p.postMessage({ playhead: this.frame });
   }
 
-  private post(): void {
-    const m: MixerOut = { type: "pos", frame: this.frame, contextFrame: currentFrame, playing: this.playing, underruns: this.underruns, underrunFrames: this.underrunFrames, load: this.load, limited: this.limiter.limited, peak: this.limiter.peak, buffering: this.buffering, missing: this.missing };
+  private post(contextFrame = currentFrame): void {
+    const m: MixerOut = { type: "pos", generation: this.generation, frame: this.frame, contextFrame, playing: this.playing, underruns: this.underruns, underrunFrames: this.underrunFrames, load: this.load, limited: this.limiter.limited, peak: this.limiter.peak, buffering: this.buffering, missing: this.missing };
     this.port.postMessage(m);
   }
 
@@ -159,7 +159,7 @@ class MixerProcessor extends AudioWorkletProcessor {
       }
       this.underrunFrames += out[0].length;
       for (const o of outputs) for (const ch of o) ch.fill(0);
-      if (++this.quanta % POST_EVERY === 0) this.post();
+      if (++this.quanta % POST_EVERY === 0) this.post(currentFrame + out[0].length);
       if (this.quanta % TELL_EVERY === 0) this.tellPlayhead();
       return true;
     }
@@ -205,12 +205,12 @@ class MixerProcessor extends AudioWorkletProcessor {
     this.frame += n;
     const dt = Date.now() - t0;
     this.load += 0.05 * (dt / ((n / sampleRate) * 1000) - this.load);
-    if (++this.quanta % POST_EVERY === 0) this.post();
+    if (++this.quanta % POST_EVERY === 0) this.post(currentFrame + n);
     if (this.quanta % TELL_EVERY === 0) this.tellPlayhead();
     const total = this.ends.length ? Math.max(...this.ends) : 0;
     if (this.frame >= total) {
       this.playing = false;
-      const m: MixerOut = { type: "ended", frame: this.frame, underruns: this.underruns, underrunFrames: this.underrunFrames };
+      const m: MixerOut = { type: "ended", generation: this.generation, frame: this.frame, underruns: this.underruns, underrunFrames: this.underrunFrames };
       this.port.postMessage(m);
     }
     return true;

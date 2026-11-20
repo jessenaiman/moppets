@@ -9,6 +9,7 @@ export { midiSupported, type MidiHandlers, type MidiStatus };
 
 /** A knob or fader (control change), or a note offered to the controller before it plays. */
 export interface MidiControl {
+  dawPad?:number;
   kind: "cc" | "note" | "bend";
   /** 0-based channel (a Launchkey's pads arrive on 9, MIDI channel 10) */
   channel: number;
@@ -63,6 +64,37 @@ function liftWhere(match: (owner: string) => boolean): void {
   for (const [note, set] of [...owners]) for (const o of [...set]) if (match(o)) lift(o, note);
 }
 
+const isLaunchkeyDaw = (name:string|null)=>/launchkey.*mini.*mk\s*3/i.test(name??"") && /daw|midi\s*2|midi(?:in|out)2/i.test(name??"");
+const padNote=(i:number)=>i<8?96+i:112+i-8;
+let colors:number[]=[];
+const litOutputs=new Map<string,MIDIOutput>();
+
+function refreshLights(a:MIDIAccess){
+  for(const port of a.outputs.values()){
+    if(port.state==="disconnected"){litOutputs.delete(port.id);continue}
+    if(!isLaunchkeyDaw(port.name)||litOutputs.has(port.id))continue;
+    litOutputs.set(port.id,port);
+    try{
+      port.send([0x9f,12,127]); // Enter DAW mode, select the Session pads.
+      port.send([0xbf,3,2]);
+      colors.forEach((color,i)=>port.send([0x90,padNote(i),color]));
+    }catch{litOutputs.delete(port.id)}
+  }
+}
+
+export function setPadLights(next:number[]){
+  if(colors.length===next.length && colors.every((v,i)=>v===next[i]))return;
+  const previous=colors;colors=next.slice();
+  for(const port of litOutputs.values())if(port.state!=="disconnected"){
+    next.forEach((color,i)=>{if(previous[i]!==color)port.send([0x90,padNote(i),color])});
+  }
+}
+
+function releaseLights(){
+  for(const port of litOutputs.values())if(port.state!=="disconnected")port.send([0x9f,12,0]);
+  litOutputs.clear();
+}
+
 function attach(a: MIDIAccess): void {
   const names: string[] = [];
   const live = new Set<string>();
@@ -76,11 +108,14 @@ function attach(a: MIDIAccess): void {
       const kind = d[0] & 0xf0;
       const owner = input.id + SEP + (d[0] & 0x0f);
       const channel = d[0] & 0x0f;
+      const sessionPad=isLaunchkeyDaw(input.name) && channel===0
+        ? d[1]>=96&&d[1]<104?d[1]-96:d[1]>=112&&d[1]<120?d[1]-112+8:undefined
+        : undefined;
       if (kind === 0x90 && d.length > 2 && d[2] > 0) {
-        if (offer({ kind: "note", channel, number: d[1], value: d[2] })) claimed.add(owner + SEP + d[1]);
+        if (offer({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: d[2] })) claimed.add(owner + SEP + d[1]);
         else press(owner, d[1], d[2]);
       } else if (kind === 0x80 || kind === 0x90) {
-        if (claimed.delete(owner + SEP + d[1])) offer({ kind: "note", channel, number: d[1], value: 0 });
+        if (claimed.delete(owner + SEP + d[1])) offer({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: 0 });
         else lift(owner, d[1]);
       } else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
       else if (kind === 0xe0 && d.length > 2) offer({kind:"bend",channel,number:0,value:((d[2]<<7)+d[1]-8192)/8192});
@@ -89,6 +124,7 @@ function attach(a: MIDIAccess): void {
   });
   // unplugged inputs release what they held
   liftWhere((o) => !live.has(o.slice(0, o.indexOf(SEP))));
+  refreshLights(a);
   handlers?.inputs(names);
 }
 
@@ -102,6 +138,7 @@ export function connectMidi(h: MidiHandlers): Promise<void> {
     (a) => {
       if (gen !== generation) return; // disconnected while the browser was asking
       access = a;
+      window.addEventListener("pagehide",releaseLights);
       a.onstatechange = () => attach(a);
       attach(a);
     },
@@ -118,6 +155,8 @@ export function disconnectMidi(): void {
   generation++;
   pending = null;
   if (access) {
+    window.removeEventListener("pagehide",releaseLights);
+    releaseLights();
     access.inputs.forEach((input) => (input.onmidimessage = null));
     access.onstatechange = null;
     access = null;

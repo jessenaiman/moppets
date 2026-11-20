@@ -17,5 +17,5 @@ export type MixerIn =
   | { type: "soloMix"; voice: number };
 
 export type MixerOut =
-  | { type: "pos"; frame: number; contextFrame: number; playing: boolean; underruns: number; underrunFrames: number; load: number; limited: number; peak: number; buffering: boolean; missing: number }
-  | { type: "ended"; frame: number; underruns: number; underrunFrames: number };
+  | { type: "pos"; generation: number; frame: number; contextFrame: number; playing: boolean; underruns: number; underrunFrames: number; load: number; limited: number; peak: number; buffering: boolean; missing: number }
+  | { type: "ended"; generation: number; frame: number; underruns: number; underrunFrames: number };

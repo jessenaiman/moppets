@@ -4,16 +4,17 @@ version = 4
 
 [[package]]
 name = "chimera"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "libm",
  "serde",
  "serde_json",
+ "smallvec",
 ]
 
 [[package]]
 name = "chimera-wasm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chimera",
  "serde",
@@ -136,6 +137,12 @@ dependencies = [
  "serde_core",
  "zmij",
 ]
+
+[[package]]
+name = "smallvec"
+version = "1.16.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3244542535d5de959d90ec55d1b5ff0fd2bb7b1310223907d5f11932847f7b59"
 
 [[package]]
 name = "syn"

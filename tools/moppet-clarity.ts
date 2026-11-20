@@ -64,7 +64,7 @@ function speak(v: (typeof CAST)[number], text: string): Float32Array {
   const track = piece.tracks.find((t) => t.id === v.id)!;
   const p = planTrack(track, piece, v);
   const frames = Math.ceil(pieceSeconds(piece) * FS);
-  const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, nasal: p.nasal, firstF0: midiToHz(p.firstMidi) });
+  const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, speech: piece.kind === "skit", gestures: p.gestures, nasal: p.nasal, firstF0: midiToHz(p.firstMidi) });
   while (core.rendered < frames) core.step();
   return core.stem;
 }

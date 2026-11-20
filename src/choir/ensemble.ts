@@ -1,3 +1,4 @@
+import { pluginStems } from "./pluginPlayback.ts";
 import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
 /**
  * The choir on one audio timeline: one singer Worker per voice (the engine is too heavy for six
@@ -14,14 +15,15 @@ import { g2p } from "../audio/g2p.ts";
 import type { TelemetryMessage } from "@chimera/worklet/protocol.ts";
 import type { MixerIn, MixerOut } from "../worklet/mixerProtocol.ts";
 import type { Backing, FromSinger, ToSinger } from "./singer.worker.ts";
-import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
-import { hopFor, midiToHz, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
+import { beatSeconds, LEAD_IN, pieceSeconds } from "./plan.ts";
+import { hopFor, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
 import { beatReady, parseBeat } from "@chimera/wasm/engine.ts";
 import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
 import { bandFor } from "./band.ts";
 import { poseFromRecord, SILENT_POSE, type Pose } from "./pose.ts";
 import { MIX_LEVEL, type MoppetArtic, type MoppetSource, type MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
+import { vocalLevelAt, type VocalTiming } from "./vocalTiming.ts";
 
 export type Status = "idle" | "preparing" | "rendering" | "buffering" | "playing" | "paused" | "ended";
 export type RenderMode = "auto" | "live" | "prerender";
@@ -43,6 +45,7 @@ export interface EnsembleState {
   limited: number;
   soloMix: boolean;
   loopRange: { startSec: number; endSec: number; label: string } | null;
+  vocalTiming?: VocalTiming;
 }
 
 /**
@@ -67,6 +70,9 @@ const set = useEnsemble.setState;
 const get = useEnsemble.getState;
 
 let node: AudioWorkletNode | null = null;
+let mixerLoading: Promise<void> | null = null;
+let performanceGain: GainNode | null = null;
+let performanceVolume = 1;
 let soloId = "vee";
 let session: Session | null = null;
 let generation = 0;
@@ -85,16 +91,26 @@ useVoiceLevels.subscribe(() => {
 
 async function ensureMixer(ctx: AudioContext): Promise<void> {
   if (node) return;
-  await ctx.audioWorklet.addModule(mixerUrl);
-  node = new AudioWorkletNode(ctx, "choir-mixer", { numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1] });
-  const splitter = ctx.createGain();
-  node.connect(splitter, 0);
-  // output 1 is the solo singer alone (CHIMERA's analysers listened to it); nothing needs it yet
-  audio.connect(splitter);
-  node.port.onmessage = (e: MessageEvent<MixerOut>) => onMixer(e.data);
+  mixerLoading ??= ctx.audioWorklet.addModule(mixerUrl).then(() => {
+    const mixer = new AudioWorkletNode(ctx, "choir-mixer", { numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1] });
+    performanceGain = ctx.createGain();
+    performanceGain.gain.value = performanceVolume;
+    mixer.connect(performanceGain, 0);
+    // Output 1 is the inspected singer alone, reserved for analysers.
+    audio.connect(performanceGain);
+    mixer.port.onmessage = (e: MessageEvent<MixerOut>) => onMixer(e.data);
+    node = mixer;
+  }).finally(() => { mixerLoading = null; });
+  await mixerLoading;
+}
+
+export function setPerformanceVolume(value: number): void {
+  performanceVolume = value;
+  if (performanceGain) performanceGain.gain.setTargetAtTime(value, performanceGain.context.currentTime, 0.02);
 }
 
 function onMixer(m: MixerOut): void {
+  if (m.generation !== generation) return;
   if (m.type === "pos") {
     pos = m;
     set({ underruns: m.underruns, peak: m.peak, limited: m.limited });
@@ -108,7 +124,7 @@ function onMixer(m: MixerOut): void {
 
 function playingMessage(): string {
   const how = get().howPlaying;
-  if (how === "live") return `Live: six engines rendering ${Math.round(LOOKAHEAD * 1000)} ms ahead on the shared timeline.`;
+  if (how === "live") return "CHIMERA plug-in vocals · live mix.";
   if (how === "prerender") return "Playing the pre-rendered performance.";
   return "";
 }
@@ -117,16 +133,18 @@ class Session {
   readonly frames: number;
   readonly sampleRate: number;
   readonly hop: number;
+  readonly vocalTiming: VocalTiming;
   readonly singers: Singer[] = [];
   readonly gains: number[];
   section: GainSection | undefined;
   planError: string | null = null;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean) {
+  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems: Float32Array[]) {
     sessionsMade++;
     this.sampleRate = ctx.sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
     this.hop = hopFor(this.sampleRate);
+    this.vocalTiming = { framesPerSecond: this.sampleRate / this.hop, envelopes: {} };
     const module = chimeraModule();
     const ports: MessagePort[] = [];
     const ends: number[] = [];
@@ -143,13 +161,17 @@ class Session {
       this.singers.push(s);
       ends.push(this.frames);
     };
-    // planning can refuse a lyric: do all of it before starting any Worker, so a refusal leaks nothing
-    const plans = piece.tracks.map((t) => {
-      const voice = voices.find((v) => v.id === t.id)!;
-      return { voice, plan: planTrack(t, piece, voice) };
-    });
-    plans.forEach(({ voice, plan }, i) => {
-      spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice, gestures: plan.gestures, nasal: plan.nasal, firstF0: midiToHz(plan.firstMidi) }, voice);
+    piece.tracks.forEach((track,i)=>{
+      const voice=voices.find(v=>v.id===track.id)!;
+      const samples = stems[i];
+      const envelope = new Array<number>(Math.ceil(samples.length / this.hop));
+      for(let j=0;j<envelope.length;j++){
+        let energy=0;const start=j*this.hop,end=Math.min(samples.length,start+this.hop);
+        for(let k=start;k<end;k++)energy+=samples[k]*samples[k];
+        envelope[j] = Math.round(10000 * Math.sqrt(energy / Math.max(1, end - start))) / 10000;
+      }
+      spawn(i,null,voice,samples);
+      this.vocalTiming.envelopes[track.id] = envelope;
     });
     // the backing renders in its own worker; the band is resolved here, where the band switch lives
     if (hasAccompaniment(piece)) spawn(piece.tracks.length, null, null, undefined, undefined, { piece: { ...piece, band: bandFor(piece) }, sampleRate: this.sampleRate, frames: this.frames });
@@ -254,6 +276,11 @@ class Session {
 
   pose(index: number, hop: number): Pose {
     const s = this.singers[index];
+    const level = s?.voice && vocalLevelAt(this.vocalTiming, s.voice.id, hop * this.hop / this.sampleRate);
+    if (typeof level === "number") {
+      if (level === 0) return SILENT_POSE;
+      return {...SILENT_POSE,singing:true,open:level,jaw:level,level,voicing:1,pressure:level,viseme:level>.35?4:1};
+    }
     if (!s?.tele || !s.recordSize) return SILENT_POSE;
     const at = hop * s.recordSize;
     if (hop < 0 || at + s.recordSize > s.tele.length) return SILENT_POSE;
@@ -270,6 +297,7 @@ class Session {
 
 let prerenderReason = "";
 let resumeAt = 0;
+let playFromFrame = 0;
 let pendingStems: { deliver: (i: number, pcm: Float32Array) => void } | null = null;
 
 function fail(message: string): void {
@@ -287,19 +315,22 @@ function startTick(): void {
 }
 
 function audibleFrame(): number {
-  if (!pos || !audio.ctx) return 0;
+  const ctx = audio.ctx;
+  if (!pos || !ctx) return playFromFrame;
   if (!pos.playing) return pos.frame;
-  const sr = audio.ctx.sampleRate;
-  const latency = (audio.ctx.outputLatency || 0) + (audio.ctx.baseLatency || 0);
-  const now = audio.ctx.currentTime * sr;
-  return Math.max(0, Math.min(pos.frame + (now - pos.contextFrame), pos.frame + 2048) - latency * sr);
+  const stamp = ctx.getOutputTimestamp?.();
+  const outputTime = stamp?.contextTime && stamp.performanceTime
+    ? stamp.contextTime + (performance.now() - stamp.performanceTime) / 1000
+    : ctx.currentTime - (ctx.outputLatency || 0) - (ctx.baseLatency || 0);
+  const frame = pos.frame + outputTime * ctx.sampleRate - pos.contextFrame;
+  return Math.max(playFromFrame, Math.min(frame, pos.frame + 2048));
 }
 
 function tick(): void {
   const s = session;
   if (!s) return;
   const st = get().status;
-  if (st === "playing" || st === "buffering" || st === "paused") {
+  if (st === "playing" || st === "paused") {
     // paused, the timeline is where the pause (or a seek) put it: the mixer's last report runs on for
     // a moment and isn't latency-corrected, so reading it moved a paused playhead by ~0.1 s
     const frame = st === "paused" ? resumeAt : audibleFrame();
@@ -320,6 +351,8 @@ function soloMixIndex(): number {
 
 function beginPlaying(frame: number, how: "live" | "prerender"): void {
   if (!session) return;
+  playFromFrame = frame;
+  pos = null;
   generation++;
   post({ type: "gains", gains: session.gains });
   post({ type: "solo", voice: Math.max(0, session.indexOf(soloId)) });
@@ -330,7 +363,7 @@ function beginPlaying(frame: number, how: "live" | "prerender"): void {
     if (how === "live") s.worker.postMessage({ type: "pace", paced: true } satisfies ToSinger);
   }
   startTick();
-  set({ status: "buffering", howPlaying: how, message: how === "live" ? "Starting live…" : "Starting the pre-rendered performance…", progress: get().progress });
+  set({ status: "buffering", time: frame / session.sampleRate, howPlaying: how, message: how === "live" ? "Starting live…" : "Starting the pre-rendered performance…", progress: get().progress });
 }
 
 function beginPrerender(reason: string): void {
@@ -369,6 +402,7 @@ function stopVisuals(): void {
 
 /** Choose the next performance. Clears whatever was prepared. */
 export function loadPiece(next: Piece): void {
+  playToken++;
   disposeSession();
   piece = next;
   pendingStartFrame = 0;
@@ -388,6 +422,7 @@ function disposeSession(): void {
   session?.dispose();
   session = null;
   pos = null;
+  set({ vocalTiming: undefined });
 }
 
 /** Everything ready to start? (a session exists, with no edits waiting for a re-render) */
@@ -418,23 +453,31 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
   }
   if (token !== playToken) return;
   if (!audio.ctx) return set({ status: "idle", message: "Audio could not start." });
-  await ensureMixer(audio.ctx);
+  try {
+    await ensureMixer(audio.ctx);
+  } catch (error) {
+    if (token === playToken) set({ status: "idle", message: `Could not start the mixer: ${error instanceof Error ? error.message : String(error)}` });
+    return;
+  }
   if (token !== playToken) return;
   const mode = get().renderMode;
   const reuse = sessionFresh() && session!.sampleRate === audio.ctx.sampleRate;
-  pendingStartFrame = startSec > 0 ? Math.round(startSec * audio.ctx.sampleRate) : 0;
   if (!reuse) {
     const paced = mode !== "prerender";
     disposeSession();
     try {
-      session = new Session(piece, voicesProvider(), audio.ctx, paced);
+      const requested=piece, voices=voicesProvider(), ctx=audio.ctx;
+      const stems=await pluginStems(requested,voices,ctx);
+      if(token!==playToken || piece!==requested)return;
+      session = new Session(requested, voices, ctx, paced, stems);
     } catch (e) {
+      if(token!==playToken)return;
       session = null;
-      set({ status: "idle", message: `Could not plan the song: ${e instanceof Error ? e.message : String(e)}` });
+      set({ status: "idle", message: `Could not prepare the vocal: ${e instanceof Error ? e.message : String(e)}` });
       return;
     }
-    pendingStartFrame = Math.max(0, Math.min(session.frames, pendingStartFrame));
-    set({ duration: session.frames / session.sampleRate, progress: 0 });
+    pendingStartFrame = Math.min(session.frames, Math.round(get().time * session.sampleRate));
+    set({ duration: session.frames / session.sampleRate, progress: 0, vocalTiming: session.vocalTiming });
     if (mode === "prerender") {
       resumeAt = pendingStartFrame;
       beginPrerender("Pre-render mode chosen.");
@@ -447,7 +490,10 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
       waiting = "probe";
       set({ status: "rendering", message: "Gathering the singers…" });
     }
-  } else if (session!.singers.every((s) => s.rendered >= s.frames)) {
+    return;
+  }
+  pendingStartFrame = Math.min(session!.frames, Math.round(get().time * session!.sampleRate));
+  if (session!.singers.every((s) => s.rendered >= s.frames)) {
     beginPlaying(pendingStartFrame, "prerender");
   } else {
     waiting = "probe";
@@ -462,12 +508,11 @@ let playToken = 0;
 
 export function pause(): void {
   if (get().status !== "playing" && get().status !== "buffering") return;
+  const s = session;
+  const time = get().time;
+  if (s) resumeAt = Math.floor(get().status === "buffering" ? time * s.sampleRate : audibleFrame());
   post({ type: "pause" });
-  set({ status: "paused", message: "Paused." });
-  if (session) {
-    resumeAt = Math.floor(audibleFrame());
-    set({ time: resumeAt / session.sampleRate });
-  }
+  set({ status: "paused", message: "Paused.", time: s ? resumeAt / s.sampleRate : time });
 }
 
 function resume(): void {
@@ -493,9 +538,15 @@ export function cancel(): void {
 }
 
 export function seek(seconds: number): void {
-  if (!session) return;
-  const frame = Math.max(0, Math.min(session.frames, Math.round(seconds * session.sampleRate)));
+  if (!piece) return;
+  const time = Math.max(0, Math.min(pieceSeconds(piece), seconds));
+  if (!session || get().status === "preparing") {
+    set({ time });
+    return;
+  }
+  const frame = Math.min(session.frames, Math.round(time * session.sampleRate));
   resumeAt = frame;
+  if (waiting === "probe") pendingStartFrame = frame;
   set({ time: frame / session.sampleRate });
   const st = get().status;
   if (st === "playing" || st === "buffering") {
@@ -581,7 +632,7 @@ export function scopeOf(id: string, seconds?: number): Float32Array | null {
 }
 
 /** Render to the end if needed, then the piece through the same bus as playback, as a WAV. `only`: one singer's stem. */
-export async function exportWav(start: () => Promise<void>, only?: number): Promise<{ bytes: ArrayBuffer; peak: number; limited: number; nonFinite: number }> {
+export async function exportWav(start: () => Promise<void>, only?: number) {
   if (!session || !sessionFresh()) {
     await start();
     await g2p.load();
@@ -589,8 +640,11 @@ export async function exportWav(start: () => Promise<void>, only?: number): Prom
     await ensureMixer(audio.ctx);
     if (!piece) throw new Error("no piece");
     disposeSession();
-    session = new Session(piece, voicesProvider(), audio.ctx, false);
-    set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering" });
+    const requested=piece,voices=voicesProvider(),ctx=audio.ctx,token=playToken;
+    const stems=await pluginStems(requested,voices,ctx);
+    if(piece!==requested || token!==playToken)throw new Error("Performance changed during vocal export");
+    session = new Session(requested, voices, ctx, false, stems);
+    set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering", vocalTiming: session.vocalTiming });
   } else {
     for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);
   }
@@ -628,10 +682,10 @@ export async function exportWav(start: () => Promise<void>, only?: number): Prom
     const g = peak > 0 ? level * 0.75 / peak : 1;
     const samples = new Float32Array(stem.length);
     for (let i = 0; i < stem.length; i++) samples[i] = stem[i] * g;
-    return { bytes: wavBytes(samples, s.sampleRate), peak, limited: 0, nonFinite: 0 };
+    return { bytes: wavBytes(samples, s.sampleRate), peak, limited: 0, nonFinite: 0, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
   }
   const { samples, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.section, s.levels());
-  return { bytes: wavBytes(samples, s.sampleRate), peak, limited, nonFinite };
+  return { bytes: wavBytes(samples, s.sampleRate), peak, limited, nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
 }
 let exportToken = 0;
 

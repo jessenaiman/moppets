@@ -5,15 +5,11 @@ gravelly monster, a patchwork soprano and a floppy-disk bird, each with a real, 
 voice. An animated stage, songs written as lead sheets, a round, talking skits, a MIDI band, and
 a Launchkey Mini to play with.
 
-Every voice is [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth): a simulated airway
-(lungs, vocal folds, throat, mouth and nose), not samples. CHIMERA is a dependency here, following
-its `main` in `chimera/` (a git submodule, never edited); what the Moppets add is in this repo.
+SoundCraft renders the vocals with the upstream CHIMERA CLAP instrument. The stage plays each singer’s recording against the MIDI score. For the upstream documentation, build instructions, MIDI routing, and an inspectable host session, see [CHIMERA plug-in vocals](docs/chimera-plugin-vocals.md).
 
 ## What's here
 
-- **The stage:** each Moppet is its own CHIMERA voice (body, airway size, posture and folds)
-  singing one score, animated from the engine's own telemetry: mouths open with the lips, gesture
-  clips (laugh, shrug, gasp, nod, tilt, bow) play on cue.
+- **The stage** plays the cast’s individual vocal tracks and score-directed puppet animation. Live mouth opening follows the vocal stem’s level.
 - **Songs** are lead sheets in `songs/`, one text file each, with words you can edit in the app
   (a live syllable and stress check, holds and note splits as fixes): see
   [docs/writing-songs.md](docs/writing-songs.md). Claude can write a new round or skit (dev server).
@@ -22,8 +18,7 @@ its `main` in `chimera/` (a git submodule, never edited); what the Moppets add i
 - **Videos:** `bun tools/moppet-video.ts autocomplete toaster` (against `bun run preview`) renders
   each performance frame-exact to `out/video/<title>/`; `bun tools/moppet-edit.ts` builds FilmCraft
   and EffectCraft projects from them.
-- **A Launchkey Mini** (any MIDI controller): knobs shape the selected Moppet's voice, pads pick a
-  Moppet and sing its introduction.
+- **A Launchkey Mini** (any MIDI controller): the eight encoders control the eight cast volumes. The top pads select performers and the bottom pads trigger gestures.
 
 ## Run it
 

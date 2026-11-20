@@ -206,7 +206,7 @@
   z-index: 56;
 }
 
-/* Tracking & Hertz: Two Independent Unconnected Stage-Right Comedic Duet Actors */
+/* Tracking & Hertz: Stage-right performers sharing the AV lead */
 .sc-stage .sc-duet-stage {
   position: absolute;
   inset: 0;
@@ -668,3 +668,46 @@
 .neon-bay-lights,.neon-bay-lights i {position:absolute;inset:0;pointer-events:none;}
 .neon-cyan-spill {background:radial-gradient(ellipse at 14% 52%,#04d4ef66,transparent 34%),radial-gradient(ellipse at 28% 88%,#21c9c538,transparent 22%);mix-blend-mode:screen;}
 .neon-rose-spill {background:radial-gradient(ellipse at 92% 51%,#fd458466,transparent 35%),radial-gradient(ellipse at 72% 87%,#eb65643d,transparent 22%);mix-blend-mode:screen;}
+
+.cue-prompt-stand {
+  position: absolute; left: 14%; bottom: 14%; width: 23%; height: 31%;
+  perspective: 65cqw;
+  background: linear-gradient(90deg,#4e3427,#c08c54,#443226) center bottom / 4% 70% no-repeat,
+    radial-gradient(ellipse,#3d261b 32%,transparent 67%) center bottom / 55% 10% no-repeat;
+}
+.cue-prompt-card {
+  position: absolute; inset: 0 0 45%; display: grid; place-items: center;
+  border: 1px solid #b39767; border-radius: 4%; background: #e9ddba;
+  box-shadow: 0 .4cqw .55cqw #26170b80; transform-style: preserve-3d;
+}
+.cue-prompt-card span { font: italic bold 2cqw Georgia,serif; color: #513527; backface-visibility: hidden; transform: translateZ(1px); }
+.cue-partner-mark { position: absolute; left: 68%; bottom: 11%; width: 8%; height: 3%; background: linear-gradient(24deg,transparent 42%,#efd393 43% 56%,transparent 57%),linear-gradient(-24deg,transparent 42%,#efd393 43% 56%,transparent 57%); }
+.neon-partner-spot { background: radial-gradient(ellipse 15% 5% at 69% 89%,#ffc2dfbc,transparent 95%); }
+.neon-partner-spot[data-shared="true"] { background: radial-gradient(ellipse 17% 5% at 69% 89%,#ffadd9ad,transparent 95%),radial-gradient(ellipse 15% 5% at 43% 89%,#8cf3ff9c,transparent 95%); }
+.rehearsal-actor { display:block; width:100%; height:100%; background-size:400% 400%; background-repeat:no-repeat; transform-origin:50% 95%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key]:has(.rehearsal-actor) { height:84%; width:auto; aspect-ratio:420/480; }
+.sc-stage[data-duet] .sc-cast .sc-puppet[data-art-key]:has(.rehearsal-actor) { height:64%; }
+.sc-stage[data-duet] .sc-stage-mics { display:none; }
+.sc-stage .sc-cast .sc-puppet:is(:has(.rehearsal-actor),:has(.workshop-solo)) .name-tag {
+  left:50%;right:auto;width:max-content;min-width:22%;transform:translateX(-50%);border-radius:.12em;
+  bottom:-5%; background:linear-gradient(112deg,#d6ad70,#fff1c9 42%,#e0ba80);
+  border:1px solid #936c43; color:#372514; padding:.28em 1.25em;
+  box-shadow:0 .18em .24em #25170eb3; text-shadow:none; font:bold clamp(9px,1.5cqw,24px) Georgia,serif;
+}
+.workshop-solo {position:relative;display:block;width:100%;height:100%;background-repeat:no-repeat;}
+.sc-stage[data-solo-set] .sc-cast .sc-puppet[data-art-key]:has(.workshop-solo){width:auto;height:88%;aspect-ratio:3/4;}
+.workshop-prop {position:absolute;display:block;background-repeat:no-repeat;aspect-ratio:120/96;pointer-events:none;}
+.workshop-solo[data-act=chip] .workshop-prop {width:30%;filter:drop-shadow(0 .15cqw .12cqw #24170ecc);}
+.workshop-solo[data-act=watt] .workshop-prop {width:47%;left:90%;bottom:4%;filter:drop-shadow(0 .22cqw .16cqw #20170dcc);}
+.workshop-solo[data-act=clank] .workshop-prop {width:37%;left:32%;top:39%;}
+.critic-performance {position:relative;display:block;width:100%;aspect-ratio:3/4;background-repeat:no-repeat;}
+.critic-tape {position:absolute;left:34%;top:30%;width:32%;aspect-ratio:120/96;background-repeat:no-repeat;}
+.critic-cable {position:absolute;left:86%;bottom:12%;width:6.5%;aspect-ratio:120/96;background-repeat:no-repeat;z-index:46;}
+.ensemble-puppet {display:block;width:100%;aspect-ratio:3/4;object-fit:contain;pointer-events:none;}
+.stage-cord {position:absolute;inset:0;pointer-events:none;background-repeat:no-repeat;}
+.stage-cord[data-side=back]{z-index:39;}
+.stage-cord[data-side=front]{z-index:43;}
+.stage-cord[data-solo=true]{transform-origin:0 85%;transform:translateX(-19%) scaleY(1.25);}
+.sc-stage .sc-puppet:has(.rehearsal-actor) .sc-foot-shadow{display:block;bottom:2%;height:4%;width:33%;left:49%;opacity:1!important;background:radial-gradient(ellipse at 25% 50%,#291304ed 0%,#351b0f9e 15%,transparent 34%),radial-gradient(ellipse at 74% 50%,#311b0ce6 0%,#38221190 15%,transparent 30%);}
+.sc-stage .sc-puppet:has(.rehearsal-actor).selected::after{display:none;}
+.cue-prompt-card img{position:absolute;width:105%;height:130%;backface-visibility:hidden;transform:translateZ(.5px);}

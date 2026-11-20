@@ -23,11 +23,11 @@ export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: nu
   if (hasAccompaniment(piece)) gains.push(pluckGain);
   const extras = extraStems(piece);
   for (const e of extras) gains.push(e === "beat" ? 1 : 0.32);
-  // A staged solo from a lead sheet is a motesong. Use solo headroom for
-  // its whole arrangement so the voice and accompaniment keep their balance.
-  if (piece.kind === "motesong" && piece.tracks.length === 1 &&
-      piece.stage?.filter(id => id !== "band").length === 1 &&
-      piece.stage.includes(piece.tracks[0].id)) {
+  // A pair trading lines spends much of the song at solo density. Bring
+  // the whole arrangement up together; the bus limiter catches harmony peaks.
+  const singers = piece.stage?.filter(id => id !== "band");
+  if (piece.kind === "motesong" && singers && singers.length >= 1 && singers.length <= 2 &&
+      singers.length === piece.tracks.length && piece.tracks.every(track => singers.includes(track.id))) {
     for (let i = 0; i < gains.length; i++) gains[i] *= 0.8 / BUS_GAIN;
   }
   let section: GainSection | undefined;

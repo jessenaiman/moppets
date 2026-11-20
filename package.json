@@ -15,6 +15,8 @@
     "chimera:update": "(git submodule update --init --remote chimera || echo 'chimera: could not fetch, building the checkout as it is') && git -C chimera log --oneline -1 && bun run wasm"
   },
   "dependencies": {
+    "@radix-ui/react-slider": "^1.6.1",
+    "@radix-ui/react-switch": "^1.4.1",
     "@remotion/player": "^4.0.545",
     "react": "19.3.1",
     "react-dom": "19.3.1",

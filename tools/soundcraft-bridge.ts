@@ -10,7 +10,7 @@
  * Only `vite` dev serves these; a build has no bridge and the page falls back to a file picker.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
@@ -34,6 +34,14 @@ export function soundcraftBridge(): Plugin {
         req.on("end", async () => {
           try {
             mkdirSync(DIR, { recursive: true });
+            if (url.pathname === "/instrument") {
+              const key=url.searchParams.get("part")??"";
+              if(!/^[0-9a-f]{64}$/.test(key))return fail(400,"Invalid vocal part");
+              const file=resolve("out/chimera-plugin/sessions",key+".scraft");
+              if(!existsSync(file))return fail(404,"Render this vocal locally before opening its instrument.");
+              await launch(file);
+              return fail(200,"Opened the vocal's MIDI and CHIMERA instrument in SoundCraft");
+            }
             if (url.pathname === "/open") {
               name = (url.searchParams.get("name") ?? "moppet-song").replace(/[^a-z0-9-]/gi, "-").replace(/\.mid$/, "") || "moppet-song";
               const file = `${DIR}/${name}.mid`;
@@ -62,7 +70,7 @@ export function soundcraftBridge(): Plugin {
 /** Start SoundCraft on the file and resolve with the control port it prints. */
 function launch(file: string): Promise<number> {
   return new Promise((ok, no) => {
-    const app = spawn("soundcraft", ["--control", "0", "--", file], { detached: true, stdio: ["ignore", "pipe", "pipe"] });
+    const app = spawn("soundcraft", ["--control", "0", "--", file], { env:{...process.env,CLAP_PATH:[resolve("out/chimera-plugin"),process.env.CLAP_PATH].filter(Boolean).join(":")}, detached: true, stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     const timer = setTimeout(() => no(new Error("SoundCraft didn't start in 15 s")), 15000);
     const read = (b: Buffer) => {

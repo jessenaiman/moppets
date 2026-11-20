@@ -3,12 +3,24 @@
  * values. Free of engine imports so the singer Workers can use it.
  */
 import type { Gesture } from "@chimera/wasm/types.ts";
-import type { MoppetVoice } from "./voices.ts";
+import type { MoppetSource, MoppetVoice } from "./voices.ts";
 
 /** Tag of the held character posture; a live edit replaces it (see SingerCore.setCharacter). */
 export const CHARACTER_TAG = 7001;
-/** Vibrato the planner is asked for; each voice scales it to its own depth when it is scheduled. */
-export const PLAN_VIBRATO = 12;
+/** The native CHIMERA Sing planner accepts vibrato depth in cents. */
+export const PLAN_VIBRATO = 0;
+/** For pitched singing, keep the character's timbre but let the score own F0.
+ * In CHIMERA, fry pulls the oscillator towards 45 Hz. Old saved recipes and
+ * live edits must go through the same boundary as factory voices. */
+export function singingSource(source: Partial<MoppetSource>): Partial<MoppetSource> {
+  const result: Partial<MoppetSource> = { fry: 0, drift: 0, glide: 0 };
+  for (const key of ["tension","breathiness","roughness","brightness","pressure","vibratoRate"] as const) {
+    const n = source[key];
+    if (typeof n === "number" && Number.isFinite(n)) result[key] = n;
+  }
+  return result;
+}
+
 /**
  * A vowel's gesture: its whole label is vowel symbols (a diphthong, a length mark). Unanchored, the
  * test matched the planner's other labels too ("velum", "aspiration", "voiced frication"), and the
@@ -27,12 +39,11 @@ export function characterGesture(v: MoppetVoice, t0: number, end: number, tag: n
  * so the lyrics stay pronounceable, and no value here touches a pitch.
  * `nasal`: the velum recipe only colours solo-voiced pieces; on sustained choir parts it swallowed the voice.
  */
-export function shapeGesture(g: Gesture, v: MoppetVoice, nasal: boolean): Gesture {
-  const scale = v.vibrato / PLAN_VIBRATO;
+export function shapeGesture(g: Gesture, v: MoppetVoice, nasal: boolean, speech = false): Gesture {
   const vibrato = g.targets.vibrato;
   if ((!g.label || !VOWEL.test(g.label)) && vibrato === undefined) return g;
   const targets = { ...g.targets };
-  if (vibrato !== undefined) targets.vibrato = vibrato * scale;
+  if (vibrato !== undefined && !speech) targets.vibrato = 0;
   if (g.label && VOWEL.test(g.label)) {
     if (targets.root !== undefined) targets.root = Math.max(-1, Math.min(1, targets.root + (v.artic.root || 0)));
     if (nasal) targets.velum = v.artic.velum;

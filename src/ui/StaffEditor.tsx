@@ -4,6 +4,7 @@
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Accidental, Annotation, Beam, Dot, Formatter, Renderer, Stave, StaveNote, Voice } from "vexflow";
+import { measures } from "../choir/meter.ts";
 import { useAudio } from "../audio/audio.ts";
 import { g2p } from "../audio/g2p.ts";
 import { useController } from "../choir/controller.ts";
@@ -159,12 +160,14 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
     const stave = new Stave(8, 16, width - 16);
     stave.addClef(clef);
     if (keySig && keySig !== "C") stave.addKeySignature(keySig);
+    const bars = measures(piece);
+    const barAt = (beat:number) => bars.findIndex(measure=>beat<measure.end);
+    let bar = barAt(events[0].beat);
+    stave.addTimeSignature(bars[bar]?.signature ?? piece.meter ?? "4/4");
     stave.setContext(ctx).draw();
-
-    let bar = Math.floor(events[0].beat / 4);
     let activeAcc = keySigAccidentals(keySig);
     const staveNotes = events.map((ev) => {
-      const b = Math.floor(ev.beat / 4);
+      const b = barAt(ev.beat);
       if (b !== bar) {
         bar = b;
         activeAcc = keySigAccidentals(keySig);

@@ -4,7 +4,10 @@
  * quality: the WAVs are for ears. Usage: bun tools/choir-render.ts [outDir]   (after `bun run wasm`)
  */
 import { gunzipSync } from "node:zlib";
-import { mkdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { bouncePart } from "./plugin-host.ts";
+import { instrumentPart, partKey } from "../src/choir/pluginScore.ts";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "../tests/harness.ts";
 await initEngine();
@@ -31,16 +34,19 @@ for (const [name, piece] of Object.entries(pieces)) {
   const rows: string[] = [];
   for (const t of piece.tracks) {
     const v = voices.find((x) => x.id === t.id)!;
-    const p = planTrack(t, piece, v);
-    const core = new SingerCore(new WebAssembly.Instance(wasmModule, {}).exports as never, { sampleRate: FS, frames, hop: hopFor(FS), voice: v, gestures: p.gestures, nasal: p.nasal, firstF0: midiToHz(p.firstMidi) });
-    while (core.rendered < frames) core.step();
+    const part=instrumentPart(piece,t,v),key=await partKey(part);
+    const cached=`public/plugin-vocals/${key}.ogg`;
+    const file=existsSync(cached)?cached:`${out}/${key}.wav`;
+    if(!existsSync(file))await bouncePart(part,file);
+    const raw=execFileSync("ffmpeg",["-v","error","-i",file,"-af","pan=mono|c0=c0","-ar",String(FS),"-f","f32le","-"],{maxBuffer:frames*4+65536});
+    const stem=new Float32Array(frames);
+    stem.set(new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)).subarray(0,frames));
     let peak = 0, bad = 0;
-    for (const s of core.stem) { if (!Number.isFinite(s)) bad++; peak = Math.max(peak, Math.abs(s)); }
+    for (const s of stem) { if (!Number.isFinite(s)) bad++; peak = Math.max(peak, Math.abs(s)); }
     if (bad) throw new Error(`${name}/${t.id}: ${bad} invalid samples`);
     if (peak < 1e-3) throw new Error(`${name}/${t.id}: silent stem`);
     rows.push(`${t.id} ${peak.toFixed(2)}`);
-    stems.push(core.stem);
-    core.dispose();
+    stems.push(stem);
   }
   const backing = renderAccompaniment(piece, FS, frames);
   if (backing) stems.push(backing);

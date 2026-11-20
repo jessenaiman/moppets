@@ -4,23 +4,23 @@ Make **sixteen images with your image generation tool and nothing else**. Don't 
 don't edit or process images, don't write files. Generate them in the order below, then list which
 image is which.
 
-Read `docs/briefs/moppet-world.md` first: it is the world, the rules for what a Moppet is, and each
-Moppet's story. The attached images are references: keep those designs.
+Read `docs/briefs/moppet-world.md` first: it is the world, the rules for what a Moopet is, and each
+Moopet's story. The attached images are references: keep those designs.
 
 ## Every image
 
-> A handmade felt puppet character photographed like a stop-motion film set: soft studio light,
-> visible stitching, wool felt and worn fabric texture, real vintage electronics with scuffs, patina
+> A self-assembled found device photographed on a stop-motion film set: soft studio light,
+> visible working joints, patched clothing where it belongs, real vintage electronics with scuffs, patina
 > and small glowing lights. Warm, kind, expressive; never angry or sneering. Original design, not
 > resembling any existing puppet franchise. One character, full body, three-quarter front view,
 > centred, with space around it and its feet near the bottom of the frame. Flat solid chroma-blue
 > background (#0047BB), even lighting, no shadow on the background. Square image. No text, no logos.
 
-For each Moppet make **two images that match exactly** (same pose, size, framing and lighting):
+For each Moopet make **two images that match exactly** (same pose, size, framing and lighting):
 first **"rest"** with the mouth closed and a gentle, happy expression, then **"sing"** with the
 mouth open as if singing a warm note. Only the mouth (and what naturally moves with it) changes.
 
-## The eight Moppets
+## The eight Moopets
 
 1. **Cue** (references: the paper-scroll Cue and the studio-prompter Cue). The studio teleprompter:
    wide angled glass hood for a head; its face on the glass is two words circled in pencil for eyes,
@@ -37,15 +37,8 @@ mouth open as if singing a warm note. Only the mouth (and what naturally moves w
    ending in chunky 4-fingered oatmeal wool-felt hands, mismatched cobbled legs (one rusty wheeled
    caster light-stand leg and one gaffer-taped wooden dowel leg in a stitched felt boot), carrying
    Watt's borrowed frayed braided AC power-cord tail and Cue's gaffer tape.
-3. **Tabby** (reference attached). Keep her design: a cracked tablet for a face with big glowing
-   teal eyes and a felt cat nose and mouth on the screen frame, felt cat ears, a patchwork body
-   wrapped in rainbow cables, a cable tail.
-4. **Gruff** (references: the amp-head Gruff and the bedraggled Gruff). His battered rusted valve
-   amplifier head is front and center: two warm glowing bulb-dial eyes, wide mouth in the frayed
-   burlap speaker grille, a glowing crown of warm glass vacuum tubes above his brow (one valve brighter
-   than the rest), and a leather carrying handle on top. Two plug horns, one bent. A thick braided
-   purple and mauve coiled audio-cable coat and shaggy mane, frayed cord tail, big 4-fingered oatmeal
-   felt hands and feet, and a rainbow stitched patch on one arm.
+3. **Tabby**. Start with her original cracked tablet, aqua ring eyes, striped ears, fixed felt muzzle, patches and familiar silhouette. Give the tablet a thin aged hardware rim. The felt ears tuck behind the tablet rim. A stitch shows a little antenna wire on each ear; the working pivots are hidden behind the display. Let a tip wobble sideways and then dip forward. A single flat ribbon connection peeks from under a cuff; patchwork covers the other mechanisms. Her display carries the reaction; one ear can follow a beat later. Gruff owns the tangle of loose wires. The keyboard and alternate warehouse devices are shelved concepts.
+4. **Gruff**. Stage the large cable-tangle bassist in the approved house-band photograph. His indigo coat contains a few broad coils. Leave space between the two huge loop hands and the hem. Amplifier, the guitarist in the plum coat, is a separate performer.
 5. **Chip** (reference attached). Keep his design: a floppy disk for a torso, a bird with a crest of
    circuit boards, a felt beak, wings of felt.
 6. **Clank** (reference attached). Keep his design: an old computer monitor head with a green pixel

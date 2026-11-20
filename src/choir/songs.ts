@@ -16,7 +16,9 @@ import bandNight from "../../songs/band-night.song";
 import neonDuet from "../../songs/neon-duet.song";
 import neonCanon from "../../songs/neon-canon.song";
 import neonPlaybook from "../../songs/neon-playbook.song";
+import borrowedLight from "../../songs/borrowed-light.song";
 import takeTwo from "../../songs/take-two.song";
+import rightOnCue from "../../songs/right-on-cue.song";
 import line from "../../songs/line.song";
 import lateAnswer from "../../songs/late-answer.song";
 import everySocket from "../../songs/every-socket.song";
@@ -49,7 +51,9 @@ const FILES: [string, string][] = [
   ["neon-playbook.song", neonPlaybook],
   ["zap.song", zapSong],
   ["take-two.song", takeTwo],
+  ["borrowed-light.song", borrowedLight],
   ["line.song", line],
+  ["right-on-cue.song", rightOnCue],
   ["late-answer.song", lateAnswer],
   ["every-socket.song", everySocket],
   ["close-up.song", closeUp],
@@ -64,6 +68,19 @@ const FILES: [string, string][] = [
   ["skit-letter.song", letter],
   ["round.song", round],
 ];
+
+const draftKey = "studio404-rehearsal-drafts-v1";
+export function draftSheets(): Record<string,string> {
+  try {return JSON.parse(localStorage.getItem(draftKey) ?? "{}") ?? {}} catch {return {}}
+}
+for(const [name,text] of Object.entries(draftSheets())){
+  if(!/^(skit-)?draft-[a-z0-9-]+\.song$/.test(name)||typeof text!=="string")continue;
+  try {parseSongFile(text,name); FILES.push([name,text])} catch {/* Ignore a damaged browser draft. */}
+}
+export function persistDraft(file:string,text:string){
+  localStorage.setItem(draftKey,JSON.stringify({...draftSheets(),[file]:text}));
+  SONG_SOURCES.set(file,text);
+}
 
 /** Each lead sheet's file name and text as loaded (updated in place when the app saves one). */
 export const SONG_SOURCES = new Map<string, string>(FILES);

@@ -5,6 +5,7 @@ import {
   Beam,
   Dot,
   Formatter,
+  Fraction,
   Renderer,
   Stave,
   StaveNote,
@@ -20,6 +21,7 @@ import {
   midiToVexNote,
   vexKeySignature,
 } from "../choir/staffMath.ts";
+import {measures} from "../choir/meter";
 import { LEAD_IN, beatSeconds } from "../choir/timeline.ts";
 import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { useMoppet } from "../choir/store.ts";
@@ -38,31 +40,10 @@ const durations = [
   [0.125, "32"],
   [0.0625, "64"],
 ] as const;
-function systems(piece: Piece, track: Track | undefined, compact: boolean) {
-  const bars = Math.max(1, Math.ceil(piece.beats / 4)),
-    lines = [];
-  const events = track?.events ?? [];
-  for (let first = 0; first < bars;) {
-    let count = Math.min(compact ? 2 : 4, bars - first);
-    if (!compact && bars - first > 4) {
-      const cost = (n: number) => {
-        const edge = (first + n) * 4,
-          before = events.filter((e) => e.beat < edge).at(-1),
-          after = events.find((e) => e.beat >= edge);
-        return (
-          (before && before.beat + before.beats > edge ? 8 : 0) +
-          (before?.line !== undefined && before.line === after?.line ? 4 : 0) -
-          n / 10
-        );
-      };
-      count = [2, 3, 4]
-        .filter((n) => bars - first - n !== 1)
-        .sort((a, b) => cost(a) - cost(b))[0];
-    }
-    lines.push({ first, count });
-    first += count;
-  }
-  return lines;
+function systems(bars:ReturnType<typeof measures>) {
+  return Array.from({length:Math.ceil(bars.length/4)},(_,i)=>({
+    first:i*4,count:Math.min(4,bars.length-i*4),bars:bars.slice(i*4,i*4+4),
+  }));
 }
 function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: ReturnType<typeof systems>) {
   const clef = clefForVoice(track.events.map((e) => e.midi)),
@@ -70,10 +51,13 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
   const words = trackSyllables(track);
   const positions: { beat: number; x: number; row: HTMLDivElement }[] = [];
   root.replaceChildren();
-  for (const { first, count } of lines) {
+  const systemWidth = Math.max(...lines.map(l=>l.count),1) * 195;
+  for (const { first, count, bars } of lines) {
     const row = document.createElement("div");
+    row.dataset.firstBar=String(first+1);
+    row.dataset.barCount=String(count);
     root.append(row);
-    const width = count <= 2 ? 440 : 760,
+    const width = count * 195,
       height = 130;
     const renderer = new Renderer(row, Renderer.Backends.SVG);
     renderer.resize(width, height);
@@ -87,13 +71,16 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
           .addClef(clef)
           .addKeySignature(sig)
           .setMeasure(bar + 1);
+      const measure=bars[bar-first];
+      const [numBeats,beatValue]=measure.signature.split("/").map(Number);
+      if(measure.printMeter) stave.addTimeSignature(measure.signature);
       stave.setContext(ctx).draw();
       const notes: StaveNote[] = [],
         ties: [StaveNote | null, StaveNote | null][] = [];
       const accidentals = keySigAccidentals(sig);
-      const end = 4 * (bar + 1);
+      const end = measure.end;
       const starts: number[] = [];
-      let cursor = bar * 4;
+      let cursor = measure.start;
       function emit(until: number, index?: number) {
         const e = index === undefined ? undefined : track.events[index];
         while (cursor < until - 0.001) {
@@ -132,14 +119,14 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
         emit(Math.min(end, e.beat + e.beats), i);
       });
       emit(end);
-      const voice = new Voice({ numBeats: 4, beatValue: 4 }).setMode(Voice.Mode.SOFT).addTickables(notes);
-      const beams = Beam.generateBeams(notes);
+      const voice = new Voice({numBeats,beatValue}).setMode(Voice.Mode.SOFT).addTickables(notes);
+      const beams = Beam.generateBeams(notes,{groups:[new Fraction(numBeats>=6 && numBeats%3===0 && beatValue===8 ? 3 : 1,beatValue)]});
       new Formatter().joinVoices([voice]).format([voice], width / count - (stave.getNoteStartX() - x) - 12);
       voice.draw(ctx, stave);
       const anchors = starts.map((beat, i) => ({ beat, x: notes[i].getAbsoluteX(), row }));
       positions.push(...anchors);
       anchors.push({ beat: end, x: x + width / count, row });
-      for (const chord of piece.chords.filter((c) => c.beat >= bar * 4 && c.beat < end)) {
+      for (const chord of piece.chords.filter((c) => c.beat >= measure.start && c.beat < end)) {
         const next = anchors.findIndex((a) => a.beat > chord.beat);
         const left = anchors[next - 1],
           right = anchors[next];
@@ -171,19 +158,19 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
       );
     }
     const svg = row.querySelector("svg")!;
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("viewBox", `0 0 ${systemWidth} ${height}`);
     svg.removeAttribute("width");
     svg.removeAttribute("height");
     svg.removeAttribute("style");
     row.style.removeProperty("width");
-    positions.push({ beat: (first + count) * 4, x: width, row });
+    positions.push({ beat: bars[count-1].end, x: width, row });
     const cursor = document.createElementNS("http://www.w3.org/2000/svg", "path");
     cursor.setAttribute("class", "rack-cursor");
     svg.append(cursor);
   }
   return positions;
 }
-export function MusicRack() {
+export function MusicRack({timeSec, playing, onSeek = seek}: {timeSec?:number; playing?:boolean; onSeek?:(seconds:number)=>void} = {}) {
   const piece = useMoppet((s) => s.piece),
     voice = useMoppet((s) => s.voices[s.selected]);
   const studio = useMoppet((s) => s.studio404),
@@ -197,14 +184,16 @@ export function MusicRack() {
     query.addEventListener("change", resize);
     return () => query.removeEventListener("change", resize);
   }, []);
-  const lines = useMemo(
-    () => systems(piece, track, compact),
-    [piece, track, compact],
-  );
+  const bars=useMemo(()=>measures(piece),[piece]);
+  const lines=useMemo(()=>systems(bars),[bars]);
   const paper = useRef<HTMLDivElement>(null);
+  const [fullPage, setFullPage] = useState(false);
+  const [visibleLine, setVisibleLine] = useState(0);
   const [follow, setFollow] = useState(true);
-  const beat = useEnsemble((s) => (s.time - LEAD_IN) / beatSeconds(piece));
-  const bar = Math.max(0, Math.floor(beat / 4));
+  const ensembleTime = useEnsemble(s => s.time);
+  const beat = ((timeSec ?? ensembleTime) - LEAD_IN) / beatSeconds(piece);
+  const currentBar = bars.findIndex(b=>beat<b.end);
+  const bar = currentBar < 0 ? Math.max(0,bars.length-1) : currentBar;
   const line = Math.max(
     0,
     lines.findIndex((l) => bar >= l.first && bar < l.first + l.count),
@@ -212,11 +201,27 @@ export function MusicRack() {
   const event = track?.events.find(
     (e) => e.beat <= beat && e.beat + e.beats > beat,
   );
-  const sounding = useEnsemble((s) => s.status === "playing");
+  const ensemblePlaying = useEnsemble(s => s.status === "playing");
+  const sounding = playing ?? ensemblePlaying;
   const anchors=useRef<ReturnType<typeof engrave>>([]);
   useEffect(() => {
     anchors.current = paper.current && track?.events.length ? engrave(paper.current, piece, track, lines) : [];
   }, [piece, track, lines]);
+  useEffect(()=>{
+    const root=paper.current;
+    if(!root || !lines.length)return;
+    // Choose the arrangement with the largest legible systems that fits the paper.
+    const systemAspect=Math.max(...lines.map(line=>line.count))*195/130;
+    const arrange=()=>{
+      const {clientWidth:w,clientHeight:h}=root;
+      const fitted=Math.floor(h*systemAspect/lines.length);
+      const rowWidth=compact||fullPage?w:Math.min(w,Math.max(360,fitted));
+      root.style.setProperty("--system-width",rowWidth+"px");
+    };
+    arrange();
+    const observer=new ResizeObserver(arrange);observer.observe(root);
+    return ()=>observer.disconnect();
+  },[lines,compact,fullPage,track]);
   useEffect(()=>{
     const points=anchors.current;
     const i=points.findIndex(p=>p.beat>beat);
@@ -270,15 +275,16 @@ export function MusicRack() {
         .forEach((n) => n.classList.add("rack-sounding"));
   }, [sounding, event, track]);
   return (
-    <section className="music-rack">
+    <section className="music-rack" data-full-page={fullPage || undefined}>
       <header>
         <div>
           <small>
-            {studio ? studio404Name(voice.id, voice.name) : voice.name} ·{" "}
-            {piece.key} {piece.mode} · {piece.bpm} BPM
+            {piece.title === "Borrowed Light" && voice.id === "vee" ? "Moonbeam" : studio ? studio404Name(voice.id, voice.name) : voice.name} ·{" "}
+            {piece.key} {piece.mode} · {bars[bar]?.signature ?? piece.meter ?? "4/4"} · {piece.bpm} BPM
           </small>
           <h2>{piece.title}</h2>
         </div>
+        <button aria-pressed={fullPage} onClick={() => setFullPage(!fullPage)}>{fullPage ? "Close full score" : "Full score"}</button>
         <button onClick={() => setFollow(!follow)} aria-pressed={follow}>
           {follow ? "Following" : "Follow score"}
         </button>
@@ -288,6 +294,11 @@ export function MusicRack() {
           className="rack-paper"
           data-layout="layered"
           ref={paper}
+          onScroll={e=>{
+            const root=e.currentTarget, top=root.getBoundingClientRect().top;
+            const index=Array.from(root.children).findIndex(row=>row.getBoundingClientRect().bottom>top+1);
+            if(index>=0)setVisibleLine(index);
+          }}
           onClick={(e) => {
             const index = (e.target as Element)
               .closest("[data-event]")
@@ -320,7 +331,7 @@ export function MusicRack() {
             )}
             onChange={(e) => {
               setFollow(true);
-              seek(
+              onSeek(
                 LEAD_IN +
                   piece.sections![+e.target.value].beat * beatSeconds(piece),
               );
@@ -337,11 +348,15 @@ export function MusicRack() {
           Bar{" "}
           <select
             aria-label="Go to score system"
-            value={line}
+            value={follow ? line : Math.min(visibleLine,lines.length-1)}
             onChange={(e) => {
-              setFollow(true);
-              seek(
-                LEAD_IN + lines[+e.target.value].first * 4 * beatSeconds(piece),
+              if (!follow) {
+                const root=paper.current,row=root?.children[+e.target.value];
+                if (root && row) root.scrollTop += row.getBoundingClientRect().top-root.getBoundingClientRect().top;
+                return;
+              }
+              onSeek(
+                LEAD_IN + lines[+e.target.value].bars[0].start * beatSeconds(piece),
               );
             }}
           >
@@ -364,6 +379,7 @@ export function MusicRack() {
           </span>
         )}
         <output>
+          {!follow && sounding && `Playing bar ${bar+1} · `}
           {sounding && event
             ? noteName(event.midi, piece.key, piece.mode) +
               " · MIDI " +

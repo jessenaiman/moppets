@@ -1,3 +1,7 @@
+import * as Slider from "@radix-ui/react-slider";
+import * as Switch from "@radix-ui/react-switch";
+import {padSwatch} from "./launchkey-colors";
+import { setPadLights, midiSupported } from "./midi.ts";
 import { setVoiceLevel, useVoiceLevels } from "../choir/voiceLevels.ts";
 /**
  * Grandfather's Imaginative Walnut Organ + Launchkey Mini MK3 Console:
@@ -13,7 +17,7 @@ import {
   applyControl,
   CONTROLS,
   handleControl,
-  ACTIONS, triggerPad,
+  controllerActions, triggerPad,
   touchControl,
   useController,
   type ControlKey,
@@ -87,8 +91,28 @@ function controlValue(v: MoppetVoice, key: ControlKey): { norm: number; text: st
   };
 }
 
+export function LaunchkeyConnect() {
+  const midi = useController(s=>s.midi), connect = useController(s=>s.setMidi);
+  const connected = midi.status === "on" && midi.inputs.length > 0;
+  const label = connected ? midi.inputs.find(n=>/launchkey/i.test(n)) ?? midi.inputs[0]
+    : !midiSupported() ? "MIDI unavailable" : midi.status === "connecting" ? "Awaiting permission…"
+    : midi.status === "denied" ? "Retry MIDI connection" : midi.status === "on" ? "Waiting for device" : "Connect Launchkey";
+  return <button type="button" className="midi-plug" data-connected={connected} aria-pressed={connected}
+    title={connected ? "Disconnect MIDI" : label} disabled={!midiSupported() || midi.status === "connecting"}
+    onClick={()=>connect(midi.status !== "on")}>
+    <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 2v5m6-5v5M5 7h10v3a5 5 0 0 1-10 0zM10 15v4"/></svg>
+    {label}
+  </button>;
+}
+
 export function LaunchkeyMap() {
-  const [keys, showKeys] = useState(true);
+  const [keys, showKeys] = useState(()=>!matchMedia("(max-width:650px)").matches);
+  useEffect(()=>{
+    const media=matchMedia("(max-width:650px)");
+    const resize=()=>showKeys(!media.matches);
+    media.addEventListener("change",resize);
+    return ()=>media.removeEventListener("change",resize);
+  },[]);
   const [transpose,setTranspose]=useState(0);
   const [transposeMode,setTransposeMode]=useState(false);
   const learnPads = useController(s=>s.learningPads);
@@ -107,9 +131,14 @@ export function LaunchkeyMap() {
   const startAudio = useAudio((s) => s.start);
 
   const curVoice = voices[selected];
-  const volume = useVoiceLevels(s => s.levels[curVoice.id] ?? 1);
+  const levels = useVoiceLevels(s => s.levels);
+  const volume = levels[curVoice.id] ?? 1;
+  const editingVoice = useController(s => s.voiceEditing);
 
-  const name = studio404 ? studio404Name(curVoice.id, curVoice.name) : curVoice.name;
+  const pieceTitle = useMoppet(s=>s.piece.title);
+  const guest = pieceTitle==="Borrowed Light";
+  const labelFor = (v:MoppetVoice)=>guest && v.id==="vee" ? "Moonbeam" : studio404 ? studio404Name(v.id,v.name) : v.name;
+  const name = labelFor(curVoice);
 
   // Interactive Launchkey Mini MK3 hardware state
   const [octave, setOctave] = useState(0);
@@ -129,7 +158,7 @@ export function LaunchkeyMap() {
   const down = useRef(new Set<number>());
   const soundingKeys = useRef(new Map<number,number>());
   const recentNotes = useRef<number[]>([]);
-  const knobDrag = useRef<{ i: number; startY: number; startNorm: number } | null>(null);
+
   const [, redraw] = useState(0);
 
   useEffect(() => {
@@ -212,8 +241,10 @@ export function LaunchkeyMap() {
     }
   };
 
-  const knobs =
-    mode === "puppet"
+  const knobs = !editingVoice ? voices.slice(0,8).map((v,i) => ({
+    i, label: labelFor(v), norm: levels[v.id] ?? 1,
+    text: Math.round((levels[v.id] ?? 1) * 100) + "%", setNorm: (n:number) => setVoiceLevel(v.id,n),
+  })) : mode === "puppet"
       ? MOUTH.map(([key, lo, hi, label], i) => {
           const val = mouth[key] ?? lo;
           const norm = clamp((val - lo) / Math.max(1e-6, hi - lo), 0, 1);
@@ -247,10 +278,12 @@ export function LaunchkeyMap() {
         });
 
   const topPads = voices.slice(0,8).map(v => ({
-    label: studio404 ? studio404Name(v.id,v.name) : v.name,
-    color:(studio404 && STUDIO_404_CAST[v.id]?.color) || v.color
+    label: labelFor(v),
+    ...padSwatch((studio404 && STUDIO_404_CAST[v.id]?.color) || v.color)
   }));
-  const bottomPads = ACTIONS.map((label,i)=>({label,color:BOTTOM_PAD_COLORS[i]}));
+  const bottomPads = controllerActions(guest && curVoice.id==="vee"?"moonbeam":studio404?curVoice.id:"").map((label,i)=>({label,...padSwatch(BOTTOM_PAD_COLORS[i])}));
+  const padPalette=[...topPads,...bottomPads].map(p=>p.index).join(",");
+  useEffect(()=>{setPadLights(padPalette.split(",").map(Number))},[padPalette]);
 
   const keyGuidance =
     mode === "off"
@@ -370,13 +403,14 @@ export function LaunchkeyMap() {
               {fixedChord ? " · Chord" : ""}
             </span>
           </div>
+            <LaunchkeyConnect />
             <div className="performer-volume">
               <label><strong>{name} volume</strong>
                 <input aria-label={name + " volume"} type="range" min="0" max="100" step="1"
                   value={Math.round(volume*100)} onChange={e=>setVoiceLevel(curVoice.id,Number(e.target.value)/100)} />
                 <output>{Math.round(volume*100)}%</output>
               </label>
-              <small>{!map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
+              <small>{!editingVoice ? "CC 7" : !map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
             </div>
         </div>
 
@@ -512,7 +546,7 @@ export function LaunchkeyMap() {
           <div className="organ-controls-bay">
             <div className="organ-drawbar-bank">
               {knobs.map((knob) => {
-                const k = knob.i === 0 && !map[21] ? { ...knob, label: "Volume", norm:volume, text:Math.round(volume*100)+"%", setNorm:(v:number)=>setVoiceLevel(curVoice.id,v) } : knob;
+                const k = editingVoice && knob.i === 0 && !map[21] ? { ...knob, label: "Volume", norm:volume, text:Math.round(volume*100)+"%", setNorm:(v:number)=>setVoiceLevel(curVoice.id,v) } : knob;
                 const deg = -135 + k.norm * 270;
                 return (
                   <div
@@ -520,32 +554,13 @@ export function LaunchkeyMap() {
                     className={`lk-knob organ-drawbar${lit("knob", k.i) ? " lit" : ""}`}
                     title={`${k.label}: ${k.text} (drag up/down to turn)`}
                   >
-                    <small className="arp-tag">{ARP_KNOB_TAGS[k.i]}</small>
-                    <i
-                      role="slider" tabIndex={0} aria-label={k.label+" encoder"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(k.norm*100)} aria-valuetext={k.text}
-                      onKeyDown={e=>{
-                        const delta = e.key==="ArrowUp" || e.key==="ArrowRight" ? 1 : e.key==="ArrowDown" || e.key==="ArrowLeft" ? -1 : 0;
-                        if (!delta && e.key!=="Home" && e.key!=="End") return;
-                        e.preventDefault();
-                        k.setNorm(e.key==="Home" ? 0 : e.key==="End" ? 1 : clamp(k.norm+delta/127,0,1));
-                      }}
-                      style={{ "--knob-rot": `${deg.toFixed(1)}deg`, "--knob-norm": k.norm.toFixed(3) } as React.CSSProperties}
-                      onPointerDown={(e) => {
-                        e.currentTarget.setPointerCapture(e.pointerId);
-                        knobDrag.current = { i: k.i, startY: e.clientY, startNorm: k.norm };
-                      }}
-                      onPointerMove={(e) => {
-                        const d = knobDrag.current;
-                        if (!d || d.i !== k.i) return;
-                        k.setNorm(d.startNorm + (d.startY - e.clientY) / 110);
-                      }}
-                      onPointerUp={() => {
-                        knobDrag.current = null;
-                      }}
-                      onPointerCancel={() => {
-                        knobDrag.current = null;
-                      }}
-                    />
+                    <small className="arp-tag">{editingVoice ? ARP_KNOB_TAGS[k.i] : k.text}</small>
+                    <Slider.Root className="brass-encoder" orientation="vertical" min={0} max={127} step={1}
+                      value={[Math.round(k.norm*127)]} onValueChange={([n])=>k.setNorm(n/127)}
+                      style={{"--dial-angle":deg+"deg"} as React.CSSProperties}>
+                      <Slider.Track className="encoder-track"/>
+                      <Slider.Thumb className="encoder-thumb" aria-label={k.label+(editingVoice?" encoder":" volume encoder")} aria-valuetext={k.text}/>
+                    </Slider.Root>
                     <span className="organ-knob-label">{k.label}</span>
                   </div>
                 );
@@ -585,31 +600,23 @@ export function LaunchkeyMap() {
                 <button
                   type="button"
                   className="lk-pad organ-scene-btn"
-                  title="Scene Launch — Play whole piece"
+                  aria-label="Play scene" title="Play scene"
                   onClick={() => void play(startAudio)}
                 >
-                  ▶ Scene
+                  <span aria-hidden="true">▶</span>
                 </button>
                 <button
                   type="button"
                   className="lk-pad organ-scene-btn stop"
-                  title="Stop playback"
+                  aria-label="Stop scene" title="Stop scene"
                   onClick={stop}
                 >
-                  ■ Stop
+                  <span aria-hidden="true">■</span>
                 </button>
               </div>
             </div>
           </div>
-<div className="desk-right-buttons">            <button
-              type="button"
-              className={`hw-btn${arpOn ? " on" : ""}`}
-              aria-pressed={arpOn}
-              onClick={toggleArp}
-              title="Toggle Arpeggiator stop & key-top legends"
-            >
-              Arp
-            </button>
+<div className="desk-right-buttons">            <label className="organ-rocker"><Switch.Root aria-label="Arpeggiator" className="rocker-switch" checked={arpOn} onCheckedChange={toggleArp}><Switch.Thumb/></Switch.Root>Arp</label>
             <button
               type="button"
               className={`hw-btn${fixedChord ? " on" : ""}`}
@@ -620,9 +627,7 @@ export function LaunchkeyMap() {
             >
               {learningChord?"Save chord":"Fixed Chord"}
             </button>
-            <button type="button" className="hw-btn" onClick={() => void play(startAudio)}>
-              ▶ Play
-            </button>
+
 
             <button
               type="button"

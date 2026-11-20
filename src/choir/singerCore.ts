@@ -6,7 +6,7 @@
 import { CONTROL_KEYS, writeGestures, writeSteps, fromUtf8, utf8 } from "@chimera/wasm/wire.ts";
 import type { BeatStep } from "@chimera/wasm/types.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
-import { CHARACTER_TAG, characterGesture, shapeGesture } from "./character.ts";
+import { CHARACTER_TAG, characterGesture, shapeGesture, singingSource } from "./character.ts";
 import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 
 type Fn = (...a: number[]) => number;
@@ -36,6 +36,7 @@ export interface SingerConfig {
   firstF0: number;
   /** let the velum recipe colour the vowels (solo-voiced pieces) */
   nasal?: boolean;
+  speech?: boolean;
 }
 
 /** Ring-out after a singer's last gesture before the engine may be parked (and how soon before an onset it wakes). */
@@ -113,7 +114,7 @@ export class SingerCore {
     // moppet_schedule places times relative to the voice clock
     const part = this.pending.slice(from, this.nextPending).map((raw) => {
       // the character posture is a live gesture of its own (setCharacter)
-      const g = raw.label === "character" ? raw : shapeGesture(raw, this.voice, !!this.cfg.nasal);
+      const g = raw.label === "character" ? raw : shapeGesture(raw, this.voice, !!this.cfg.nasal, this.cfg.speech);
       return { ...g, t0: g.t0 - clock, t1: g.t1 - clock };
     });
     const written = writeGestures(this.x.memory.buffer, this.x.moppet_records(this.h), part, MAX_RECORDS);
@@ -122,7 +123,7 @@ export class SingerCore {
 
   /** Breathiness, roughness and friends: take effect at the render head. */
   setSource(s: Partial<MoppetSource>): void {
-    this.patch(SOURCE_KEYS, s as Record<string, number>);
+    this.patch(SOURCE_KEYS, (this.cfg.speech ? s : singingSource(s)) as Record<string, number>);
     this.x.moppet_set_source(this.h);
   }
 

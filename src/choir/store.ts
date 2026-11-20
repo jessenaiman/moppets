@@ -6,12 +6,12 @@ import { create } from "zustand";
 import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, noteName, scalePitch, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
 import { roundProblems } from "./roundCheck.ts";
 import { buildSong, SONGBOOK, type SongId } from "./songbook.ts";
-import { fileOf, SONG_SOURCES } from "./songs.ts";
+import { fileOf, persistDraft, SONG_SOURCES } from "./songs.ts";
 import { parseSongFile, printSongFile, type SongFile } from "./songFile.ts";
-import { checkSung, lineStarts, songProblems } from "./songCheck.ts";
+import { checkSung, songProblems } from "./songCheck.ts";
 import { shownWords } from "./captions.ts";
 import { sungSyllables } from "./plan.ts";
-import { midiToScaleDegree, shiftMidiByScaleSteps, stepLeadSheetDegree } from "./staffMath.ts";
+import { midiToScaleDegree, shiftMidiByScaleSteps } from "./staffMath.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
@@ -34,8 +34,23 @@ function loadSaved(): MoppetVoice[] {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     // only the voice recipe is the user's: names, roles, lyrics and parts always come from the cast
-    if (Array.isArray(saved) && saved.length >= 6 && saved.every((v, i) => v.id === defaults[i].id && v.artic && v.source && v.body))
-      return defaults.map((d, i) => ({ ...structuredClone(d), body: { ...d.body, ...saved[i]?.body }, artic: { ...d.artic, ...saved[i]?.artic }, source: { ...d.source, ...saved[i]?.source }, vibrato: saved[i]?.vibrato ?? d.vibrato, size: saved[i]?.size ?? d.size })) as MoppetVoice[];
+    if (Array.isArray(saved) && saved.length >= 6 && saved.length <= defaults.length &&
+        saved.every((v, i) => v?.id === defaults[i].id && v.artic && v.source && v.body)) {
+      return defaults.map((d, i) => {
+        const old = saved[i];
+        const source = { ...d.source, ...old?.source };
+        let vibrato = old?.vibrato ?? d.vibrato;
+        // Older saves include the entire factory cast, even for singers never edited.
+        const previousFactoryWatt = d.id === "pip" && source.glide === .07 && source.drift === 8 && source.roughness === .5 && vibrato === 12;
+        const previousFactoryNeon = d.id === "vee" && source.glide === .05 && source.drift === 14 && source.roughness === .08 && vibrato === 10;
+        if (previousFactoryWatt || previousFactoryNeon) {
+          Object.assign(source, { glide: d.source.glide, drift: d.source.drift, roughness: d.source.roughness });
+          vibrato = d.vibrato;
+        }
+        return { ...structuredClone(d), body: { ...d.body, ...old?.body },
+          artic: { ...d.artic, ...old?.artic }, source, vibrato, size: old?.size ?? d.size };
+      });
+    }
   } catch {
     // no saved voices
   }
@@ -188,12 +203,12 @@ function persist(voices: MoppetVoice[]): void {
 }
 
 export const useMoppet = create<MoppetState>((set, get) => {
-  const initialPiece = SONGBOOK.find((x) => x.id === "tabby-solo")?.make() ?? invent(DEFAULT_INVENTION);
-  const tabbyIdx = Math.max(0, defaults.findIndex((v) => v.id === "tabby"));
+  const initialPiece = SONGBOOK.find((x) => x.id === "right-on-cue")?.make() ?? invent(DEFAULT_INVENTION);
+  const leadIndex = defaults.findIndex(v => v.id === initialPiece.tracks[0]?.id);
   return {
   voices: loadSaved(),
-  selected: tabbyIdx,
-  lesson: "tabby-solo",
+  selected: Math.max(0, leadIndex),
+  lesson: "right-on-cue",
   piece: initialPiece,
   progression: DEFAULT_INVENTION.progression,
   groove: DEFAULT_INVENTION.groove,
@@ -262,6 +277,17 @@ export const useMoppet = create<MoppetState>((set, get) => {
     if (!cur) return;
     if (cur.parsed.kind === "song" && songProblems(cur.parsed.song).length) return set({ status: "Fix the lines that don't fit before saving." });
     let saved = false;
+    if (/^(skit-)?draft-/.test(cur.file)) {
+      persistDraft(cur.file,cur.text);
+      const songEdits={...get().songEdits};delete songEdits[cur.file];persistEdits(songEdits);
+      if(cur.parsed.kind==="song"){
+        const entry=SONGBOOK.find(e=>e.id===cur.parsed.id);
+        const song=cur.parsed.song;if(entry){entry.song=song;entry.make=()=>buildSong(song)}
+      }else if(cur.parsed.kind==="skit"){
+        const index=SKITS.findIndex(e=>e.id===cur.parsed.id);if(index>=0)SKITS[index]=cur.parsed.skit;
+      }
+      set({songEdits,status:"Draft saved in this browser."});return;
+    }
     if (import.meta.env.DEV) {
       const r = await fetch("/__songs/save", { method: "POST", body: JSON.stringify({ file: cur.file, text: cur.text }) }).catch(() => null);
       if (r?.ok) saved = true;
@@ -416,12 +442,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
     persist(voices);
     inspect(voices[get().selected].id);
     const s = get();
-    if (s.piece.kind === "solo") loadPiece(s.piece);
-    else {
-      const { piece, baseBpm } = applyTempo(scoreFor(s), s.tempoScale);
-      set({ piece, baseBpm });
-      loadPiece(piece);
-    }
+    loadPiece(s.piece);
   },
   savePreset: () => {
     const v = get().voices[get().selected];
@@ -465,6 +486,15 @@ export const useMoppet = create<MoppetState>((set, get) => {
       const sung = lineObj && !("rest" in lineObj) ? (ai < 0 ? lineObj : lineObj.with?.[ai]) : null;
       if (sung && sung.degrees[ni] !== undefined) {
         const newDeg = midiToScaleDegree(midi, ev.midi, sung.degrees[ni], cur.key, cur.mode);
+        const register = ev.midi - scalePitch(sung.degrees[ni], cur.key, cur.mode);
+        if(scalePitch(newDeg,cur.key,cur.mode)+register!==midi){
+          // The scale-degree file cannot encode this accidental. Keep its exact
+          // MIDI pitch in the performance, as we do for imported MIDI edits.
+          const piece=structuredClone(cur);
+          piece.tracks[ti].events[eventIndex].midi=midi;
+          set({piece,status:`MIDI ${midi} in this performance · export MIDI to save the accidental.`});
+          loadPiece(piece);return;
+        }
         get().editSongFile((x) => {
           if (x.kind !== "song") return;
           const l = [...new Set(x.song.sections)][si]?.lines[li];
@@ -472,7 +502,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
           if (s) s.degrees[ni] = newDeg;
         });
         const actual = get().piece.tracks.find((t) => t.id === trackId)?.events[eventIndex]?.midi ?? midi;
-        const snapped = Math.abs(actual - midi) > 1 ? " (fitted to chord)" : "";
+        const snapped = actual !== midi ? " (lead-sheet scale)" : "";
         set({ status: `Updated ${trackId} note #${eventIndex + 1} → ${noteName(actual, cur.key, cur.mode)}${snapped}` });
         return;
       }
@@ -494,9 +524,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
       const lineObj = [...new Set(file.parsed.song.sections)][si]?.lines[li];
       const sung = lineObj && !("rest" in lineObj) ? (ai < 0 ? lineObj : lineObj.with?.[ai]) : null;
       if (lineObj && !("rest" in lineObj) && sung && sung.degrees[ni] !== undefined) {
-        const starts = lineStarts(file.parsed.song);
-        const lineStart = (starts.get(lineObj) ?? 4) + (ai >= 0 ? (sung.offset ?? 0) : 0);
-        const newDeg = stepLeadSheetDegree(sung.degrees[ni], steps, ev.beat, ev.beats, lineObj.chords, lineStart);
+        const newDeg = sung.degrees[ni] + steps;
         const oldDeg = sung.degrees[ni];
         const octaveShift = 12 * Math.round((ev.midi - scalePitch(oldDeg, cur.key, cur.mode)) / 12);
         get().editSongFile((x) => {
@@ -600,7 +628,7 @@ setMelodyEditHook((midi, index) => {
   const track = s.piece.tracks.find((t) => t.id === id) ?? s.piece.tracks[0];
   if (!track || !track.events.length) return null;
   const idx = Math.max(0, Math.min(track.events.length - 1, index));
-  const sung = midi + (s.voices[s.selected]?.octave ?? 0);
+  const sung = midi;
   s.editNotePitch(track.id, idx, sung);
   const nextIndex = (idx + 1) % track.events.length;
   return { nextIndex, label: `${track.id} note ${idx + 1}/${track.events.length} → ${noteName(sung, s.piece.key, s.piece.mode)}` };

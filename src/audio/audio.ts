@@ -23,7 +23,7 @@ export const useAudio = create<AppAudio>((set, get) => ({
   started: false,
   starting: false,
   error: "",
-  volume: 0.8,
+  volume: 1,
   start: () =>
     (starting ??= (async () => {
       set({ starting: true, error: "" });

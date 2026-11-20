@@ -4,9 +4,9 @@
  * Zero `stage.mp4` capture hack; 100% parity between live booth, `@remotion/player`, and export.
  */
 import React from "react";
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
-  Audio,
   Img,
   Sequence,
   interpolate,
@@ -17,6 +17,7 @@ import {
 } from "remotion";
 import { makeRound } from "../choir/music.ts";
 import { beatSeconds, LEAD_IN } from "../choir/timeline.ts";
+import { vocalLevelAt } from "../choir/vocalTiming.ts";
 import { CAST } from "../choir/voices.ts";
 import { moppet } from "../choir/cast/index.ts";
 import { STUDIO_404_CAST, STUDIO_404_CREW } from "../choir/studio404.ts";
@@ -24,10 +25,14 @@ import { manifestForCharacter } from "../choir/clipTimeline.ts";
 import {
   DEFAULT_VIDEO_PROPS,
   stageVoicesForPiece,
+  videoFrameLayout,
   type MoppetVideoProps,
   type TitleCardConfig,
 } from "../choir/videoProject.ts";
-import { neonAtlas } from "../stage/NeonSolo.tsx";
+import { puppetActions } from "../stage/RehearsalActor.tsx";
+import { workshopSongs, type WorkshopSinger } from "../stage/WorkshopSolo.tsx";
+import { Audition, CastMoment, StageFit } from "../rehearsal/Auditions";
+import { MoonbeamSolo } from "../rehearsal/MoonbeamSolo";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
 import { CharacterClip } from "./CharacterClip.tsx";
 
@@ -213,6 +218,10 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
     () => stageVoicesForPiece(piece, CAST, props.studio404),
     [piece, props.studio404],
   );
+  const poses = props.vocalTiming && voices.map(({ id }) => {
+    const level = vocalLevelAt(props.vocalTiming, id, stageSec) ?? 0;
+    return { singing: level > 0, level, open: level, viseme: level > 0.35 ? 4 : level > 0 ? 1 : 0 };
+  });
 
   const resolveAsset = React.useCallback((assetPath: string): string => {
     if (!assetPath || /^(?:https?:|data:|blob:|\/__video\/)/.test(assetPath)) return assetPath;
@@ -222,9 +231,21 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
   const showBand = piece.stage?.includes("band") || (piece.kind !== "skit" && piece.chords.length > 0);
   const preloadUrls = React.useMemo(() => {
     const urls = new Set<string>();
-    if (props.studio404 && piece.title === "Take Two") {
-      urls.add(resolveAsset("/rehearsal/sets/neon-repair.webp"));
-      for (const rolling of [true,false]) for (const open of [true,false]) urls.add(resolveAsset(neonAtlas(rolling,open)));
+    if (props.studio404) {
+      const workshop = (Object.keys(workshopSongs) as WorkshopSinger[]).find(id => workshopSongs[id] === piece.title);
+      if (workshop) {
+        for (const state of workshop === "tabby" ? ["open","closed"] : ["open","closed","prop"]) urls.add(resolveAsset(`/rehearsal/rigs/${workshop}/solo/${state}.webp`));
+        urls.add(resolveAsset(`/rehearsal/sets/${workshop}.webp`));
+      }
+      const pair = piece.title === "Right on Cue";
+      const players = pair ? ["cue", "neon"] : piece.title === "Take Two" ? ["neon"] : piece.title === "Line?" ? ["cue"] : [];
+      for (const player of players) {
+        for (const action of puppetActions[player as keyof typeof puppetActions]) urls.add(resolveAsset(`/rehearsal/pins/${player}/${action}.webp`));
+      }
+      if (players.length) {
+        const set = pair ? "right-on-cue" : players[0] === "neon" ? "neon-repair" : "cue";
+        urls.add(resolveAsset(`/rehearsal/sets/${set}.webp`));
+      }
     }
     for (const v of voices) {
       if (manifestForCharacter(v.id, props.studio404)) continue;
@@ -248,15 +269,13 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
         urls.add(resolveAsset(`${prefix}-play.webp`));
       }
     }
-    if (props.studio404) {
+    if (props.studio404 && (!piece.stage || piece.stage.some(id => ["critics","tracking","hertz"].includes(id)))) {
       for (const crew of [STUDIO_404_CREW.tracking, STUDIO_404_CREW.hertz]) {
-        urls.add(resolveAsset(`${crew.rigBase}/closed.webp`));
-        urls.add(resolveAsset(`${crew.rigBase}/sing-closed.webp`));
-        urls.add(resolveAsset(`${crew.rigBase}/open.webp`));
+        for (const state of ["open","closed","prop"]) urls.add(resolveAsset(`${crew.rigBase}/solo/${state}.webp`));
       }
     }
     return [...urls];
-  }, [voices, props.studio404, showBand, resolveAsset,piece.title]);
+  }, [voices, props.studio404, showBand, resolveAsset,piece.title,piece.stage]);
 
   const preloadLayer = preloadUrls.length > 0 && (
     <div
@@ -294,9 +313,10 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       studio404={props.studio404}
       beat={beat}
       timeSec={stageSec}
+      poses={poses}
       performing
       dancing
-      cameraFollow={props.cameraAutoFollow}
+      cameraFollow={props.cameraAutoFollow && stageSec >= LEAD_IN}
       customBubbles={props.bubbles}
       resolveAsset={resolveAsset}
       renderCharacterOverride={renderCharacterOverride}
@@ -307,7 +327,6 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
     return (
       <AbsoluteFill style={{ background: "#070203", opacity: fadeIn * fadeOut }}>
         {preloadLayer}
-        {props.audioUrl && <Audio src={props.audioUrl} volume={props.audioVolume} />}
         {stageElement}
       </AbsoluteFill>
     );
@@ -318,7 +337,6 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
   return (
     <AbsoluteFill style={{ background: "#0a0405", display: "flex", flexDirection: "column", opacity: fadeIn * fadeOut }}>
       {preloadLayer}
-      {props.audioUrl && <Audio src={props.audioUrl} volume={props.audioVolume} />}
       <div
         style={{
           padding: "58px 48px 28px",
@@ -374,10 +392,8 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
 };
 
 export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
-  const fps = Math.max(1, props.fps || 30);
-  const introFrames = props.intro.enabled ? Math.round(Math.max(0.4, props.intro.durationSec) * fps) : 0;
-  const stageFrames = Math.round(Math.max(1, props.stageDurationSec) * fps);
-  const outroFrames = props.outro.enabled ? Math.round(Math.max(0.4, props.outro.durationSec) * fps) : 0;
+  const { fps } = useVideoConfig();
+  const { introFrames, stageFrames, outroFrames } = videoFrameLayout({ ...props, fps });
 
   return (
     <AbsoluteFill style={{ background: "#070203" }}>
@@ -387,7 +403,14 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         </Sequence>
       )}
       <Sequence from={introFrames} durationInFrames={stageFrames}>
-        <MoppetStageScene props={props} />
+        {props.audioUrl && <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} />}
+        {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
+          : props.studio404 && ["line","take-two"].includes(props.slug) ?
+          <StageFit><Audition project={props} neon={props.slug==="take-two"}/></StageFit>
+          : <>
+          <MoppetStageScene props={props}/>
+          {props.studio404 && props.slug==="right-on-cue" && <CastMoment project={props}/>}
+        </>}
       </Sequence>
       {outroFrames > 0 && (
         <Sequence from={introFrames + stageFrames} durationInFrames={outroFrames}>
