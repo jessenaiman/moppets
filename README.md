@@ -36,9 +36,10 @@ bun run test       # wasm build, cargo test, bun test ./tests
 ## Public screening page
 
 Vercel serves the static files in `watch/`. The screening page plays rendered MP4s
-through the browser's video player and offers all 33 songs and three skits as MP3s. Update
-the media in `watch/` to publish a new screening version. The rehearsal editor runs
-locally with `bun run dev`.
+and full-length MP3s for all 33 songs and three skits through built-in browser controls.
+Check each MP3 against its score duration before updating the media in `watch/`.
+Run `bun tools/watch-audio-e2e.mjs <screening-url>` to check the public players.
+The rehearsal editor runs locally with `bun run dev`.
 
 ## How it uses CHIMERA
 

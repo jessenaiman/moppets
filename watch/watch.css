@@ -24,7 +24,10 @@ video {
 .song { margin-top: 1.25rem; }
 audio { width: min(100%, 32rem); display: block; }
 ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .6rem; }
-li a { display: flex; justify-content: space-between; gap: .6rem; padding: .75rem; border: 1px solid #5d4433; border-radius: .35rem; }
+li > a { display: flex; justify-content: space-between; gap: .6rem; padding: .75rem; border: 1px solid #5d4433; border-radius: .35rem; }
 a { color: #edc888; text-underline-offset: .2em; }
-li a span { color: #d4bea7; font-variant-numeric: tabular-nums; }
+li > a span { color: #d4bea7; font-variant-numeric: tabular-nums; }
 a:focus-visible { outline: 2px solid #edc888; outline-offset: 3px; }
+.track { min-width: 0; padding: .75rem; border: 1px solid #5d4433; border-radius: .35rem; }
+.track h3 { margin: 0 0 .5rem; font-size: 1rem; }
+.track audio { width: 100%; }
