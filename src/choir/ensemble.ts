@@ -26,7 +26,6 @@ import type { Piece } from "./music.ts";
 import { vocalLevelAt, type VocalTiming } from "./vocalTiming.ts";
 
 export type Status = "idle" | "preparing" | "rendering" | "buffering" | "playing" | "paused" | "ended";
-export type RenderMode = "auto" | "live" | "prerender";
 
 export interface EnsembleState {
   status: Status;
@@ -35,12 +34,10 @@ export interface EnsembleState {
   /** 0..1 of the whole score rendered */
   progress: number;
   message: string;
-  /** "live" (rendering just ahead) or "prerender" (finished first) while a performance runs */
-  howPlaying: "live" | "prerender" | null;
+  howPlaying: "live" | null;
   underruns: number;
   /** worst worker's seconds of CPU per second of audio */
   rtf: number;
-  renderMode: RenderMode;
   peak: number;
   limited: number;
   soloMix: boolean;
@@ -54,16 +51,10 @@ export interface EnsembleState {
  */
 export const useTelemetry = create<{ id: string; tele: TelemetryMessage | null }>(() => ({ id: "", tele: null }));
 
-export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, renderMode: "auto", peak: 0, limited: 0, soloMix: false, loopRange: null }));
+export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0, soloMix: false, loopRange: null }));
 
 /** How far ahead of the playhead live mode renders: the delay before a control is heard. */
 const LOOKAHEAD = 0.3;
-/** Auto: audio prepared before deciding live vs pre-render, and the worst real-time factor allowed. */
-const AUTO_PROBE = 1.0;
-const AUTO_MAX_RTF = 0.7;
-/** Auto: this many live underruns in one performance switch it to pre-render. */
-const MAX_UNDERRUNS = 3;
-
 type Singer = { nativeEnvelope?: number[]; worker: Worker; voice: MoppetVoice | null; index: number; rendered: number; frames: number; rtf: number; tele: Float32Array | null; recordSize: number; nArtic: number; nPh: number; nOr: number; nScope: number; edited: boolean };
 
 const set = useEnsemble.setState;
@@ -80,8 +71,6 @@ let pos: Extract<MixerOut, { type: "pos" }> | null = null;
 let raf = 0;
 let workersAlive = 0;
 let sessionsMade = 0;
-let waiting: "probe" | "complete" | null = null;
-let pendingStartFrame = 0;
 
 const post = (m: MixerIn, t: Transferable[] = []) => node?.port.postMessage(m, t);
 
@@ -117,19 +106,11 @@ function onMixer(m: MixerOut): void {
   if (m.type === "pos") {
     pos = m;
     set({ underruns: m.underruns, peak: m.peak, limited: m.limited });
-    if (get().status === "buffering" && !m.buffering && m.playing) set({ status: "playing", message: playingMessage() });
+    if (get().status === "buffering" && !m.buffering && m.playing) set({ status: "playing", message: "CHIMERA vocals · live mix." });
     else if (get().status === "playing" && m.buffering) set({ status: "buffering", message: "Waiting for the singers…" });
-    if (get().renderMode === "auto" && get().howPlaying === "live" && m.underruns >= MAX_UNDERRUNS) fallBackToPrerender();
   } else if (m.type === "ended" && session) {
     finishPlaying(m.frame);
   }
-}
-
-function playingMessage(): string {
-  const how = get().howPlaying;
-  if (how === "live") return "CHIMERA vocals · live mix.";
-  if (how === "prerender") return "Playing the pre-rendered performance.";
-  return "";
 }
 
 class Session {
@@ -258,18 +239,7 @@ class Session {
     const progress = done / total;
     const rtf = Math.max(0, ...this.singers.filter((s) => s.voice).map((s) => s.rtf));
     set({ progress, rtf });
-    const allAt = (f: number) => this.singers.every((s) => s.rendered >= Math.min(this.frames, f));
-    if (waiting === "probe" && allAt(Math.round(AUTO_PROBE * this.sampleRate))) {
-      waiting = null;
-      if (get().renderMode === "auto" && rtf >= AUTO_MAX_RTF) {
-        resumeAt = pendingStartFrame;
-        beginPrerender(`This device renders one voice at ${rtf.toFixed(2)}× real time, too slow for six live.`);
-      } else beginPlaying(pendingStartFrame, "live");
-    } else if (waiting === "complete" && allAt(this.frames)) {
-      waiting = null;
-      beginPlaying(resumeAt, "prerender");
-    }
-    if (get().status === "rendering" && waiting === "complete") set({ message: `Pre-rendering ${Math.round(progress * 100)} %. ${prerenderReason}` });
+
   }
 
   indexOf(id: string): number {
@@ -317,7 +287,6 @@ class Session {
   }
 }
 
-let prerenderReason = "";
 let resumeAt = 0;
 let playFromFrame = 0;
 let pendingStems: { deliver: (i: number, pcm: Float32Array) => void } | null = null;
@@ -371,14 +340,14 @@ function soloMixIndex(): number {
   return session.indexOf(soloId);
 }
 
-function beginPlaying(frame: number, how: "live" | "prerender"): void {
+function beginPlaying(frame: number): void {
   if (!session) return;
   if (audio.ctx?.state !== "running") {
     resumeAt = frame;
     set({
       status: "paused",
       time: frame / session.sampleRate,
-      howPlaying: how,
+      howPlaying: "live",
       message: "Audio was interrupted. Press Play to resume.",
     });
     return;
@@ -392,26 +361,10 @@ function beginPlaying(frame: number, how: "live" | "prerender"): void {
   post({ type: "play", generation, frame });
   for (const s of session.singers) {
     s.worker.postMessage({ type: "seek", frame, generation } satisfies ToSinger);
-    if (how === "live") s.worker.postMessage({ type: "pace", paced: true } satisfies ToSinger);
+    s.worker.postMessage({ type: "pace", paced: true } satisfies ToSinger);
   }
   startTick();
-  set({ status: "buffering", time: frame / session.sampleRate, howPlaying: how, message: how === "live" ? "Starting live…" : "Starting the pre-rendered performance…", progress: get().progress });
-}
-
-function beginPrerender(reason: string): void {
-  if (!session) return;
-  prerenderReason = reason;
-  waiting = "complete";
-  for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);
-  set({ status: "rendering", message: `Pre-rendering. ${reason}` });
-}
-
-function fallBackToPrerender(): void {
-  if (!session) return;
-  resumeAt = Math.floor(audibleFrame());
-  post({ type: "pause" });
-  beginPrerender(`Live rendering fell behind ${MAX_UNDERRUNS} times, so the rest is being finished first.`);
-  set({ howPlaying: "prerender" });
+  set({ status: "buffering", time: frame / session.sampleRate, howPlaying: "live", message: "Waiting for the singers…", progress: get().progress });
 }
 
 function finishPlaying(frame: number): void {
@@ -420,7 +373,7 @@ function finishPlaying(frame: number): void {
     const startFrame = Math.max(0, Math.min(session.frames, Math.round(loop.startSec * session.sampleRate)));
     resumeAt = startFrame;
     set({ time: startFrame / session.sampleRate });
-    beginPlaying(startFrame, get().howPlaying ?? "prerender");
+    beginPlaying(startFrame);
     return;
   }
   stopVisuals();
@@ -437,7 +390,6 @@ export function loadPiece(next: Piece): void {
   playToken++;
   disposeSession();
   piece = next;
-  pendingStartFrame = 0;
   set({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0, loopRange: null });
 }
 
@@ -449,7 +401,6 @@ export function setVoicesProvider(fn: () => MoppetVoice[]): void {
 
 function disposeSession(): void {
   stopVisuals();
-  waiting = null;
   post({ type: "clear", generation: ++generation });
   session?.dispose();
   session = null;
@@ -503,49 +454,23 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
     return;
   }
   if (token !== playToken) return;
-  const mode = get().renderMode;
-  const reuse = sessionFresh() && session!.sampleRate === audio.ctx.sampleRate;
-  if (!reuse) {
-    const paced = mode !== "prerender";
+  if (!sessionFresh() || session!.sampleRate !== audio.ctx.sampleRate) {
     disposeSession();
     try {
-      const requested=piece, voices=voicesProvider(), ctx=audio.ctx;
-      const stems=await pluginStems(requested,voices,ctx);
-      if(token!==playToken || piece!==requested)return;
-      session = new Session(requested, voices, ctx, paced, stems);
-    } catch (e) {
-      if(token!==playToken)return;
+      const requested = piece, voices = voicesProvider(), ctx = audio.ctx;
+      const stems = await pluginStems(requested, voices, ctx);
+      if (token !== playToken || piece !== requested) return;
+      session = new Session(requested, voices, ctx, true, stems);
+    } catch (error) {
+      if (token !== playToken) return;
       session = null;
-      set({ status: "idle", message: `Could not prepare the vocal: ${e instanceof Error ? e.message : String(e)}` });
+      set({ status: "idle", message: `Could not prepare the vocal: ${error instanceof Error ? error.message : String(error)}` });
       return;
     }
-    pendingStartFrame = Math.min(session.frames, Math.round(get().time * session.sampleRate));
     set({ duration: session.frames / session.sampleRate, progress: 0, vocalTiming: session.vocalTiming });
-    if (mode === "prerender") {
-      resumeAt = pendingStartFrame;
-      beginPrerender("Pre-render mode chosen.");
-    } else if (mode === "auto") {
-      // probe with a full second before committing to live
-      for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);
-      waiting = "probe";
-      set({ status: "rendering", message: "Measuring how fast this device sings…" });
-    } else {
-      waiting = "probe";
-      set({ status: "rendering", message: "Gathering the singers…" });
-    }
-    return;
   }
-  pendingStartFrame = Math.min(session!.frames, Math.round(get().time * session!.sampleRate));
-  if (session!.singers.every((s) => s.rendered >= s.frames)) {
-    beginPlaying(pendingStartFrame, "prerender");
-  } else {
-    waiting = "probe";
-    set({ status: "rendering", message: "Gathering the singers…" });
-    if (session!.singers.every((s) => s.rendered >= Math.round(AUTO_PROBE * session!.sampleRate))) {
-      waiting = null;
-      beginPlaying(pendingStartFrame, get().renderMode === "prerender" ? "prerender" : "live");
-    }
-  }
+  const active = session!;
+  beginPlaying(Math.min(active.frames, Math.round(get().time * active.sampleRate)));
 }
 let playToken = 0;
 
@@ -559,14 +484,12 @@ export function pause(): void {
 }
 
 function resume(): void {
-  beginPlaying(resumeAt, get().howPlaying ?? "live");
+  beginPlaying(resumeAt);
 }
 
 /** Back to the top, keeping what was rendered. */
 export function stop(): void {
   playToken++;
-  waiting = null;
-  pendingStartFrame = 0;
   post({ type: "pause" });
   stopVisuals();
   set({ status: "idle", time: 0, message: "", howPlaying: null, loopRange: null });
@@ -575,7 +498,6 @@ export function stop(): void {
 /** Abandon a render in progress. */
 export function cancel(): void {
   playToken++;
-  pendingStartFrame = 0;
   disposeSession();
   set({ status: "idle", time: 0, progress: 0, message: "Rendering cancelled. Nothing is playing.", howPlaying: null, loopRange: null });
 }
@@ -589,17 +511,12 @@ export function seek(seconds: number): void {
   }
   const frame = Math.min(session.frames, Math.round(time * session.sampleRate));
   resumeAt = frame;
-  if (waiting === "probe") pendingStartFrame = frame;
   set({ time: frame / session.sampleRate });
   const st = get().status;
   if (st === "playing" || st === "buffering") {
     // forward of the render head the singers race there; the shared timeline waits for them all
-    beginPlaying(frame, get().howPlaying ?? "live");
+    beginPlaying(frame);
   }
-}
-
-export function setRenderMode(mode: RenderMode): void {
-  set({ renderMode: mode });
 }
 
 /** Solo one Moppet in the main mix (or restore the full choir). */

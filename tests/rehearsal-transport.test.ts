@@ -90,17 +90,16 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       await page.evaluate(() => {
         const scope = window as unknown as ChoirWindow;
         const transport = scope.__choir.ensemble;
-        transport.setState({ renderMode: "prerender" });
         const unsubscribe = transport.subscribe(state => {
-          if (state.status !== "rendering") return;
+          if (state.status !== "buffering") return;
           unsubscribe();
           void scope.rehearsalAudio!.suspend();
         });
       });
       await play.click();
       await page.waitForFunction(() => {
-        const { status, progress } = (window as unknown as ChoirWindow).__choir.ensemble.getState();
-        return status === "paused" && progress === 1;
+        const { status } = (window as unknown as ChoirWindow).__choir.ensemble.getState();
+        return status === "paused";
       });
       expect((await running()).time).toBe(0);
       await play.click();

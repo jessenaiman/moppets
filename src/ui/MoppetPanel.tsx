@@ -12,7 +12,7 @@ import { checkSung, holdAt, holdFix, lineStarts, splitFix, splitNote, unholdAt }
 import type { Line, Section, Sung } from "../choir/songbook.ts";
 import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
-import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, play, pose, seek, setRenderMode, stop, useEnsemble, type RenderMode } from "../choir/ensemble.ts";
+import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, play, pose, seek, stop, useEnsemble } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
@@ -372,7 +372,6 @@ function Transport() {
   const duration = useEnsemble((s) => s.duration);
   const time = useEnsemble((s) => s.time);
   const howPlaying = useEnsemble((s) => s.howPlaying);
-  const renderMode = useEnsemble((s) => s.renderMode);
   const start = useAudio((s) => s.start);
   const volume = useAudio((s) => s.volume);
   const setVolume = useAudio((s) => s.setVolume);
@@ -391,16 +390,8 @@ function Transport() {
         <div><span>{fmt(time)}</span><span>{fmt(shown)}</span></div>
       </div>
       <label className="volume">VOL <input aria-label="Playback volume" type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} /></label>
-      <label className="render-mode" title="Live: six engines rendered just ahead on one timeline. Pre-render: the whole performance is finished first.">
-        Render
-        <select value={renderMode} onChange={(e) => setRenderMode(e.target.value as RenderMode)}>
-          <option value="auto">Auto</option>
-          <option value="live">Live</option>
-          <option value="prerender">Pre-render</option>
-        </select>
-      </label>
       {status==="idle" && message.includes("plug-in") && <small role="status">{message}</small>}
-      <span className="how">{howPlaying === "live" ? "Live" : howPlaying === "prerender" ? "Pre-rendered" : ""}</span>
+      <span className="how">{howPlaying === "live" ? "Live" : ""}</span>
     </div>
   );
 }

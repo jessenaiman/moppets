@@ -18,8 +18,8 @@ SoundCraft renders the vocals with the upstream CHIMERA CLAP instrument. The sta
 - **Videos:** Run `bun run dev`, select a song or skit, then choose **Export MP4** in the rehearsal
   toolbar. The app prepares a WAV from the score and current singer levels and passes its vocal
   timing to Remotion. The MP4 is written under `out/video/<title>/`.
-- **Audio sync:** Live and pre-rendered rehearsals advance from the same audio sample clock. If the browser
-  suspends audio during preparation or playback, press **Play** to continue at that position.
+- **Audio sync:** Rehearsal picture follows the audio sample clock. Playback starts once the mixer has
+  enough samples to begin. If the browser suspends audio, press **Play** to continue at that position.
 - **A Launchkey Mini** (any MIDI controller): the eight encoders control the eight cast volumes. The top pads select performers and the bottom pads trigger gestures.
 
 ## Run it
