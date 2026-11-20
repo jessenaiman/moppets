@@ -5,6 +5,7 @@ import { wavBytes } from "../src/choir/mix.ts";
 
 type ChoirWindow = Window & {
   mixerLevels: number[][];
+  rehearsalAudio?: AudioContext;
   __choir: {
     ensemble: typeof import("../src/choir/ensemble.ts").useEnsemble;
     moppet: typeof import("../src/choir/store.ts").useMoppet;
@@ -21,6 +22,13 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       await page.addInitScript(() => {
         const scope = window as unknown as ChoirWindow;
         scope.mixerLevels = [];
+        const BrowserAudioContext = window.AudioContext;
+        window.AudioContext = class extends BrowserAudioContext {
+          constructor(options?: AudioContextOptions) {
+            super(options);
+            if (options?.latencyHint === "interactive") scope.rehearsalAudio = this;
+          }
+        };
         const send = MessagePort.prototype.postMessage;
         MessagePort.prototype.postMessage = function (message, ...rest: [transferOrOptions?: Transferable[] | StructuredSerializeOptions]) {
           if (message?.type === "voiceLevels") scope.mixerLevels.push(message.values);
@@ -64,6 +72,17 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       expect(await page.locator(".vs-player-frame audio").count()).toBe(0);
       await page.getByRole("button", { name: "Pause video", exact: true }).click();
       expect((await running()).status).toBe("paused");
+      await page.getByRole("button", { name: "Play video", exact: true }).click();
+      await advancePast(0.8);
+      await page.evaluate(() => (window as unknown as ChoirWindow).rehearsalAudio!.suspend());
+      const play = page.getByRole("button", { name: "Play video", exact: true });
+      await play.waitFor();
+      const suspended = await running();
+      expect(suspended.status).toBe("paused");
+      await play.click();
+      await advancePast(suspended.time + 0.15);
+      expect(await page.evaluate(() => (window as unknown as ChoirWindow).rehearsalAudio!.state)).toBe("running");
+      await page.getByRole("button", { name: "Pause video", exact: true }).click();
       await seek.press("Home");
       expect((await running()).time).toBe(0);
     } finally {

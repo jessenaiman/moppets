@@ -98,6 +98,9 @@ async function ensureMixer(ctx: AudioContext): Promise<void> {
     mixer.connect(performanceGain, 0);
     // Output 1 is the inspected singer alone, reserved for analysers.
     audio.connect(performanceGain);
+    ctx.addEventListener("statechange", () => {
+      if (ctx.state !== "running") pause();
+    });
     mixer.port.onmessage = (e: MessageEvent<MixerOut>) => onMixer(e.data);
     node = mixer;
   }).finally(() => { mixerLoading = null; });
@@ -449,7 +452,18 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
   const st = get().status;
   if (!piece || st === "preparing" || st === "rendering" || st === "buffering") return;
   if (st === "playing") return pause();
-  if (st === "paused" && session) return resume();
+  if (st === "paused" && session) {
+    const pausedSession = session;
+    try {
+      await start();
+    } catch (error) {
+      if (session === pausedSession && get().status === "paused")
+        set({ message: `Could not resume audio: ${error instanceof Error ? error.message : String(error)}` });
+      return;
+    }
+    if (session === pausedSession && get().status === "paused") resume();
+    return;
+  }
   const token = ++playToken;
   set({ status: "preparing", time: startSec, message: "Waking the singers…" });
   try {
@@ -591,7 +605,7 @@ export async function playLoop(start: () => Promise<void>, range: { startSec: nu
   const st = get().status;
   if (session && sessionFresh() && (st === "playing" || st === "buffering" || st === "paused")) {
     seek(range.startSec);
-    if (st === "paused") resume();
+    if (st === "paused") await play(start, range.startSec);
     return;
   }
   await play(start, range.startSec);
