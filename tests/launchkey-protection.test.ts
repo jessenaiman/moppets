@@ -11,6 +11,10 @@ test("a saved fry mapping cannot edit a voice during performance", async () => {
       const page = await browser.newPage();
       await page.addInitScript(() => localStorage.setItem("moppet-midi-map-v2", JSON.stringify({21:"fry",74:"tension"})));
       await page.goto(server.resolvedUrls!.local[0]);
+      const lesson = page.getByRole("combobox", { name: "Video lesson" });
+      expect(await lesson.inputValue()).toBe("found");
+      await lesson.selectOption("right-on-cue");
+      await page.getByRole("button", { name: "Cue", exact: true }).first().click();
       await page.getByRole("button",{name:/Reset Cue vocals/}).waitFor();
       const result = await page.evaluate(() => {
         type Choir = {

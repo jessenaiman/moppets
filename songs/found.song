@@ -7,7 +7,7 @@ key: D
 bpm: 96
 beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
 backing: vee +0, pip +2, scribe +4
-finale: "Home" on 7
+finale: "At four oh four we all belong" = 4/.5 5/.25 4/.25 2/.5 1/.5 2/.5 1/.5 0
 
 # The words and story are docs/briefs/moppet-world.md. Cue, Biscuit and Watt have no CHIMERA voice
 # yet, so for now Scribe's voice sings Cue's lines, Vee's sings Biscuit's and Pip's sings Watt's.
@@ -24,7 +24,7 @@ tune lift = 0 2 4 5 7/.5 7/.5 9 7/2 | IV 4, V 4
 # have no voice yet: Pip's voice sings Spool's line and Vee's sings Hertz's. Hertz knew only
 # static until he made friends, so he closes the verse.
 [verse 1]
-vee: "I was the keys by the back door" = a ; do nod               # Biscuit
+vee: "I was the keys by the back door" = a ; do nod               # Clacker on camera, Vee singing
   + clank @7: "beep" = 0
 pip: "I was a tape left in a drawer" = b ; do nod                 # Spool
 clank: "I was a fridge sized thinking box" = a ; do nod
@@ -35,20 +35,20 @@ chip: "I was a disk beneath a bed" = b ; do nod
 "I was a screen that lost its glow" = a ; do nod
 vee: "I was all snow until they came" = end ; do nod              # Hertz
 
-# The old chorus words (first draft, 8c5f794), on the new harmony.
+# Each return uses the original eight-bar tune and three-part harmony.
 [chorus, choir]
 "We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
   + chip: "We are the found things put to use" = 6/.5 6/.5 7 9 9 7 6 4/2
   + gruff: "We are the found things put to use" = 2/.5 2/.5 3 5 5 3 2 0/2
-"Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
-  + chip: "Built from the bits that you let loose" = 4 4/.5 6/.5 7 7 6 4 3/2
-  + gruff: "Built from the bits that you let loose" = 0 0/.5 2/.5 3 3 2 0 -1/2
+"Built from the bits that you set loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
+  + chip: "Built from the bits that you set loose" = 4 4/.5 6/.5 7 7 6 4 3/2
+  + gruff: "Built from the bits that you set loose" = 0 0/.5 2/.5 3 3 2 0 -1/2
 "Thank you for all you left behind" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
   + chip: "Thank you for all you left behind" = 6/.5 6/.5 7 9 10 9 7 6/2
   + gruff: "Thank you for all you left behind" = 2/.5 2/.5 3 5 6 5 3 2/2
-"At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
-  + chip: "At four oh four we all belong" = 6 7/.5 6/.5 4 3 4 3 2/2
-  + gruff: "At four oh four we all belong" = 2 3/.5 2/.5 0 -1 0 -1 -2/2
+"Look what we helped each other find" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+  + chip: "Look what we helped each other find" = 6 7/.5 6/.5 4 3 4 3 2/2
+  + gruff: "Look what we helped each other find" = 2 3/.5 2/.5 0 -1 0 -1 -2/2
 
 # Verse 2: what nobody saw in them. Cue's blank last page closes it, and turns the song to growing.
 [verse 2]
@@ -76,7 +76,7 @@ vee: "So I am kind and I rewind" = b ; do nod                      # Biscuit
 [repeat chorus]
 
 [bridge]
-vee: "I counted down to zero" = low ; do nod                       # Biscuit
+vee: "I counted down to zero" = low ; do nod                       # Click on camera, Vee singing
 clank: "Zero means there's nothing there" = low ; do tilt
 "Quiet is a kind of song" = low
 chip: "So let's count down again from ten" = lift ; do nod

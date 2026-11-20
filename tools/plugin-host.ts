@@ -30,8 +30,8 @@ export async function bouncePart(part: InstrumentPart, output: string, session?:
     cmd("mix.insert_state",{track:1,slot:"instrument",state:Buffer.concat([len,data]).toString("base64")});
     cmd("midi.new_clip",{track:1,start:0,length:Math.ceil(48000*part.duration)});
     const lead=part.lead*part.bpm/60;
-    for(const [beat,length,midi] of part.notes)cmd("event.midi_note",{clip:2,pitch:midi,
-      start_ticks:Math.round(960*(lead+beat)),length_ticks:Math.max(1,Math.round(960*length)-1),velocity:90});
+    for(const [beat,length,midi,velocity=90] of part.notes)cmd("event.midi_note",{clip:2,pitch:midi,
+      start_ticks:Math.round(960*(lead+beat)),length_ticks:Math.max(1,Math.round(960*length)-1),velocity});
     const script=join(dir,"render.txt"), wav=join(dir,"voice.wav");
     await writeFile(script,commands.join("\n"));
     const env={...process.env,CLAP_PATH:[resolve("out/chimera-plugin"),process.env.CLAP_PATH].filter(Boolean).join(":")};

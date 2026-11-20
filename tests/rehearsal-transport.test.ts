@@ -33,6 +33,10 @@ test("the Remotion rehearsal sends singer faders to the running CHIMERA mixer", 
       const vocal = Buffer.from(wavBytes(samples, 48000));
       await page.route("**/plugin-vocals/*.ogg", route => route.fulfill({ contentType: "audio/wav", body: vocal }));
       await page.goto(server.resolvedUrls!.local[0]);
+      const lesson = page.getByRole("combobox", { name: "Video lesson" });
+      expect(await lesson.inputValue()).toBe("found");
+      await lesson.selectOption("right-on-cue");
+      await page.getByRole("button", { name: "Cue", exact: true }).first().click();
 
       const seek = page.getByRole("slider", { name: "Seek rehearsal" });
       await seek.press("ArrowRight");

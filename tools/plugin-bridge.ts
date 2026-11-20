@@ -18,7 +18,7 @@ export function pluginVocalBridge(): Plugin {
         const part:InstrumentPart=JSON.parse(Buffer.concat(chunks).toString());
         if(!["sing","speak","play"].includes(part.mode)||part.version!==1 || typeof part.lyrics!=="string"||part.lyrics.length>16000||
           !(part.duration>0 && part.duration<=600)||!(part.bpm>=20 && part.bpm<=400)||!(part.lead>=0 && part.lead<=2)||
-          !Array.isArray(part.notes)||part.notes.length>4096||!part.notes.every(n=>Array.isArray(n)&&n.length===3&&n.every(Number.isFinite)&&n[0]>=0&&n[1]>0&&Number.isInteger(n[2])&&n[2]>=0&&n[2]<=127)||
+          !Array.isArray(part.notes)||part.notes.length>4096||!part.notes.every(n=>Array.isArray(n)&&(n.length===3||(n.length===4&&Number.isInteger(n[3])&&n[3]>=1&&n[3]<=127))&&n.every(Number.isFinite)&&n[0]>=0&&n[1]>0&&Number.isInteger(n[2])&&n[2]>=0&&n[2]<=127)||
           !/^[a-z]{1,16}$/.test(part.voice)||!part.body||!part.source ||
           ![part.body.female,part.body.child].every(v=>Number.isFinite(v)&&v>=0&&v<=1) ||
           !["breath","pressed","bright","breathy","rough"].every(k=>Number.isFinite(part.source[k as keyof typeof part.source])) ||

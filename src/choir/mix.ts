@@ -20,7 +20,7 @@ export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: nu
   const level = (id: string) => (solo ? 0.8 / BUS_GAIN : 1) * (levels[id] ?? 1);
   const gains = piece.tracks.map((t) => level(t.id));
   const pluckGain = (hasBand(piece) ? BAND_LEVEL : 1) / BUS_GAIN;
-  if (hasAccompaniment(piece)) gains.push(pluckGain);
+  if (hasAccompaniment(piece)) gains.push(piece.title === "Found Things" ? pluckGain * 0.8 : pluckGain);
   const extras = extraStems(piece);
   for (const e of extras) gains.push(e === "beat" ? 1 : 0.32);
   // A pair trading lines spends much of the song at solo density. Bring

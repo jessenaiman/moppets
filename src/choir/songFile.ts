@@ -237,8 +237,9 @@ export function parseSongFile(text: string, file = "song"): SongFile {
   const [key, mode] = need("key").split(/\s+/);
   const beat = meta.get("beat");
   const bm = beat ? /^(.*?)\s*\(swing\s+([\d.]+)\)$/.exec(beat) : null;
-  const fin = /^"(.*)"\s+on\s+(-?\d+)$/.exec(need("finale"));
+  const fin = /^"([^"]*)"\s+(?:on\s+(-?\d+)|=\s*(.+))$/.exec(need("finale"));
   if (!fin) throw new SongFileError(file, 1, `finale: "Word" on <degree>`);
+  const finaleNotes = fin[3] ? parseNotes(fin[3]) : undefined;
   const meter = meta.get("meter");
   if (meter !== undefined && !/^(?:[1-9]|[1-9]\d)\/(1|2|4|8|16|32)$/.test(meter)) throw new SongFileError(file,1,"Invalid meter; use a time signature such as 3/4 or 6/8");
   const song: Song = {
@@ -257,7 +258,7 @@ export function parseSongFile(text: string, file = "song"): SongFile {
     ...(meta.has("bass") ? { bass: meta.get("bass")! } : {}),
     ...(meta.has("stage") ? { stage: meta.get("stage")!.split(",").map((x) => x.trim()).filter(Boolean) } : {}),
     ...(beat ? { beat: { text: bm ? bm[1] : beat, swing: bm ? num(bm[2]) : 0 } } : {}),
-    finale: { word: fin[1], degree: num(fin[2]) },
+    finale: { word: fin[1], degree: finaleNotes?.degrees.at(-1) ?? num(fin[2]), ...(finaleNotes ? { notes: finaleNotes } : {}) },
   };
   return { kind: "song", id, tab: meta.get("tab") ?? song.title, song };
 }
@@ -291,7 +292,7 @@ export function printSongFile(f: SongFile): string {
     `backing: ${s.seats.map(([w, o]) => `${w} +${fmt(o)}`).join(", ")}`,
     ...(s.bass ? [`bass: ${s.bass}`] : []),
     ...(s.stage ? [`stage: ${s.stage.join(", ")}`] : []),
-    `finale: "${s.finale.word}" on ${fmt(s.finale.degree)}`,
+    `finale: "${s.finale.word}" ${s.finale.notes ? `= ${notes(s.finale.notes)}` : `on ${fmt(s.finale.degree)}`}`,
   ];
   // a line's music used three or more times becomes a named tune
   const key = (l: { degrees: number[]; rhythm: number[]; chords?: [number, number][] }) => `${notes(l)} | ${l.chords ? chords(l.chords) : ""}`;

@@ -60,7 +60,7 @@ export interface Song {
   stage?: string[];
   beat?: { text: string; swing: number };
   /** the last word, held by the lead over the home chord while everyone lands */
-  finale: { word: string; degree: number };
+  finale: { word: string; degree: number; notes?: Pick<Sung, "degrees" | "rhythm"> };
 }
 
 const REGISTER: Record<string, [number, number]> = Object.fromEntries(CAST.map((v) => [v.id, v.register]));
@@ -137,7 +137,9 @@ export function buildSong(s: Song): Piece {
   chords.push({ ...chordInfo(0, key, mode), beat: at, beats: barLength });
   // everyone on stage lands on it (offstage Moppets stay quiet)
   for (const [id, d] of FINALE_SEATS) if (id !== s.lead && (!s.stage || s.stage.includes(id))) pad(id, at, d, barLength);
-  sing(s.lead, { words: s.finale.word, degrees: [s.finale.degree], rhythm: [barLength] }, at);
+  const finaleNotes = s.finale.notes ?? { degrees: [s.finale.degree], rhythm: [barLength] };
+  if (Math.abs(sum(finaleNotes.rhythm) - barLength) > 1e-9) throw new Error(`${s.title}: the finale must fill one bar`);
+  sing(s.lead, { words: s.finale.word, ...finaleNotes }, at);
 
   // each singer's sung part moves by whole octaves into its register, keeping its contour
   const tracks: Track[] = [];

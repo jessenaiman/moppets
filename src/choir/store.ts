@@ -203,12 +203,12 @@ function persist(voices: MoppetVoice[]): void {
 }
 
 export const useMoppet = create<MoppetState>((set, get) => {
-  const initialPiece = SONGBOOK.find((x) => x.id === "right-on-cue")?.make() ?? invent(DEFAULT_INVENTION);
+  const initialPiece = SONGBOOK.find((x) => x.id === "found")?.make() ?? invent(DEFAULT_INVENTION);
   const leadIndex = defaults.findIndex(v => v.id === initialPiece.tracks[0]?.id);
   return {
   voices: loadSaved(),
   selected: Math.max(0, leadIndex),
-  lesson: "right-on-cue",
+  lesson: "found",
   piece: initialPiece,
   progression: DEFAULT_INVENTION.progression,
   groove: DEFAULT_INVENTION.groove,

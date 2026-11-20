@@ -573,9 +573,9 @@ export function RehearsalStaffPanel() {
           </div>
         );
       }
-      if (activePhrase.notes.length === 1) {
+      if (song.finale.notes || activePhrase.notes.length === 1) {
         const finaleWord = song.finale.word;
-        const check = dictReady ? checkSung({ words: finaleWord, rhythm: [4] }) : null;
+        const check = dictReady ? checkSung({ words: finaleWord, rhythm: activePhrase.notes.map(n => n.beats) }) : null;
         return (
           <div className="staff-lyric-bar">
             <label htmlFor={lyricInputId}>Line lyrics</label>
@@ -592,7 +592,7 @@ export function RehearsalStaffPanel() {
               }}
             />
             <small className={`staff-lyric-status ${!check ? "hint" : check.ok ? "ok" : "bad"}`}>
-              {!check ? "Loading dictionary…" : check.ok ? "1 note ✓" : check.problem}
+              {!check ? "Loading dictionary…" : check.ok ? `${activePhrase.notes.length} note${activePhrase.notes.length === 1 ? "" : "s"} ✓` : check.problem}
             </small>
           </div>
         );
