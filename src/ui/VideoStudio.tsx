@@ -1,3 +1,4 @@
+import foundTiming from "../choir/found-timing.json";
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { staticFile } from "remotion";
@@ -142,7 +143,7 @@ export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing:
   const previewProject = useMemo(() => ({
     ...project, audioUrl: recorded ? staticFile(`recordings/${lesson}.mp3`) : null,
     audioVolume: recorded ? project.audioVolume * masterVolume : project.audioVolume,
-    vocalTiming: recorded ? undefined : vocalTiming,
+    vocalTiming: recorded ? (lesson === "found" ? foundTiming : undefined) : vocalTiming,
   }), [project, vocalTiming, recorded, lesson, masterVolume]);
   const curSec = transport.frame / fps;
   const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));

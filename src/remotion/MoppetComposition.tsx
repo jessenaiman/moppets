@@ -243,6 +243,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
   }, []);
 
   const showBand = piece.stage?.includes("band") || (piece.kind !== "skit" && piece.chords.length > 0);
+  const useMeasuredMouths = piece.title === "Found Things" && !!props.vocalTiming;
   const preloadUrls = React.useMemo(() => {
     const urls = new Set<string>();
     if (props.studio404) {
@@ -262,7 +263,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       }
     }
     for (const v of voices) {
-      if (manifestForCharacter(v.id, props.studio404)) continue;
+      if (!useMeasuredMouths && manifestForCharacter(v.id, props.studio404)) continue;
       const s404 = props.studio404 ? STUDIO_404_CAST[v.id] : undefined;
       if (s404) {
         urls.add(resolveAsset(`/rehearsal/rigs/${s404.artKey}/closed.webp`));
@@ -289,7 +290,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       }
     }
     return [...urls];
-  }, [voices, props.studio404, showBand, resolveAsset,piece.title,piece.stage]);
+  }, [voices, props.studio404, showBand, resolveAsset,piece.title,piece.stage,useMeasuredMouths]);
 
   const preloadLayer = preloadUrls.length > 0 && (
     <div
@@ -333,7 +334,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       cameraFollow={props.cameraAutoFollow && stageSec >= LEAD_IN}
       customBubbles={props.bubbles}
       resolveAsset={resolveAsset}
-      renderCharacterOverride={renderCharacterOverride}
+      renderCharacterOverride={useMeasuredMouths ? undefined : renderCharacterOverride}
     />
   );
 

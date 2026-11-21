@@ -7,7 +7,7 @@ import { gunzipSync } from "node:zlib";
 import { execFileSync } from "node:child_process";
 import { bouncePart } from "./plugin-host.ts";
 import { instrumentPart, scoredBeatPath, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "../tests/harness.ts";
 await initEngine();
@@ -49,6 +49,21 @@ for (const [name, piece] of Object.entries(pieces)) {
     if (peak < 1e-3) throw new Error(`${name}/${t.id}: silent stem`);
     rows.push(`${t.id} ${peak.toFixed(2)}`);
     stems.push(stem);
+  }
+  if (piece.title === "Found Things") {
+    // Keep sample zero aligned with the published mix, including the instrumental intro.
+    const fps = 30, window = FS / fps;
+    const envelopes = Object.fromEntries(piece.tracks.map((track, index) => {
+      const samples = stems[index];
+      const levels = Array.from({length: Math.ceil(frames / window)}, (_, frame) => {
+        const start = frame * window, end = Math.min(start + window, frames);
+        let energy = 0;
+        for (let i = start; i < end; i++) energy += samples[i] * samples[i];
+        return Math.round(10000 * Math.sqrt(energy / (end - start))) / 10000;
+      });
+      return [track.id, levels];
+    }));
+    writeFileSync(`${out}/found-timing.json`, JSON.stringify({framesPerSecond: fps, envelopes}) + "\n");
   }
   const backing = renderAccompaniment(piece, FS, frames);
   if (backing) stems.push(backing);
