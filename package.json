@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint:layout": "bun run wasm && bun tools/layout-lint.ts",
     "wasm": "cargo build -p moppet-wasm --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/moppet_wasm.wasm src/audio/moppet.wasm",
-    "chimera:update": "(git submodule update --init --remote chimera || echo 'chimera: could not fetch, building the checkout as it is') && git -C chimera log --oneline -1 && bun run wasm"
+    "chimera:update": "git submodule update --init --recursive -- chimera && git -C chimera log --oneline -1 && bun run wasm"
   },
   "dependencies": {
     "@radix-ui/react-slider": "^1.6.1",

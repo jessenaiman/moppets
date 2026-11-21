@@ -29,7 +29,7 @@ Needs Rust with the `wasm32-unknown-unknown` target, and Bun.
 ```sh
 git clone --recurse-submodules …      # or, in a clone: git submodule update --init
 bun install
-bun run dev        # takes CHIMERA's newest main, builds the wasm, then Vite on 127.0.0.1:5417
+bun run dev        # checks out the pinned CHIMERA revision, builds the wasm, then Vite on 127.0.0.1:5417
 bun run test       # wasm build, cargo test, bun test ./tests
 ```
 
@@ -43,10 +43,10 @@ The Vercel build uses the CHIMERA submodule revision recorded by Git.
 
 ## How it uses CHIMERA
 
-- **`chimera/`** follows CHIMERA's `main` (`branch = main` in `.gitmodules`). `bun run dev` and
-  `bun run build` take its newest commit first (`bun run chimera:update`, which also rebuilds the
-  engine; offline, they build the checkout as it is). Git still records which commit a Moppets
-  commit was made against. The production build uses that recorded commit.
+- **`chimera/`** is pinned to the commit recorded in this repository. Both local builds and
+  Vercel use `bun run chimera:update` to initialize that checkout before rebuilding the engine.
+  To upgrade CHIMERA deliberately, run `git submodule update --remote -- chimera`, stage the
+  new pin with `git add chimera`, then test and commit the change.
 - **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
   plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
   itself doesn't offer (Gruff and Clank are giants).

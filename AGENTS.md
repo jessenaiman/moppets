@@ -1,6 +1,6 @@
 # The Moppets
 
-Found-object characters with physically modelled voices, on CHIMERA (its `main`, in `chimera/`). See
+Found-object characters with physically modelled voices, on CHIMERA (pinned in `chimera/`). See
 the README.
 
 ## Working here
@@ -16,8 +16,8 @@ the README.
 
 ## Map
 
-- `chimera/`: CHIMERA, a git submodule following its `main`; `bun run dev` and `bun run build`
-  take the newest (`bun run chimera:update`). **Never edit it**; its own AGENTS.md governs it, not
+- `chimera/`: CHIMERA, a pinned git submodule. `bun run dev` and `bun run build`
+  check out the recorded revision (`bun run chimera:update`). **Never edit it**; its own AGENTS.md governs it, not
   this repo.
 - `crates/moppet-wasm/`: the app's wasm: CHIMERA's C ABI plus the sized Moppet voices (`moppet_*`).
 - `src/choir/`: the Moppets (cast, scores, songs, skits, band, gestures, the ensemble of singer
