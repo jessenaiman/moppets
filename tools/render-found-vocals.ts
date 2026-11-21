@@ -9,7 +9,7 @@ const { beatReady, EnglishG2P, parseBeat } = await import("@chimera/wasm/engine.
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync("public/data/cmudict.txt.gz")).toString());
 const { SONGBOOK } = await import("../src/choir/songbook");
 const { CAST } = await import("../src/choir/voices");
-const { planTrack, pieceSeconds, LEAD_IN, beatSeconds } = await import("../src/choir/plan");
+const { planTrack, pieceSeconds, LEAD_IN } = await import("../src/choir/plan");
 const { CueCore, SingerCore, midiToHz, hopFor } = await import("../src/choir/singerCore");
 const piece = SONGBOOK.find(s => s.id === "found")!.make();
 const sampleRate = 48000;
@@ -44,19 +44,6 @@ for (const track of piece.tracks) {
   });
   try {
     while (core.rendered < frames) core.step();
-    if (track.id === "clank") {
-      // Preserve the recorded bass entrance through the first bar of the arrangement.
-      const end = LEAD_IN + (piece.sections?.[1]?.beat ?? 4) * beatSeconds(piece);
-      const fade = 0.025;
-      const source = "public/plugin-vocals/bcc55d54f88ea7a56609d5d986d174192ad9796f1ca8d022f41487a33a5aa71d.ogg";
-      const pcm = execFileSync("ffmpeg", ["-v", "error", "-i", source, "-t", String(end + fade),
-        "-ar", String(sampleRate), "-ac", "1", "-f", "f32le", "pipe:1"]);
-      const preserved = new Float32Array(pcm.buffer, pcm.byteOffset, pcm.byteLength / 4);
-      for (let i = 0; i < preserved.length; i++) {
-        const blend = Math.min(1, (preserved.length - i) / (fade * sampleRate));
-        core.stem[i] = preserved[i] * blend + core.stem[i] * (1 - blend);
-      }
-    }
     writeStem(file, core.stem);
     console.log(voice.name, file);
   } finally { core.dispose(); }

@@ -110,6 +110,16 @@ export function arrange(piece: Piece): BandPart[] {
       if (inBar === 3) for (const m of voicing) keys.push({ beat: b + off, beats: 0.3, midi: m, vel: 48 });
     }
   }
+  if (piece.title === "Found Things" && chords[0].beat === 0 && chords[1]?.beat === 12) {
+    // The eight beats after the count-in carry the opening verse melody in the bass register.
+    const tonic = near(chords[0].tones[0], 38);
+    let beat = 4;
+    for (const [interval, beats] of [[0,.5],[4,.5],[7,1],[7,1],[9,1],[7,1],[4,1],[7,2]]) {
+      bass.push({ beat, beats: beats * .93, midi: tonic + interval, vel: 100 });
+      beat += beats;
+    }
+    bass.sort((a,b) => a.beat - b.beat);
+  }
   if (gruffSolo) return [{ id: "bass", channel: BAND_SETUP.bass.channel, program: BAND_SETUP.bass.program, notes: bass }];
   if (!piece.beat) {
     // the kit: kick on 1 and 3, snare on 2 and 4, eighth hats; a crash where the band starts

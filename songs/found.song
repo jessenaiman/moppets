@@ -4,15 +4,15 @@ tab: 13 · Found Things
 about: 13 · The finale: the Found Things thank whoever left them behind
 lead: tabby
 key: D
-bpm: 96
+bpm: 92
+bass: none
 beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
 backing: vee +0, pip +2, scribe +4
-finale: "At four oh four we all belong" = 4/.5 5/.25 4/.25 2/.5 1/.5 2/.5 1/.5 0
+finale: "Belong" = 1 0/3
 
 # The words and story are docs/briefs/moppet-world.md. Cue, Biscuit and Watt have no CHIMERA voice
 # yet, so for now Scribe's voice sings Cue's lines, Vee's sings Biscuit's and Pip's sings Watt's.
-# The leads are Tabby (the tune), Chip (two steps above) and Gruff (two steps below); in the
-# choruses the others pad the chords.
+# The leads are Tabby (the tune), Chip (two steps above) and Gruff (two steps below); Chip and Gruff join Tabby on the chorus hook.
 
 tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
 tune b = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
@@ -24,7 +24,9 @@ tune lift = 0 2 4 5 7/.5 7/.5 9 7/2 | IV 4, V 4
 # have no voice yet: Pip's voice sings Spool's line and Vee's sings Hertz's. Hertz knew only
 # static until he made friends, so he closes the verse.
 [verse 1]
-pip: "I was a tape left in a drawer" = a ; do nod                 # Spool
+rest 8  # The band plays the original tape melody on electric bass.
+pip: "Each screen I ask says four oh four" = a ; do nod
+pip: "So that must be this place for sure" = b
 scribe: "I was the keys by the back door" = b ; do nod
   + clank @7: "beep" = 0
 clank: "I was a fridge sized thinking box" = a ; do nod
@@ -35,20 +37,14 @@ chip: "I was a disk beneath a bed" = b ; do nod
 "I was a screen that lost its glow" = a ; do nod
 vee: "I was all snow until they came" = end ; do nod              # Hertz
 
-# Each return uses the original eight-bar tune and three-part harmony.
-[chorus, choir]
-"We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
-  + chip: "We are the found things put to use" = 6/.5 6/.5 7 9 9 7 6 4/2
-  + gruff: "We are the found things put to use" = 2/.5 2/.5 3 5 5 3 2 0/2
-"Built from the bits that you set loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
-  + chip: "Built from the bits that you set loose" = 4 4/.5 6/.5 7 7 6 4 3/2
-  + gruff: "Built from the bits that you set loose" = 0 0/.5 2/.5 3 3 2 0 -1/2
-"Thank you for all you left behind" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
-  + chip: "Thank you for all you left behind" = 6/.5 6/.5 7 9 10 9 7 6/2
-  + gruff: "Thank you for all you left behind" = 2/.5 2/.5 3 5 6 5 3 2/2
-"Look what we helped each other find" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
-  + chip: "Look what we helped each other find" = 6 7/.5 6/.5 4 3 4 3 2/2
-  + gruff: "Look what we helped each other find" = 2 3/.5 2/.5 0 -1 0 -1 -2/2
+# Tabby carries the chorus. Chip and Gruff answer in harmony on the last line.
+[chorus]
+"We are the things you left behind" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
+"Built from whatever we could find" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
+"Thank you for all you hummed along" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
+"At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+  + chip @5: "Belong" = 3 2/2
+  + gruff @5: "Belong" = -1 -2/2
 
 # Verse 2: what nobody saw in them. Cue's blank last page closes it, and turns the song to growing.
 [verse 2]

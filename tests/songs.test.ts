@@ -131,14 +131,19 @@ test("authored notes reach the plug-in unchanged apart from the singer's octave 
   }
 });
 
-test("Found Things opens with the tape melody followed by Scribe's keys phrase", async () => {
+test("Found Things opens with the instrumental tape melody before the 404 couplet", async () => {
   const { SONGBOOK } = await import("../src/choir/songbook.ts");
   const piece = SONGBOOK.find(song => song.id === "found")!.make();
   const scribe = piece.tracks.find(track => track.id === "scribe")!;
+  expect(piece.tracks.every(track => track.events.every(note => note.beat >= 12))).toBe(true);
+  const tabby = piece.tracks.find(track => track.id === "tabby")!;
+  expect(tabby.phrases?.filter(text => text === "At four oh four we all belong")).toHaveLength(4);
   const pip = piece.tracks.find(track => track.id === "pip")!;
-  expect(pip.phrases?.[0]).toBe("I was a tape left in a drawer");
-  expect(pip.events.find(note => note.line === 0)?.beat).toBe(4);
-  expect(scribe.events.find(note => note.line === 0)?.beat).toBe(12);
+  expect(pip.phrases?.[0]).toBe("Each screen I ask says four oh four");
+  const { arrange } = await import("../src/choir/band.ts");
+  expect(arrange(piece).find(p => p.id === "bass")!.notes.filter(n => n.beat >= 4 && n.beat < 12).map(n => n.midi)).toEqual([38,42,45,45,47,45,42,45]);
+  expect(pip.events.find(note => note.line === 0)?.beat).toBe(12);
+  expect(scribe.events.find(note => note.line === 0)?.beat).toBe(28);
   expect(scribe.phrases?.[0]).toBe("I was the keys by the back door");
   const notes = scribe.events.filter(event => event.line === 0);
   expect(notes.map(note => note.midi)).toEqual([69,71,74,74,71,69,66,64]);
