@@ -16,7 +16,7 @@ import {
 } from "../choir/performer.ts";
 import { MOUTH_OPEN_THRESHOLD } from "../choir/pose.ts";
 
-export type WorldLens = "diorama" | "chimera" | "signal" | "zine" | "vinyl" | "archive";
+export type WorldLens = "diorama" | "caravan" | "filmstrip" | "chimera" | "signal" | "zine" | "vinyl" | "archive";
 /** Backwards-compatible alias */
 export type NeonWorldLens = WorldLens;
 
@@ -35,32 +35,44 @@ export const WORLD_LENSES: readonly WorldLensOption[] = [
     tagline: "Three.js 3D pop-up cardstock storybook staging the current song's cast",
   },
   {
+    id: "caravan",
+    label: "2. Meadow Caravan 3D",
+    shortLabel: "Caravan 3D",
+    tagline: "Folded cardstock parade wagon & rocking horse carrying the cast across sunset hills",
+  },
+  {
+    id: "filmstrip",
+    label: "3. 35mm Flatbed",
+    shortLabel: "35mm Reel",
+    tagline: "Sprocketed analog 35mm cinema strip with live exposure glow & timecode",
+  },
+  {
     id: "chimera",
-    label: "2. CHIMERA 3D X-Ray",
+    label: "4. CHIMERA 3D X-Ray",
     shortLabel: "CHIMERA 3D",
     tagline: "Live multi-head CHIMERA anatomical airways animated by vocal physics",
   },
   {
     id: "signal",
-    label: "3. Optical Signal",
+    label: "5. Optical Signal",
     shortLabel: "Signal",
     tagline: "Harmonic waveforms & optical rings tinted to the active cast",
   },
   {
     id: "zine",
-    label: "4. Kinetic Zine",
+    label: "6. Kinetic Zine",
     shortLabel: "Zine",
     tagline: "Editorial print spread where typography becomes the stage",
   },
   {
     id: "vinyl",
-    label: "5. Vinyl Turntable",
+    label: "7. Vinyl Turntable",
     shortLabel: "Vinyl LP",
     tagline: "Spinning record platter & liner sleeve for the current song",
   },
   {
     id: "archive",
-    label: "6. Archive 404",
+    label: "8. Archive 404",
     shortLabel: "Archive 404",
     tagline: "Classic Studio 404 theatrical velvet curtain stage",
   },

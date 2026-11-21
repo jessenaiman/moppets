@@ -26,6 +26,7 @@ import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { applyPresetToVoice, CHIMERA_VOICE_PRESETS, type ChimeraPhysicsPreset } from "../choir/performer.ts";
 import { editVoice } from "../choir/ensemble.ts";
 import { LaunchkeyConnect, LaunchkeyMap } from "./launchkey-map.tsx";
+import { ChimeraTools } from "./ChimeraTools.tsx";
 import { bandEnabled, bandFor } from "../choir/band.ts";
 import { livePose, liveMidiPitch, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import type { Pose } from "../choir/pose.ts";
@@ -1386,6 +1387,7 @@ function RehearsalDesk() {
   const [writing,setWriting]=useState(false);
   const [references,setReferences]=useState(false);
   const [editor, setEditor] = useState(false);
+  const [chimeraLab, setChimeraLab] = useState(false);
   const lesson = useMoppet(s=>s.lesson);
   const setLesson = useMoppet(s=>s.setLesson);
   const selected = useMoppet((s) => s.selected);
@@ -1424,12 +1426,14 @@ function RehearsalDesk() {
             <button type="button" aria-pressed={liveDesk} onClick={toggleLiveDesk}>Live puppets</button>
           </div>
           <div className="bay-toolbar-group">
+            <button type="button" aria-pressed={chimeraLab} onClick={() => setChimeraLab(!chimeraLab)}>🎙 Vowel &amp; Beatbox</button>
             <button type="button" aria-pressed={desk} onClick={() => setDesk(!desk)}>♫ Music desk</button>
             <button type="button" aria-pressed={editor} onClick={() => setEditor(!editor)}>Voice workshop</button>
             <button type="button" onClick={resetSelectedVocal} title="Restore this singer’s factory vocal settings">↺ Reset {name} vocals</button>
             <small>{JSON.stringify(v) === JSON.stringify(CAST[selected]) ? "CHIMERA · factory voice" : "CHIMERA · custom voice"}</small>
           </div>
         </div>
+        {chimeraLab && <ChimeraTools />}
         <LaunchkeyMap />
       </div>;
   return (

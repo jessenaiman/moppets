@@ -18,6 +18,7 @@ import type { Piece } from "../choir/music.ts";
 import type { KaraokeWordSpan } from "../choir/bubbles.ts";
 import type { CharacterFmvManifest, PerformerFrame, PerformerPoseInput } from "../choir/performer.ts";
 import { FoldedBook3D } from "./FoldedBook3D.tsx";
+import { CaravanWorld3D } from "./CaravanWorld3D.tsx";
 import { computeWorldState, WORLD_LENSES, type WorldLens } from "./worlds.ts";
 import "./neon-worlds.css";
 
@@ -74,11 +75,20 @@ function PerformerCutout({
     >
       <span
         className="nw-performer-atlas"
-        style={{
-          backgroundImage: `url("${resolveAsset(cel.atlasUrl)}")`,
-          backgroundSize: `${cel.cols * 100}% ${cel.rows * 100}%`,
-          backgroundPosition: `${posX}% ${posY}%`,
-        }}
+        style={
+          cel.cols === 1 && cel.rows === 1
+            ? {
+                backgroundImage: `url("${resolveAsset(cel.atlasUrl)}")`,
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center bottom",
+              }
+            : {
+                backgroundImage: `url("${resolveAsset(cel.atlasUrl)}")`,
+                backgroundSize: `${cel.cols * 100}% ${cel.rows * 100}%`,
+                backgroundPosition: `${posX}% ${posY}%`,
+              }
+        }
       />
       <i
         className="nw-tube-aura"
@@ -297,6 +307,8 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
   const [plateOverride, setPlateOverride] = useState<number | null>(null);
   const [userOrbit, setUserOrbit] = useState<{ azimuth: number; elevation: number } | null>(null);
   const [bellImpulse, setBellImpulse] = useState(0);
+  const [hornImpulse, setHornImpulse] = useState(0);
+  const [spotlightId, setSpotlightId] = useState<string | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; baseAz: number; baseEl: number } | null>(null);
 
   const effectivePlateOverride = performing ? null : plateOverride;
@@ -321,14 +333,14 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!interactive || lens !== "diorama") return;
+      if (!interactive || (lens !== "diorama" && lens !== "caravan")) return;
       if ((e.target as HTMLElement).closest("button")) return;
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
         baseAz: userOrbit?.azimuth ?? 0,
-        baseEl: userOrbit?.elevation ?? 0.44,
+        baseEl: userOrbit?.elevation ?? (lens === "caravan" ? 0.24 : 0.44),
       };
     },
     [interactive, lens, userOrbit],
@@ -532,7 +544,175 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
     );
   }
 
-  /* ───────────────────── LENS 2: CHIMERA 3D MULTI-HEAD ANATOMICAL X-RAY ───────────────────── */
+  /* ───────────────────── LENS 2: MEADOW CARAVAN 3D (PARADE WAGON & ROCKING HORSE) ───────────────────── */
+  if (lens === "caravan") {
+    return (
+      <div
+        className={`sc-stage nw-stage nw-caravan${state.darkness > 0.4 ? " is-dark" : ""}`}
+        data-neon-lens="caravan"
+        data-world-lens="caravan"
+        data-cast-keys={castArtKeys}
+        data-lead-art={state.lead.artKey}
+        data-plate={state.plateIndex + 1}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
+        <div className="nw-three-layer" data-layout="overlay">
+          <CaravanWorld3D
+            state={state}
+            beat={performing ? beat : state.plate.startBeat}
+            userOrbit={interactive ? userOrbit : null}
+            hornImpulse={hornImpulse}
+            spotlightId={interactive ? spotlightId : null}
+            resolveAsset={resolveAsset}
+          />
+        </div>
+
+        <div className="nw-diorama-top" data-layout="overlay">
+          <div className="nw-masthead">
+            <div className="nw-brand-row">
+              <span className="nw-brand-title">Meadow Caravan</span>
+              <span className="nw-brand-meta">{state.castSummary.toUpperCase()} · {state.songTitle.toUpperCase()}</span>
+            </div>
+            <div className="nw-chapter-eyebrow">— {state.plate.chapterEyebrow}</div>
+            <h2 className="nw-chapter-title">{state.plate.title}</h2>
+          </div>
+
+          <div className="nw-top-controls">
+            {lensBar}
+            {interactive && (
+              <button
+                type="button"
+                className="nw-ghost-btn"
+                onClick={() => setHornImpulse((c) => c + 1)}
+                title="Honk the brass caravan horn for a joyful bounce & dust puff"
+              >
+                📯 Honk horn
+              </button>
+            )}
+            {interactive && (userOrbit || spotlightId) && (
+              <button
+                type="button"
+                className="nw-ghost-btn"
+                onClick={() => { setUserOrbit(null); setSpotlightId(null); }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="nw-diorama-bottom" data-layout="overlay">
+          <div className="nw-story-caption">
+            <span className="nw-caption-tag">
+              <i className="nw-dot-cyan" style={{ background: state.primaryAccent }} /> {state.speakerName.toUpperCase()} · PARADE WAGON
+            </span>
+            <p className="nw-caption-line">
+              <LyricRun
+                words={state.words}
+                fallback={state.lineText}
+                beat={beat}
+                accentA={state.primaryAccent}
+                accentB={state.secondaryAccent}
+              />
+            </p>
+          </div>
+
+          {interactive && state.cast.length > 1 && (
+            <div className="nw-rider-bar" role="group" aria-label="Spotlight a caravan rider">
+              <span className="nw-rider-label">SPOTLIGHT RIDER</span>
+              <div className="nw-rider-pills">
+                {state.cast.map((rider) => (
+                  <button
+                    key={rider.id}
+                    type="button"
+                    aria-pressed={spotlightId === rider.id}
+                    className={`nw-rider-pill${spotlightId === rider.id ? " active" : ""}`}
+                    style={{ borderColor: rider.color }}
+                    onClick={() => setSpotlightId((cur) => (cur === rider.id ? null : rider.id))}
+                  >
+                    {rider.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ───────────────────── LENS 3: 35MM FLATBED CINEMA STRIP ───────────────────── */
+  if (lens === "filmstrip") {
+    const frameNo = Math.max(0, Math.floor(timeSec * 24));
+    const tcMin = String(Math.floor(timeSec / 60)).padStart(2, "0");
+    const tcSec = String(Math.floor(timeSec % 60)).padStart(2, "0");
+    const tcFrm = String(frameNo % 24).padStart(2, "0");
+    const sprocketShift = -((beat * 26) % 48);
+
+    return (
+      <div
+        className="sc-stage nw-stage nw-filmstrip"
+        data-neon-lens="filmstrip"
+        data-world-lens="filmstrip"
+        data-cast-keys={castArtKeys}
+        data-lead-art={state.lead.artKey}
+        data-plate={state.plateIndex + 1}
+      >
+        <div className="nw-film-sprockets top" style={{ backgroundPositionX: `${sprocketShift.toFixed(1)}px` }} aria-hidden="true" />
+
+        <div className="nw-film-head" data-layout="overlay">
+          <div className="nw-film-meta">
+            <span className="nw-film-stock">KODAK 5219 · 35MM FLATBED</span>
+            <span className="nw-film-tc">TC {tcMin}:{tcSec}:{tcFrm} · FR #{String(frameNo + 1).padStart(4, "0")}</span>
+          </div>
+          {lensBar}
+        </div>
+
+        <div className="nw-film-strip-row" data-layout="overlay">
+          <div className="nw-film-gate ghost" aria-hidden="true">
+            <span className="nw-gate-num">{String(Math.max(1, frameNo)).padStart(3, "0")}A</span>
+            <div className="nw-gate-body">
+              <PerformerEnsemble cast={state.cast} resolveAsset={resolveAsset} />
+            </div>
+          </div>
+
+          <div className="nw-film-gate hero" style={{ borderColor: state.primaryAccent }}>
+            <div className="nw-gate-top">
+              <span className="nw-gate-num" style={{ color: state.primaryAccent }}>LIVE GATE · {state.plate.numberLabel}</span>
+              <span className="nw-gate-title">{state.songTitle.toUpperCase()}</span>
+            </div>
+            <div className="nw-gate-body">
+              <PerformerEnsemble cast={state.cast} resolveAsset={resolveAsset} />
+            </div>
+            <div className="nw-gate-caption">
+              <strong style={{ color: state.primaryAccent }}>{state.speakerName}:</strong>{" "}
+              <LyricRun
+                words={state.words}
+                fallback={state.lineText}
+                beat={beat}
+                accentA={state.primaryAccent}
+                accentB={state.secondaryAccent}
+              />
+            </div>
+          </div>
+
+          <div className="nw-film-gate ghost" aria-hidden="true">
+            <span className="nw-gate-num">{String(frameNo + 2).padStart(3, "0")}A</span>
+            <div className="nw-gate-body">
+              <PerformerEnsemble cast={state.cast} resolveAsset={resolveAsset} />
+            </div>
+          </div>
+        </div>
+
+        <div className="nw-film-sprockets bottom" style={{ backgroundPositionX: `${sprocketShift.toFixed(1)}px` }} aria-hidden="true" />
+      </div>
+    );
+  }
+
+  /* ───────────────────── LENS 4: CHIMERA 3D MULTI-HEAD ANATOMICAL X-RAY ───────────────────── */
   if (lens === "chimera") {
     return (
       <div

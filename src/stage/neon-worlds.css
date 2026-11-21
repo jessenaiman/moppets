@@ -1164,3 +1164,186 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   S-30: MEADOW CARAVAN 3D & 35MM FLATBED CINEMA STRIP
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.nw-caravan {
+  background:
+    radial-gradient(ellipse 80% 55% at 28% 22%, rgba(255, 198, 118, 0.32), transparent 62%),
+    linear-gradient(180deg, #362535 0%, #7d4c49 38%, #c9855c 64%, #3c5d49 100%);
+  color: #fbf4e6;
+}
+
+.nw-caravan.is-dark {
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 20%, rgba(92, 148, 214, 0.25), transparent 65%),
+    linear-gradient(180deg, #0d1626 0%, #1c2c44 48%, #203736 100%);
+}
+
+.nw-rider-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(20, 14, 11, 0.78);
+  border: 1px solid rgba(248, 239, 226, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.nw-rider-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #e3bd7f;
+}
+
+.nw-rider-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.nw-stage button.nw-rider-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(25, 18, 14, 0.85);
+  color: #f8efe2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nw-stage button.nw-rider-pill.active {
+  background: #f8efe2;
+  color: #17110d;
+}
+
+.nw-filmstrip {
+  background: linear-gradient(180deg, #0e0b09 0%, #17120e 50%, #0b0907 100%);
+  color: #f4ead8;
+}
+
+.nw-film-sprockets {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  z-index: 15;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 10px,
+    rgba(244, 217, 165, 0.28) 10px 30px,
+    transparent 30px 48px
+  );
+  border-block: 1px solid rgba(227, 189, 127, 0.22);
+}
+
+.nw-film-sprockets.top { top: 8px; }
+.nw-film-sprockets.bottom { bottom: 8px; }
+
+.nw-film-head {
+  position: absolute;
+  inset: 36px 20px auto 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nw-film-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.nw-film-stock {
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: rgba(227, 189, 127, 0.16);
+  color: #e3bd7f;
+  font-weight: 700;
+}
+
+.nw-film-tc {
+  color: #f8efe2;
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-film-strip-row {
+  position: absolute;
+  inset: 68px 16px 38px 16px;
+  z-index: 12;
+  display: grid;
+  grid-template-columns: 0.55fr 1.9fr 0.55fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.nw-film-gate {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  border: 2px solid rgba(227, 189, 127, 0.24);
+  background: radial-gradient(circle at 50% 45%, rgba(44, 32, 24, 0.92), rgba(14, 10, 8, 0.96));
+  overflow: hidden;
+  padding: 10px 12px;
+}
+
+.nw-film-gate.ghost {
+  opacity: 0.34;
+  filter: sepia(0.35) contrast(0.9);
+}
+
+.nw-film-gate.hero {
+  box-shadow: 0 0 36px rgba(227, 189, 127, 0.16), inset 0 0 24px rgba(0, 0, 0, 0.55);
+}
+
+.nw-gate-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.nw-gate-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #e3bd7f;
+}
+
+.nw-gate-title {
+  color: #f8efe2;
+  font-weight: 700;
+}
+
+.nw-gate-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.nw-gate-caption {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(248, 239, 226, 0.14);
+  font-size: 0.88rem;
+  color: #faf4e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

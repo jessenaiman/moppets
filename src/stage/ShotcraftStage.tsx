@@ -188,6 +188,8 @@ export interface ShotcraftStageProps {
   neonLens?: WorldLens;
   /** Optional callback when the user switches world lens */
   onNeonLensChange?: (lens: WorldLens) => void;
+  /** Whether to render the floating in-stage lens switcher (false when controlled by the locked Studio Stage Bar) */
+  showInternalLensBar?: boolean;
   /** Optional S-27 keyed Flow FMV-cel manifest override */
   neonFmvManifest?: CharacterFmvManifest | null;
   /** Optional custom React element replacing the default puppet sprite (e.g. Remotion `<CharacterClip />`) */
@@ -571,6 +573,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   interactive,
   neonLens: controlledNeonLens,
   onNeonLensChange,
+  showInternalLensBar = true,
   neonFmvManifest = null,
   renderCharacterOverride,
 }) => {
@@ -881,7 +884,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const breathe = still ? 1 : 1 + 0.025 * Math.sin(timeSec * 1.6);
   const vhsOffsetY = isVhsRoll && !still ? Math.sin(timeSec * 22) * 1.4 : 0;
 
-  // S-29: Polymorphic 6-world stage works for EVERY song & cast (zero hardcoded Neon paths!)
+  // S-29 / S-30: Polymorphic 8-world stage works for EVERY song & cast (zero hardcoded Neon paths!)
   if (activeLens !== "archive") {
     return (
       <WorldsStage
@@ -895,7 +898,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
         still={still}
         selectedIndex={selectedIndex}
         lens={activeLens}
-        onSelectLens={isInteractive ? setWorldLens : undefined}
+        onSelectLens={isInteractive && showInternalLensBar ? setWorldLens : undefined}
         interactive={isInteractive}
         resolveAsset={resolveAsset}
         fmvManifests={castFmvManifests}
@@ -905,7 +908,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
 
   return (
     <div data-duet={cueAndNeon || undefined} data-solo-set={soloSet?.art} className={`sc-stage${studio404 ? " studio404" : ""}${isBlackout ? " blackout" : ""}`}>
-      {isInteractive && (
+      {isInteractive && showInternalLensBar && (
         <div className="nw-archive-return" data-layout="overlay">
           <div className="nw-lens-dock" role="tablist" aria-label="Performance world lens">
             {WORLD_LENSES.map((item) => (

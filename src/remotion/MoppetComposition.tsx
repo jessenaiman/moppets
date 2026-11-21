@@ -340,6 +340,8 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
       customBubbles={props.bubbles}
       resolveAsset={resolveAsset}
       interactive={interactive}
+      neonLens={props.worldLens}
+      showInternalLensBar={false}
       renderCharacterOverride={useMeasuredMouths ? undefined : renderCharacterOverride}
     />
   );

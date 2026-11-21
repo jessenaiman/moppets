@@ -18,6 +18,7 @@ import { beatSeconds, LEAD_IN, pieceSeconds } from "./timeline.ts";
 import { STUDIO_404_CAST, studio404Name } from "./studio404.ts";
 import type { MoppetVoice } from "./voices.ts";
 import type { VocalTiming } from "./vocalTiming.ts";
+import type { WorldLens } from "../stage/worlds.ts";
 
 export type AspectMode = "16:9" | "9:16";
 export type BubbleTail = "down" | "left" | "right" | "none";
@@ -72,6 +73,8 @@ export type MoppetVideoProps = {
   bubbles: VideoBubbleClip[];
   bpm: number;
   piece?: Piece;
+  /** Selected polymorphic stage world lens (preserved cleanly into Remotion MP4 export). */
+  worldLens?: WorldLens;
 };
 
 export function lessonSlug(title: string): string {

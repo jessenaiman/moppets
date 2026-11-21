@@ -7,12 +7,12 @@ import { useAudio } from "../audio/audio.ts";
 import { exportWav, pause, stop, useEnsemble } from "../choir/ensemble.ts";
 import { useRehearsalTransport } from "./useRehearsalTransport.ts";
 import { MoppetComposition } from "../remotion/MoppetComposition";
+import { SongNavigator } from "./SongNavigator.tsx";
+import { WORLD_LENSES, type WorldLens } from "../stage/worlds.ts";
 const loadActionStrip = () => import("../rehearsal/NeonActions").then(m => ({default: m.ActionStrip}));
 import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
 import { RemotionDock, type StudioComposition } from "./RemotionDock";
-import { SKITS } from "../choir/skits.ts";
-import { SONGBOOK } from "../choir/songbook.ts";
-import { useMoppet, type Lesson } from "../choir/store.ts";
+import { useMoppet } from "../choir/store.ts";
 import { useController } from "../choir/controller.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { midiSupported } from "./midi.ts";
@@ -63,9 +63,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const [audioError,setAudioError] = useState("");
   const [advancedOpen,setAdvancedOpen]=useState(false);
   const [composition,setComposition]=useState<StudioComposition>("Rehearsal");
+  const [worldLens, setWorldLens] = useState<WorldLens>("diorama");
   const lesson = useMoppet((s) => s.lesson);
-  const setLesson = useMoppet((s) => s.setLesson);
-  const freshSkit = useMoppet((s) => s.freshSkit);
   const piece = useMoppet((s) => s.piece);
   const voices = useMoppet((s) => s.voices);
   const studio404 = useMoppet((s) => s.studio404);
@@ -136,7 +135,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     ...project,
     audioUrl: null,
     vocalTiming,
-  }), [project, vocalTiming]);
+    worldLens,
+  }), [project, vocalTiming, worldLens]);
   const curSec = transport.frame / fps;
   const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
   const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
@@ -291,7 +291,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     const mix = await prepareMix();
     if (!mix || mix.audioUrl.startsWith("blob:")) return;
     try {
-      const props = { ...project, ...mix };
+      const props = { ...project, ...mix, worldLens };
       const r = await fetch("/__video/render", { method: "POST", body: JSON.stringify({ slug, props }) });
       if (!r.ok) throw new Error(await r.text());
       setJob(await r.json() as BridgeJob);
@@ -317,108 +317,128 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
 
   const selectedBubble = selection.kind === "bubble" ? project.bubbles.find((b) => b.id === selection.id) ?? null : null;
   const activeSelKind: Selection["kind"] = selection.kind === "bubble" && !selectedBubble ? "stage" : selection.kind;
-  const opt = (l: Lesson, label: string) => <option key={l} value={l}>{label}</option>;
   const pct = (sec: number) => `${((sec / Math.max(0.1, totalSec)) * 100).toFixed(3)}%`;
 
   return (
     <Screen className="s-video warm" title="Video Studio" sub="Remotion Workbench">
       <div className="vs-wrap">
-        <div className="vs-toolbar">
-          <label className="vs-pick">
-            <span>Song / Skit</span>
-            <select aria-label="Video lesson" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
-              <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
-              <optgroup label="Songs">{SONGBOOK.filter(x => x.id !== "intro").map((x) => opt(x.id, x.tab))}</optgroup>
-              <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{freshSkit && opt("newskit", `New: ${freshSkit.title}`)}</optgroup>
-            </select>
-          </label>
+        {/* Interactive Vinyl Crates Coverflow + Expandable Poster Deck (replaces boring <select>) */}
+        <SongNavigator />
 
-          <div className="vs-aspect" role="group" aria-label="Aspect ratio">
-            {(["16:9", "9:16"] as AspectMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                className={project.aspect === mode ? "on" : ""}
-                aria-pressed={project.aspect === mode}
-                onClick={() => setProject((cur) => ({ ...cur, aspect: mode }))}
-              >
-                {mode}
-              </button>
-            ))}
+        {/* Locked, Unified Tailwind Studio Stage Bar — zero layout shift across all 8 worlds & never burned into MP4 export */}
+        <div
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#745438]/65 bg-[#1e150f]/95 px-3 py-2 shadow-md"
+          data-stage-bar="locked"
+        >
+          <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Stage world switcher">
+            {WORLD_LENSES.map((item) => {
+              const active = worldLens === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  title={item.tagline}
+                  onClick={() => setWorldLens(item.id)}
+                  className={`rounded-lg border px-2.5 py-1 text-xs font-bold tracking-wide cursor-pointer ${
+                    active
+                      ? "border-[#50cfad] bg-[#50cfad] text-[#111917] shadow-sm"
+                      : "border-[#745438]/65 bg-[#2a1d15] text-[#f3e6d3] hover:border-[#e3bd7f]"
+                  }`}
+                >
+                  {item.shortLabel}
+                </button>
+              );
+            })}
           </div>
 
-          <button
-            type="button"
-            className={project.cameraAutoFollow ? "on" : ""}
-            aria-pressed={project.cameraAutoFollow}
-            onClick={() => setProject((cur) => ({ ...cur, cameraAutoFollow: !cur.cameraAutoFollow }))}
-          >
-            {project.cameraAutoFollow ? "Camera: Auto-follow" : "Camera: Wide"}
-          </button>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="vs-aspect" role="group" aria-label="Aspect ratio">
+              {(["16:9", "9:16"] as AspectMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={project.aspect === mode ? "on" : ""}
+                  aria-pressed={project.aspect === mode}
+                  onClick={() => setProject((cur) => ({ ...cur, aspect: mode }))}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
 
-          <button type="button" disabled={synthBusy || transport.busy || job?.status === "running"} onClick={() => void prepareMix()}>
-            {synthBusy ? "Preparing WAV…" : project.audioUrl ? "Refresh CHIMERA WAV" : "Prepare CHIMERA WAV"}
-          </button>
-
-          {/* Occasional tools live in one menu so the toolbar stays a single row. */}
-          <details className="vs-more">
-            <summary>More ▾</summary>
-            <div className="vs-more-menu">
             <button
               type="button"
-              className={midiOn ? "on" : ""}
-              aria-pressed={midiOn}
-              disabled={!midiSupported()}
-              onClick={() => setMidi(!midiOn)}
+              className={project.cameraAutoFollow ? "on" : ""}
+              aria-pressed={project.cameraAutoFollow}
+              onClick={() => setProject((cur) => ({ ...cur, cameraAutoFollow: !cur.cameraAutoFollow }))}
             >
-              {!midiSupported()
-                ? "MIDI: Needs HTTPS"
-                : midi.status === "denied"
-                  ? "MIDI: Blocked"
-                  : midi.status === "connecting"
-                    ? "MIDI: Connecting…"
-                    : midiOn
-                      ? midi.inputs[0]
-                        ? `MIDI: ${midi.inputs[0]}`
-                        : "MIDI: Ready"
-                      : "Connect MIDI"}
+              {project.cameraAutoFollow ? "Auto-follow" : "Wide"}
             </button>
 
-            <input
-              ref={midiFileRef}
-              type="file"
-              accept=".mid,.midi,audio/midi"
-              hidden
-              onChange={(e) => {
-                void handleMidiFile(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-
-            <button type="button" onClick={() => midiFileRef.current?.click()}>
-              ↑ Import .mid
+            <button type="button" disabled={synthBusy || transport.busy || job?.status === "running"} onClick={() => void prepareMix()}>
+              {synthBusy ? "Preparing WAV…" : project.audioUrl ? "Refresh WAV" : "Prepare WAV"}
             </button>
 
-            <button type="button" onClick={downloadScoreMidi}>
-              ↓ Export .mid
-            </button>
+            <details className="vs-more">
+              <summary>More ▾</summary>
+              <div className="vs-more-menu">
+                <button
+                  type="button"
+                  className={midiOn ? "on" : ""}
+                  aria-pressed={midiOn}
+                  disabled={!midiSupported()}
+                  onClick={() => setMidi(!midiOn)}
+                >
+                  {!midiSupported()
+                    ? "MIDI: Needs HTTPS"
+                    : midi.status === "denied"
+                      ? "MIDI: Blocked"
+                      : midi.status === "connecting"
+                        ? "MIDI: Connecting…"
+                        : midiOn
+                          ? midi.inputs[0]
+                            ? `MIDI: ${midi.inputs[0]}`
+                            : "MIDI: Ready"
+                          : "Connect MIDI"}
+                </button>
 
-            <button type="button" onClick={resetFromScore}>
-              Reset from Score
-            </button>
+                <input
+                  ref={midiFileRef}
+                  type="file"
+                  accept=".mid,.midi,audio/midi"
+                  hidden
+                  onChange={(e) => {
+                    void handleMidiFile(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
 
-            <button type="button" onClick={downloadPropsJson}>
-              ↓ Export JSON
-            </button>
-            </div>
-          </details>
+                <button type="button" onClick={() => midiFileRef.current?.click()}>
+                  ↑ Import .mid
+                </button>
 
-          {bridgeOn && composition==="Rehearsal" && (
-            <button type="button" className="primary" disabled={job?.status === "running" || synthBusy || transport.busy} onClick={() => void triggerRender()}>
-              Export MP4
-            </button>
-          )}
+                <button type="button" onClick={downloadScoreMidi}>
+                  ↓ Export .mid
+                </button>
 
+                <button type="button" onClick={resetFromScore}>
+                  Reset from Score
+                </button>
+
+                <button type="button" onClick={downloadPropsJson}>
+                  ↓ Export JSON
+                </button>
+              </div>
+            </details>
+
+            {bridgeOn && composition === "Rehearsal" && (
+              <button type="button" className="primary" disabled={job?.status === "running" || synthBusy || transport.busy} onClick={() => void triggerRender()}>
+                Export MP4
+              </button>
+            )}
+          </div>
         </div>
 
         {(job && job.status !== "idle") || assets?.exports.length ? (

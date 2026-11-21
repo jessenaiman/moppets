@@ -252,3 +252,11 @@
   color: #50cfad;
   font-variant-numeric: tabular-nums;
 }
+
+/* High-contrast active world tab inside the locked Studio Stage Bar */
+[data-stage-bar="locked"] button[role="tab"][aria-selected="true"] {
+  background: #50cfad !important;
+  border-color: #50cfad !important;
+  color: #0e1a17 !important;
+  box-shadow: 0 0 14px rgba(80, 207, 173, 0.35);
+}
