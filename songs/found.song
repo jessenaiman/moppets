@@ -24,9 +24,9 @@ tune lift = 0 2 4 5 7/.5 7/.5 9 7/2 | IV 4, V 4
 # have no voice yet: Pip's voice sings Spool's line and Vee's sings Hertz's. Hertz knew only
 # static until he made friends, so he closes the verse.
 [verse 1]
-scribe: "I was the keys by the back door" = 3 5/.5 7/.5 7 5 4 1 1/2 | IV 4, V 4 ; do nod
+pip: "I was a tape left in a drawer" = a ; do nod                 # Spool
+scribe: "I was the keys by the back door" = b ; do nod
   + clank @7: "beep" = 0
-pip: "I was a tape left in a drawer" = b ; do nod                 # Spool
 clank: "I was a fridge sized thinking box" = a ; do nod
 scribe: "I was a script nobody read" = b ; do nod                 # Cue
 gruff: "I was a tangle left for dead" = a ; do nod

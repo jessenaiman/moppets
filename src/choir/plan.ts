@@ -110,6 +110,11 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     if (!group.length) return;
     const syllables = phraseSyllables(track, group);
     const notes = group.map((e, i) => ({ midi: e.midi, beats: e.beats, syl: syllables[i] }));
+    // Release sustained lyric endings a quarter beat early so the next singer has a clean entrance.
+    const lastNote = notes[notes.length - 1];
+    if (piece.title === "Found Things" && group[0].line !== undefined && lastNote.beats >= 1 && group.length > 1 && group[group.length - 1].beat + lastNote.beats < piece.beats) {
+      lastNote.beats -= 0.25;
+    }
     const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: PLAN_VIBRATO });
     gestures.push(...plan.gestures);
     end = Math.max(end, plan.end + 0.3);

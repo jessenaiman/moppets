@@ -33,8 +33,8 @@ export function instrumentNote(voice: MoppetVoice, midi:number, lyric:string) : 
 
 /** The scored renderer uses the full cast recipe and the lyric assigned to each note. */
 export async function scoredStemPath(piece: Piece, track: Track, voice: MoppetVoice) {
-  // Clank’s second render restores the recorded lead-in.
-  const version = track.id === "clank" ? 2 : 1;
+  // Version 3 includes the phrase releases and Clank’s recorded entrance.
+  const version = 3;
   const data = JSON.stringify([version, piece.bpm, piece.beats, track, voice.body, voice.size, voice.artic, voice.source, voice.vibrato]);
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
   return "/scored-vocals/" + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("") + ".ogg";
