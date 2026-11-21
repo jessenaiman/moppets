@@ -33,8 +33,7 @@ export function instrumentNote(voice: MoppetVoice, midi:number, lyric:string) : 
 
 /** The scored renderer uses the full cast recipe and the lyric assigned to each note. */
 export async function scoredStemPath(piece: Piece, track: Track, voice: MoppetVoice) {
-  // Version 4 uses full lyric releases and an instrumental bass entrance.
-  const version = 4;
+  const version = 5; // Delayed vibrato, bounded glide/drift and fricative shaping.
   const data = JSON.stringify([version, piece.bpm, piece.beats, track, voice.body, voice.size, voice.artic, voice.source, voice.vibrato]);
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
   return "/scored-vocals/" + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("") + ".ogg";

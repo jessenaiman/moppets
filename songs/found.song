@@ -10,7 +10,7 @@ beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
 backing: vee +0, pip +2, scribe +4, clank +0, zap +4
 finale: "Belong" = 1 0/3
 
-# Verse voices in stage order: Spool (Pip), Tabby, Gruff, Clacker (Vee).
+# Verse voices in stage order: Pip sings Spool, Tabby and Gruff sing themselves, and Vee sings Clacker.
 tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
 tune b = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
 tune end = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
@@ -59,6 +59,6 @@ vee: "I counted down to zero" = low ; do nod                       # Click on ca
 clank: "Zero means there's nothing there" = low ; do tilt
 "Quiet is a kind of song" = low
 chip: "So let's count down again from ten" = lift ; do nod
-  + scribe @7: "Places" = 4/.5 4/.5                                   # Biscuit
+  + cue @7: "Places" = 4/.5 4/.5                                   # Biscuit on camera; Cue calls places
 
 [repeat chorus]
