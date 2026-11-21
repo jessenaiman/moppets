@@ -3,10 +3,10 @@
  * of performance. Selecting a Moppet makes it the one the stage's views follow.
  */
 import { create } from "zustand";
-import { DEFAULT_INVENTION, invent, KEYS, makeIntroduction, makeChipSong, makeGruffShanty, makeTabbySong, makeRound, makeSolo, noteName, scalePitch, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
+import { DEFAULT_INVENTION, invent, KEYS, makeRound, makeSolo, noteName, scalePitch, SCALES, type KeyName, type Piece, type RoundLyrics, type RoundLyricsId, type ScaleMode } from "./music.ts";
 import { roundProblems } from "./roundCheck.ts";
 import { buildSong, SONGBOOK, type SongId } from "./songbook.ts";
-import { fileOf, persistDraft, SONG_SOURCES } from "./songs.ts";
+import { catalogSong, fileOf, persistDraft, SONG_FILES, SONG_SOURCES } from "./songs.ts";
 import { parseSongFile, printSongFile, type SongFile } from "./songFile.ts";
 import { checkSung, songProblems } from "./songCheck.ts";
 import { shownWords } from "./captions.ts";
@@ -130,19 +130,19 @@ function applyTempo(rawPiece: Piece, scale: TempoScale): { piece: Piece; baseBpm
 const SCHOOL_BPM = 112, ROUND_BPM = 108;
 
 function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repeats" | "roundLyrics" | "freshRound" | "freshSkit" | "seed" | "progression" | "groove" | "palette" | "soul" | "studio404">): Piece {
-  if (s.lesson === "chip") return makeChipSong();
-  if (s.lesson === "tabby") return makeTabbySong();
-  if (s.lesson === "gruff") return makeGruffShanty();
   // an edited song or skit (words editor) plays as edited, once every line can be sung
   const edited = editedFile(s.lesson);
   if (edited?.kind === "skit") return makeSkit(edited.skit, useMoppet.getState?.().voices ?? defaults);
   if (edited?.kind === "song" && !songProblems(edited.song).length) return buildSong(edited.song);
   const skit = s.lesson === "newskit" ? s.freshSkit : SKITS.find((x) => x.id === s.lesson);
   if (skit) return makeSkit(skit, useMoppet.getState?.().voices ?? defaults);
+  if (s.lesson === "intro") {
+    const id = s.studio404 ? "intro-studio404" : "intro";
+    return buildSong(catalogSong(id));
+  }
   const original = SONGBOOK.find((x) => x.id === s.lesson);
   if (original) return original.make();
-  if (s.lesson === "intro") return makeIntroduction(voicesForMode(useMoppet.getState?.().voices ?? defaults, s.studio404));
-  if (s.lesson === "round") return makeRound({ key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
+  if (s.lesson === "round") return makeRound({ sets: edited?.kind === "round" && !fileProblems(edited).length ? edited.sets : undefined, key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });
 }
 
@@ -169,6 +169,8 @@ function persistEdits(edits: Record<string, string>): void {
 
 /** The lead-sheet file behind a lesson, if it has one. */
 export function lessonFile(lesson: string): string | null {
+  if (lesson === "round") return "round.song";
+  if (lesson === "intro" && useMoppet.getState()?.studio404) return "intro-studio404.song";
   if (SONGBOOK.some((x) => x.id === lesson)) return fileOf(lesson, "song");
   if (SKITS.some((x) => x.id === lesson)) return fileOf(lesson, "skit");
   return null;
@@ -193,6 +195,12 @@ export function currentFile(lesson: string): { file: string; parsed: SongFile; t
   const edits = useMoppet.getState().songEdits;
   const text = edits[file] ?? SONG_SOURCES.get(file)!;
   return { file, parsed: parseSongFile(text, `songs/${file}`), text, edited: file in edits };
+}
+
+function fileProblems(file: SongFile): string[] {
+  if (file.kind === "song") return songProblems(file.song);
+  if (file.kind === "round") return file.sets.flatMap(set => roundProblems(set));
+  return [];
 }
 
 function persist(voices: MoppetVoice[]): void {
@@ -252,7 +260,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
     // ("check" as two) and a good edit read as unsingable
     const apply = () => {
       if (get().songEdits[cur.file] !== (text === SONG_SOURCES.get(cur.file) ? undefined : text)) return; // edited again since
-      const problems = cur.parsed.kind === "song" ? songProblems(cur.parsed.song) : [];
+      const problems = fileProblems(cur.parsed);
       if (problems.length) return set({ status: `Not singable yet: ${problems[0]}${problems.length > 1 ? ` (and ${problems.length - 1} more)` : ""}. The score keeps the last version that fits.` });
       const { piece, baseBpm } = applyTempo(scoreFor(get()), get().tempoScale);
       set({ piece, baseBpm, status: cur.parsed.kind === "song" ? "Edited: every line fits its notes." : "Edited." });
@@ -278,7 +286,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
   saveSongFile: async () => {
     const cur = currentFile(get().lesson);
     if (!cur) return;
-    if (cur.parsed.kind === "song" && songProblems(cur.parsed.song).length) return set({ status: "Fix the lines that don't fit before saving." });
+    if (fileProblems(cur.parsed).length) return set({ status: "Fix the lines that don't fit before saving." });
     let saved = false;
     if (/^(skit-)?draft-/.test(cur.file)) {
       persistDraft(cur.file,cur.text);
@@ -307,6 +315,12 @@ export const useMoppet = create<MoppetState>((set, get) => {
     if (!saved) return set({ status: `Downloaded ${cur.file}: put it in songs/ to keep it (the edit stays in this browser until then).` });
     // the file now holds this text: it is no longer an edit
     SONG_SOURCES.set(cur.file, cur.text);
+    const savedFile = SONG_FILES.find(f => f.kind === cur.parsed.kind && f.id === cur.parsed.id);
+    if (savedFile?.kind === "song" && cur.parsed.kind === "song") Object.assign(savedFile.song, cur.parsed.song);
+    if (savedFile?.kind === "round" && cur.parsed.kind === "round") {
+      for (const set of cur.parsed.sets) Object.assign(savedFile.sets.find(s => s.id === set.id)!, set);
+    }
+
     const songEdits = { ...get().songEdits };
     delete songEdits[cur.file];
     persistEdits(songEdits);

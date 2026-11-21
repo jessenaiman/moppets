@@ -108,5 +108,16 @@ appears in the round's Words menu. In `bun run dev`, "Write a new round" has Cla
   EffectCraft projects (see the README).
 - "Open in SoundCraft" moves notes. Words stay with notes in order, so keep one note per syllable.
 
-The lead songs (Chip's, Tabby's, Gruff's) and the introduction are still written in
-`src/choir/music.ts`; they move to lead sheets next (`docs/plans/editable-songs.md`).
+## Arrangements in the catalog
+
+Chip, Tabby, and Gruff use the same parser and score builder as the other originals.
+Their `breath` is the silence after each sung line while its final chord continues.
+`registers` fixes a singer’s transposition in semitones and `tracks` sets the part order.
+Gruff’s `double: clank 2 -12` gives Clank the same words two scale degrees above the melody,
+transposed down an octave. Each `figure <singer> = ...` divides a backing chord among the
+written steps in proportion to their durations.
+
+The First Hello has classic and Studio 404 lyric sheets, `intro.song` and `intro-studio404.song`.
+Each singer has a verse, a `turnaround V 4` gives the next singer four beats to enter, and the
+cast sings the chorus together. The words editor opens the sheet for the selected cast.
+The round’s words are also editable in **Music desk → Edit words**, including the final word.

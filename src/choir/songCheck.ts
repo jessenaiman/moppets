@@ -129,11 +129,11 @@ export function splitNote(s: Pick<Sung, "degrees" | "rhythm">, i: number): Pick<
 /** Where each line of a song starts, in beats (the song opens with a bar of groove), by line object. */
 export function lineStarts(song: Song): Map<Line | Rest, number> {
   const out = new Map<Line | Rest, number>();
-  let at = beatsPerBar(song.meter);
+  let at = song.arrangement === "introduction" ? 0 : beatsPerBar(song.meter);
   for (const section of song.sections)
     for (const l of section.lines) {
       if (!out.has(l)) out.set(l, at);
-      at += "rest" in l ? l.rest : l.rhythm.reduce((a, b) => a + b, 0);
+      at += "rest" in l ? l.rest : l.rhythm.reduce((a, b) => a + b, song.breath ?? 0);
     }
   return out;
 }

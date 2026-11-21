@@ -1,0 +1,34 @@
+title: Left in the Workshop
+id: gruff
+tab: 05 · Gruff’s song
+about: 05 · Gruff and his robot tenor, left on a shelf until the Moppets arrive
+lead: gruff
+key: A aeolian
+bpm: 66
+beat: B . . . | t . . . | Pf . . . | t . K . (swing 0.25)
+backing: vee +0, pip +2, tabby +4, scribe +2
+tracks: gruff vee scribe pip tabby zap clank
+registers: gruff -24
+breath: .25
+finale: "Hum" on 7
+bass: vee
+double: clank 2 -12
+figure vee = 0/1.5 4/.5 0 2
+figure pip = 0 1/.5 0/.5 2 1/.5 2/.5
+figure tabby = 3 2 5/.5 4/.5 4
+figure scribe = 0/.5 1/.5 2/.5 3/.5 4/.5 3/.5 2
+
+[verse]
+"Left upon a dusty old shelf" = 0/1.5 2/0.5 4 4 7 5/0.5 4/0.5 2/1.75 | I 4, I 4
+"Nobody there but me myself" = 4/1.5 2/0.5 0 2 3 2/0.5 1/0.5 0/1.75 | I 4, IV 4
+"Found a manual on the floor" = 0/1.5 2/0.5 4 5 7 6/0.5 5/0.5 4/1.75 | I 4, I 4
+"And taught my rusty heart some more" = 7/1.5 5/0.5 4 2 1 -1/0.5 -1/0.5 0/1.75 | I 4, V 2, I 2
+
+[chorus, choir]
+"We stitched a friend from scraps of thread" = 7/1.5 7/0.5 4 4 5 4/0.5 2/0.5 0/1.75 | I 4, IV 4
+"And lit a lamp above my head" = 4/1.5 4/0.5 2 0 1 2/0.5 1/0.5 4/1.75 | I 4, V 4
+"Now all the workshop's full of song" = 7/1.5 7/0.5 4 4 7 5/0.5 4/0.5 2/1.75 | I 4, I 4
+"We were alone but not for long" = 4/1.5 2/0.5 0 2 3 2/0.5 1/0.5 0/1.75 | I 4, IV 2, I 2
+
+[repeat verse]
+[repeat chorus]

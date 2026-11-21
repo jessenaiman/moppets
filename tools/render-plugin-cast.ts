@@ -8,9 +8,9 @@ await initEngine();
 const { SONGBOOK } = await import("../src/choir/songbook.ts");
 const { CAST } = await import("../src/choir/voices.ts");
 const { SKITS,makeSkit } = await import("../src/choir/skits.ts");
-const { makeRound,makeSolo,makeChipSong,makeTabbySong,makeGruffShanty,makeIntroduction,invent,DEFAULT_INVENTION } = await import("../src/choir/music.ts");
+const { makeRound,makeSolo,makeIntroduction,invent,DEFAULT_INVENTION } = await import("../src/choir/music.ts");
 const { voicesForMode } = await import("../src/choir/studio404.ts");
-const pieces=[...SONGBOOK.map(s=>s.make()),...SKITS.map(s=>makeSkit(s)),makeRound(),makeChipSong(),makeTabbySong(),makeGruffShanty(),invent(DEFAULT_INVENTION),
+const pieces=[...SONGBOOK.filter(s => s.id !== "intro").map(s=>s.make()),...SKITS.map(s=>makeSkit(s)),makeRound(),invent(DEFAULT_INVENTION),
   ...[false,true].flatMap(mode=>{const voices=voicesForMode(CAST,mode);return [makeIntroduction(voices),...voices.map(v=>makeSolo(v))];})];
 const folder="public/plugin-vocals";
 await mkdir(folder,{recursive:true});await mkdir("out/chimera-plugin/sessions",{recursive:true});

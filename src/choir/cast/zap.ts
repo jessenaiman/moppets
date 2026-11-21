@@ -1,3 +1,4 @@
+import { introLyrics } from "../songs.ts";
 import type { Moppet } from "./moppet.ts";
 
 /**
@@ -6,7 +7,7 @@ import type { Moppet } from "./moppet.ts";
  * a button press, and the little roughness gives the click. Its LCD face lights per syllable.
  */
 export const zap: Moppet = {
-  voice: { id: "zap", name: "Zap", role: "The universal remote", color: "#7fd36b", body: { female: 0.5, child: 0.85 }, size: 0.62, artic: { larynx: 1.4, velum: 0.02, root: 0.4, epilarynx: 0.5, ventricular: 0 }, source: { tension: 0.75, breathiness: 0.08, roughness: 0.12, brightness: 0.85, pressure: 10, glide: 0.01, drift: 2, vibratoRate: 8 }, vibrato: 8, register: [64, 81], octave: 0, level: 1, lyrics: ["I am Zap I change the channel", "Every button means I'm sure"] },
+  voice: { id: "zap", name: "Zap", role: "The universal remote", color: "#7fd36b", body: { female: 0.5, child: 0.85 }, size: 0.62, artic: { larynx: 1.4, velum: 0.02, root: 0.4, epilarynx: 0.5, ventricular: 0 }, source: { tension: 0.75, breathiness: 0.08, roughness: 0.12, brightness: 0.85, pressure: 10, glide: 0.01, drift: 2, vibratoRate: 8 }, vibrato: 8, register: [64, 81], octave: 0, level: 1, lyrics: introLyrics("zap") },
   art: "cels",
   prop: "led",
   pad: "oo",

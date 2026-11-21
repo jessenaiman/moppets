@@ -1,3 +1,4 @@
+import { introLyrics } from "./songs.ts";
 /**
  * Studio 404 canon mapping (docs/briefs/moppet-world.md) for the main React choir app.
  *
@@ -107,16 +108,9 @@ export const STUDIO_404_CREW = {
   },
 } as const;
 
-export const STUDIO_404_INTRO_LYRICS: Record<string, [string, string]> = {
-  vee: ["I'm Neon two tubes in a box", "I hum twin notes around the clocks"],
-  scribe: ["I am Cue I read ev'ry line", "I turn my scroll so friends can shine"],
-  pip: ["I am Watt my red switch glows bright", "Plug in with me and sing tonight"],
-  gruff: ["I am Gruff my valves hum so low", "Sit close by and share my warm glow"],
-  clank: ["I am Clank I boot up my screen", "Silver tape keeps my old frame clean"],
-  tabby: ["I am Tabby stitched from old cloth", "My cracked screen purrs and keeps us warm"],
-  chip: ["I am Chip my floppy spins bright", "Circuit crest gleams into the night"],
-  zap: ["I am Zap I change the channel", "Every button means I'm sure"],
-};
+export const STUDIO_404_INTRO_LYRICS = Object.fromEntries(
+  Object.keys(STUDIO_404_CAST).map(id => [id, introLyrics(id, true)]),
+);
 
 export function studio404Name(voiceId: string, fallback: string): string {
   return STUDIO_404_CAST[voiceId]?.name ?? fallback;

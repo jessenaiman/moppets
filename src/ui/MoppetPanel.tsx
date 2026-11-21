@@ -1,8 +1,6 @@
 import { measures } from "../choir/meter.ts";
 import { NewRehearsal } from "./NewRehearsal";
 import { CastReferences } from "./CastReferences";
-
-
 import {buildVideoProject} from "../choir/videoProject";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
@@ -17,7 +15,7 @@ import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
-import { CAST, CHORUS, type MoppetVoice } from "../choir/voices.ts";
+import { CAST, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured, type Actor } from "../choir/choreo.ts";
 import { SKITS } from "../choir/skits.ts";
@@ -44,7 +42,6 @@ const VideoStudio = lazy(() => import("./VideoStudio"));
 const PortableStage = lazy(() => import("./PortableStage").then(m => ({default: m.PortableStage})));
 const RehearsalStaffPanel = lazy(() => import("./StaffEditor").then(m => ({default: m.RehearsalStaffPanel})));
 const VexStaffLine = lazy(() => import("./StaffEditor").then(m => ({default: m.VexStaffLine})));
-
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 
@@ -524,10 +521,7 @@ function PerformanceMenu({
             {
               label: "Songs with the choir",
               items: [
-                ["chip", "Chip’s song"],
-                ["tabby", "Tabby’s song"],
-                ["gruff", "Gruff’s shanty"],
-                ...SONGBOOK.filter((s) => !soloSongs.includes(s) && s.id !== "right-on-cue").map((s) => [s.id, s.song.title]),
+                ...SONGBOOK.filter((s) => !soloSongs.includes(s) && s.id !== "right-on-cue" && s.id !== "intro").map((s) => [s.id, s.song.title]),
               ],
             },
             { label: "Duets", items: SONGBOOK.filter(s => s.id === "right-on-cue").map(s => [s.id, s.tab]) },
@@ -675,7 +669,21 @@ function WordsEditor() {
       </div>
     );
   }
-  if (f.kind !== "song") return head;
+  if (f.kind === "round") {
+    return <div className="words-editor">{head}{f.sets.map((set, si) => <section key={set.id}>
+      <h3>{set.title}</h3>
+      {[...set.lines, set.last].map((words, li) => <label key={li} className="words-line">
+        {li === set.lines.length ? "Last word" : `Line ${li + 1}`}
+        <input value={words} onChange={event => editSongFile(file => {
+          if (file.kind !== "round") return;
+          const target = file.sets[si];
+          const next = sheetWords(event.target.value);
+          if (li === target.lines.length) target.last = next;
+          else target.lines = target.lines.map((line, index) => index === li ? next : line);
+        })}/>
+      </label>)}
+    </section>)}</div>;
+  }
   const song = f.song;
   const starts = lineStarts(song);
   const sections = [...new Set(song.sections)];
@@ -987,7 +995,7 @@ function PianoRoll() {
   const editSongFile = useMoppet((s) => s.editSongFile);
   const [editing, setEditing] = useState(false);
   // notes can be edited where a lead sheet wrote them: the songbook songs
-  const editable = piece.kind === "motesong" && !!lessonFile(lesson);
+  const editable = (piece.kind === "motesong" || piece.kind === "intro") && !!lessonFile(lesson);
   const sung = (x: SongFile, [si, li, ai]: number[]): Sung | null => {
     if (x.kind !== "song") return null;
     const l = [...new Set(x.song.sections)][si]?.lines[li];
@@ -1060,7 +1068,10 @@ function ScorePanel() {
       <p className="moppet-status" role="status">{message || status || (eStatus === "idle" ? "Ready. Press play." : "")}{eStatus === "rendering" ? ` (${Math.round(progress * 100)} %)` : ""}</p>
       {lessonFile(lesson) && <WordsEditor key={lesson} />}
       {piece.kind === "round" && <RoundWords piece={piece} />}
-      {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>{voices.map((v) => <div key={v.id}><h3>{v.name} · {v.role}</h3><p>{v.lyrics.join(" / ")}</p></div>)}<div><h3>All together</h3><p>{CHORUS.join(" / ")}</p></div></div></details>}
+      {lesson === "intro" && <details className="lyrics-sheet"><summary>The words we found</summary><div>
+        {piece.tracks.map(t => <div key={t.id}><h3>{voices.find(v => v.id === t.id)?.name}</h3><p>{t.phrases?.slice(0, -2).join(" / ")}</p></div>)}
+        <div><h3>All together</h3><p>{piece.tracks[0]?.phrases?.slice(-2).join(" / ")}</p></div>
+      </div></details>}
       {piece.kind === "skit" && <Script piece={piece} />}
     </div>
   );
@@ -1395,10 +1406,10 @@ function RehearsalDesk() {
         </aside>
       </div>;
   return (
-    <div className="right right-moppet right-stage">
+    <div className={`right right-moppet right-stage${showLive ? " warm" : ""}`}>
       {showLive ? <>
         {guestPreview ? <PortableStage project={guestPreview}/> : <Stage cameraFollow={cameraFollow}/>}
-        {controller}
+        <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
       </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller}/>}
 
       {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">

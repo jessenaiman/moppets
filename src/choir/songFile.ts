@@ -118,6 +118,7 @@ function parsePhrase(text: string, tunes: Map<string, { degrees: number[]; rhyth
 export function parseSongFile(text: string, file = "song"): SongFile {
   const meta = new Map<string, string>();
   const tunes = new Map<string, { degrees: number[]; rhythm: number[]; chords?: [number, number][] }>();
+  const figures: NonNullable<Song["figures"]> = {};
   const named = new Map<string, Section>();
   const sections: Section[] = [];
   const scenes: SkitLine[][] = [];
@@ -192,6 +193,11 @@ export function parseSongFile(text: string, file = "song"): SongFile {
         scenes[scenes.length - 1].push(l);
         return;
       }
+      const figure = /^figure (\w+) = (.+)$/.exec(t);
+      if (figure) {
+        figures[figure[1]] = parseNotes(figure[2]);
+        return;
+      }
       const tune = /^tune\s+(\S+)\s*=\s*(.*)$/.exec(t);
       if (tune) {
         const [notes, chords] = tune[2].split("|");
@@ -199,6 +205,12 @@ export function parseSongFile(text: string, file = "song"): SongFile {
         return;
       }
       if (!section) throw new Error("a line before any [section]");
+      const turnaround = /^turnaround (.+)$/.exec(t);
+      if (turnaround) {
+        const chords = parseChords(turnaround[1]);
+        section.lines.push({rest: chords.reduce((n, chord) => n + chord[1], 0), chords});
+        return;
+      }
       const rest = /^rest\s+(\S+)$/.exec(t);
       if (rest) {
         section.lines.push({ rest: num(rest[1]) } satisfies Rest);
@@ -237,9 +249,9 @@ export function parseSongFile(text: string, file = "song"): SongFile {
   const [key, mode] = need("key").split(/\s+/);
   const beat = meta.get("beat");
   const bm = beat ? /^(.*?)\s*\(swing\s+([\d.]+)\)$/.exec(beat) : null;
-  const fin = /^"([^"]*)"\s+(?:on\s+(-?\d+)|=\s*(.+))$/.exec(need("finale"));
-  if (!fin) throw new SongFileError(file, 1, `finale: "Word" on <degree>`);
-  const finaleNotes = fin[3] ? parseNotes(fin[3]) : undefined;
+  const fin = /^"([^"]*)"\s+(?:on\s+(-?\d+)|=\s*(.+))$/.exec(meta.get("finale") ?? "");
+  if (!fin && meta.get("arrangement") !== "introduction") throw new SongFileError(file, 1, `finale: "Word" on <degree>`);
+  const finaleNotes = fin?.[3] ? parseNotes(fin[3]) : undefined;
   const meter = meta.get("meter");
   if (meter !== undefined && !/^(?:[1-9]|[1-9]\d)\/(1|2|4|8|16|32)$/.test(meter)) throw new SongFileError(file,1,"Invalid meter; use a time signature such as 3/4 or 6/8");
   const song: Song = {
@@ -258,7 +270,19 @@ export function parseSongFile(text: string, file = "song"): SongFile {
     ...(meta.has("bass") ? { bass: meta.get("bass")! } : {}),
     ...(meta.has("stage") ? { stage: meta.get("stage")!.split(",").map((x) => x.trim()).filter(Boolean) } : {}),
     ...(beat ? { beat: { text: bm ? bm[1] : beat, swing: bm ? num(bm[2]) : 0 } } : {}),
-    finale: { word: fin[1], degree: finaleNotes?.degrees.at(-1) ?? num(fin[2]), ...(finaleNotes ? { notes: finaleNotes } : {}) },
+    ...(fin ? { finale: { word: fin[1], degree: finaleNotes?.degrees.at(-1) ?? num(fin[2]), ...(finaleNotes ? { notes: finaleNotes } : {}) } } : {}),
+    ...(meta.get("arrangement") === "introduction" ? {arrangement: "introduction"} : {}),
+    ...(meta.has("breath") ? {breath: num(need("breath"))} : {}),
+    ...(meta.has("tracks") ? {trackOrder: need("tracks").split(/\s+/)} : {}),
+    ...(meta.has("registers") ? {registers: Object.fromEntries(need("registers").split(",").map(v => {
+      const [id, shift] = v.trim().split(/\s+/);
+      return [id, num(shift)];
+    }))} : {}),
+    ...(meta.has("double") ? {double: (() => {
+      const [id, steps, shift] = need("double").split(/\s+/);
+      return {id, steps: num(steps), shift: num(shift)};
+    })()} : {}),
+    ...(Object.keys(figures).length ? {figures} : {}),
   };
   return { kind: "song", id, tab: meta.get("tab") ?? song.title, song };
 }
@@ -292,7 +316,13 @@ export function printSongFile(f: SongFile): string {
     `backing: ${s.seats.map(([w, o]) => `${w} +${fmt(o)}`).join(", ")}`,
     ...(s.bass ? [`bass: ${s.bass}`] : []),
     ...(s.stage ? [`stage: ${s.stage.join(", ")}`] : []),
-    `finale: "${s.finale.word}" ${s.finale.notes ? `= ${notes(s.finale.notes)}` : `on ${fmt(s.finale.degree)}`}`,
+    ...(s.arrangement ? [`arrangement: ${s.arrangement}`] : []),
+    ...(s.breath ? [`breath: ${fmt(s.breath)}`] : []),
+    ...(s.trackOrder ? [`tracks: ${s.trackOrder.join(" ")}`] : []),
+    ...(s.registers ? [`registers: ${Object.entries(s.registers).map(([id, shift]) => `${id} ${shift}`).join(", ")}`] : []),
+    ...(s.double ? [`double: ${s.double.id} ${s.double.steps} ${s.double.shift}`] : []),
+    ...Object.entries(s.figures ?? {}).map(([id, figure]) => `figure ${id} = ${notes(figure)}`),
+    ...(s.finale ? [`finale: "${s.finale.word}" ${s.finale.notes ? `= ${notes(s.finale.notes)}` : `on ${fmt(s.finale.degree)}`}`] : []),
   ];
   // a line's music used three or more times becomes a named tune
   const key = (l: { degrees: number[]; rhythm: number[]; chords?: [number, number][] }) => `${notes(l)} | ${l.chords ? chords(l.chords) : ""}`;
@@ -313,12 +343,12 @@ export function printSongFile(f: SongFile): string {
       continue;
     }
     const repeated = s.sections.filter((x) => x === sec).length > 1;
-    const name = repeated ? (names.size && [...names.values()].includes("chorus") ? `chorus ${names.size}` : "chorus") : `verse ${++verse}`;
+    const name = sec.name ?? (repeated ? (names.size && [...names.values()].includes("chorus") ? `chorus ${names.size}` : "chorus") : `verse ${++verse}`);
     names.set(sec, name);
     out.push(`[${name}${sec.choir ? ", choir" : ""}]`);
     for (const l of sec.lines) {
       if ("rest" in l) {
-        out.push(`rest ${fmt(l.rest)}`);
+        out.push(l.chords ? `turnaround ${chords(l.chords)}` : `rest ${fmt(l.rest)}`);
         continue;
       }
       out.push(`${l.who ? `${l.who}: ` : ""}"${l.words}" = ${music(l)}${gestures(l)}`);

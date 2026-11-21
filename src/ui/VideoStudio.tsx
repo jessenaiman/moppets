@@ -340,7 +340,7 @@ export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing:
             <span>Song / Skit</span>
             <select aria-label="Video lesson" value={lesson} onChange={(e) => setLesson(e.target.value as Lesson)}>
               <optgroup label="Start here">{opt("intro", "The first hello")}{opt("school", "01 · Music school")}{opt("round", "02 · The jam round")}</optgroup>
-              <optgroup label="Songs">{opt("chip", "03 · Chip’s song")}{opt("tabby", "04 · Tabby’s song")}{opt("gruff", "05 · Gruff’s shanty")}{SONGBOOK.map((x) => opt(x.id, x.tab))}</optgroup>
+              <optgroup label="Songs">{SONGBOOK.filter(x => x.id !== "intro").map((x) => opt(x.id, x.tab))}</optgroup>
               <optgroup label="Skits">{SKITS.map((x) => opt(x.id, x.title))}{freshSkit && opt("newskit", `New: ${freshSkit.title}`)}</optgroup>
             </select>
           </label>

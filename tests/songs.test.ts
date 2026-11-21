@@ -153,3 +153,25 @@ test("Found Things opens with the instrumental tape melody before three verses w
     expect(order.map(entry=>entry.id)).toEqual(["pip","tabby","gruff","vee"]);
   }
 });
+
+function performanceScore(piece: import("../src/choir/music.ts").Piece) {
+  return [piece.kind, piece.title, piece.key, piece.mode, piece.bpm, piece.beats, piece.beat, piece.pluck,
+    piece.chords.map(c => [c.beat, c.beats, c.degree]),
+    piece.tracks.map(t => [t.id, t.phrases, t.events.map(e => [e.beat, e.beats, e.midi, e.line, e.text])])];
+}
+
+test("the migrated arrangements preserve the recorded scores, including cast and track order", async () => {
+  const {createHash} = await import("node:crypto");
+  const {buildSong} = await import("../src/choir/songbook.ts");
+  const expected = {
+    "chip": "30b49083d6065604f316d6db63e8ce3f97530b93bb4c35f088ecf36d3070d804",
+    "tabby": "70d5c7977a6d96b0f58e5a1bd80a9b8316de84c51cca3d73fca0c4224b8f44b2",
+    "gruff": "fb508339121fb3ec8ec4debd5ae53e0dc54c07f6e899b225900d5fbc1ed0e624",
+    "intro": "799db680a2e8ec38c996031ed5d96c9bb868e583ca0fe07c32f018caf5a12639",
+    "intro-studio404": "4a4427f3e915985087b311a71f3e4457c72109be222c823e2a2ff0646f0abe4a",
+  };
+  for (const [id, digest] of Object.entries(expected)) {
+    const piece = buildSong(songs.catalogSong(id), id === "intro" ? {verses: (await import("../src/choir/voices.ts")).voices} : {});
+    expect({id, digest: createHash("sha256").update(JSON.stringify(performanceScore(piece))).digest("hex")}).toEqual({id, digest});
+  }
+});

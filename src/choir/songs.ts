@@ -35,8 +35,19 @@ import toaster from "../../songs/skit-toaster.song";
 import letter from "../../songs/skit-letter.song";
 import round from "../../songs/round.song";
 
+import chip from "../../songs/chip.song";
+import tabby from "../../songs/tabby.song";
+import gruff from "../../songs/gruff.song";
+import intro from "../../songs/intro.song";
+import introstudio404 from "../../songs/intro-studio404.song";
+
 const FILES: [string, string][] = [
   ["tabby-solo.song", tabbySolo],
+  ["chip.song", chip],
+  ["tabby.song", tabby],
+  ["gruff.song", gruff],
+  ["intro.song", intro],
+  ["intro-studio404.song", introstudio404],
   ["loading.song", loading],
   ["autocomplete.song", autocomplete],
   ["rewind.song", rewind],
@@ -90,4 +101,15 @@ export const SONG_FILES: SongFile[] = FILES.map(([name, text]) => parseSongFile(
 /** The file a song, skit or the round's words came from. */
 export function fileOf(id: string, kind: SongFile["kind"]): string {
   return kind === "skit" ? `skit-${id}.song` : `${id}.song`;
+}
+
+export function catalogSong(id: string) {
+  const file = SONG_FILES.find(f => f.id === id);
+  if (file?.kind !== "song") throw new Error(`Missing song: ${id}`);
+  return file.song;
+}
+
+export function introLyrics(id: string, studio404 = false): string[] {
+  const song = catalogSong(studio404 ? "intro-studio404" : "intro");
+  return song.sections.find(section => section.name === id)?.lines.flatMap(line => "rest" in line ? [] : [line.words]) ?? [];
 }

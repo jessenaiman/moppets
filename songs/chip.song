@@ -1,0 +1,28 @@
+title: Chip Reads the Manual
+id: chip
+tab: 03 · Chip’s song
+about: 03 · Chip's solo over the workshop, with the choir on the chorus
+lead: chip
+key: C major
+bpm: 96
+beat: B . t K | . t B . | t B . K | . B t . (swing 0.05)
+backing: vee +0, pip +2, tabby +4, gruff +2
+tracks: chip vee scribe clank pip gruff tabby zap
+registers: chip 0
+breath: .25
+finale: "Hum" on 7
+
+[verse]
+"I am small and made of maybe" = 0/0.5 2/0.5 4 4 5 5 4 0/1.75 | I 4, IV 4
+"I read the manual for you" = 2 4/0.5 5/0.5 7 7 5 4 2/1.75 | VI 4, VI 4
+"I ask a thousand little whys" = 4/0.5 4/0.5 5 7 7 5 4 1/1.75 | I 4, II 4
+"And hum until the meaning flies" = 4 2/0.5 1/0.5 2 1 -1 -1 0/1.75 | I 4, V 2, I 2
+
+[chorus, choir]
+"Stitch me in the little back row" = 7 7/0.5 5/0.5 4 5 4 2 4/1.75 | I 4, I 4
+"Now I know the songs you all know" = 7/0.5 7/0.5 5 7 5 4 2 1/1.75 | IV 4, V 4
+"Thread my name through every song" = 4 5/0.5 7/0.5 8 7 5 4 2/1.75 | V 4, VI 4
+"Moppets sing and I sing along" = 5/0.5 4/0.5 2 5 2 1 -1 0/1.75 | II 4, V 2, I 2
+
+[repeat verse]
+[repeat chorus]

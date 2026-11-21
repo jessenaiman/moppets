@@ -24,7 +24,7 @@ new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/da
 const out = process.argv[2] ?? "out/listen";
 mkdirSync(out, { recursive: true });
 const FS = 48000;
-const pieces = { "1-introduction": makeIntroduction(), "2-invention-major-bossa-beatband": invent({ seed: 404, key: "D", mode: "major", progression: "doowop", groove: "bossa", palette: "beatband", soul: true }), "3-invention-dorian-funk-menagerie": invent({ seed: 88, key: "A", mode: "dorian", progression: "vamp", groove: "funk", palette: "menagerie", soul: true }), "4-jam-round": makeRound({ key: "D", bpm: 108 }), "5-chip-reads-the-manual": makeChipSong(), "legacy-tabby": makeTabbySong(), "legacy-gruff": makeGruffShanty(), ...Object.fromEntries(SONGBOOK.map((x, i) => [`${6 + i}-${x.id}`, x.make()])), ...Object.fromEntries(SKITS.map((x) => [`skit-${x.id}`, makeSkit(x)])) };
+const pieces = { "1-introduction": makeIntroduction(), "2-invention-major-bossa-beatband": invent({ seed: 404, key: "D", mode: "major", progression: "doowop", groove: "bossa", palette: "beatband", soul: true }), "3-invention-dorian-funk-menagerie": invent({ seed: 88, key: "A", mode: "dorian", progression: "vamp", groove: "funk", palette: "menagerie", soul: true }), "4-jam-round": makeRound({ key: "D", bpm: 108 }), "5-chip-reads-the-manual": makeChipSong(), "legacy-tabby": makeTabbySong(), "legacy-gruff": makeGruffShanty(), ...Object.fromEntries(SONGBOOK.filter(x => !["chip", "tabby", "gruff", "intro"].includes(x.id)).map((x, i) => [`${6 + i}-${x.id}`, x.make()])), ...Object.fromEntries(SKITS.map((x) => [`skit-${x.id}`, makeSkit(x)])) };
 const only = process.env.ONLY;
 for (const [name, piece] of Object.entries(pieces)) {
   if (only && !name.includes(only)) continue;

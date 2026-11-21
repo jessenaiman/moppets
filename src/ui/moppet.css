@@ -978,7 +978,7 @@
 .performance-top .solo-chip img { height:20px; width:15px; }
 .performance-top .booth-actions { flex-wrap:wrap; }
 .performance-top .music-rack { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto 24px; margin:8px 10px 0; border:solid #946738; border-width:1px 2px 7px; border-radius:5px; overflow:hidden; background:#f5edda; color:#33241d; }
-.music-rack header,.music-rack footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 12px; }
+.music-rack header,.music-rack footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:5px 12px; }
 .music-rack header { border-bottom:1px solid #c8b898; }
 .music-rack h2 { margin:0; font: bold 20px Georgia,serif; color:#412b20; }
 .music-rack small { color:#74583d; font-size:11px; }
@@ -1082,7 +1082,7 @@
 .s-stage .organ-controls-bay {display:grid;grid-template-columns:minmax(0,1fr) 50px;gap:2px 5px;}
 .s-stage .organ-drawbar-bank,.desk-pad-modes {grid-column:1;grid-template-columns:repeat(8,minmax(0,1fr));}
 .s-stage .organ-drawbar-bank {padding:1px 2px;background:transparent;border:0;gap:3px;}
-.desk-pad-modes {display:grid;text-align:center;color:#becabd;font:9px var(--ui);}
+.desk-pad-modes {display:grid;text-align:center;color:#becabd;font:9px var(--ui, sans-serif);}
 .s-stage .organ-pad-matrix {grid-column:1/-1;grid-template-columns:minmax(0,1fr) 50px;}
 .s-stage .organ-pad-grid {grid-template-columns:repeat(8,minmax(0,1fr));gap:3px;}
 .s-stage .lk-pad.organ-stop {min-height:19px;padding:2px;}
@@ -1181,8 +1181,8 @@
 /* The player already fits the 16:9 composition to the available desk space. */
 .show-console .performance-top .portable-rehearsal .sc-stage { max-width: none; }
 
-.view-stage .right-stage:has(.s-video) {display:flex;flex-direction:column;min-width:0;gap:10px}
-.view-stage .right-stage:has(.s-video) > * {width:100%;min-width:0;box-sizing:border-box}
+.view-stage .right-stage {display:flex;flex-direction:column;min-width:0;gap:10px}
+.view-stage .right-stage > * {width:100%;min-width:0;box-sizing:border-box}
 .s-video .vs-player-frame {min-width:0;max-width:100%}
 .studio-dock {display:grid;grid-template-columns:clamp(145px,17vw,215px) minmax(0,1fr);min-width:0;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:8px}
 .studio-compositions {padding:10px;display:flex;flex-direction:column;gap:5px;border-right:1px solid var(--line);background:var(--panel-2)}
@@ -1209,7 +1209,7 @@
 .vs-main.vs-score-desk {display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);align-items:stretch}
 .vs-score-desk .vs-player-frame {width:100%;max-height:37vh;margin:auto}
 .vs-score-desk .vs-player-frame.portrait {width:auto;height:37vh}
-.vs-score-desk .music-rack {display:grid;min-width:0;grid-template-rows:auto minmax(0,1fr) auto;min-height:180px;max-height:37vh;overflow:hidden;background:#f5edda;color:#33241d;border:1px solid #946738;border-radius:6px}
+.vs-score-desk .music-rack {display:grid;grid-template-columns:minmax(0,1fr);min-width:0;grid-template-rows:auto minmax(0,1fr) auto;min-height:180px;max-height:37vh;background:#f5edda;color:#33241d;border:1px solid #946738;border-radius:6px}
 .vs-score-desk:has([data-full-page]) {grid-template-columns:1fr}
 .vs-score-desk:has([data-full-page]) .vs-stage-col {display:none}
 .vs-score-desk .music-rack[data-full-page] {height:70vh;max-height:70vh}

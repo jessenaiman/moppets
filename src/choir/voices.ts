@@ -7,8 +7,8 @@ import { CAST } from "./cast/index.ts";
 export type { MoppetArtic, MoppetSource, MoppetVoice } from "./cast/index.ts";
 export { CAST } from "./cast/index.ts";
 
-export const INTRO_BPM = 116;
-export const CHORUS = ["We are the scraps that found a song", "At four oh four we all belong"];
+import { introLyrics } from "./songs.ts";
+export const CHORUS = introLyrics("chorus");
 
 /** Chip, the newest and smallest Moppet: the character Claude gave itself, a soloist in song 03. */
 export const CHIP = CAST.find((v) => v.id === "chip")!;

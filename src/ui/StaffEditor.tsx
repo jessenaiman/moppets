@@ -573,7 +573,7 @@ export function RehearsalStaffPanel() {
           </div>
         );
       }
-      if (song.finale.notes || activePhrase.notes.length === 1) {
+      if (song.finale && (song.finale.notes || activePhrase.notes.length === 1)) {
         const finaleWord = song.finale.word;
         const check = dictReady ? checkSung({ words: finaleWord, rhythm: activePhrase.notes.map(n => n.beats) }) : null;
         return (
@@ -587,7 +587,7 @@ export function RehearsalStaffPanel() {
               onChange={(e) => {
                 const next = sheetWords(e.target.value);
                 editSongFile((x) => {
-                  if (x.kind === "song") x.song.finale.word = next;
+                  if (x.kind === "song" && x.song.finale) x.song.finale.word = next;
                 });
               }}
             />
