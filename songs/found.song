@@ -10,64 +10,54 @@ beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
 backing: vee +0, pip +2, scribe +4
 finale: "Belong" = 1 0/3
 
-# The words and story are docs/briefs/moppet-world.md. Cue, Biscuit and Watt have no CHIMERA voice
-# yet, so for now Scribe's voice sings Cue's lines, Vee's sings Biscuit's and Pip's sings Watt's.
-# The leads are Tabby (the tune), Chip (two steps above) and Gruff (two steps below); Chip and Gruff join Tabby on the chorus hook.
-
+# Verse voices in stage order: Spool (Pip), Clank, Cue (Scribe), Chip,
+# Tabby, Hertz (Zap), Gruff, Clacker (Vee).
 tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
 tune b = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
 tune end = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
 tune low = 4 4 5 4 2 1 0/2 | VI 4, IV 4
 tune lift = 0 2 4 5 7/.5 7/.5 9 7/2 | IV 4, V 4
 
-# Verse 1: everyone was something once. Spool (the VCR) and Hertz (the CRT, rabbit-ear aerial)
-# have no voice yet: Pip's voice sings Spool's line and Vee's sings Hertz's. Hertz knew only
-# static until he made friends, so he closes the verse.
 [verse 1]
-rest 8  # The band plays the original tape melody on electric bass.
-pip: "Each screen I ask says four oh four" = a ; do nod
-pip: "So that must be this place for sure" = b
-scribe: "I was the keys by the back door" = b ; do nod
-  + clank @7: "beep" = 0
-clank: "I was a fridge sized thinking box" = a ; do nod
-scribe: "I was a script nobody read" = b ; do nod                 # Cue
-gruff: "I was a tangle left for dead" = a ; do nod
+rest 8
+pip: "I was a tape left in a drawer" = a ; do nod
+clank: "I was a fridge sized thinking box" = b ; do nod
+scribe: "I was a script nobody read" = a ; do nod
 chip: "I was a disk beneath a bed" = b ; do nod
-  + gruff @7: "buzz" = 0
-"I was a screen that lost its glow" = a ; do nod
-vee: "I was all snow until they came" = end ; do nod              # Hertz
+tabby: "I was a screen that lost its glow" = a ; do nod
+zap: "I was all snow until they came" = b ; do nod
+gruff: "I was a tangle left for dead" = a ; do nod
+vee: "I was the keys by the back door" = b ; do nod
 
-# Tabby carries the chorus. Chip and Gruff answer in harmony on the last line.
 [chorus]
-"We are the things you left behind" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
-"Built from whatever we could find" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
-"Thank you for all you hummed along" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
+"We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
+"Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
+"Thank you for all you left behind" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
 "At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
   + chip @5: "Belong" = 3 2/2
   + gruff @5: "Belong" = -1 -2/2
 
-# Verse 2: what nobody saw in them. Cue's blank last page closes it, and turns the song to growing.
 [verse 2]
-gruff: "I was a knot nobody tried" = a ; do nod
-tabby: "I was a voice I kept inside" = b ; do nod
-clank: "I was a thought that no one heard" = a ; do tilt
-vee: "I was a list with just one word" = b ; do nod                # Biscuit
-pip: "I was a plug that fit no wall" = a ; do nod                  # Watt
-chip: "I was a drawing, that was all" = b ; do nod
-pip: "I was a tape for late night's show" = a ; do nod              # Spool
-scribe: "My last page blank, so we could grow" = end ; do nod      # Cue
+pip: "I kept a tape of one last show" = a ; do nod
+clank: "I had a thought that no one heard" = b ; do nod
+scribe: "I kept my last page blank for you" = a ; do nod
+chip: "I kept a drawing someone drew" = b ; do nod
+tabby: "I had a voice I kept inside" = a ; do nod
+zap: "I caught one face between the lines" = b ; do nod
+gruff: "I felt a tug along my wire" = 0/.5 2/.5 4 4 5 4 2 4 4 | I 4, VI 4 ; do nod
+vee: "I knew one chord from that old show" = b ; do nod
 
 [repeat chorus]
 
 [verse 3]
-scribe: "I found a card that said Stand By" = a ; do nod           # Cue
-"So now I stand and wait nearby" = b ; do shrug
-clank: "I found a sign that said On Air" = a ; do nod
-gruff: "So I breathe in and hold it there" = b ; do nod
-pip: "I found a plug that said Max Load" = a ; do tilt             # Watt
-pip: "So I hold all the friends I know" = b ; do nod               # Watt
-chip: "I found a box that said Be Kind" = a ; do nod
-vee: "So I am kind and I rewind" = b ; do nod                      # Biscuit
+pip: "I found the show. I pressed rewind" = a ; do nod
+clank: "I said I'm here one beat behind" = b ; do nod
+scribe: "My last page now says Take it, Chip" = a ; do nod
+chip: "That drawing's me! Who pencilled it?" = b ; do nod
+tabby: "I heard the tune and sang along" = a ; do nod
+zap: "I lit the room so you could see" = b ; do nod
+gruff: "I plucked my string. The floor hummed too" = a ; do nod
+vee: "I played that chord. You knew it too" = b ; do nod
 
 [repeat chorus]
 
@@ -76,6 +66,6 @@ vee: "I counted down to zero" = low ; do nod                       # Click on ca
 clank: "Zero means there's nothing there" = low ; do tilt
 "Quiet is a kind of song" = low
 chip: "So let's count down again from ten" = lift ; do nod
-  + vee @7: "Places" = 4/.5 4/.5                                   # Biscuit
+  + scribe @7: "Places" = 4/.5 4/.5                                   # Biscuit
 
 [repeat chorus]

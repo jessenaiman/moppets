@@ -185,6 +185,9 @@ export function buildVideoProject(
       }
     }
   } else if (piece.kind !== "school") {
+    // These Studio 404 verse roles use existing CHIMERA voices.
+    const foundVerseRoles: Record<string, string> = { pip: "Spool", zap: "Hertz", vee: "Clacker" };
+    const sections = studio404 && piece.title === "Found Things" ? [...(piece.sections ?? [])].reverse() : [];
     for (const t of piece.tracks) {
       const words = t.phrases ?? t.lines;
       if (!words) continue;
@@ -196,9 +199,10 @@ export function buildVideoProject(
         const startSec = LEAD_IN + p.start * bs;
         const endSec = startSec + Math.max(0.45, (p.end - p.start) * bs);
         const wordBeats = mapWordsToEvents(rawLine, p.events, p.start, p.end);
+        const section = sections.find(section => section.beat <= p.start);
         raw.push({
           speakerId: t.id,
-          speaker: info.name,
+          speaker: section?.name.startsWith("verse ") ? foundVerseRoles[t.id] ?? info.name : info.name,
           x: xFor(t.id),
           color: info.color,
           text: clean,
