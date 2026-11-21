@@ -11,10 +11,10 @@
  */
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-import type { NeonWorldState } from "./neonWorlds.ts";
+import type { WorldState } from "./worlds.ts";
 
 export interface FoldedBook3DProps {
-  state: NeonWorldState;
+  state: WorldState;
   beat: number;
   userOrbit: { azimuth: number; elevation: number } | null;
   bellImpulse: number;
@@ -477,24 +477,30 @@ function buildFoldedMountain(width: number, height: number, hexLight: number, he
   return g;
 }
 
+const MAX_STANDEES = 8;
+
+interface StandeeSlot {
+  mesh: THREE.Mesh;
+  mat: THREE.MeshStandardMaterial;
+}
+
 interface SceneHandles {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   keyLight: THREE.DirectionalLight;
   hemiLight: THREE.HemisphereLight;
-  cyanLight: THREE.PointLight;
-  roseLight: THREE.PointLight;
+  accentLightA: THREE.PointLight;
+  accentLightB: THREE.PointLight;
   bookGroup: THREE.Group;
   popupPivot: THREE.Group;
   sunGroup: THREE.Group;
   sunCoreMat: THREE.MeshStandardMaterial;
-  sunCyanRingMat: THREE.MeshStandardMaterial;
+  sunRingMat: THREE.MeshStandardMaterial;
   gate: ReturnType<typeof buildLanternGatehouse>;
-  neonCard: THREE.Mesh;
-  neonMat: THREE.MeshStandardMaterial;
+  standees: StandeeSlot[];
   pageMat: THREE.MeshStandardMaterial;
-  spreadTextures: THREE.CanvasTexture[];
+  spreadTextures: Map<string, THREE.CanvasTexture>;
   atlasTextures: Map<string, THREE.Texture>;
   loader: THREE.TextureLoader;
   clouds: THREE.Group[];
@@ -518,8 +524,13 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     if (!h) return;
     const { state: st, beat: b, userOrbit: orbit, bellImpulse: chime, resolveAsset: resolveUrl } = latestPropsRef.current;
 
-    // 1. Update open-book plate stamp texture per chapter (0..3)
-    const desiredSpread = h.spreadTextures[st.plateIndex] ?? h.spreadTextures[0];
+    // 1. Dynamic open-book spread stamp texture for the current song & plate
+    const spreadKey = `${st.plate.stampLeft}|${st.plate.stampRight}`;
+    let desiredSpread = h.spreadTextures.get(spreadKey);
+    if (!desiredSpread) {
+      desiredSpread = createBookSpreadTexture(st.plate.stampLeft, st.plate.stampRight);
+      h.spreadTextures.set(spreadKey, desiredSpread);
+    }
     if (h.pageMat.map !== desiredSpread) {
       h.pageMat.map = desiredSpread;
       h.pageMat.needsUpdate = true;
@@ -527,34 +538,32 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
 
     // 2. Motion-Doctrine Camera With Intent (NO idle sine wobble — smooth act choreography!)
     const actProgress = clamp01((b - st.plate.startBeat) / Math.max(4, st.plate.endBeat - st.plate.startBeat));
+    const castCount = Math.max(1, Math.min(MAX_STANDEES, st.cast.length));
+    const ensembleBackoff = castCount >= 3 ? 0.9 : 0;
     let targetAzimuth = 0;
     let targetElevation = 0.42;
-    let targetDist = 13.6;
+    let targetDist = 13.5 + ensembleBackoff;
     let targetLookX = 0;
 
     if (st.plateIndex === 0) {
-      // Act I (After Hours): Establish wide hero framing -> gently glide toward Neon on left page
       targetAzimuth = lerp(-0.1, 0.08, smoothstep(0, 1, actProgress));
       targetElevation = lerp(0.45, 0.4, smoothstep(0, 1, actProgress));
-      targetDist = lerp(13.8, 12.8, smoothstep(0, 1, actProgress));
-      targetLookX = lerp(-0.15, -0.4, smoothstep(0, 1, actProgress));
+      targetDist = lerp(13.8 + ensembleBackoff, 12.9 + ensembleBackoff, smoothstep(0, 1, actProgress));
+      targetLookX = castCount === 1 ? lerp(-0.15, -0.35, smoothstep(0, 1, actProgress)) : 0;
     } else if (st.plateIndex === 1) {
-      // Act II (Twin Take): Sweep cleanly across the stitched spine bridging Neon & the Lantern Arch
       targetAzimuth = lerp(0.12, -0.12, smoothstep(0, 1, actProgress));
       targetElevation = 0.4;
-      targetDist = 12.9;
-      targetLookX = lerp(-0.3, 0.2, smoothstep(0, 1, actProgress));
+      targetDist = 12.9 + ensembleBackoff;
+      targetLookX = lerp(-0.2, 0.2, smoothstep(0, 1, actProgress));
     } else if (st.plateIndex === 2) {
-      // Act III (The Dark): Stillness before climax — hushed intimate push-in toward Neon & rose arch
       targetAzimuth = lerp(-0.07, 0.04, smoothstep(0.55, 1, actProgress));
       targetElevation = 0.36;
-      targetDist = lerp(12.8, 12.0, smoothstep(0, 0.45, actProgress));
-      targetLookX = lerp(-0.2, 0.12, smoothstep(0.5, 1, actProgress));
+      targetDist = lerp(12.8 + ensembleBackoff, 12.1 + ensembleBackoff, smoothstep(0, 0.45, actProgress));
+      targetLookX = lerp(-0.15, 0.12, smoothstep(0.5, 1, actProgress));
     } else {
-      // Act IV (Reprise): Celebratory elevated panoramic sweep across both glowing pages
       targetAzimuth = lerp(0.15, -0.1, smoothstep(0, 1, actProgress));
       targetElevation = lerp(0.4, 0.46, smoothstep(0, 1, actProgress));
-      targetDist = lerp(12.9, 13.8, smoothstep(0, 1, actProgress));
+      targetDist = lerp(12.9 + ensembleBackoff, 13.8 + ensembleBackoff, smoothstep(0, 1, actProgress));
       targetLookX = 0;
     }
 
@@ -572,60 +581,121 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     const fold = isInitialRest || st.plateTurn >= 0.999 ? 1 : lerp(0.15, 1, backOut(st.plateTurn));
     h.popupPivot.scale.y = Math.max(0.08, fold);
 
-    // 4. Lighting & Atmosphere Mood Shift (Daylight Emerald -> Midnight Fold on "The Dark" -> Golden Reprise)
+    // 4. Lighting & Atmosphere Mood Shift tinted to the active cast's real accent palette
     const darkAmt = st.darkness;
     h.keyLight.intensity = lerp(2.45, 0.38, darkAmt);
     h.keyLight.color.setHex(darkAmt > 0.4 ? 0x7ea6d9 : 0xfff0d1);
     h.hemiLight.intensity = lerp(1.15, 0.34, darkAmt);
     h.pageMat.color.setHex(darkAmt > 0.4 ? 0x6f8299 : 0xffffff);
 
-    // Rising cut-paper Cyan Sun behind the peaks (drops cleanly behind ridge during The Dark)
-    h.sunGroup.position.y = lerp(2.85, 1.35, darkAmt) + st.cyan * 0.25;
-    h.sunCoreMat.emissiveIntensity = lerp(0.85, 0.12, darkAmt) + st.cyan * 0.65;
-    h.sunCyanRingMat.emissiveIntensity = 0.55 + st.cyan * 1.4;
+    h.accentLightA.color.set(st.primaryAccent);
+    h.accentLightB.color.set(st.secondaryAccent);
+    h.sunRingMat.color.set(st.primaryAccent);
+    h.sunRingMat.emissive.set(st.primaryAccent);
+    h.gate.roseRingMat.color.set(st.secondaryAccent);
+    h.gate.roseRingMat.emissive.set(st.secondaryAccent);
 
-    // Swinging 3D Brass Bell & Rose Ring inside the Lantern Gate (causal on Rose voice & user tap!)
-    const bellSwing = Math.sin(b * Math.PI * 0.5 + chime * 1.9) * (0.04 + st.rose * 0.22 + (st.sharedLight > 0.4 ? 0.14 : 0));
+    // Rising cut-paper Sun Disc behind the peaks
+    h.sunGroup.position.y = lerp(2.85, 1.35, darkAmt) + st.energyA * 0.25;
+    h.sunCoreMat.emissiveIntensity = lerp(0.85, 0.12, darkAmt) + st.energyA * 0.65;
+    h.sunRingMat.emissiveIntensity = 0.55 + st.energyA * 1.4;
+
+    // Swinging 3D Brass Bell & Accent Ring inside the Lantern Gate
+    const bellSwing = Math.sin(b * Math.PI * 0.5 + chime * 1.9) * (0.04 + st.energyB * 0.22 + (st.sharedLight > 0.4 ? 0.14 : 0));
     h.gate.bellPivot.rotation.z = bellSwing;
-    h.gate.roseRingMat.emissiveIntensity = 0.45 + st.rose * 1.85 + st.sharedLight * 0.9;
+    h.gate.roseRingMat.emissiveIntensity = 0.45 + st.energyB * 1.85 + st.sharedLight * 0.9;
     h.gate.lanternMat.emissiveIntensity = lerp(0.9, 1.65, darkAmt) + st.sharedLight * 0.5;
 
-    // 5. Neon 3D Standee Position & Keyed Sprite Frame on the Winding Paper Road
-    const roadU = clamp01((st.neonPathPct - 28) / 24);
-    const neonX = lerp(-1.85, -0.35, roadU);
-    const neonZ = lerp(0.72, 0.52, roadU);
-    const groundY = pageSurfaceY(neonX, 8.6);
-    h.neonCard.position.set(neonX, groundY + 1.24, neonZ);
+    // 5. Polymorphic N-Performer 3D Standee Staging (Solo hero, Duet pair, or Full Choir arc!)
+    let leadX = -1.1;
+    let leadZ = 0.72;
+    let leadY = pageSurfaceY(leadX, 8.6);
 
-    // Dynamic Cyan & Rose PointLights casting real light onto the paper diorama!
-    h.cyanLight.position.set(neonX - 0.3, groundY + 1.9, neonZ + 0.85);
-    h.cyanLight.intensity = 1.4 + st.cyan * 3.8 + (st.mouthOpen ? st.vocalLevel * 1.6 : 0);
+    for (let idx = 0; idx < MAX_STANDEES; idx++) {
+      const slot = h.standees[idx];
+      const performer = st.cast[idx];
+      if (!performer) {
+        slot.mesh.visible = false;
+        continue;
+      }
+      slot.mesh.visible = true;
 
-    h.roseLight.position.set(1.65, 1.55, 0.6);
-    h.roseLight.intensity = 1.2 + st.rose * 3.4 + st.sharedLight * 3.2;
+      // Compute clean non-overlapping stage position on the open curved book
+      let x = -1.25;
+      let z = 0.78;
+      let scale = 1.0;
 
-    // Bind Neon's exact atlas URL & cel UV slice
-    const fullUrl = resolveUrl(st.cel.atlasUrl);
-    let tex = h.atlasTextures.get(fullUrl);
-    if (!tex) {
-      tex = h.loader.load(fullUrl, () => {
-        renderNow();
-      });
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      h.atlasTextures.set(fullUrl, tex);
+      if (castCount === 1) {
+        // Solo hero stands cleanly on the left-center winding paper road
+        const travel = lerp(-1.55, -0.55, actProgress);
+        x = travel;
+        z = lerp(0.82, 0.58, actProgress);
+        scale = 1.08;
+      } else if (castCount === 2) {
+        // Duet spans cleanly across the stitched spine
+        x = idx === 0 ? -1.65 : 0.48;
+        z = idx === 0 ? 0.85 : 0.92;
+        scale = 0.96;
+      } else {
+        // Ensemble curved arc across both open pages (readable, grounded, zero overlap)
+        const u = castCount > 1 ? idx / (castCount - 1) : 0.5;
+        x = lerp(-2.75, 2.55, u);
+        const arc = Math.sin(u * Math.PI);
+        z = lerp(1.22, 0.45, arc) + (idx % 2 === 0 ? 0.12 : -0.06);
+        scale = castCount >= 6 ? 0.68 : 0.78;
+      }
+
+      // Causal singing step-forward & lift (strictly driven by live vocal level, never idle wobble)
+      const singLift = performer.singing ? 0.06 + performer.level * 0.14 : 0;
+      const singPopZ = performer.singing ? 0.18 : 0;
+      const groundY = pageSurfaceY(x, 8.6);
+      const cardHeight = 2.42 * scale;
+      slot.mesh.scale.set(scale, scale, 1);
+      slot.mesh.position.set(x, groundY + cardHeight * 0.5 + singLift, z + singPopZ);
+
+      if (performer.id === st.lead.id) {
+        leadX = x;
+        leadY = groundY;
+        leadZ = z + singPopZ;
+      }
+
+      // Bind this performer's exact resolved texture & UV slice (FMV atlas, Pin atlas, or WebP sprite)
+      const fullUrl = resolveUrl(performer.cel.atlasUrl);
+      let tex = h.atlasTextures.get(fullUrl);
+      if (!tex) {
+        tex = h.loader.load(fullUrl, () => {
+          renderNow();
+        });
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        h.atlasTextures.set(fullUrl, tex);
+      }
+
+      // If multiple performers ever share an atlas, clone UV state only when needed; otherwise direct bind
+      if (slot.mat.map !== tex) {
+        slot.mat.map = tex;
+        slot.mat.needsUpdate = true;
+      }
+      const { cols, rows, frame } = performer.cel;
+      const col = frame % cols;
+      const row = Math.floor(frame / cols);
+      tex.repeat.set(1 / cols, 1 / rows);
+      tex.offset.set(col / cols, 1 - (row + 1) / rows);
+
+      // Highlight the currently singing performer(s) subtly in emissive warmth
+      slot.mat.emissive.set(performer.singing ? performer.color : "#000000");
+      slot.mat.emissiveIntensity = performer.singing ? 0.14 + performer.level * 0.22 : 0;
     }
-    if (h.neonMat.map !== tex) {
-      h.neonMat.map = tex;
-      h.neonMat.needsUpdate = true;
-    }
-    const col = st.cel.frame % st.cel.cols;
-    const row = Math.floor(st.cel.frame / st.cel.cols);
-    tex.repeat.set(1 / st.cel.cols, 1 / st.cel.rows);
-    tex.offset.set(col / st.cel.cols, 1 - (row + 1) / st.cel.rows);
+
+    // Dynamic Accent PointLights casting real colored light onto the paper diorama!
+    h.accentLightA.position.set(leadX - 0.2, leadY + 1.9, leadZ + 0.95);
+    h.accentLightA.intensity = 1.4 + st.energyA * 3.8 + (st.mouthOpen ? st.vocalLevel * 1.6 : 0);
+
+    h.accentLightB.position.set(1.65, 1.55, 0.6);
+    h.accentLightB.intensity = 1.2 + st.energyB * 3.2 + st.sharedLight * 2.8;
 
     // Subtle paper-bird & cloud progress tied to song progression (forward story travel, not sine wobble)
     h.birds[0].position.set(lerp(-3.2, -1.6, actProgress), 2.35 + actProgress * 0.2, -1.2);
@@ -678,11 +748,11 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     keyLight.shadow.bias = -0.0005;
     scene.add(keyLight);
 
-    const cyanLight = new THREE.PointLight(0x3ce6f5, 2.2, 6.5, 1.6);
-    scene.add(cyanLight);
+    const accentLightA = new THREE.PointLight(0x3ce6f5, 2.2, 6.5, 1.6);
+    scene.add(accentLightA);
 
-    const roseLight = new THREE.PointLight(0xff5294, 2.0, 6.5, 1.6);
-    scene.add(roseLight);
+    const accentLightB = new THREE.PointLight(0xff5294, 2.0, 6.5, 1.6);
+    scene.add(accentLightB);
 
     // Subtle tabletop shadow-catcher plane beneath the hardcover book
     const tablePlane = new THREE.Mesh(
@@ -711,16 +781,13 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     coverBoard.receiveShadow = true;
     bookGroup.add(coverBoard);
 
-    // Thick stacked pages side block
-    const spreadTextures = [
-      createBookSpreadTexture("GLASS OBSERVATORY", "PLATE 01"),
-      createBookSpreadTexture("LANTERN ARCH", "PLATE 02"),
-      createBookSpreadTexture("MIDNIGHT FOLD", "PLATE 03"),
-      createBookSpreadTexture("SHARED HORIZON", "PLATE 04"),
-    ];
+    // Thick stacked pages side block (textures generated lazily per song & chapter stamp)
+    const spreadTextures = new Map<string, THREE.CanvasTexture>();
+    const initialSpread = createBookSpreadTexture("FOLDED SONGBOOK", "PLATE 01");
+    spreadTextures.set("FOLDED SONGBOOK|PLATE 01", initialSpread);
     const pageEdgeMat = new THREE.MeshStandardMaterial({ color: 0xddd0ad, roughness: 0.92 });
     const pageMat = new THREE.MeshStandardMaterial({
-      map: spreadTextures[0],
+      map: initialSpread,
       roughness: 0.94,
     });
     const curvedSpreadGeo = createCurvedSpreadGeometry(8.6, 5.1, 0.24);
@@ -784,13 +851,13 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     sunCore.rotation.x = Math.PI / 2;
     sunGroup.add(sunCore);
 
-    const sunCyanRingMat = new THREE.MeshStandardMaterial({
+    const sunRingMat = new THREE.MeshStandardMaterial({
       color: 0x5cebf7,
       emissive: 0x3ce6f5,
       emissiveIntensity: 1.0,
       roughness: 0.25,
     });
-    const sunRing = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.045, 10, 28), sunCyanRingMat);
+    const sunRing = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.045, 10, 28), sunRingMat);
     sunGroup.add(sunRing);
 
     const sunRod = new THREE.Mesh(
@@ -901,18 +968,22 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
     const birdB = makeBird();
     popupPivot.add(birdA, birdB);
 
-    // 3. Neon Keyed 48-Frame 3D Standee Standing Directly on the Winding Paper Road
-    const neonMat = new THREE.MeshStandardMaterial({
-      transparent: true,
-      alphaTest: 0.35,
-      roughness: 0.72,
-      metalness: 0.05,
-      side: THREE.DoubleSide,
+    // 3. Polymorphic Pool of N Performer 3D Cardstock Standees on the Open Book
+    const standees: StandeeSlot[] = Array.from({ length: MAX_STANDEES }, () => {
+      const mat = new THREE.MeshStandardMaterial({
+        transparent: true,
+        alphaTest: 0.35,
+        roughness: 0.72,
+        metalness: 0.05,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.15, 2.46), mat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = false;
+      mesh.visible = false;
+      popupPivot.add(mesh);
+      return { mesh, mat };
     });
-    const neonCard = new THREE.Mesh(new THREE.PlaneGeometry(2.15, 2.46), neonMat);
-    neonCard.castShadow = true;
-    neonCard.receiveShadow = false;
-    popupPivot.add(neonCard);
 
     const handles: SceneHandles = {
       renderer,
@@ -920,16 +991,15 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       camera,
       keyLight,
       hemiLight,
-      cyanLight,
-      roseLight,
+      accentLightA,
+      accentLightB,
       bookGroup,
       popupPivot,
       sunGroup,
       sunCoreMat,
-      sunCyanRingMat,
+      sunRingMat,
       gate,
-      neonCard,
-      neonMat,
+      standees,
       pageMat,
       spreadTextures,
       atlasTextures: new Map(),

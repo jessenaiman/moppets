@@ -989,3 +989,178 @@
     display: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   S-29: POLYMORPHIC ENSEMBLE & CHIMERA 3D ANATOMICAL X-RAY LENS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.nw-ensemble-strip {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.4rem;
+}
+
+.nw-ensemble-slot {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.nw-performer.compact {
+  width: 100%;
+  height: 82%;
+}
+
+.nw-ensemble-tag {
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 14, 18, 0.8);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nw-chimera {
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(22, 68, 102, 0.35), transparent 72%),
+    linear-gradient(180deg, #061018 0%, #091926 55%, #050c12 100%);
+  color: #e6f4fb;
+}
+
+.nw-chimera-top {
+  position: absolute;
+  inset: 14px 18px auto 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nw-xray-grid {
+  position: absolute;
+  inset: 60px 20px 64px 20px;
+  z-index: 12;
+  display: grid;
+  gap: 12px;
+  align-items: stretch;
+  justify-items: stretch;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.nw-xray-grid.count-1 {
+  grid-template-columns: minmax(260px, 440px);
+  justify-content: center;
+}
+
+.nw-xray-grid.count-2 {
+  grid-template-columns: repeat(2, minmax(220px, 380px));
+  justify-content: center;
+}
+
+.nw-xray-grid.count-3,
+.nw-xray-grid.count-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nw-xray-grid.count-5,
+.nw-xray-grid.count-6,
+.nw-xray-grid.count-7,
+.nw-xray-grid.count-8 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nw-xray-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(79, 182, 242, 0.28);
+  background: rgba(8, 22, 34, 0.78);
+  box-shadow: inset 0 0 24px rgba(79, 182, 242, 0.08);
+  min-height: 0;
+}
+
+.nw-xray-card.singing {
+  border-color: var(--xray-accent, #5cebf7);
+  box-shadow: inset 0 0 28px rgba(79, 182, 242, 0.16), 0 0 22px rgba(79, 182, 242, 0.24);
+}
+
+.nw-xray-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nw-xray-head span {
+  color: rgba(190, 226, 245, 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-xray-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.nw-xray-meter {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(79, 182, 242, 0.16);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.nw-xray-bar {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.nw-chimera-foot {
+  position: absolute;
+  inset: auto 18px 14px 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(79, 182, 242, 0.28);
+  background: rgba(6, 17, 26, 0.88);
+}
+
+.nw-chimera-speaker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.nw-chimera-lyric {
+  margin: 0;
+  flex: 1;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: #f4fbff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

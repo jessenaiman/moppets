@@ -23,6 +23,8 @@ import { shownWords } from "../choir/captions.ts";
 import { stageTalkAt } from "../choir/bubbles.ts";
 import { effectOf, PropFx, updateProp } from "./props.tsx";
 import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
+import { applyPresetToVoice, CHIMERA_VOICE_PRESETS, type ChimeraPhysicsPreset } from "../choir/performer.ts";
+import { editVoice } from "../choir/ensemble.ts";
 import { LaunchkeyConnect, LaunchkeyMap } from "./launchkey-map.tsx";
 import { bandEnabled, bandFor } from "../choir/band.ts";
 import { livePose, liveMidiPitch, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
@@ -1319,6 +1321,32 @@ function Workbench() {
         <MidiStrip />
 
         <LivePanel name={vName} />
+        <div className="mb-3 rounded-lg border border-[#745438]/60 bg-[#1a120c]/85 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-xs font-bold tracking-wider uppercase text-[#e3bd7f]">CHIMERA Physics Voice Presets</span>
+            <span className="text-[11px] text-[#c7b194]">Applies directly to {vName}&apos;s live airway</span>
+          </div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="CHIMERA voice physics presets">
+            {CHIMERA_VOICE_PRESETS.map((preset: ChimeraPhysicsPreset) => (
+              <button
+                key={preset.id}
+                type="button"
+                title={preset.tagline}
+                className="rounded-md border border-[#946738]/70 bg-[#2a1e15] px-2.5 py-1.5 text-xs font-semibold text-[#f8efe2] hover:border-[#50cfad] hover:bg-[#50cfad]/20"
+                onClick={() => {
+                  const m = useMoppet.getState();
+                  m.edit((voice) => applyPresetToVoice(voice, preset));
+                  const updated = useMoppet.getState().voices[m.selected];
+                  editVoice(updated.id, { artic: updated.artic, source: updated.source, rerender: true });
+                  setNote(`Applied CHIMERA preset "${preset.label}" to ${vName}.`);
+                  void auditionNote(updated, Math.round((updated.register[0] + updated.register[1]) / 2), "ah", 360);
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
