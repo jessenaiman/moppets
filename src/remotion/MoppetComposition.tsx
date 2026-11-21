@@ -209,7 +209,7 @@ const TitleSlide: React.FC<{ card: TitleCardConfig; isOutro?: boolean }> = ({ ca
   );
 };
 
-const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
+const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolean }> = ({ props, interactive = false }) => {
   const frame = useCurrentFrame();
   const { fps, width, height, durationInFrames } = useVideoConfig();
   const portrait = height > width;
@@ -256,6 +256,11 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       const players = pair ? ["cue", "neon"] : piece.title === "Take Two" ? ["neon"] : piece.title === "Line?" ? ["cue"] : [];
       for (const player of players) {
         for (const action of puppetActions[player as keyof typeof puppetActions]) urls.add(resolveAsset(`/rehearsal/pins/${player}/${action}.webp`));
+      }
+      if (piece.title === "Take Two") {
+        for (const state of ["roll-closed", "roll-open", "sing-closed", "sing-open"]) {
+          urls.add(resolveAsset(`/rehearsal/rigs/neon/solo/${state}.webp`));
+        }
       }
       if (players.length) {
         const set = pair ? "right-on-cue" : players[0] === "neon" ? "neon-repair" : "cue";
@@ -334,6 +339,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
       cameraFollow={props.cameraAutoFollow && stageSec >= LEAD_IN}
       customBubbles={props.bubbles}
       resolveAsset={resolveAsset}
+      interactive={interactive}
       renderCharacterOverride={useMeasuredMouths ? undefined : renderCharacterOverride}
     />
   );
@@ -423,10 +429,10 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
           ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
           : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
         {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
-          : props.studio404 && ["line","take-two"].includes(props.slug) ?
-          <StageFit><Audition project={props} neon={props.slug==="take-two"}/></StageFit>
+          : props.studio404 && props.slug === "line" ?
+          <StageFit><Audition project={props} neon={false}/></StageFit>
           : <>
-          <MoppetStageScene props={props}/>
+          <MoppetStageScene props={props} interactive={isPlayer}/>
           {props.studio404 && props.slug==="right-on-cue" && <CastMoment project={props}/>}
         </>}
       </Sequence>

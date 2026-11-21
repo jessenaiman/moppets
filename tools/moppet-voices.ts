@@ -21,7 +21,7 @@
  */
 import { gunzipSync } from "node:zlib";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { initEngine, wasmModule } from "../tests/harness.ts";
+import { initEngine, wasmModule } from "./wasm-harness.ts";
 import { FFT, hann } from "../chimera/tools/lib/fft.ts";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 await initEngine();

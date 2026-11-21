@@ -4,7 +4,7 @@
  */
 import { gunzipSync } from "node:zlib";
 import { readFileSync } from "node:fs";
-import { initEngine, wasmModule } from "../tests/harness.ts";
+import { initEngine, wasmModule } from "./wasm-harness.ts";
 await initEngine();
 const { hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.ts");
 const { compose } = await import("../src/choir/music.ts");

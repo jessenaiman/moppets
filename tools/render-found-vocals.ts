@@ -2,7 +2,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
-import { initEngine, wasmModule } from "../tests/harness";
+import { initEngine, wasmModule } from "./wasm-harness.ts";
 import { scoredBeatPath, scoredStemPath } from "../src/choir/pluginScore";
 await initEngine();
 const { beatReady, EnglishG2P, parseBeat } = await import("@chimera/wasm/engine.ts");

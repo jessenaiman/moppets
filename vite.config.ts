@@ -1,6 +1,7 @@
 import { rehearsalStudio } from "./tools/rehearsal-studio";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { soundcraftBridge } from "./tools/soundcraft-bridge.ts";
 import { claudeWriter } from "./tools/claude-writer.ts";
 import { songBridge } from "./tools/song-bridge.ts";
@@ -18,7 +19,7 @@ const wasm = fileURLToPath(new URL("./src/audio/moppet.wasm", import.meta.url));
 const songText = { name: "song-text", load: (id: string) => (id.endsWith(".song") ? `export default ${JSON.stringify(readFileSync(id, "utf8"))};` : null) };
 
 export default defineConfig({
-  plugins: [rehearsalStudio(), songText, react(), soundcraftBridge(), claudeWriter(), songBridge(), videoBridge(), pluginVocalBridge()],
+  plugins: [tailwindcss(), rehearsalStudio(), songText, react(), soundcraftBridge(), claudeWriter(), songBridge(), videoBridge(), pluginVocalBridge()],
   resolve: {
     alias: [
       { find: /^@chimera\//, replacement: `${chimera}/` },

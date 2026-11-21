@@ -4,6 +4,7 @@
  * render the app. A failed load can be retried.
  */
 import "@chimera/ui/styles.css";
+import "./ui/tailwind.css";
 import { initChimera } from "@chimera/wasm/chimera.ts";
 import moppetWasm from "./audio/moppet.wasm?url";
 

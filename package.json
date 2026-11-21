@@ -8,9 +8,9 @@
     "dev": "bun run chimera:update && vite --host 127.0.0.1",
     "build": "bun run chimera:update && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "bun run wasm && cargo test --workspace && bun test ./tests",
+    "test": "bun run check",
+    "check": "bun tools/playwright-check.ts",
     "typecheck": "tsc --noEmit",
-    "lint:layout": "bun run wasm && bun tools/layout-lint.ts",
     "wasm": "cargo build -p moppet-wasm --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/moppet_wasm.wasm src/audio/moppet.wasm",
     "chimera:update": "git submodule update --init --recursive -- chimera && git -C chimera log --oneline -1 && bun run wasm"
   },
@@ -27,12 +27,14 @@
   },
   "devDependencies": {
     "@remotion/cli": "^4.0.545",
+    "@tailwindcss/vite": "^4.3.5",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@types/three": "0.186.0",
     "@vitejs/plugin-react": "6.2.1",
     "playwright-core": "1.64.1",
+    "tailwindcss": "^4.3.5",
     "typescript": "7.0.2",
     "vite": "8.3.6"
   }

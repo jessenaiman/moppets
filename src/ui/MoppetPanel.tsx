@@ -30,7 +30,7 @@ import type { Pose } from "../choir/pose.ts";
 import { ShotcraftStage, type LiveMidiSpeech } from "../stage/ShotcraftStage.tsx";
 import type { StaffNoteItem } from "./StaffEditor.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
-import { lockVoiceControls, resetSelectedVocal, applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
+import { resetSelectedVocal, applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
 import { instrumentPart, partKey } from "../choir/pluginScore.ts";
 import { EnsemblePuppet } from "./EnsemblePuppet.tsx";
@@ -1259,8 +1259,6 @@ function Workbench() {
   const studio404 = useMoppet((s) => s.studio404);
   const select = useMoppet((s) => s.select);
   const reset = resetSelectedVocal;
-  const unlocked = useController(s => s.voiceEditing);
-  useEffect(() => lockVoiceControls, [selected]);
   const savePreset = useMoppet((s) => s.savePreset);
   const loadPreset = useMoppet((s) => s.loadPreset);
   const singSolo = useMoppet((s) => s.singSolo);
@@ -1321,10 +1319,7 @@ function Workbench() {
         <MidiStrip />
 
         <LivePanel name={vName} />
-        <button type="button" aria-pressed={unlocked} onClick={() => unlocked ? lockVoiceControls() : useController.setState({voiceEditing:true})}>
-          {unlocked ? "Lock vocal controls" : "Unlock vocal editing"}
-        </button>
-        {unlocked && <div className="knobs">
+        <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
             const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
             const cc = ccFor(ccMap, key);
@@ -1338,9 +1333,8 @@ function Workbench() {
             </div>;
           })}
         </div>
-        }
         <p className="status" role="status">{note}</p>
-        <p className="status">{import.meta.env.DEV ? "Vocal edits use the local CHIMERA plug-in host." : "Published songs use recorded CHIMERA plug-in presets. Open the local stage to render a custom voice."}</p>
+        <p className="status">CHIMERA browser WASM synthesis · edits apply live to {vName}.</p>
         <div className="panel-footer">
           <button onClick={reset}>Reset voice</button>
           <button onClick={savePreset}>↓ Save preset</button>
@@ -1395,18 +1389,20 @@ function RehearsalDesk() {
     setLiveDesk(!liveDesk);
   }
   const controller = <div className="instrument-bay">
-        <aside className="bay-controls" aria-label="Stage controls">
-          <button aria-pressed={references} onClick={()=>setReferences(!references)}>Cast bibles</button>
-          <button aria-pressed={writing} onClick={()=>setWriting(!writing)}>Write &amp; rehearse</button>
-          <button aria-pressed={liveDesk} onClick={toggleLiveDesk}>Live puppets</button>
-        </aside>
-        <LaunchkeyMap/>
-        <aside className="bay-controls" aria-label="Music controls">
-          <button aria-pressed={desk} onClick={()=>setDesk(!desk)}>♫ Music desk</button>
-          <button aria-pressed={editor} onClick={()=>{lockVoiceControls();setEditor(!editor)}}>Voice workshop</button>
-          <button onClick={resetSelectedVocal} title="Restore this singer’s factory vocal settings">↺ Reset {name} vocals</button>
-          <small>{!import.meta.env.DEV ? "CHIMERA plug-in voice" : JSON.stringify(v) === JSON.stringify(CAST[selected]) ? "CHIMERA · factory voice" : "CHIMERA · custom voice"}</small>
-        </aside>
+        <div className="bay-toolbar" role="toolbar" aria-label="Studio workspace controls">
+          <div className="bay-toolbar-group">
+            <button type="button" aria-pressed={references} onClick={() => setReferences(!references)}>Cast bibles</button>
+            <button type="button" aria-pressed={writing} onClick={() => setWriting(!writing)}>Write &amp; rehearse</button>
+            <button type="button" aria-pressed={liveDesk} onClick={toggleLiveDesk}>Live puppets</button>
+          </div>
+          <div className="bay-toolbar-group">
+            <button type="button" aria-pressed={desk} onClick={() => setDesk(!desk)}>♫ Music desk</button>
+            <button type="button" aria-pressed={editor} onClick={() => setEditor(!editor)}>Voice workshop</button>
+            <button type="button" onClick={resetSelectedVocal} title="Restore this singer’s factory vocal settings">↺ Reset {name} vocals</button>
+            <small>{JSON.stringify(v) === JSON.stringify(CAST[selected]) ? "CHIMERA · factory voice" : "CHIMERA · custom voice"}</small>
+          </div>
+        </div>
+        <LaunchkeyMap />
       </div>;
   return (
     <div className={`right right-moppet right-stage${showLive ? " warm" : ""}`}>

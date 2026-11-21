@@ -9,7 +9,7 @@ import { bouncePart } from "./plugin-host.ts";
 import { instrumentPart, scoredBeatPath, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
-import { initEngine, wasmModule } from "../tests/harness.ts";
+import { initEngine, wasmModule } from "./wasm-harness.ts";
 await initEngine();
 const { CueCore, hopFor, midiToHz, SingerCore } = await import("../src/choir/singerCore.ts");
 const { invent, makeIntroduction, makeChipSong, makeTabbySong, makeGruffShanty, makeRound } = await import("../src/choir/music.ts");

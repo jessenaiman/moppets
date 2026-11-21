@@ -6,10 +6,11 @@ import { bandFor } from "./band.ts";
 /** Is there an accompaniment stem: the band (band.ts), or the original pluck when a piece has no band. */
 const hasBand = (piece: Piece) => bandFor(piece).some((p) => p.notes.length > 0);
 export const hasAccompaniment = (piece: Piece) => hasBand(piece) || !!piece.pluck;
-/** The band sits under the voices: about 12 dB below the whole mix in an up-tempo song (measured with tools/choir-render.ts). */
-export const BAND_LEVEL = 0.55;
+/** The band sits cleanly under the voices so CHIMERA lyrics stay clear and upfront. */
+export const BAND_LEVEL = 0.42;
 
-export const BUS_GAIN = 0.34;
+/** Direct healthy bus gain (no artificial -9 dB cut); the VocalBus peak limiter catches chorus peaks. */
+export const BUS_GAIN = 0.85;
 /** Stems beyond the singers and accompaniment: the beatbox, then each cameo creature, in spawn order. */
 export function extraStems(piece: Piece): string[] {
   return [...(piece.beat ? ["beat"] : []), ...[...new Set((piece.cameos ?? []).map((c) => c.creature))]];
@@ -18,21 +19,19 @@ export function extraStems(piece: Piece): string[] {
 /** Each stem's level for a piece (voices by id, then the accompaniment), and where the introduction's chorus sits back. */
 export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: number, levels: Record<string, number>): { gains: number[]; section?: GainSection } {
   const solo = piece.kind === "intro" || piece.kind === "solo";
-  const level = (id: string) => (solo ? 0.8 / BUS_GAIN : 1) * (levels[id] ?? 1);
+  const level = (id: string) => (solo ? 1.15 : 0.95) * (levels[id] ?? 1);
   const gains = piece.tracks.map((t) => level(t.id));
-  const pluckGain = (hasBand(piece) ? BAND_LEVEL : 1) / BUS_GAIN;
-  if (hasAccompaniment(piece)) gains.push(piece.title === "Found Things" ? pluckGain * 0.8 : pluckGain);
+  const pluckGain = (hasBand(piece) ? BAND_LEVEL : 0.72) / BUS_GAIN;
+  if (hasAccompaniment(piece)) gains.push(piece.title === "Found Things" ? pluckGain * 0.85 : pluckGain);
   const extras = extraStems(piece);
-  for (const e of extras) gains.push(e === "beat" ? 1 : 0.32);
-  // A pair trading lines spends much of the song at solo density. Bring
-  // the whole arrangement up together; the bus limiter catches harmony peaks.
+  for (const e of extras) gains.push(e === "beat" ? 0.85 : 0.4);
   const singers = piece.stage?.filter(id => id !== "band");
   if (piece.kind === "motesong" && singers && singers.length >= 1 && singers.length <= 2 &&
       singers.length === piece.tracks.length && piece.tracks.every(track => singers.includes(track.id))) {
-    for (let i = 0; i < gains.length; i++) gains[i] *= 0.8 / BUS_GAIN;
+    for (let i = 0; i < piece.tracks.length; i++) gains[i] *= 1.15;
   }
   let section: GainSection | undefined;
-  if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => (0.19 / BUS_GAIN) * (levels[t.id] ?? 1)), ...(hasAccompaniment(piece) ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 1 : 0.32))] };
+  if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => 0.45 * (levels[t.id] ?? 1)), ...(hasAccompaniment(piece) ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 0.85 : 0.4))] };
   return { gains, section };
 }
 

@@ -207,21 +207,12 @@ export function MusicRack({timeSec, playing, onSeek = seek}: {timeSec?:number; p
   useEffect(() => {
     anchors.current = paper.current && track?.events.length ? engrave(paper.current, piece, track, lines) : [];
   }, [piece, track, lines]);
-  useEffect(()=>{
-    const root=paper.current;
-    if(!root || !lines.length)return;
-    // Choose the arrangement with the largest legible systems that fits the paper.
-    const systemAspect=Math.max(...lines.map(line=>line.count))*195/130;
-    const arrange=()=>{
-      const {clientWidth:w,clientHeight:h}=root;
-      const fitted=Math.floor(h*systemAspect/lines.length);
-      const rowWidth=compact||fullPage?w:Math.min(w,Math.max(360,fitted));
-      root.style.setProperty("--system-width",rowWidth+"px");
-    };
-    arrange();
-    const observer=new ResizeObserver(arrange);observer.observe(root);
-    return ()=>observer.disconnect();
-  },[lines,compact,fullPage,track]);
+  useEffect(() => {
+    const root = paper.current;
+    if (!root) return;
+    // Always fill the rack width so staves & lyrics stay crisp and legible instead of shrinking to a narrow column.
+    root.style.setProperty("--system-width", "100%");
+  }, [lines, compact, fullPage, track]);
   useEffect(()=>{
     const points=anchors.current;
     const i=points.findIndex(p=>p.beat>beat);

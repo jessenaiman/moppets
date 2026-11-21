@@ -9,10 +9,8 @@ the README.
   runs) is a proposal with its cost. If the work grows well past the estimate, stop and say so.
 - Before repeating or reversing earlier work, read its history (`git log -- <path>`, `git log -S`).
 - Commit small. The subject names what changed and the trap, in searchable words; the body gives
-  the why, what you ruled out, what you ran (with numbers) and what you didn't test.
-- Keep each fixed bug's reproduction as a test.
-- Code outranks this file: fix the file when they disagree. When something breaks unnoticed, add
-  a rule here, with a check.
+  the why, what you ruled out, and what you verified in the browser.
+- Code outranks this file: fix the file when they disagree.
 
 ## Map
 
@@ -21,12 +19,11 @@ the README.
   this repo.
 - `crates/moppet-wasm/`: the app's wasm: CHIMERA's C ABI plus the sized Moppet voices (`moppet_*`).
 - `src/choir/`: the Moppets (cast, scores, songs, skits, band, gestures, the ensemble of singer
-  workers). `src/audio/`: the AudioContext and the dictionary. `src/ui/`: the app (React, the stage).
-  `src/worklet/`: the choir mixer.
+  workers). `src/audio/`: the AudioContext and the dictionary. `src/ui/`: the app (React, Tailwind CSS v4, the stage).
+  `src/worklet/`: the choir mixer and live CHIMERA voice worklet.
 - `songs/`: every song, skit and round's words as a lead sheet (`src/choir/songFile.ts`,
   `docs/writing-songs.md`); a new one is listed in `src/choir/songs.ts`.
-- `tests/`: bun tests on the wasm build. `tools/`: the choir e2e, layout lint, videos, gestures,
-  the Claude, SoundCraft and song bridges for the dev server.
+- `tools/`: the real-browser Playwright check (`tools/playwright-check.ts`), Craft FMV slicer, and dev bridges.
 
 ## Rules
 
@@ -34,16 +31,13 @@ the README.
   CHIMERA doesn't do, it goes in `crates/moppet-wasm` or `src/`, on CHIMERA's public API.
 - **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a newer
   CHIMERA), run `bun run wasm` before checking the affected behavior.
-- **`bun test ./tests`, not `bun test tests`:** the bare word is a filter that also runs
-  CHIMERA's own tests in `chimera/`, against a wasm they weren't built for.
 - **The wasm loads before the UI.** CHIMERA's `engine.ts` calls the engine as it loads, so it
-  must not be reachable from `src/main.tsx`'s static imports. Check: `bun tools/choir-e2e.ts`
-  against `bun run preview`.
-- **Worker, worklet and tool modules stay engine-free** (`music.ts`, `band.ts`, `bandSynth.ts`,
+  must not be reachable from `src/main.tsx`'s static imports.
+- **Worker and worklet modules stay engine-free** (`music.ts`, `band.ts`, `bandSynth.ts`,
   `mix.ts`, `midi.ts`, `timeline.ts`, `captions.ts`, the singer worker, the mixer worklet): they load
   where the engine isn't. Engine-calling helpers go in their own module (`roundCheck.ts`, `plan.ts`).
-  Check: `tests/engine-free.test.ts`.
-- **DOM content flows in `.screen-body`, never absolutely positioned.** Check: `bun run lint:layout`.
+- **Keep audio direct.** Route CHIMERA voices straight through the single master volume (`src/audio/audio.ts`) and clean browser WASM worklets without stacked volume wrappers, lockouts, or external plugin-host bypasses.
+- **Use Tailwind CSS v4** (`src/ui/tailwind.css`) for responsive layout instead of ad-hoc CSS hacks.
 - **Use the Craft apps (`photocraft`, `anicraft`, `effectcraft`, `filmcraft`, `vectorcraft`)** via
   their MCP `--bridge` / `--automation-read-root` or `<app>-cli` for keying, matting, animation,
   and compositing instead of hand-rolling image/video processing in Python or JS. Read
@@ -52,6 +46,4 @@ the README.
 
 ## Checks
 
-Verify the behavior the user asked to change. For a lyric, sing the edited line in context. For a vocal or mix change, compare the same phrase before and after at matched loudness. For stage sync, play or seek the affected passage in the production player and check the visible singer against its recording.
-
-Run a focused regression when it covers the changed behavior. Reserve the full suite for an explicit full check or a change spanning the engine and its consumers. Run typecheck for TypeScript changes and layout lint for layout changes.
+Verify real user-facing functionality in a real Chromium browser when finishing or committing changes (`bun run check` + `bun run typecheck`). Do not add or maintain internal unit/policy/fixture test suites that assert third-party internals or lock in wrappers.

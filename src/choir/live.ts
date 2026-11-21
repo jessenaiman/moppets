@@ -12,9 +12,6 @@ import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
  * The voice is the selected Moppet's own (body, airway size, posture, folds), in the live worklet.
  */
 import { create } from "zustand";
-import { instrumentNote, instrumentPart } from "./pluginScore.ts";
-import { pluginRecording } from "./pluginPlayback.ts";
-import { beatSeconds, LEAD_IN } from "./timeline.ts";
 import { ARTIC_SPECS, NEUTRAL, planNoteOn, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
 import type { Syllable } from "@chimera/wasm/types.ts";
 import liveUrl from "../worklet/live.ts?worker&url";
@@ -25,7 +22,7 @@ import { audio, useAudio } from "../audio/audio.ts";
 import { g2p } from "../audio/g2p.ts";
 import { sungSyllables } from "./plan.ts";
 import { midiToHz } from "./singerCore.ts";
-import { CAST, introIds, type MoppetVoice } from "./voices.ts";
+import type { MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
 import { SILENT_POSE, visemeFrom, type Pose } from "./pose.ts";
 
@@ -172,7 +169,7 @@ export function moveMouth(key: MouthKey, x: number): void {
   const [, lo, hi, label] = MOUTH.find((m) => m[0] === key)!;
   const n = +(lo + (hi - lo) * x).toFixed(3);
   useLive.setState((s) => ({ mouth: { ...s.mouth, [key]: n }, last: `${label}: ${n}` }));
-
+  activeNode?.port.postMessage({ type: "mouth", values: { [key]: n } } satisfies ToLive);
 }
 
 /** A pad of puppeteer mode: the mouth snaps to a vowel (or closes, for "mm"). */
@@ -181,88 +178,62 @@ export function padVowel(i: number): void {
   if (!ipa || !voice) return;
   const target = ipa === "m" ? { lipAp: 0, jaw: 0.3, velum: 1 } : { ...VOWEL_TARGETS[bodyName(voice)]?.[ipa]?.artic, velum: 0.05 };
   useLive.setState((s) => ({ mouth: { ...s.mouth, ...target }, last: `Mouth: "${label}"` }));
-
+  activeNode?.port.postMessage({ type: "mouth", values: target } satisfies ToLive);
 }
 
-let active: AudioBufferSourceNode | null = null;
+let activeNode: AudioWorkletNode | null = null;
 let activePitch: number | undefined;
-let sequence=0;
+let sequence = 0;
 let nativeModule: Promise<void> | undefined;
 let endNative: (() => void) | undefined;
 function releaseNote() {
   sequence++;
   endNative?.();
-  if(active){active.stop();active=null;}
-  activePitch=undefined;
+  activeNode = null;
+  activePitch = undefined;
 }
 
-async function soundNote(v:MoppetVoice,midi:number,word:string,seconds:number|undefined,signal?:AbortSignal,velocity=100) {
+async function soundNote(v: MoppetVoice, midi: number, word: string, seconds: number | undefined, signal?: AbortSignal, velocity = 100) {
   releaseNote();
-  if(!import.meta.env.DEV)v=CAST.find(singer=>singer.id===v.id)??v;
-  const seq=sequence;
+  const seq = sequence;
   await ensureNode();
-  if(seq!==sequence || signal?.aborted)return;
-  const ctx=audio.ctx!;
-  let buffer:AudioBuffer, offset=0, limit=Infinity;
+  if (seq !== sequence || signal?.aborted) return;
+  const ctx = audio.ctx!;
   try {
-    // The additional cast has native tract profiles, including size and articulation.
-    if (!introIds.includes(v.id)) {
-      nativeModule ??= ctx.audioWorklet.addModule(liveUrl).catch(error => {nativeModule = undefined; throw error});
-      await nativeModule;
-      if (seq !== sequence || signal?.aborted) return;
-      const syl = sungSyllables(word)[0] ?? sungSyllables("la")[0];
-      const gestures = planNoteOn(syl, midi, {body: v.body, vibrato: v.vibrato, tag: 1}).map(g =>
-        shapeGesture(g.targets.vibrato === undefined ? g : {...g, t0: Math.max(.45, g.t0), rampIn: .10}, v, false));
-      const node = new AudioWorkletNode(ctx, "live-moppet", {numberOfInputs: 0, outputChannelCount: [1],
-        processorOptions: {module: chimeraModule()}});
-      const gain = ctx.createGain();
-      gain.gain.value = Math.min(1, Math.max(0, velocity/100));
-      node.connect(gain).connect(analyser!);
-      const send = (m: ToLive) => node.port.postMessage(m);
-      send({type: "voice", body: v.body, size: v.size ?? 1, artic: {...v.artic}, source: {...singingSource(v.source)}});
-      if (useLive.getState().mode === "puppet") send({type:"mouth", values: useLive.getState().mouth});
-      send({type: "schedule", gestures});
-      activePitch = midi;
-      const timer = seconds === undefined ? undefined : setTimeout(releaseNote, seconds*1000);
-      const stop = () => {
-        endNative = undefined;
-        signal?.removeEventListener("abort", releaseNote);
-        clearTimeout(timer);
-        gain.gain.setTargetAtTime(0, ctx.currentTime, .008);
-        setTimeout(() => {send({type:"dispose"}); node.disconnect(); gain.disconnect();}, 50);
-      };
-      endNative = stop;
-      signal?.addEventListener("abort", releaseNote, {once:true});
-      return;
-    }
-    // For a staff audition, reuse the exact sung note including its consonants.
-    const score=wordsOf?.piece,track=score?.tracks.find(t=>t.id===v.id);
-    const note=score && track && word!=="la" && seconds!==undefined
-      ? track.events.find(e=>e.midi===midi && (e.text===word || (e.line!==undefined && track.phrases?.[e.line]?.split(/\s+/).includes(word)))) : null;
-    if(note && score && track){
-      buffer=await pluginRecording(ctx,instrumentPart(score,track,v));
-      offset=LEAD_IN+note.beat*beatSeconds(score);limit=note.beats*beatSeconds(score);
-    }else {
-      const part=instrumentNote(v,midi,word);
-      if(useLive.getState().mode==="puppet" && import.meta.env.DEV) {
-        part.mode="play";
-        part.artic=useLive.getState().mouth as Record<string,number>;
-      }
-      buffer=await pluginRecording(ctx,part);
-    }
-  }catch(e){if(seq===sequence)useLive.setState({last:e instanceof Error?e.message:"CHIMERA instrument unavailable"});return;}
-  if(seq!==sequence || signal?.aborted)return;
-  const player=ctx.createBufferSource(),gain=ctx.createGain();
-  gain.gain.value=Math.min(1,Math.max(0,velocity/100));player.buffer=buffer;
-  player.connect(gain);gain.connect(analyser!);active=player;activePitch=midi;
-  player.loop=seconds===undefined && !Number.isFinite(limit);
-  player.loopStart=.6;player.loopEnd=Math.min(1.45,buffer.duration);
-  const stop=()=>{if(seq===sequence)releaseNote();};
-  signal?.addEventListener("abort",stop,{once:true});
-  const ended=()=>{signal?.removeEventListener("abort",stop);gain.disconnect();player.disconnect();if(active===player){active=null;activePitch=undefined;}};
-  player.onended=ended;
-  player.start(0,offset);
-  if(seconds!==undefined)player.stop(ctx.currentTime+Math.min(seconds,limit));
+    // Route EVERY cast character directly through CHIMERA's browser WASM live-moppet AudioWorklet.
+    nativeModule ??= ctx.audioWorklet.addModule(liveUrl).catch(error => { nativeModule = undefined; throw error; });
+    await nativeModule;
+    if (seq !== sequence || signal?.aborted) return;
+    const syl = sungSyllables(word)[0] ?? sungSyllables("la")[0];
+    const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: v.vibrato, tag: 1 }).map(g =>
+      shapeGesture(g.targets.vibrato === undefined ? g : { ...g, t0: Math.max(0.45, g.t0), rampIn: 0.10 }, v, false));
+    const node = new AudioWorkletNode(ctx, "live-moppet", {
+      numberOfInputs: 0,
+      outputChannelCount: [1],
+      processorOptions: { module: chimeraModule() },
+    });
+    const gain = ctx.createGain();
+    gain.gain.value = Math.min(1.5, Math.max(0.15, (velocity / 100) * 1.25));
+    node.connect(gain).connect(analyser!);
+    const send = (m: ToLive) => node.port.postMessage(m);
+    send({ type: "voice", body: v.body, size: v.size ?? 1, artic: { ...v.artic }, source: { ...singingSource(v.source) } });
+    if (useLive.getState().mode === "puppet") send({ type: "mouth", values: useLive.getState().mouth });
+    send({ type: "schedule", gestures });
+    activeNode = node;
+    activePitch = midi;
+    const timer = seconds === undefined ? undefined : setTimeout(releaseNote, seconds * 1000);
+    const stop = () => {
+      endNative = undefined;
+      signal?.removeEventListener("abort", releaseNote);
+      clearTimeout(timer);
+      gain.gain.setTargetAtTime(0, ctx.currentTime, 0.008);
+      setTimeout(() => { send({ type: "dispose" }); node.disconnect(); gain.disconnect(); }, 50);
+    };
+    endNative = stop;
+    signal?.addEventListener("abort", releaseNote, { once: true });
+  } catch (e) {
+    if (seq === sequence) useLive.setState({ last: e instanceof Error ? e.message : "CHIMERA voice unavailable" });
+  }
 }
 export async function auditionNote(v:MoppetVoice,midi:number,text="la",durationMs=420,signal?:AbortSignal){
   if(signal?.aborted)return;

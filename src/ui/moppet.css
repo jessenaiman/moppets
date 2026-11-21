@@ -895,9 +895,8 @@
 
 .vs-main { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 14px; align-items: start; }
 .vs-stage-col { min-width: 0; background: #100d0a; border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: flex; justify-content: center; align-items: center; }
-.vs-player-frame { width: min(100%, calc((100vh - 400px) * 16 / 9)); min-width: 320px; aspect-ratio: 16 / 9; background: #16120e; border-radius: 6px; overflow: hidden; }
-.vs-player-frame.portrait { width: min(100%, calc((100vh - 400px) * 9 / 16)); min-width: 200px; aspect-ratio: 9 / 16; }
-.vs-player-frame { position: relative; }
+.vs-player-frame { width: 100%; min-width: 0; aspect-ratio: 16 / 9; background: #16120e; border-radius: 10px; overflow: hidden; position: relative; }
+.vs-player-frame.portrait { width: min(100%, 420px); min-width: 200px; aspect-ratio: 9 / 16; margin-inline: auto; }
 .vs-rehearsal-controls { position: absolute; inset: auto 0 0; display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #100d0aeb; color: var(--paper, #f5e5d1); }
 .vs-rehearsal-controls input { flex: 1; min-width: 0; }
 .vs-rehearsal-controls span { font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1206,23 +1205,13 @@
 .studio-library-list a:hover {background:var(--panel)}
 @media(max-width:700px){.studio-library-list{flex-basis:100%;max-height:84px}.studio-compositions input[type=search]{flex:1}}
 
-.vs-main.vs-score-desk {display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);align-items:stretch}
-.vs-score-desk .vs-player-frame {width:100%;max-height:37vh;margin:auto}
-.vs-score-desk .vs-player-frame.portrait {width:auto;height:37vh}
-.vs-score-desk .music-rack {display:grid;grid-template-columns:minmax(0,1fr);min-width:0;grid-template-rows:auto minmax(0,1fr) auto;min-height:180px;max-height:37vh;background:#f5edda;color:#33241d;border:1px solid #946738;border-radius:6px}
 .vs-score-desk:has([data-full-page]) {grid-template-columns:1fr}
 .vs-score-desk:has([data-full-page]) .vs-stage-col {display:none}
 .vs-score-desk .music-rack[data-full-page] {height:70vh;max-height:70vh}
-.vs-midi .launchkey {margin:0}
 .vs-midi .organ-welcome {margin:0}
 .vs-timeline-disclosure>summary {padding:10px 12px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:5px;cursor:pointer}
 .vs-timeline-disclosure[open]>summary {margin-bottom:8px}
-@media(max-width:650px){.vs-main.vs-score-desk{grid-template-columns:1fr}.vs-score-desk .music-rack{height:210px}.vs-score-desk .vs-player-frame{max-height:none}}
-
 .vs-score-desk .music-rack h2 {color:#412b20}
-
-.vs-midi .launchkey {width:min(100%,1040px);margin-inline:auto}
-.vs-midi .organ-keys {width:min(100%,680px);height:clamp(50px,6vw,76px);margin-inline:auto}
 .vs-midi .organ-white-keys {gap:1px}
 .brass-encoder {position:relative;display:block;width:32px;height:32px;touch-action:none;cursor:ns-resize;user-select:none}
 .brass-encoder::before,.brass-encoder::after {content:"";position:absolute;pointer-events:none}
@@ -1235,14 +1224,4 @@
 .rocker-switch span {display:block;width:9px;height:9px;background:#e1ccaa;border-radius:1px}
 .rocker-switch[data-state=checked] span{transform:translateX(9px);background:#65c6b7}
 .vs-advanced>summary {cursor:pointer;padding:.5rem;color:var(--muted)}
-@media(min-width:701px){.vs-score-desk .music-rack:not([data-full-page]) .rack-paper {display:grid;grid-template-columns:var(--system-width,1fr);justify-content:center;align-content:start;overflow:auto}.vs-score-desk .music-rack .rack-paper svg{height:auto}}
-
-.vs-midi .organ-manual-shell {width:min(100%,704px);margin-inline:auto;box-sizing:border-box}
 .vs-midi .organ-stop .pad-led {background:var(--pad-color);box-shadow:0 0 4px var(--pad-color)}
-
-.instrument-bay {display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,1040px) minmax(110px,1fr);align-items:center;gap:clamp(8px,1.5vw,28px)}
-.bay-controls {display:grid;gap:7px;width:min(100%,220px);justify-self:center}
-.bay-controls button {text-align:left}
-.bay-controls small {color:var(--muted,#baa78c)}
-@media(max-width:1080px){.instrument-bay {grid-template-columns:repeat(2,minmax(0,1fr))}.instrument-bay .launchkey {grid-column:1/-1;grid-row:1}.bay-controls {width:100%;display:flex;flex-wrap:wrap}.bay-controls small{align-self:center}}
-@media(min-width:701px){.vs-score-desk .music-rack:not([data-full-page]) {height:clamp(290px,51vh,490px);max-height:none}}

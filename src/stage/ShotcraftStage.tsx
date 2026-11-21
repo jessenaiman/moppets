@@ -20,13 +20,16 @@
  *
  * Pure and engine-free (no `@chimera/wasm/engine.ts` runtime imports).
  */
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "./shotcraft-stage.css";
 import { zapCues, zapTake } from "./zapDirection.ts";
 import { atlasStyle, WorkshopSolo, workshopTake, workshopSongs, type WorkshopSinger } from "./WorkshopSolo.tsx";
 import { StageCord, cordExposure, PinnedBow, RehearsalActor } from "./RehearsalActor.tsx";
 import { CuePromptStand } from "./CueSolo.tsx";
 import { NeonSolo, neonScore, neonTake, RepairBayLights } from "./NeonSolo.tsx";
+import { NeonWorldsStage } from "./NeonWorldsStage.tsx";
+import { NEON_WORLD_LENSES, type NeonFmvRigManifest, type NeonWorldLens } from "./neonWorlds.ts";
+import { useCharacterFmvManifest } from "./fmvManifest.ts";
 import { ZapSolo, ZapTelevision, zapFrame } from "./ZapSolo.tsx";
 import soloSets from "./soloSets.json";
 import type { Piece } from "../choir/music.ts";
@@ -178,6 +181,14 @@ export interface ShotcraftStageProps {
   puppetRef?: (index: number, el: HTMLButtonElement | null) => void;
   /** Optional URL resolver (e.g. Remotion `staticFile` during headless rendering) */
   resolveAsset?: (path: string) => string;
+  /** Whether viewer-interactive controls (world lens switcher, tilt/plate turns) are enabled */
+  interactive?: boolean;
+  /** Optional initial/controlled Neon Beyond-the-Studio world lens */
+  neonLens?: NeonWorldLens;
+  /** Optional callback when the user switches Neon's world lens */
+  onNeonLensChange?: (lens: NeonWorldLens) => void;
+  /** Optional S-27 keyed Flow FMV-cel manifest for Neon */
+  neonFmvManifest?: NeonFmvRigManifest | null;
   /** Optional custom React element replacing the default puppet sprite (e.g. Remotion `<CharacterClip />`) */
   renderCharacterOverride?: (
     voiceId: string,
@@ -556,16 +567,33 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   padGesture,
   puppetRef,
   resolveAsset = (p) => p,
+  interactive,
+  neonLens: controlledNeonLens,
+  onNeonLensChange,
+  neonFmvManifest = null,
   renderCharacterOverride,
 }) => {
-  const poses = livePoses ?? deterministicPoses(piece, voices, beat, performing);
-
   const onstageVoiceIds = useMemo(
     () => (piece.stage ? voices.map((v) => v.id).filter((id) => piece.stage!.includes(id)) : voices.map((v) => v.id)),
     [piece.stage, voices],
   );
   const isSoloStage = onstageVoiceIds.length === 1;
   const soloVoiceId = isSoloStage ? onstageVoiceIds[0] : null;
+  const isNeonTakeTwo = soloVoiceId === "vee" && piece.title === "Take Two";
+  const [userWorldChoice, setUserWorldChoice] = useState<{ title: string; lens: NeonWorldLens } | null>(null);
+  const defaultLens: NeonWorldLens = isNeonTakeTwo ? "diorama" : "archive";
+  const activeNeonLens = controlledNeonLens ?? (userWorldChoice?.title === piece.title ? userWorldChoice.lens : defaultLens);
+  const setNeonLens = (next: NeonWorldLens) => {
+    setUserWorldChoice({ title: piece.title, lens: next });
+    onNeonLensChange?.(next);
+  };
+  const isInteractive = interactive ?? Boolean(onSelectActor);
+  const poses = livePoses ?? deterministicPoses(piece, voices, beat, performing);
+  const resolvedNeonFmvManifest = useCharacterFmvManifest(
+    isNeonTakeTwo ? "neon" : null,
+    resolveAsset,
+    neonFmvManifest ?? undefined,
+  );
 
   const soloArt = studio404 && soloVoiceId ? STUDIO_404_CAST[soloVoiceId]?.artKey : undefined;
   const soloSet = soloArt ? soloSets.find(set => set.art === soloArt) : undefined;
@@ -844,8 +872,55 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const breathe = still ? 1 : 1 + 0.025 * Math.sin(timeSec * 1.6);
   const vhsOffsetY = isVhsRoll && !still ? Math.sin(timeSec * 22) * 1.4 : 0;
 
+  // S-26 / D-64: Imaginative 5-world variety pack is default on "Take Two" and switchable on every song.
+  if (activeNeonLens !== "archive") {
+    const activeIdx = Math.max(
+      0,
+      poses.findIndex((p) => p.singing),
+      isNeonTakeTwo ? voices.findIndex((v) => v.id === "vee") : selectedIndex,
+    );
+    const activePose = poses[activeIdx] ?? poses[0] ?? { singing: false, level: 0, open: 0, viseme: 0 };
+    const activeMouthOpen = activePose.singing && activePose.open > MOUTH_OPEN_THRESHOLD;
+    return (
+      <NeonWorldsStage
+        piece={piece}
+        beat={beat}
+        timeSec={timeSec}
+        performing={performing}
+        still={still}
+        singing={activePose.singing}
+        level={activePose.level}
+        mouthOpen={activeMouthOpen}
+        lens={activeNeonLens}
+        onSelectLens={isInteractive ? setNeonLens : undefined}
+        interactive={isInteractive}
+        resolveAsset={resolveAsset}
+        fmvManifest={resolvedNeonFmvManifest}
+      />
+    );
+  }
+
   return (
     <div data-duet={cueAndNeon || undefined} data-solo-set={soloSet?.art} className={`sc-stage${studio404 ? " studio404" : ""}${isBlackout ? " blackout" : ""}`}>
+      {isInteractive && (
+        <div className="nw-archive-return" data-layout="overlay">
+          <div className="nw-lens-dock" role="tablist" aria-label="Performance world lens">
+            {NEON_WORLD_LENSES.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={activeNeonLens === item.id}
+                className={`nw-lens-pill${activeNeonLens === item.id ? " active" : ""}`}
+                onClick={() => setNeonLens(item.id)}
+                title={item.tagline}
+              >
+                {item.shortLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Framed 2.5D stage plane */}
       <div
         className="sc-plane"

@@ -12,7 +12,7 @@
 import { gunzipSync } from "node:zlib";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { initEngine, wasmModule } from "../tests/harness.ts";
+import { initEngine, wasmModule } from "./wasm-harness.ts";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 
 await initEngine();

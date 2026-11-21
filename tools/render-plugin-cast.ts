@@ -1,7 +1,7 @@
 /** Build the stock stage's vocal stems with the CHIMERA CLAP instrument in SoundCraft. */
 import { existsSync } from "node:fs";
 import { mkdir,rename } from "node:fs/promises";
-import { initEngine } from "../tests/harness.ts";
+import { initEngine } from "./wasm-harness.ts";
 import { instrumentPart, partKey } from "../src/choir/pluginScore.ts";
 import { bouncePart } from "./plugin-host.ts";
 await initEngine();

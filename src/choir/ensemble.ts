@@ -62,8 +62,6 @@ const get = useEnsemble.getState;
 
 let node: AudioWorkletNode | null = null;
 let mixerLoading: Promise<void> | null = null;
-let performanceGain: GainNode | null = null;
-let performanceVolume = 1;
 let soloId = "vee";
 let session: Session | null = null;
 let generation = 0;
@@ -82,11 +80,8 @@ async function ensureMixer(ctx: AudioContext): Promise<void> {
   if (node) return;
   mixerLoading ??= ctx.audioWorklet.addModule(mixerUrl).then(() => {
     const mixer = new AudioWorkletNode(ctx, "choir-mixer", { numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1] });
-    performanceGain = ctx.createGain();
-    performanceGain.gain.value = performanceVolume;
-    mixer.connect(performanceGain, 0);
-    // Output 1 is the inspected singer alone, reserved for analysers.
-    audio.connect(performanceGain);
+    // Connect directly to CHIMERA app master volume (single GainNode, zero stacked wrappers).
+    audio.connect(mixer);
     ctx.addEventListener("statechange", () => {
       if (ctx.state !== "running") pause();
     });
@@ -96,9 +91,8 @@ async function ensureMixer(ctx: AudioContext): Promise<void> {
   await mixerLoading;
 }
 
-export function setPerformanceVolume(value: number): void {
-  performanceVolume = value;
-  if (performanceGain) performanceGain.gain.setTargetAtTime(value, performanceGain.context.currentTime, 0.02);
+export function setPerformanceVolume(_value: number): void {
+  // Master volume lives in src/audio/audio.ts (single clean GainNode).
 }
 
 function onMixer(m: MixerOut): void {

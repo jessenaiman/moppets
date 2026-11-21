@@ -1,7 +1,7 @@
 import { studio404Name } from "./studio404.ts";
 import { setVoiceLevel } from "./voiceLevels.ts";
-/** In performance mode the eight encoders mix the singers above their pads.
- * Voice-edit mappings only run while the user has explicitly unlocked the editor. */
+/** Launchkey encoders sculpt the selected Moppet's CHIMERA voice directly (or mouth in Puppeteer mode),
+ * while CC 7 adjusts the selected singer's volume cleanly. No artificial voice-editing lockouts. */
 import { create } from "zustand";
 import { useAudio } from "../audio/audio.ts";
 import { connectMidi, disconnectMidi, midiSupported, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
@@ -33,7 +33,6 @@ const byKey = new Map(CONTROLS.map((c) => [c[0] as ControlKey, c]));
  * knob sweeping one is applied at most every 120 ms (its last value always lands).
  */
 export function applyControl(key: ControlKey, n: number): void {
-  if (!useController.getState().voiceEditing) return;
   const c = byKey.get(key);
   if (!c) return;
   const group = c[6];
@@ -80,7 +79,7 @@ function rebuildLater(key: ControlKey, n: number): void {
 }
 
 /** Launchkey Mini's eight knobs send controllers 21..28 in its default mode. */
-export const DEFAULT_MAP: Record<number, ControlKey> = { 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "ventricular" };
+export const DEFAULT_MAP: Record<number, ControlKey> = { 21: "size", 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "ventricular" };
 /** Initial pad mapping before the user teaches a custom layout. */
 export const ACTIONS = ["nod", "tilt", "laugh", "shrug", "gasp", "bow", "cheer", "double nod"] as const;
 // The action slot still dispatches the same animation from hardware or screen.
@@ -110,11 +109,7 @@ function loadMap(): Record<number, ControlKey> {
   try {
     const saved = JSON.parse(localStorage.getItem(MAP_STORAGE) ?? "null");
     if (saved && typeof saved === "object" && Object.values(saved).every((k) => byKey.has(k as ControlKey))) {
-      // Older factory maps persisted CC21 as size. Keep explicit custom assignments.
-      const factory = { ...DEFAULT_MAP, 21: "size" };
-      if (Object.keys(saved).length === Object.keys(factory).length &&
-          Object.entries(factory).every(([cc,key]) => saved[cc] === key)) return { ...DEFAULT_MAP };
-      return saved;
+      return { ...DEFAULT_MAP, ...saved };
     }
   } catch {
     // private window
@@ -154,7 +149,7 @@ function saveMap(map: Record<number, ControlKey>): void {
 
 const heldAuditions = new Map<number,AbortController>();
 export const useController = create<ControllerState>((set, get) => ({
-  voiceEditing:false, padMap:readPads(), learningPads:null, gesture:null, bend:0, mod:0,
+  voiceEditing: true, padMap: readPads(), learningPads: null, gesture: null, bend: 0, mod: 0,
   map: loadMap(),
   learning: null,
   last: "",
@@ -249,25 +244,16 @@ export function handleControl(c: MidiControl): boolean {
     if (c.value) triggerPad(index);
     return true;
   }
-  if (!ctl.voiceEditing) {
-    if (c.number === 1) useController.setState({ mod: c.value });
-    const m = useMoppet.getState();
-    const singer = c.number === 7 ? m.voices[m.selected]
-      : c.number >= 21 && c.number <= 28 ? m.voices[c.number - 21] : undefined;
-    if (!singer) return false;
-    setVoiceLevel(singer.id, c.value / 127);
-    return true;
-  }
-  if (!ctl.learning && (c.number === 7 || c.number === 21) && !ctl.map[c.number]) {
+  if (!ctl.learning && c.number === 7) {
     const m = useMoppet.getState();
     const singer = m.voices[m.selected];
     const value = c.value / 127;
-    setVoiceLevel(singer.id,value);
+    setVoiceLevel(singer.id, value);
     const name = m.studio404 ? studio404Name(singer.id, singer.name) : singer.name;
-    useController.setState({last: name + " volume · " + Math.round(value*100) + "%"});
+    useController.setState({ last: name + " volume · " + Math.round(value * 100) + "%" });
     return true;
   }
-  if (c.number === 1) useController.setState({mod:c.value,last:"Mod CC1 · " + c.value});
+  if (c.number === 1) useController.setState({ mod: c.value, last: "Mod CC1 · " + c.value });
   if (!ctl.learning && useLive.getState().mode === "puppet" && c.number >= 21 && c.number < 21 + MOUTH.length) {
     moveMouth(MOUTH[c.number - 21][0], c.value / 127);
     return true;
@@ -295,11 +281,11 @@ export function handleControl(c: MidiControl): boolean {
 onMidiControl(handleControl);
 
 export function lockVoiceControls() {
-  useController.setState({ voiceEditing: false, learning: null, bend: 0 });
+  useController.setState({ learning: null, bend: 0 });
 }
 
 export function resetSelectedVocal() {
   pending.delete(useMoppet.getState().selected);
-  lockVoiceControls();
+  useController.setState({ learning: null, bend: 0 });
   useMoppet.getState().reset();
 }

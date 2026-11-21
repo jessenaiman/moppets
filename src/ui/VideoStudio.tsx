@@ -1,14 +1,10 @@
-import foundTiming from "../choir/found-timing.json";
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { staticFile } from "remotion";
 import { Player, type PlayerRef } from "@remotion/player";
 import {MusicRack} from "./MusicRack";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
-import { CAST } from "../choir/voices.ts";
-import { useVoiceLevels } from "../choir/voiceLevels.ts";
 import { useAudio } from "../audio/audio.ts";
-import { exportWav, pause, setPerformanceVolume, stop, useEnsemble } from "../choir/ensemble.ts";
+import { exportWav, pause, stop, useEnsemble } from "../choir/ensemble.ts";
 import { useRehearsalTransport } from "./useRehearsalTransport.ts";
 import { MoppetComposition } from "../remotion/MoppetComposition";
 const loadActionStrip = () => import("../rehearsal/NeonActions").then(m => ({default: m.ActionStrip}));
@@ -62,7 +58,7 @@ const BUBBLE_PRESETS: { label: string; bg: string; fg: string; color: string }[]
 
 const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
-export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing: boolean;livePreview?:React.ReactNode;controller:React.ReactNode}) {
+export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;livePreview?:React.ReactNode;controller:React.ReactNode}) {
   const [timelineOpen,setTimelineOpen] = useState(false);
   const [audioError,setAudioError] = useState("");
   const [advancedOpen,setAdvancedOpen]=useState(false);
@@ -131,20 +127,16 @@ export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing:
   const introSec = introFrames / fps;
   const outroSec = outroFrames / fps;
   const showingRehearsal = composition === "Rehearsal" && !livePreview;
-  const recordedPiece = useMoppet(s => s.recordedPiece);
-  const bandOn = useMoppet(s => s.band);
-  const masterVolume = useAudio(s => s.volume);
-  const factoryVoices = useMemo(() => JSON.stringify(voices) === JSON.stringify(CAST), [voices]);
-  const flatMix = useVoiceLevels(s => Object.values(s.levels).every(level => level === 1));
-  const recorded = factoryVoices && flatMix && import.meta.env.PROD && showingRehearsal && !liveEditing && bandOn && piece === recordedPiece;
+  // Always play live CHIMERA audio directly so edits, voice sliders, and master volume apply immediately.
+  const recorded = false;
   const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames, recorded, lesson);
   const ensembleMessage = useEnsemble(s => s.message);
   const vocalTiming = useEnsemble(s => s.vocalTiming);
   const previewProject = useMemo(() => ({
-    ...project, audioUrl: recorded ? staticFile(`recordings/${lesson}.mp3`) : null,
-    audioVolume: recorded ? project.audioVolume * masterVolume : project.audioVolume,
-    vocalTiming: recorded ? (lesson === "found" ? foundTiming : undefined) : vocalTiming,
-  }), [project, vocalTiming, recorded, lesson, masterVolume]);
+    ...project,
+    audioUrl: null,
+    vocalTiming,
+  }), [project, vocalTiming]);
   const curSec = transport.frame / fps;
   const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
   const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
@@ -160,11 +152,6 @@ export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing:
     setSelection({ kind: "stage" });
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
-
-  useEffect(() => {
-    setPerformanceVolume(project.audioVolume);
-    return () => setPerformanceVolume(1);
-  }, [project.audioVolume]);
 
   const selectComposition = (id: StudioComposition) => {
     if (showingRehearsal) {

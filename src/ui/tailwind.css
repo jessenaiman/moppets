@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 responsive layout & contrast layer for Moppet Choir.
+ * Keeps CHIMERA's warm walnut/brass/teal tokens intact while eliminating
+ * the fighting fixed-height / dark-on-dark / narrow-column CSS hacks.
+ */
+@theme {
+  --color-studio-bg: #17110d;
+  --color-studio-panel: #221811;
+  --color-studio-border: #634831;
+  --color-studio-cream: #f8efe2;
+  --color-studio-muted: #c7b194;
+  --color-studio-teal: #50cfad;
+  --color-studio-gold: #e3bd7f;
+  --color-studio-ember: #e06a4f;
+}
+
+/* Responsive two-column desk: generous 16:9 stage + full-width legible sheet music */
+.vs-main.vs-score-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1080px) {
+  .vs-main.vs-score-desk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.vs-score-desk .vs-stage-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vs-score-desk .vs-player-frame {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  max-height: none;
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 103, 56, 0.55);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.vs-score-desk .vs-player-frame.portrait {
+  aspect-ratio: 9 / 16;
+  width: auto;
+  height: min(62vh, 560px);
+  margin-inline: auto;
+}
+
+/* High-contrast rehearsal transport bar (fixes dark-on-dark unreadable timestamp & button) */
+.vs-rehearsal-controls {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(180deg, rgba(16, 12, 9, 0.72), rgba(12, 9, 7, 0.94));
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(248, 239, 226, 0.14);
+  color: #faf4e8;
+}
+
+.vs-rehearsal-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.1rem;
+  padding: 0 0.65rem;
+  border-radius: 7px;
+  border: 1px solid rgba(80, 207, 173, 0.55);
+  background: rgba(80, 207, 173, 0.18);
+  color: #f8efe2;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vs-rehearsal-controls button:hover {
+  background: rgba(80, 207, 173, 0.34);
+  color: #ffffff;
+}
+
+.vs-rehearsal-controls span {
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vs-rehearsal-controls input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #50cfad;
+  height: 6px;
+  cursor: pointer;
+}
+
+/* Legible full-width MusicRack sheet music */
+.vs-score-desk .music-rack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  height: auto;
+  min-height: 320px;
+  max-height: 62vh;
+  background: #fbf6e9;
+  color: #2b1e17;
+  border: 1px solid #946738;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vs-score-desk .music-rack .rack-paper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.vs-score-desk .music-rack .rack-paper > div {
+  width: 100%;
+}
+
+.vs-score-desk .music-rack .rack-paper svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Balanced Launchkey + action deck (eliminates wide empty side gutters) */
+.instrument-bay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+}
+
+.bay-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(116, 84, 56, 0.55);
+  background: rgba(34, 24, 17, 0.88);
+}
+
+.bay-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bay-toolbar button {
+  padding: 0.42rem 0.8rem;
+  border-radius: 7px;
+  border: 1px solid rgba(148, 103, 56, 0.55);
+  background: rgba(46, 33, 22, 0.9);
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bay-toolbar button:hover {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.16);
+}
+
+.bay-toolbar button[aria-pressed="true"] {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.24);
+  color: #ffffff;
+}
+
+.bay-toolbar small {
+  color: #dfbb85;
+  font-size: 0.75rem;
+  padding-inline: 0.35rem;
+}
+
+.vs-midi .launchkey {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.vs-midi .organ-keys {
+  width: min(100%, 760px);
+  height: clamp(58px, 7vw, 84px);
+  margin-inline: auto;
+}
+
+.vs-midi .organ-manual-shell {
+  width: min(100%, 784px);
+  margin-inline: auto;
+}
+
+/* Clear Master Volume control in TopBar */
+.topbar-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 189, 127, 0.38);
+  background: rgba(24, 17, 12, 0.88);
+  color: #f8efe2;
+}
+
+.topbar-volume button {
+  border: 0;
+  background: transparent;
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+}
+
+.topbar-volume input[type="range"] {
+  width: clamp(96px, 14vw, 150px);
+  accent-color: #50cfad;
+  cursor: pointer;
+}
+
+.topbar-volume output {
+  min-width: 3.5ch;
+  text-align: right;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #50cfad;
+  font-variant-numeric: tabular-nums;
+}

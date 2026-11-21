@@ -45,8 +45,6 @@ const BASE_MIDI = 48; // C3
 const MIN_OCTAVE = -2;
 const MAX_OCTAVE = 2;
 
-const ARP_KNOB_TAGS = ["Tempo", "Swing", "Gate", "Mutate", "Deviate", "Tone", "Warmth", "Air"];
-
 const BOTTOM_PAD_COLORS = ["#e8a849", "#57d3e8", "#a98fc4", "#3fbfa0", "#e06a4f", "#d9b440", "#c9c2ae", "#e0533c"];
 const MODE_BUTTONS: [LiveMode, string][] = [
   ["off", "Off"],
@@ -133,7 +131,6 @@ export function LaunchkeyMap() {
   const curVoice = voices[selected];
   const levels = useVoiceLevels(s => s.levels);
   const volume = levels[curVoice.id] ?? 1;
-  const editingVoice = useController(s => s.voiceEditing);
 
   const pieceTitle = useMoppet(s=>s.piece.title);
   const guest = pieceTitle==="Borrowed Light";
@@ -241,10 +238,7 @@ export function LaunchkeyMap() {
     }
   };
 
-  const knobs = !editingVoice ? voices.slice(0,8).map((v,i) => ({
-    i, label: labelFor(v), norm: levels[v.id] ?? 1,
-    text: Math.round((levels[v.id] ?? 1) * 100) + "%", setNorm: (n:number) => setVoiceLevel(v.id,n),
-  })) : mode === "puppet"
+  const knobs = mode === "puppet"
       ? MOUTH.map(([key, lo, hi, label], i) => {
           const val = mouth[key] ?? lo;
           const norm = clamp((val - lo) / Math.max(1e-6, hi - lo), 0, 1);
@@ -407,10 +401,10 @@ export function LaunchkeyMap() {
             <div className="performer-volume">
               <label><strong>{name} volume</strong>
                 <input aria-label={name + " volume"} type="range" min="0" max="100" step="1"
-                  value={Math.round(volume*100)} onChange={e=>setVoiceLevel(curVoice.id,Number(e.target.value)/100)} />
-                <output>{Math.round(volume*100)}%</output>
+                  value={Math.round(volume * 100)} onChange={e => setVoiceLevel(curVoice.id, Number(e.target.value) / 100)} />
+                <output>{Math.round(volume * 100)}%</output>
               </label>
-              <small>{!editingVoice ? "CC 7" : !map[21] ? "Encoder 1" : !map[7] ? "CC 7" : "On-screen fader"}</small>
+              <small>CC 7 · CHIMERA live</small>
             </div>
         </div>
 
@@ -545,8 +539,7 @@ export function LaunchkeyMap() {
 </div>
           <div className="organ-controls-bay">
             <div className="organ-drawbar-bank">
-              {knobs.map((knob) => {
-                const k = editingVoice && knob.i === 0 && !map[21] ? { ...knob, label: "Volume", norm:volume, text:Math.round(volume*100)+"%", setNorm:(v:number)=>setVoiceLevel(curVoice.id,v) } : knob;
+              {knobs.map((k) => {
                 const deg = -135 + k.norm * 270;
                 return (
                   <div
@@ -554,12 +547,12 @@ export function LaunchkeyMap() {
                     className={`lk-knob organ-drawbar${lit("knob", k.i) ? " lit" : ""}`}
                     title={`${k.label}: ${k.text} (drag up/down to turn)`}
                   >
-                    <small className="arp-tag">{editingVoice ? ARP_KNOB_TAGS[k.i] : k.text}</small>
+                    <small className="arp-tag">{k.text}</small>
                     <Slider.Root className="brass-encoder" orientation="vertical" min={0} max={127} step={1}
-                      value={[Math.round(k.norm*127)]} onValueChange={([n])=>k.setNorm(n/127)}
-                      style={{"--dial-angle":deg+"deg"} as React.CSSProperties}>
-                      <Slider.Track className="encoder-track"/>
-                      <Slider.Thumb className="encoder-thumb" aria-label={k.label+(editingVoice?" encoder":" volume encoder")} aria-valuetext={k.text}/>
+                      value={[Math.round(k.norm * 127)]} onValueChange={([n]) => k.setNorm(n / 127)}
+                      style={{ "--dial-angle": deg + "deg" } as React.CSSProperties}>
+                      <Slider.Track className="encoder-track" />
+                      <Slider.Thumb className="encoder-thumb" aria-label={k.label + " encoder"} aria-valuetext={k.text} />
                     </Slider.Root>
                     <span className="organ-knob-label">{k.label}</span>
                   </div>
@@ -669,7 +662,7 @@ export function LaunchkeyMap() {
                     className={`organ-key white${isActive ? " lit" : ""}${isChord ? " chord-lit" : ""}`}
                     aria-label={`Key ${label}`}
                     onPointerDown={(e) => {
-                      e.currentTarget.setPointerCapture(e.pointerId);
+                      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
                       pressKey(midi, true);
                     }}
                     onPointerUp={() => pressKey(midi, false)}
