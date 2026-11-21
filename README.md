@@ -24,22 +24,36 @@ The stage sings the score through the CHIMERA singer workers. Found Things uses 
 
 ## Run it
 
-Needs Rust with the `wasm32-unknown-unknown` target, and Bun.
+The app needs Bun, Git LFS, and Rust with the `wasm32-unknown-unknown` target.
 
 ```sh
-git clone --recurse-submodules …      # or, in a clone: git submodule update --init
-bun install
-bun run dev        # checks out the pinned CHIMERA revision, builds the wasm, then Vite on 127.0.0.1:5417
-bun run test       # wasm build, cargo test, bun test ./tests
+git lfs install
+git clone --recurse-submodules https://github.com/jessenaiman/moppets.git
+cd moppets
+git lfs pull
+bun install --frozen-lockfile
+bun run dev
 ```
 
-## Public Moppets app
+Open [the rehearsal desk](http://127.0.0.1:5417/) for the song picker or
+[the live instrument](http://127.0.0.1:5417/?mode=live) for the stage, synth and MIDI controller.
+**Live puppets** switches between them. **Music desk** opens notation and editing.
+To test the production player locally, run `bun run build` and `bun run preview`, then open
+[the production preview](http://127.0.0.1:5418/). `bun run test` rebuilds the wasm and runs the Rust and Bun tests.
 
-Vercel serves the Moppets Vite app with Found Things selected. In the public song
-picker the Remotion Player plays the stage and its finished CHIMERA recording
-together. The recordings are served from `public/recordings`. Opening the live
-music or voice controls, or changing the score, uses the live rehearsal mixer.
-The Vercel build uses the CHIMERA submodule revision recorded by Git.
+## Screening and recordings
+
+The public app opens on **Found Things**. Remotion plays the finished recording alongside the animated score.
+Changing notes, voices, or the mix uses live rehearsal audio. The standalone screening page in
+[`watch/index.html`](watch/index.html) also plays exported videos and full-length songs. To view it locally,
+run `python3 -m http.server 8000 --directory watch` and open [the screening page](http://localhost:8000/).
+
+Git LFS stores finished MP3 recordings in `watch/rehearsal/audio/` and `public/rehearsal/audio/`,
+and Ogg stems in `public/plugin-vocals/` and `public/scored-vocals/`. The app serves the catalog at
+`/recordings/` through the `public/recordings` symlink. After a re-render, stage and commit the audio
+at its existing path. Git records a pointer, and the LFS pre-push hook uploads the audio. Run
+`git lfs pull` in an existing checkout to download it. The Vercel build hydrates recordings
+before building the app against its pinned engine.
 
 ## How it uses CHIMERA
 
