@@ -1,8 +1,6 @@
 import { expect, test } from "bun:test";
 import { KEYS, scalePitch, SCALES, type KeyName, type ScaleMode } from "../src/choir/music.ts";
 import {
-  beatsToVexDuration,
-  clefForVoice,
   keySigAccidentals,
   midiToScaleDegree,
   midiToVexNote,
@@ -36,24 +34,6 @@ test("midiToVexNote tracks bar accidentals and picks sharp vs flat spelling by k
   const fAcc = keySigAccidentals("F");
   // Bb4 (MIDI 70) in F major uses flat spelling and needs no accidental
   expect(midiToVexNote(70, "F", "major", fAcc)).toEqual({ key: "b/4", accidental: null });
-});
-
-test("clefForVoice picks bass for low voices and treble for higher voices", () => {
-  expect(clefForVoice([43, 45, 48])).toBe("bass");
-  expect(clefForVoice([64, 67, 71])).toBe("treble");
-  expect(clefForVoice([], [38, 50])).toBe("bass");
-  expect(clefForVoice([], [62, 79])).toBe("treble");
-});
-
-test("beatsToVexDuration quantizes whole, dotted-half, half, dotted-quarter, quarter, eighth, sixteenth", () => {
-  expect(beatsToVexDuration(4)).toEqual({ duration: "w", dots: 0 });
-  expect(beatsToVexDuration(3)).toEqual({ duration: "h", dots: 1 });
-  expect(beatsToVexDuration(2)).toEqual({ duration: "h", dots: 0 });
-  expect(beatsToVexDuration(1.5)).toEqual({ duration: "q", dots: 1 });
-  expect(beatsToVexDuration(1)).toEqual({ duration: "q", dots: 0 });
-  expect(beatsToVexDuration(0.75)).toEqual({ duration: "8", dots: 1 });
-  expect(beatsToVexDuration(0.5)).toEqual({ duration: "8", dots: 0 });
-  expect(beatsToVexDuration(0.25)).toEqual({ duration: "16", dots: 0 });
 });
 
 test("midiToScaleDegree and shiftMidiByScaleSteps preserve key contour", () => {

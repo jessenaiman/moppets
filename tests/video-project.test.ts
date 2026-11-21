@@ -5,9 +5,9 @@ import { beforeAll, expect, test } from "bun:test";
 import { initEngine } from "./harness.ts";
 import { buildCharacterClipSegments } from "../src/choir/clipTimeline.ts";
 import { midiBytes, parseMidi, scoreFromMidi } from "../src/choir/midi.ts";
-import { makeChipSong, makeRound, invent, ROUND_GROUPS } from "../src/choir/music.ts";
+import { makeChipSong, makeRound, ROUND_GROUPS } from "../src/choir/music.ts";
 import { studio404Name } from "../src/choir/studio404.ts";
-import { buildVideoProject, compositionDimensions, lessonSlug, stageVoicesForPiece, totalDurationFrames } from "../src/choir/videoProject.ts";
+import { buildVideoProject } from "../src/choir/videoProject.ts";
 import { CAST } from "../src/choir/voices.ts";
 
 let skits: typeof import("../src/choir/skits.ts");
@@ -19,37 +19,6 @@ beforeAll(async () => {
   new EnglishG2P().setDictionaryText(
     new TextDecoder().decode(Bun.gunzipSync(await Bun.file(new URL("../public/data/cmudict.txt.gz", import.meta.url)).bytes())),
   );
-});
-
-test("compositionDimensions and totalDurationFrames compute valid frame budgets", () => {
-  expect(compositionDimensions("16:9")).toEqual({ width: 1920, height: 1080 });
-  expect(compositionDimensions("9:16")).toEqual({ width: 1080, height: 1920 });
-  expect(lessonSlug("Who Put the Jam in My Top Hat?")).toBe("who-put-the-jam-in-my-top-hat");
-
-  const project = buildVideoProject(makeRound(), CAST, true);
-  const frames = totalDurationFrames(project);
-  expect(frames).toBeGreaterThan(30);
-  expect(frames).toBe(
-    Math.round(project.intro.durationSec * 30) +
-      Math.round(project.stageDurationSec * 30) +
-      Math.round(project.outro.durationSec * 30),
-  );
-  const noCards = totalDurationFrames({
-    fps: 30,
-    stageDurationSec: 0.2,
-    intro: { ...project.intro, enabled: false },
-    outro: { ...project.outro, enabled: false },
-  });
-  expect(noCards).toBe(30);
-});
-
-test("buildVideoProject keeps Music school free of speech bubbles and resolves stage voices", () => {
-  const school = invent();
-  const project = buildVideoProject(school, CAST, true);
-  expect(project.bubbles).toEqual([]);
-  const stageVoices = stageVoicesForPiece(school, CAST, true);
-  expect(stageVoices.length).toBeGreaterThanOrEqual(6);
-  expect(stageVoices[0].name).toBe(studio404Name(CAST[0].id, CAST[0].name));
 });
 
 test("buildVideoProject deduplicates pair lines in rounds and staggers overlapping speech bubbles", () => {

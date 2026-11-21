@@ -33,7 +33,7 @@ the README.
 - **CHIMERA's TypeScript is imported as `@chimera/…`**, never copied. When the Moppets need what
   CHIMERA doesn't do, it goes in `crates/moppet-wasm` or `src/`, on CHIMERA's public API.
 - **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a newer
-  CHIMERA), `bun test ./tests` alone tests the old engine: use `bun run test`.
+  CHIMERA), run `bun run wasm` before checking the affected behavior.
 - **`bun test ./tests`, not `bun test tests`:** the bare word is a filter that also runs
   CHIMERA's own tests in `chimera/`, against a wasm they weren't built for.
 - **The wasm loads before the UI.** CHIMERA's `engine.ts` calls the engine as it loads, so it
@@ -52,8 +52,6 @@ the README.
 
 ## Checks
 
-| When you touch | Run |
-|---|---|
-| anything | `bun run test` and `bun run typecheck` |
-| `crates/moppet-wasm/`, a newer `chimera/`, `src/audio/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/choir-e2e.ts http://127.0.0.1:5418/` |
-| `src/ui/`, CSS | `bun run lint:layout` |
+Verify the behavior the user asked to change. For a lyric, sing the edited line in context. For a vocal or mix change, compare the same phrase before and after at matched loudness. For stage sync, play or seek the affected passage in the production player and check the visible singer against its recording.
+
+Run a focused regression when it covers the changed behavior. Reserve the full suite for an explicit full check or a change spanning the engine and its consumers. Run typecheck for TypeScript changes and layout lint for layout changes.

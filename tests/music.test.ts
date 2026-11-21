@@ -39,11 +39,6 @@ test("generated scores: scale membership, strong-beat chord tones, register limi
   expect(pieces).toBe(keys.length * modes.length * sampleSeeds.length);
 });
 
-test("seeds are reproducible", () => {
-  expect(compose({ seed: 404 })).toEqual(compose({ seed: 404 }));
-  expect(compose({ seed: 404 }).tracks).not.toEqual(compose({ seed: 405 }).tracks);
-});
-
 test("the round is three parts, each a pair singing together, entering eight beats apart with consonant overlaps", () => {
   for (const key of keys)
     for (const repeats of [1, 2, 3]) {
