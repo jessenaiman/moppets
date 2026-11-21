@@ -61,7 +61,8 @@ export function useRehearsalTransport(
         player.removeEventListener("play", sync);
         player.removeEventListener("pause", sync);
         player.removeEventListener("ended", sync);
-        player.pause();
+        // Remotion closes its AudioContext when a keyed player unmounts.
+        if (playerRef.current === player) player.pause();
         setCardPlaying(false);
       };
     }

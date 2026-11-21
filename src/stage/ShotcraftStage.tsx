@@ -587,7 +587,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const take = cuts ? zapTake(cuts, performing ? beat : -2) : null;
   const crt = cartFrame >= 50 && cartFrame < 86 ? "bars" : cartFrame >= 39 && cartFrame < 50 ? "playing" : null;
 
-  // Remap actor X range in Studio 404 mode so the 8 singers fill [0.07..0.68] cleanly and leave stage right clear for Tracking & Hertz,
+  // Remap actor X range in Studio 404 mode so the 8 singers fill [0.11..0.68] cleanly and leave stage right clear for Tracking & Hertz,
   // or center cleanly when a solo song clears the stage (`stage: tabby`)
   const rawActors = liveActors ?? deterministicActors(piece, voices, beat, performing, studio404, still);
   const actors = useMemo(() => {
@@ -614,7 +614,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
     if (!studio404 || !liveActors) return rawActors;
     return rawActors.map((a) => ({
       ...a,
-      x: 0.07 + clamp01((a.x - 0.09) / 0.82) * 0.61, // 8 singers (Zap joined): end before Tracking's name tag
+      x: 0.11 + clamp01((a.x - 0.09) / 0.82) * 0.57, // Keep Neon inside the camera crop and Tracking clear at stage right.
     }));
   }, [cueAndNeon, piece.sections, performing, rawActors, liveActors, studio404, isSoloStage, voices, soloVoiceId, still, dancing, beat]);
 
