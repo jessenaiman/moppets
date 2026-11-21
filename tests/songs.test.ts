@@ -134,7 +134,6 @@ test("authored notes reach the plug-in unchanged apart from the singer's octave 
 test("Found Things opens with the instrumental tape melody before three verses with the same cast order", async () => {
   const { SONGBOOK } = await import("../src/choir/songbook.ts");
   const piece = SONGBOOK.find(song => song.id === "found")!.make();
-  const scribe = piece.tracks.find(track => track.id === "scribe")!;
   expect(piece.tracks.every(track => track.events.every(note => note.beat >= 12))).toBe(true);
   const tabby = piece.tracks.find(track => track.id === "tabby")!;
   expect(tabby.phrases?.filter(text => text === "At four oh four we all belong")).toHaveLength(4);
@@ -143,9 +142,14 @@ test("Found Things opens with the instrumental tape melody before three verses w
   const { arrange } = await import("../src/choir/band.ts");
   expect(arrange(piece).find(p => p.id === "bass")!.notes.filter(n => n.beat >= 4 && n.beat < 12).map(n => n.midi)).toEqual([38,42,45,45,47,45,42,45]);
   expect(pip.events.find(note => note.line === 0)?.beat).toBe(12);
-  expect(scribe.events.find(note => note.line === 0)?.beat).toBe(28);
+  for (const id of ["tabby", "chip", "gruff"]) {
+    const phrases = piece.tracks.find(track => track.id === id)!.phrases!;
+    for (const lyric of ["We are the found things put to use", "Built from the bits that you let loose", "Thank you for all you left behind", "At four oh four we all belong"]) {
+      expect(phrases.filter(text => text === lyric)).toHaveLength(4);
+    }
+  }
   for (const section of piece.sections!.filter(section => section.name.startsWith("verse"))) {
-    const order = piece.tracks.flatMap(track => track.events.filter(e => e.line !== undefined && e.beat >= section.beat && e.beat < section.beat + (section.name === "verse 1" ? 72 : 64) && e.src?.[3] === 0).map(e => ({ id:track.id, beat:e.beat }))).sort((a,b)=>a.beat-b.beat);
-    expect(order.map(entry=>entry.id)).toEqual(["pip","clank","scribe","chip","tabby","zap","gruff","vee"]);
+    const order = piece.tracks.flatMap(track => track.events.filter(e => e.line !== undefined && e.beat >= section.beat && e.beat < section.beat + (section.name === "verse 1" ? 40 : 32) && e.src?.[3] === 0).map(e => ({ id:track.id, beat:e.beat }))).sort((a,b)=>a.beat-b.beat);
+    expect(order.map(entry=>entry.id)).toEqual(["pip","tabby","gruff","vee"]);
   }
 });
