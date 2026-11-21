@@ -1,8 +1,11 @@
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { staticFile } from "remotion";
 import { Player, type PlayerRef } from "@remotion/player";
 import {MusicRack} from "./MusicRack";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
+import { CAST } from "../choir/voices.ts";
+import { useVoiceLevels } from "../choir/voiceLevels.ts";
 import { useAudio } from "../audio/audio.ts";
 import { exportWav, pause, setPerformanceVolume, stop, useEnsemble } from "../choir/ensemble.ts";
 import { useRehearsalTransport } from "./useRehearsalTransport.ts";
@@ -58,7 +61,7 @@ const BUBBLE_PRESETS: { label: string; bg: string; fg: string; color: string }[]
 
 const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
-export function VideoStudio({livePreview, controller}:{livePreview?:React.ReactNode;controller:React.ReactNode}) {
+export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing: boolean;livePreview?:React.ReactNode;controller:React.ReactNode}) {
   const [timelineOpen,setTimelineOpen] = useState(false);
   const [audioError,setAudioError] = useState("");
   const [advancedOpen,setAdvancedOpen]=useState(false);
@@ -127,10 +130,20 @@ export function VideoStudio({livePreview, controller}:{livePreview?:React.ReactN
   const introSec = introFrames / fps;
   const outroSec = outroFrames / fps;
   const showingRehearsal = composition === "Rehearsal" && !livePreview;
-  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames);
+  const recordedPiece = useMoppet(s => s.recordedPiece);
+  const bandOn = useMoppet(s => s.band);
+  const masterVolume = useAudio(s => s.volume);
+  const factoryVoices = useMemo(() => JSON.stringify(voices) === JSON.stringify(CAST), [voices]);
+  const flatMix = useVoiceLevels(s => Object.values(s.levels).every(level => level === 1));
+  const recorded = factoryVoices && flatMix && import.meta.env.PROD && showingRehearsal && !liveEditing && bandOn && piece === recordedPiece;
+  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames, recorded, lesson);
   const ensembleMessage = useEnsemble(s => s.message);
   const vocalTiming = useEnsemble(s => s.vocalTiming);
-  const previewProject = useMemo(() => ({ ...project, audioUrl: null, vocalTiming }), [project, vocalTiming]);
+  const previewProject = useMemo(() => ({
+    ...project, audioUrl: recorded ? staticFile(`recordings/${lesson}.mp3`) : null,
+    audioVolume: recorded ? project.audioVolume * masterVolume : project.audioVolume,
+    vocalTiming: recorded ? undefined : vocalTiming,
+  }), [project, vocalTiming, recorded, lesson, masterVolume]);
   const curSec = transport.frame / fps;
   const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
   const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
@@ -447,9 +460,9 @@ export function VideoStudio({livePreview, controller}:{livePreview?:React.ReactN
           <div className="vs-stage-col">
             <div className={`vs-player-frame${livePreview ? " live-preview" : ""}${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay" ref={stageRef}>
               {livePreview ?? (composition==="Rehearsal" ? <Player
-                key="rehearsal" ref={playerRef} component={MoppetComposition} inputProps={previewProject}
+                key={recorded ? `performance-${lesson}` : "rehearsal"} controls={recorded} ref={playerRef} component={MoppetComposition} inputProps={previewProject}
                 durationInFrames={totalFrames} compositionWidth={dims.width} compositionHeight={dims.height}
-                fps={fps} numberOfSharedAudioTags={0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
+                fps={fps} numberOfSharedAudioTags={recorded ? 1 : 0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
                 : composition==="Cue-Bench-Pack" ? <Player key="cue" ref={playerRef} component={BenchPack}
                   durationInFrames={cycleLength*2} compositionWidth={1280} compositionHeight={720} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>
@@ -457,7 +470,7 @@ export function VideoStudio({livePreview, controller}:{livePreview?:React.ReactN
                 : <Player key="neon" ref={playerRef} component={ActionStrip} inputProps={{review:true}}
                   durationInFrames={720} compositionWidth={820} compositionHeight={680} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>)}
-              {showingRehearsal && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
+              {showingRehearsal && !recorded && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
                 <button type="button" disabled={synthBusy && !transport.playing}
                   aria-label={transport.playing || transport.busy ? "Pause video" : "Play video"} onClick={transport.toggle}>
                   <span aria-hidden="true">{transport.playing || transport.busy ? "Ⅱ" : "▶"}</span>

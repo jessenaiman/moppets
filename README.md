@@ -35,12 +35,11 @@ bun run test       # wasm build, cargo test, bun test ./tests
 
 ## Public Moppets app
 
-Vercel serves the same Vite app as the local rehearsal. The song picker opens on
-Found Things. Press Play to hear the CHIMERA mixer and watch the stage follow the
-audio clock. Found Things uses recorded stems. The rest of the repertoire uses
-the browser's CHIMERA workers through the app's 48 kHz AudioWorklet mixer.
-The Vercel build uses the CHIMERA commit recorded by the repository, builds
-`moppet.wasm`, and serves the Vite output over HTTPS.
+Vercel serves the Moppets Vite app with Found Things selected. In the public song
+picker the Remotion Player plays the stage and its finished CHIMERA recording
+together. The recordings are served from `public/recordings`. Opening the live
+music or voice controls, or changing the score, uses the live rehearsal mixer.
+The Vercel build uses the CHIMERA submodule revision recorded by Git.
 
 ## How it uses CHIMERA
 

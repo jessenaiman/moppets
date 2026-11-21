@@ -1364,7 +1364,7 @@ export function MoppetRight() {
   }, []);
   return (
     <div className="right right-moppet right-stage">
-      <VideoStudio controller={<div className="instrument-bay">
+      <VideoStudio liveEditing={desk || liveDesk || editor || writing} controller={<div className="instrument-bay">
         <aside className="bay-controls" aria-label="Stage controls">
           <button aria-pressed={references} onClick={()=>setReferences(!references)}>Cast bibles</button>
           <button aria-pressed={writing} onClick={()=>setWriting(!writing)}>Write &amp; rehearse</button>

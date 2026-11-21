@@ -10,6 +10,8 @@ export function useRehearsalTransport(
   introFrames: number,
   stageEnd: number,
   totalFrames: number,
+  recorded: boolean,
+  lesson: string,
 ) {
   const [frame, setFrame] = useState(0);
   const [cardPlaying, setCardPlaying] = useState(false);
@@ -41,6 +43,28 @@ export function useRehearsalTransport(
     if (!enabled) return;
     const player = playerRef.current;
     if (!player) return;
+    if (recorded) {
+      if (useEnsemble.getState().status !== "idle") stop();
+      const sync = () => {
+        const current = player.getCurrentFrame();
+        shownFrame.current = current;
+        setFrame(current);
+        setCardPlaying(player.isPlaying());
+      };
+      player.addEventListener("frameupdate", sync);
+      player.addEventListener("play", sync);
+      player.addEventListener("pause", sync);
+      player.addEventListener("ended", sync);
+      sync();
+      return () => {
+        player.removeEventListener("frameupdate", sync);
+        player.removeEventListener("play", sync);
+        player.removeEventListener("pause", sync);
+        player.removeEventListener("ended", sync);
+        player.pause();
+        setCardPlaying(false);
+      };
+    }
     const onFrame = ({detail}: {detail: {frame: number}}) => {
       if (!card.current) return;
       if (card.current === "intro" && detail.frame >= introFrames) {
@@ -73,11 +97,12 @@ export function useRehearsalTransport(
       player.removeEventListener("ended", stopCard);
       stopCard();
     };
-  }, [playerRef, enabled, fps, introFrames, stageEnd, totalFrames]);
+  }, [playerRef, enabled, fps, introFrames, stageEnd, totalFrames, recorded, lesson]);
 
   const seekTo = (target: number) => {
     stopCard();
     const f = Math.max(0, Math.min(totalFrames - 1, target));
+    if (recorded) return show(f);
     if (f >= introFrames && f < stageEnd) seek(stageTime(f));
     else if (["preparing", "rendering"].includes(useEnsemble.getState().status)) stop();
     else pause();
@@ -85,6 +110,7 @@ export function useRehearsalTransport(
   };
 
   const toggle = () => {
+    if (recorded) return playerRef.current?.toggle();
     if (card.current) return stopCard();
     const state = useEnsemble.getState();
     if (state.status === "playing" || state.status === "buffering") return pause();

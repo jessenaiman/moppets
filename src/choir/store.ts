@@ -62,6 +62,7 @@ interface MoppetState {
   selected: number;
   lesson: Lesson;
   piece: Piece;
+  recordedPiece: Piece | null;
   key: KeyName;
   mode: ScaleMode;
   bpm: number;
@@ -211,6 +212,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
   selected: Math.max(0, leadIndex),
   lesson: "found",
   piece: initialPiece,
+  recordedPiece: initialPiece,
   progression: DEFAULT_INVENTION.progression,
   groove: DEFAULT_INVENTION.groove,
   palette: DEFAULT_INVENTION.palette,
@@ -395,7 +397,11 @@ export const useMoppet = create<MoppetState>((set, get) => {
     const bpm = lesson === "round" ? ROUND_BPM : SCHOOL_BPM;
     const next = { ...s, lesson, bpm, mode: lesson === "round" ? ("major" as ScaleMode) : s.mode };
     const { piece, baseBpm } = applyTempo(scoreFor(next), s.tempoScale);
-    set({ lesson, bpm, baseBpm, mode: next.mode, piece, status: "" });
+    const stockRound = next.key === "D" && next.repeats === 2 && next.roundLyrics === "jam";
+    const stockInvention = Object.entries(DEFAULT_INVENTION).every(([key,value]) => next[key as keyof typeof next] === value);
+    const recorded = next.tempoScale === 1 && !editedFile(lesson) && lesson !== "newskit"
+      && (lesson !== "round" || stockRound) && (lesson !== "school" || stockInvention);
+    set({ lesson, bpm, baseBpm, mode: next.mode, piece, recordedPiece: recorded ? piece : null, status: "" });
     loadPiece(piece);
     const singing = (id:string) => piece.tracks.some(t => t.id === id && t.events.length) && (!piece.stage || piece.stage.includes(id));
     if (!singing(s.voices[s.selected].id)) {

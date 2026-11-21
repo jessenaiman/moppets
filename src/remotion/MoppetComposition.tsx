@@ -7,6 +7,8 @@ import React from "react";
 import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
+  Html5Audio,
+  useRemotionEnvironment,
   Img,
   Sequence,
   interpolate,
@@ -393,6 +395,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps }> = ({ props }) => {
 
 export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
   const { fps } = useVideoConfig();
+  const { isPlayer } = useRemotionEnvironment();
   const { introFrames, stageFrames, outroFrames } = videoFrameLayout({ ...props, fps });
 
   return (
@@ -403,7 +406,9 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         </Sequence>
       )}
       <Sequence from={introFrames} durationInFrames={stageFrames}>
-        {props.audioUrl && <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} />}
+        {props.audioUrl && (isPlayer
+          ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
+          : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
         {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
           : props.studio404 && ["line","take-two"].includes(props.slug) ?
           <StageFit><Audition project={props} neon={props.slug==="take-two"}/></StageFit>

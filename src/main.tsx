@@ -26,6 +26,11 @@ async function boot(): Promise<void> {
     root.append(box);
     return;
   }
+  // Skit line durations use the same syllable dictionary as the published recordings.
+  if (import.meta.env.PROD) {
+    const { g2p } = await import("./audio/g2p.ts");
+    await g2p.load().catch(() => undefined);
+  }
   const { mount } = await import("./ui/mount.tsx");
   mount(root);
 }

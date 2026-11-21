@@ -3,7 +3,7 @@
  * (`idle`, `sing`, `belt`, `chuckle`) inside frame-accurate `<Sequence>` segments compiled from MIDI & score state.
  */
 import React, { useMemo } from "react";
-import { Sequence, useVideoConfig } from "remotion";
+import { Html5Video, Sequence, useCurrentFrame, useRemotionEnvironment, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import type { Piece } from "../choir/music.ts";
 import { buildCharacterClipSegments, type CharacterClipManifest } from "../choir/clipTimeline.ts";
@@ -32,30 +32,16 @@ export const CharacterClip: React.FC<CharacterClipProps> = ({
     [piece, voiceId, fps, stageDurationSec],
   );
 
+  const frame = useCurrentFrame();
+  const { isPlayer } = useRemotionEnvironment();
+  const seg = segments.find(s => frame >= s.startFrame && frame < s.startFrame + s.durationInFrames);
+  if (!seg) return null;
+  const clip = { src: resolveAsset(manifest.clips[seg.kind]), loop: true, muted: true, playbackRate: seg.playbackRate, style: { width: "100%", height: "100%", display: "block", pointerEvents: "none", objectFit: "contain" } as React.CSSProperties };
   return (
     <span className="sprite sc-clip-sprite" style={{ ...style, backgroundImage: "none" }} aria-hidden="true">
-      {segments.map((seg, idx) => (
-        <Sequence
-          key={`${voiceId}-${seg.kind}-${seg.startFrame}-${idx}`}
-          from={seg.startFrame}
-          durationInFrames={seg.durationInFrames}
-          layout="none"
-        >
-          <Video
-            src={resolveAsset(manifest.clips[seg.kind])}
-            loop
-            muted
-            playbackRate={seg.playbackRate}
-            objectFit="contain"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              pointerEvents: "none",
-            }}
-          />
-        </Sequence>
-      ))}
+      <Sequence key={seg.startFrame} from={seg.startFrame} durationInFrames={seg.durationInFrames} layout="none">
+        {isPlayer ? <Html5Video {...clip} pauseWhenBuffering={false}/> : <Video {...clip} objectFit="contain"/>}
+      </Sequence>
     </span>
   );
 };
