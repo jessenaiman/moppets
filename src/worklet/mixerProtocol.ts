@@ -5,7 +5,7 @@ export type MixerIn =
   /** a piece of one voice, placed by its absolute frame on the shared timeline */
   | { type: "chunk"; voice: number; generation: number; frame: number; pcm: Float32Array }
   /** a new session: how many stems, their end frames and mix gains */
-  | { type: "setup"; ends: number[]; gains: number[]; ports: MessagePort[]; section?: GainSection }
+  | { type: "setup"; voiceCount: number; ends: number[]; gains: number[]; ports: MessagePort[]; section?: GainSection }
   | { type: "play"; generation: number; frame: number }
   | { type: "pause" }
   | { type: "clear"; generation: number }

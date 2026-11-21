@@ -27,7 +27,8 @@ const FS = 48000;
 const pieces = { "1-introduction": makeIntroduction(), "2-invention-major-bossa-beatband": invent({ seed: 404, key: "D", mode: "major", progression: "doowop", groove: "bossa", palette: "beatband", soul: true }), "3-invention-dorian-funk-menagerie": invent({ seed: 88, key: "A", mode: "dorian", progression: "vamp", groove: "funk", palette: "menagerie", soul: true }), "4-jam-round": makeRound({ key: "D", bpm: 108 }), "5-chip-reads-the-manual": makeChipSong(), "legacy-tabby": makeTabbySong(), "legacy-gruff": makeGruffShanty(), ...Object.fromEntries(SONGBOOK.filter(x => !["chip", "tabby", "gruff", "intro"].includes(x.id)).map((x, i) => [`${6 + i}-${x.id}`, x.make()])), ...Object.fromEntries(SKITS.map((x) => [`skit-${x.id}`, makeSkit(x)])) };
 const only = process.env.ONLY;
 for (const [name, piece] of Object.entries(pieces)) {
-  if (only && !name.includes(only)) continue;
+  const outputName = piece.title === "Found Things" ? "13-found" : name;
+  if (only && !name.includes(only) && outputName !== only) continue;
   const t0 = performance.now();
   const frames = Math.ceil(pieceSeconds(piece) * FS);
   const stems: Float32Array[] = [];
@@ -67,7 +68,7 @@ for (const [name, piece] of Object.entries(pieces)) {
     core.dispose();
   }
   const plan = pieceGains(piece, FS, LEAD_IN + piece.tracks.length * 20 * beatSeconds(piece), MIX_LEVEL);
-  const m = mixStems(stems, plan.gains, frames, plan.section);
-  writeWav(`${out}/${name}.wav`, [m.samples], FS);
-  console.log(`${name}: ${(frames / FS).toFixed(1)} s audio in ${((performance.now() - t0) / 1000).toFixed(1)} s · mix peak ${m.peak.toFixed(3)} · limited ${m.limited} · invalid ${m.nonFinite} · stems peak: ${rows.join(", ")}`);
+  const m = mixStems(stems, plan.gains, frames, piece.tracks.length, FS, plan.section);
+  writeWav(`${out}/${outputName}.wav`, [m.left, m.right], FS);
+  console.log(`${outputName}: ${(frames / FS).toFixed(1)} s audio in ${((performance.now() - t0) / 1000).toFixed(1)} s · mix peak ${m.peak.toFixed(3)} · limited ${m.limited} · invalid ${m.nonFinite} · stems peak: ${rows.join(", ")}`);
 }

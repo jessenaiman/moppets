@@ -194,7 +194,7 @@ class Session {
     this.gains = mixPlan.gains;
     this.section = mixPlan.section;
     const gains = this.gains;
-    post({ type: "setup", ends, gains, ports, section: this.section }, ports);
+    post({ type: "setup", voiceCount: piece.tracks.length, ends, gains, ports, section: this.section }, ports);
     post({ type: "voiceLevels", values: this.levels() });
   }
 
@@ -648,8 +648,8 @@ export async function exportWav(start: () => Promise<void>, only?: number) {
     for (let i = 0; i < stem.length; i++) samples[i] = stem[i] * g;
     return { bytes: wavBytes(samples, s.sampleRate), peak, limited: 0, nonFinite: 0, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
   }
-  const { samples, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.section, s.levels());
-  return { bytes: wavBytes(samples, s.sampleRate), peak, limited, nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
+  const { left, right, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.piece.tracks.length, s.sampleRate, s.section, s.levels());
+  return { bytes: wavBytes(left, s.sampleRate, right), peak, limited, nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
 }
 let exportToken = 0;
 
