@@ -10,7 +10,7 @@ import {beatsPerBar} from "./meter";
  */
 import type { GestureName } from "./gestures.ts";
 import { candidates, chordInfo, scalePitch, type Chord, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "./music.ts";
-import { CAST } from "./voices.ts";
+import { CAST, introIds } from "./voices.ts";
 import { FINALE_SEATS, padOf } from "./cast/index.ts";
 import { SONG_FILES } from "./songs.ts";
 
@@ -82,7 +82,7 @@ interface IntroductionOptions {
 export function buildSong(s: Song, options: IntroductionOptions = {}): Piece {
   const intro = s.arrangement === "introduction";
   const verses = options.verses ?? (intro ? s.sections
-    .filter(section => section.name !== "chorus")
+    .filter(section => introIds.includes(section.name ?? ""))
     .map(section => ({id: section.name!, lyrics: undefined})) : []);
   const barLength=beatsPerBar(s.meter);
   const key = s.key, mode: ScaleMode = s.mode ?? "major";

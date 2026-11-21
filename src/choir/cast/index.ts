@@ -12,9 +12,16 @@ import { tabby } from "./tabby.ts";
 import { chip } from "./chip.ts";
 import { zap } from "./zap.ts";
 
+import { neon } from "./neon.ts";
+import { cue } from "./cue.ts";
+import { tracking } from "./tracking.ts";
+import { hertz } from "./hertz.ts";
+import { watt } from "./watt.ts";
+
+export { neon, cue, tracking, hertz, watt };
 export type { Moppet, MoppetArtic, MoppetSource, MoppetVoice, PropEffect } from "./moppet.ts";
 
-export const MOPPETS: readonly Moppet[] = [vee, scribe, clank, pip, gruff, tabby, chip, zap];
+export const MOPPETS: readonly Moppet[] = [vee, scribe, clank, pip, gruff, tabby, chip, zap, neon, cue, tracking, hertz, watt];
 
 const byId = new Map(MOPPETS.map((m) => [m.voice.id, m]));
 /** A Moppet by id (a voice id that isn't one, such as a guest's, gets "oo" and no seat). */

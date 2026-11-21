@@ -3,7 +3,7 @@
  * Seeded composition in scale degrees; all durations are quarter-note beats. The order of random()
  * calls is the seed contract: changing it changes what every saved seed sounds like.
  */
-import { voices as defaultVoices } from "./voices.ts";
+import { ROUND_GROUPS, voices as defaultVoices } from "./voices.ts";
 import { buildSong } from "./songbook.ts";
 import { catalogSong, SONG_FILES } from "./songs.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
@@ -211,7 +211,7 @@ const ROUND_OCTAVES: Record<string, number> = Object.fromEntries(defaultVoices.m
  * The round's three parts: each a pair of Moppets singing the tune together (in their own octaves),
  * the parts entering eight beats apart, as a three-part round is sung by three groups.
  */
-export const ROUND_GROUPS: readonly (readonly string[])[] = [["vee", "clank"], ["scribe", "gruff"], ["pip", "tabby"]];
+export { ROUND_GROUPS };
 
 /**
  * `lyrics`: one set for everyone (by id, or new words), or "mixed": each group sings the next set.

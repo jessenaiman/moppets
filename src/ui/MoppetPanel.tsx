@@ -15,7 +15,7 @@ import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
-import { CAST, type MoppetVoice } from "../choir/voices.ts";
+import { CAST, introIds, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";
 import { Choreographer, featuredAt, sceneFeatured, type Actor } from "../choir/choreo.ts";
 import { SKITS } from "../choir/skits.ts";
@@ -139,10 +139,13 @@ interface LiveStageFrame {
 }
 
 function Stage({ cameraFollow }: { cameraFollow: boolean }) {
-  const voices = useMoppet((s) => s.voices);
-  const selected = useMoppet((s) => s.selected);
-  const select = useMoppet((s) => s.select);
-  const piece = useMoppet((s) => s.piece);
+  const library = useMoppet(s => s.voices);
+  const selectedVoice = useMoppet(s => s.voices[s.selected]);
+  const select = useMoppet(s => s.select);
+  const piece = useMoppet(s => s.piece);
+  const voices = useMemo(() => library.filter(v => introIds.includes(v.id) || v.id === selectedVoice.id ||
+    piece.tracks.some(t => t.id === v.id) || piece.stage?.includes(v.id)), [library, selectedVoice, piece]);
+  const selected = voices.indexOf(selectedVoice);
   const status = useEnsemble((s) => s.status);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -181,11 +184,11 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
       const dancing = e.status === "playing" || e.status === "buffering";
       const performing = dancing || e.status === "paused";
       const beat = performing ? beatNow(m.piece, songTime) : now * 1.1;
-      const poses = m.voices.map((v) => pose(v.id));
+      const poses = voices.map((v) => pose(v.id));
       const lp = !performing ? livePose() : null;
-      if (lp) poses[m.selected] = lp;
+      if (lp) poses[selected] = lp;
 
-      const ids = m.voices.map((v) => v.id);
+      const ids = voices.map((v) => v.id);
       if (!choreo || choreo.actors.length !== ids.length) choreo = new Choreographer(ids);
       const featured = !performing ? ids.map(() => false) : m.piece.scenes ? sceneFeatured(m.piece.scenes, ids, beat) : featuredAt(m.piece.tracks, ids, beat);
       const talk = stageTalkAt(m.piece, ids, beat, performing);
@@ -219,7 +222,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
       const W = stage?.clientWidth ?? 0;
       const H = stage?.clientHeight ?? 0;
 
-      m.voices.forEach((v, i) => {
+      voices.forEach((v, i) => {
         const el = refs.current[i];
         const p = poses[i];
         const a = actors[i];
@@ -245,7 +248,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
           const stepDt = Math.min(dt, 0.05);
           if (!still && m.piece.kind !== "skit") {
             const soloStage = (m.piece.stage?.length ?? 0) === 1;
-            m.voices.forEach((v, i) => {
+            voices.forEach((v, i) => {
               if (m.piece.stage && !m.piece.stage.includes(v.id)) return;
               const p = poses[i];
               const a = actors[i];
@@ -315,7 +318,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [voices, selected]);
 
   const [failedClips, setFailedClips] = useState<ReadonlySet<string>>(new Set());
   const studio404 = useMoppet((s) => s.studio404);
@@ -339,7 +342,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
           bandParts={frameState.bandParts}
           liveMidiSpeech={frameState.liveMidiSpeech}
           onSelectActor={(i) => {
-            select(i);
+            select(library.indexOf(voices[i]));
             poke.current = { index: i, at: performance.now() / 1000 };
           }}
           padGesture={useController.getState().gesture}
@@ -1301,7 +1304,7 @@ function Workbench() {
           return (
             <button key={c.id} className={`card${i === selected ? " selected" : ""}`} onClick={() => select(i)} aria-pressed={i === selected}>
               <span className="card-top"><span className="swatch" style={{ background: s404C?.color ?? c.color }} /><span className="card-num">0{i + 1}</span></span>
-              <strong>{s404C?.name ?? c.name}</strong>
+              <strong>{s404C && s404C.name !== c.name ? `${s404C.name} (${c.name})` : c.name}</strong>
               <small>{s404C?.role ?? c.role}</small>
             </button>
           );

@@ -730,7 +730,7 @@ export function LaunchkeyMap() {
         <div className="organ-lower-manual" role="group" aria-label="Lower manual choir couplers">
           {voices.map((v, i) => {
             const p = studio404 ? STUDIO_404_CAST[v.id] : undefined;
-            const vName = p?.name ?? v.name;
+            const vName = p && p.name !== v.name ? `${p.name} (${v.name})` : v.name;
             const active = i === selected;
             return (
               <button
@@ -740,7 +740,7 @@ export function LaunchkeyMap() {
                 aria-pressed={active}
                 onClick={() => {
                   select(i);
-                  void auditionNote(v, 55 + i * 2, "ah", 240);
+                  void auditionNote(v, Math.round((v.register[0] + v.register[1]) / 2), "ah", 240);
                 }}
               >
                 <span className="coupler-led" style={{ background: p?.color ?? v.color }} />

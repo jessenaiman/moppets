@@ -52,6 +52,31 @@ zap: "I am Zap I change the channel" = hello
 zap: "Every button means I'm sure" = reply
 turnaround V 4
 
+[neon]
+neon: "I light the room with two bright tubes" = hello
+neon: "My twin notes hum above the stage" = reply
+turnaround V 4
+
+[cue]
+cue: "I read the words that cross my screen" = hello
+cue: "My old scroll turns to start the scene" = reply
+turnaround V 4
+
+[tracking]
+tracking: "I wind the tape from reel to reel" = hello
+tracking: "My wheels can sing the notes I feel" = reply
+turnaround V 4
+
+[hertz]
+hertz: "I shine a line across my glass" = hello
+hertz: "I watch the shapes and colors pass" = reply
+turnaround V 4
+
+[watt]
+watt: "My switch lights up the whole front row" = hello
+watt: "Plug in and see the red lamps glow" = reply
+turnaround V 4
+
 [chorus]
 "We are the scraps that found a song" = hello
 "At four oh four we all belong" = reply

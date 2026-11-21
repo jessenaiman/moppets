@@ -1,3 +1,4 @@
+import { choirIds } from "./voices.ts";
 /**
  * Pure Remotion video workbench project model — unified with ShotcraftStage so @remotion/player
  * and on-demand export render the live theatrical React stage directly without a stage.mp4 capture hack.
@@ -105,7 +106,7 @@ export function stageVoicesForPiece(
   const stageIds = piece.stage?.filter((id) => id !== "band");
   const visible = stageIds?.length
     ? voices.filter((v) => stageIds.includes(v.id))
-    : voices.filter((v) => v.id !== "chip" || piece.tracks.some((t) => t.id === "chip"));
+    : voices.filter((v) => choirIds.includes(v.id) || piece.tracks.some((t) => t.id === v.id));
   const slotList = visible.length ? visible : voices;
   return slotList.map((v) => ({
     id: v.id,
@@ -186,7 +187,7 @@ export function buildVideoProject(
     }
   } else if (piece.kind !== "school") {
     // These Studio 404 verse roles use existing CHIMERA voices.
-    const foundVerseRoles: Record<string, string> = { pip: "Spool", zap: "Hertz", vee: "Clacker" };
+    const foundVerseRoles: Record<string, string> = { pip: "Spool", vee: "Clacker" };
     const sections = studio404 && piece.title === "Found Things" ? [...(piece.sections ?? [])].reverse() : [];
     for (const t of piece.tracks) {
       const words = t.phrases ?? t.lines;
