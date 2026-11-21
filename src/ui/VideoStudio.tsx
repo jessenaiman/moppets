@@ -10,7 +10,7 @@ import { useAudio } from "../audio/audio.ts";
 import { exportWav, pause, setPerformanceVolume, stop, useEnsemble } from "../choir/ensemble.ts";
 import { useRehearsalTransport } from "./useRehearsalTransport.ts";
 import { MoppetComposition } from "../remotion/MoppetComposition";
-import { ActionStrip } from "../rehearsal/NeonActions";
+const loadActionStrip = () => import("../rehearsal/NeonActions").then(m => ({default: m.ActionStrip}));
 import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
 import { RemotionDock, type StudioComposition } from "./RemotionDock";
 import { SKITS } from "../choir/skits.ts";
@@ -467,7 +467,7 @@ export function VideoStudio({livePreview, controller, liveEditing}:{liveEditing:
                   durationInFrames={cycleLength*2} compositionWidth={1280} compositionHeight={720} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>
                 : study ? <Player key={study.id} ref={playerRef} component={CastExposure} inputProps={{study}} durationInFrames={study.count*study.hold} compositionWidth={960} compositionHeight={720} fps={24} controls loop style={{width:"100%",height:"100%"}}/>
-                : <Player key="neon" ref={playerRef} component={ActionStrip} inputProps={{review:true}}
+                : <Player key="neon" ref={playerRef} lazyComponent={loadActionStrip} inputProps={{review:true}}
                   durationInFrames={720} compositionWidth={820} compositionHeight={680} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>)}
               {showingRehearsal && !recorded && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">

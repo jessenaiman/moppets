@@ -7,6 +7,8 @@ import React from "react";
 import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
+  delayRender,
+  continueRender,
   Html5Audio,
   useRemotionEnvironment,
   Img,
@@ -33,7 +35,17 @@ import {
 } from "../choir/videoProject.ts";
 import { puppetActions } from "../stage/RehearsalActor.tsx";
 import { workshopSongs, type WorkshopSinger } from "../stage/WorkshopSolo.tsx";
-import { Audition, CastMoment, StageFit } from "../rehearsal/Auditions";
+import { StageFit } from "../rehearsal/StageFit";
+async function loadAuditions() {
+  const handle = delayRender("Loading 3D cast");
+  try {
+    return await import("../rehearsal/Auditions");
+  } finally {
+    continueRender(handle);
+  }
+}
+const Audition = React.lazy(() => loadAuditions().then(m => ({default: m.Audition})));
+const CastMoment = React.lazy(() => loadAuditions().then(m => ({default: m.CastMoment})));
 import { MoonbeamSolo } from "../rehearsal/MoonbeamSolo";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
 import { CharacterClip } from "./CharacterClip.tsx";

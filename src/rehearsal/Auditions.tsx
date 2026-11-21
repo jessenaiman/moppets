@@ -1,3 +1,4 @@
+import {StageFit} from "./StageFit";
 import {AbsoluteFill,Img,Sequence,staticFile,useCurrentFrame,useVideoConfig} from 'remotion';
 import type {MoppetVideoProps} from '../choir/videoProject';
 import {vocalLevelAt} from '../choir/vocalTiming';
@@ -44,12 +45,6 @@ export function Audition({project,neon}:{project:MoppetVideoProps;neon:boolean})
     <Sequence name="Cue · prompt and recover"><div style={{position:'absolute',inset:0,transform:'translateX(-85px)'}}>
       <Cue arm={15+reach*strength} head={word.includes('who')?12*strength:word.includes('oh')?-9*strength:turn*(1-returned)*8+3*strength} mouth={mouth}/>
     </div></Sequence>
-  </AbsoluteFill>;
-}
-export function StageFit({children}:{children:React.ReactNode}){
-  const {width,height}=useVideoConfig();
-  return <AbsoluteFill style={{background:"#160e0c",alignItems:"center",justifyContent:"center"}}>
-    <div style={{width:1280,height:720,flexShrink:0,position:"relative",transform:`scale(${Math.min(width/1280,height/720)})`}}>{children}</div>
   </AbsoluteFill>;
 }
 export function CastMoment({project}:{project:MoppetVideoProps}){

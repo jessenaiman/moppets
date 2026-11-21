@@ -1,10 +1,10 @@
 import { measures } from "../choir/meter.ts";
 import { NewRehearsal } from "./NewRehearsal";
 import { CastReferences } from "./CastReferences";
-import VideoStudio from "./VideoStudio";
-import {PortableStage} from "./PortableStage";
+
+
 import {buildVideoProject} from "../choir/videoProject";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { currentFile, lessonFile, useMoppet, type Lesson } from "../choir/store.ts";
@@ -30,7 +30,7 @@ import { bandEnabled, bandFor } from "../choir/band.ts";
 import { livePose, liveMidiPitch, liveNoteOff, liveNoteOn, auditionNote, MOUTH, moveMouth, PAD_VOWELS, padVowel, useLive, type LiveMode } from "../choir/live.ts";
 import type { Pose } from "../choir/pose.ts";
 import { ShotcraftStage, type LiveMidiSpeech } from "../stage/ShotcraftStage.tsx";
-import { RehearsalStaffPanel, VexStaffLine, type StaffNoteItem } from "./StaffEditor.tsx";
+import type { StaffNoteItem } from "./StaffEditor.tsx";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { lockVoiceControls, resetSelectedVocal, applyControl, ccFor, CONTROLS, handleControl, touchControl, useController, type ControlGroup, type ControlKey } from "../choir/controller.ts";
 import { midiSupported } from "./midi.ts";
@@ -39,6 +39,12 @@ import { EnsemblePuppet } from "./EnsemblePuppet.tsx";
 import { manifestForCharacter } from "../choir/clipTimeline.ts";
 import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
+
+const VideoStudio = lazy(() => import("./VideoStudio"));
+const PortableStage = lazy(() => import("./PortableStage").then(m => ({default: m.PortableStage})));
+const RehearsalStaffPanel = lazy(() => import("./StaffEditor").then(m => ({default: m.RehearsalStaffPanel})));
+const VexStaffLine = lazy(() => import("./StaffEditor").then(m => ({default: m.VexStaffLine})));
+
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 
@@ -1333,9 +1339,13 @@ function Workbench() {
 }
 
 export function MoppetRight() {
+  return <Suspense fallback={<p role="status">Loading rehearsal…</p>}><RehearsalDesk/></Suspense>;
+}
+
+function RehearsalDesk() {
   const [cameraFollow,setCameraFollow]=useState(true);
   const [desk, setDesk] = useState(false);
-  const [liveDesk,setLiveDesk]=useState(false);
+  const [liveDesk,setLiveDesk]=useState(() => new URLSearchParams(location.search).get("mode") === "live");
   const showLive = liveDesk;
   const [writing,setWriting]=useState(false);
   const [references,setReferences]=useState(false);
@@ -1362,13 +1372,19 @@ export function MoppetRight() {
     (window as unknown as { __choir: unknown }).__choir = { seek, play: () => play(useAudio.getState().start), stop, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return (
-    <div className="right right-moppet right-stage">
-      <VideoStudio liveEditing={desk || liveDesk || editor || writing} controller={<div className="instrument-bay">
+  function toggleLiveDesk() {
+    stop();
+    const url = new URL(location.href);
+    if (liveDesk) url.searchParams.delete("mode");
+    else url.searchParams.set("mode", "live");
+    history.replaceState(null, "", url);
+    setLiveDesk(!liveDesk);
+  }
+  const controller = <div className="instrument-bay">
         <aside className="bay-controls" aria-label="Stage controls">
           <button aria-pressed={references} onClick={()=>setReferences(!references)}>Cast bibles</button>
           <button aria-pressed={writing} onClick={()=>setWriting(!writing)}>Write &amp; rehearse</button>
-          <button aria-pressed={liveDesk} onClick={()=>{stop();setLiveDesk(!liveDesk)}}>Live puppets</button>
+          <button aria-pressed={liveDesk} onClick={toggleLiveDesk}>Live puppets</button>
         </aside>
         <LaunchkeyMap/>
         <aside className="bay-controls" aria-label="Music controls">
@@ -1377,7 +1393,14 @@ export function MoppetRight() {
           <button onClick={resetSelectedVocal} title="Restore this singer’s factory vocal settings">↺ Reset {name} vocals</button>
           <small>{!import.meta.env.DEV ? "CHIMERA plug-in voice" : JSON.stringify(v) === JSON.stringify(CAST[selected]) ? "CHIMERA · factory voice" : "CHIMERA · custom voice"}</small>
         </aside>
-      </div>} livePreview={guestPreview ? <PortableStage project={guestPreview}/> : showLive ? <Stage cameraFollow={cameraFollow}/> : undefined}/>
+      </div>;
+  return (
+    <div className="right right-moppet right-stage">
+      {showLive ? <>
+        {guestPreview ? <PortableStage project={guestPreview}/> : <Stage cameraFollow={cameraFollow}/>}
+        {controller}
+      </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller}/>}
+
       {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">
         {(desk || liveDesk) && <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)}/>}
         {desk && piece.kind!=="skit" ? <PianoRoll/> : liveDesk || desk ? <Transport/> : null}
