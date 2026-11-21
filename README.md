@@ -33,21 +33,21 @@ bun run dev        # takes CHIMERA's newest main, builds the wasm, then Vite on 
 bun run test       # wasm build, cargo test, bun test ./tests
 ```
 
-## Public screening page
+## Public Moppets app
 
-Vercel serves the static files in `watch/`. The screening page plays rendered MP4s
-and full-length MP3s for all 33 songs and three skits through built-in browser controls.
-Check each MP3 against its score duration before updating the media in `watch/`.
-Run `bun tools/watch-audio-e2e.mjs <screening-url>` to check the public players.
-The rehearsal editor runs locally with `bun run dev`.
+Vercel serves the same Vite app as the local rehearsal. The song picker opens on
+Found Things. Press Play to hear the CHIMERA mixer and watch the stage follow the
+audio clock. Found Things uses recorded stems. The rest of the repertoire uses
+the browser's CHIMERA workers through the app's 48 kHz AudioWorklet mixer.
+The Vercel build uses the CHIMERA commit recorded by the repository, builds
+`moppet.wasm`, and serves the Vite output over HTTPS.
 
 ## How it uses CHIMERA
 
 - **`chimera/`** follows CHIMERA's `main` (`branch = main` in `.gitmodules`). `bun run dev` and
   `bun run build` take its newest commit first (`bun run chimera:update`, which also rebuilds the
   engine; offline, they build the checkout as it is). Git still records which commit a Moppets
-  commit was made against; that's a record, not a pin. Hosting the app (Vercel and the like) needs
-  the submodule fetched in its build, issue #13.
+  commit was made against. The production build uses that recorded commit.
 - **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
   plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
   itself doesn't offer (Gruff and Clank are giants).

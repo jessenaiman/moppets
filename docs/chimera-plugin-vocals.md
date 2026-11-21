@@ -9,7 +9,12 @@ The browser engine and the desktop instrument are published on different branche
 
 ## What runs where
 
-The Linux host renders audio offline. The stage decodes the separate plug-in stems, applies the cast and master volume controls, and drives mouth opening from each stem's measured amplitude. Browsers do not load a Linux CLAP library. The production site serves the stock recordings. The local Vite host can also render changed scores and new keyboard syllables through SoundCraft. The default manual has native “la” recordings for MIDI 36–84; arbitrary new word-and-note combinations require the local host. Held manual keys sustain the recorded vowel. This is recorded plug-in audio, not a sample-accurate live DAW connection.
+SoundCraft runs the Linux CLAP instrument for local authoring and offline bounces.
+The public Vite app loads the CHIMERA WebAssembly build over HTTPS. One worker per
+voice sends sample-aligned audio to the 48 kHz AudioWorklet mixer. The rehearsal
+picture follows that mixer's audible position. Found Things uses its authored
+vocal and beatbox stems. The other songs and skits synthesize from their scores in
+the browser, independent of the desktop plug-in cache.
 
 To inspect the native instrument in a fresh SoundCraft process from this folder, run `CLAP_PATH="$PWD/out/chimera-plugin" soundcraft out/right-on-cue/neon-chimera.scraft`. Inspect the instrument slot and the MIDI region. The stage never requests a pitch-bend event from that host.
 
