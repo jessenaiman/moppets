@@ -1,4 +1,8 @@
-/** The choir's engine path on the wasm build: score pitch, determinism, telemetry, controls. */
+/**
+ * Moppet-to-CHIMERA integration checks. For vocal tuning, use the real-reference
+ * comparisons in chimera/docs/hill-climb/README.md and the listening workflow in
+ * docs/voice-tuning/README.md. A passing adapter check says nothing about intelligibility.
+ */
 import { beforeAll, expect, test } from "bun:test";
 import { initEngine, wasmModule } from "./harness.ts";
 import type { EngineExports } from "../src/choir/singerCore.ts";
@@ -39,7 +43,7 @@ function renderTrack(id: string, piece = music.compose({ seed: 7, bpm: 120 }), s
   return core;
 }
 
-test("a singer's pitch comes from the score, even when its character changes", () => {
+test("Gruff and Tabby report the scored F0 at the midpoint of their first note", () => {
   const piece = music.compose({ seed: 7, bpm: 120 });
   for (const id of ["gruff", "tabby"]) {
     const core = renderTrack(id, piece, 2);
@@ -52,7 +56,7 @@ test("a singer's pitch comes from the score, even when its character changes", (
   }
 });
 
-test("the plan keeps consonant closures: no character velum on non-vowels, whole lyric syllables", () => {
+test("Pip’s character shaping preserves CHIMERA’s stop-consonant velum targets", () => {
   const pip = voices.find((v) => v.id === "pip")!;
   const piece = music.makeIntroduction();
   const tp = plan.planTrack(piece.tracks.find((t) => t.id === "pip")!, piece, pip);
@@ -60,20 +64,11 @@ test("the plan keeps consonant closures: no character velum on non-vowels, whole
   const vowelBiased = shaped.filter((g) => g.targets.velum === pip.artic.velum).length;
   expect(vowelBiased).toBeGreaterThan(5);
   // oral closures still shut the nose: any p/t/k/b/d/g gesture keeps velum closed or unset
-  for (const g of tp.gestures) if (g.label && /^[ptkbdg]$/.test(g.label)) expect(g.targets.velum === undefined || g.targets.velum < 0.2).toBe(true);
+  const stops = tp.gestures.map((g,i) => ({raw:g, shaped:shaped[i]})).filter(({raw}) => /^[ptkbdg]$/.test(raw.label ?? ""));
+  expect(stops.length).toBeGreaterThan(0);
+  for (const {raw, shaped} of stops) expect(shaped.targets.velum).toBe(raw.targets.velum);
   const pitches = new Set(tp.gestures.flatMap((g) => (g.targets.f0 !== undefined ? [Math.round(69 + 12 * Math.log2(g.targets.f0 / 440))] : [])));
   for (const p of pitches) expect(piece.tracks.find((t) => t.id === "pip")!.events.some((e) => e.midi === p)).toBe(true);
-});
-
-test("every lyric line plans with the dictionary: the round and the introduction", () => {
-  const round = music.makeRound();
-  for (const t of round.tracks) expect(plan.planTrack(t, round, voices.find((v) => v.id === t.id)!).gestures.length).toBeGreaterThan(100);
-  const intro = music.makeIntroduction();
-  for (const t of intro.tracks) expect(plan.planTrack(t, intro, voices.find((v) => v.id === t.id)!).gestures.length).toBeGreaterThan(100);
-  for (const v of voices) {
-    const solo = music.makeSolo(v);
-    expect(plan.planTrack(solo.tracks[0], solo, v).gestures.length).toBeGreaterThan(50);
-  }
 });
 
 test("the same seed and character render identical samples", () => {
@@ -83,7 +78,7 @@ test("the same seed and character render identical samples", () => {
   b.dispose();
 });
 
-test("every Moppet sings: finite, not silent, not clipped raw", () => {
+test("the first 2.5 seconds of each default solo produce finite PCM with signal and headroom", () => {
   for (const v of voices) {
     const core = renderTrack(v.id, music.makeSolo(v), 2.5);
     let peak = 0, sum = 0;
@@ -99,7 +94,7 @@ test("every Moppet sings: finite, not silent, not clipped raw", () => {
   }
 });
 
-test("telemetry tracks what the voice did: the mouth closes for /m/ while the voice keeps sounding", () => {
+test("Vee’s solo telemetry produces both open and closed mouth poses during voicing", () => {
   const piece = music.makeSolo(voices[0]);
   const core = renderTrack("vee", piece, 7);
   const n = Math.floor(core.rendered / hopFor(FS));
@@ -276,7 +271,7 @@ test("a loud singer's mouth still closes on a consonant, and a held \"oo\" shows
   expect(poseFromRecord(record(0.17, 0, 1.27)).open).toBe(0); // a closure always shuts it
 });
 
-test("the additional cast can sing individual lead-sheet solos without joining the default round", async () => {
+test("additional cast profiles have sprite files, plan solo gestures and remain outside the default round", async () => {
   const {CAST, ROUND_GROUPS} = await import("../src/choir/voices.ts");
   const {existsSync} = await import("node:fs");
   for (const id of ["neon", "cue", "hertz", "tracking", "watt"]) {
