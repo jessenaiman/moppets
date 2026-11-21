@@ -275,3 +275,25 @@ test("a loud singer's mouth still closes on a consonant, and a held \"oo\" shows
   expect(poseFromRecord(record(0.17, 0.23, 1.27)).open).toBeGreaterThan(MOUTH_OPEN_THRESHOLD);
   expect(poseFromRecord(record(0.17, 0, 1.27)).open).toBe(0); // a closure always shuts it
 });
+
+test("the additional cast can sing individual lead-sheet solos without joining the default round", async () => {
+  const {CAST, ROUND_GROUPS} = await import("../src/choir/voices.ts");
+  const {existsSync} = await import("node:fs");
+  for (const id of ["neon", "cue", "hertz", "tracking", "watt"]) {
+    const v = CAST.find(voice => voice.id === id)!;
+    expect(v.size).toBeGreaterThan(.65);
+    expect(v.size).toBeLessThan(1.6);
+    expect(ROUND_GROUPS.flat()).not.toContain(id);
+    expect(music.makeIntroduction().tracks.map(t=>t.id)).not.toContain(id);
+    for (const mouth of ["open","closed"]) expect(existsSync(`public/moppets/${id}/${mouth}.webp`)).toBe(true);
+    const solo = music.makeSolo(v);
+    const tp = plan.planTrack(solo.tracks[0], solo, v);
+    expect(tp.gestures.length).toBeGreaterThan(0);
+    const track = {id, events:[{beat:0,beats:.34,midi:62,text:"ah"},{beat:1,beats:.35,midi:64,text:"ah"}]};
+    const notes = plan.planTrack(track, {...solo,bpm:60}, v);
+    const vibrato = notes.gestures.filter(g => g.targets.vibrato !== undefined);
+    expect(vibrato).toHaveLength(1);
+    expect(vibrato[0].t0-vibrato[0].rampIn).toBeGreaterThan(plan.LEAD_IN+1);
+    expect(vibrato[0].targets.vibrato).toBe(v.vibrato);
+  }
+});

@@ -15,14 +15,17 @@ import { create } from "zustand";
 import { instrumentNote, instrumentPart } from "./pluginScore.ts";
 import { pluginRecording } from "./pluginPlayback.ts";
 import { beatSeconds, LEAD_IN } from "./timeline.ts";
-import { ARTIC_SPECS, NEUTRAL, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
+import { ARTIC_SPECS, NEUTRAL, planNoteOn, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
 import type { Syllable } from "@chimera/wasm/types.ts";
-import type { FromLive } from "../worklet/live.ts";
+import liveUrl from "../worklet/live.ts?worker&url";
+import { chimeraModule } from "@chimera/wasm/chimera.ts";
+import { singingSource, shapeGesture } from "./character.ts";
+import type { ToLive, FromLive } from "../worklet/live.ts";
 import { audio, useAudio } from "../audio/audio.ts";
 import { g2p } from "../audio/g2p.ts";
 import { sungSyllables } from "./plan.ts";
 import { midiToHz } from "./singerCore.ts";
-import { CAST, type MoppetVoice } from "./voices.ts";
+import { CAST, introIds, type MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
 import { SILENT_POSE, visemeFrom, type Pose } from "./pose.ts";
 
@@ -184,8 +187,11 @@ export function padVowel(i: number): void {
 let active: AudioBufferSourceNode | null = null;
 let activePitch: number | undefined;
 let sequence=0;
+let nativeModule: Promise<void> | undefined;
+let endNative: (() => void) | undefined;
 function releaseNote() {
   sequence++;
+  endNative?.();
   if(active){active.stop();active=null;}
   activePitch=undefined;
 }
@@ -199,6 +205,36 @@ async function soundNote(v:MoppetVoice,midi:number,word:string,seconds:number|un
   const ctx=audio.ctx!;
   let buffer:AudioBuffer, offset=0, limit=Infinity;
   try {
+    // The additional cast has native tract profiles, including size and articulation.
+    if (!introIds.includes(v.id)) {
+      nativeModule ??= ctx.audioWorklet.addModule(liveUrl).catch(error => {nativeModule = undefined; throw error});
+      await nativeModule;
+      if (seq !== sequence || signal?.aborted) return;
+      const syl = sungSyllables(word)[0] ?? sungSyllables("la")[0];
+      const gestures = planNoteOn(syl, midi, {body: v.body, vibrato: v.vibrato, tag: 1}).map(g =>
+        shapeGesture(g.targets.vibrato === undefined ? g : {...g, t0: Math.max(.45, g.t0), rampIn: .10}, v, false));
+      const node = new AudioWorkletNode(ctx, "live-moppet", {numberOfInputs: 0, outputChannelCount: [1],
+        processorOptions: {module: chimeraModule()}});
+      const gain = ctx.createGain();
+      gain.gain.value = Math.min(1, Math.max(0, velocity/100));
+      node.connect(gain).connect(analyser!);
+      const send = (m: ToLive) => node.port.postMessage(m);
+      send({type: "voice", body: v.body, size: v.size ?? 1, artic: {...v.artic}, source: {...singingSource(v.source)}});
+      if (useLive.getState().mode === "puppet") send({type:"mouth", values: useLive.getState().mouth});
+      send({type: "schedule", gestures});
+      activePitch = midi;
+      const timer = seconds === undefined ? undefined : setTimeout(releaseNote, seconds*1000);
+      const stop = () => {
+        endNative = undefined;
+        signal?.removeEventListener("abort", releaseNote);
+        clearTimeout(timer);
+        gain.gain.setTargetAtTime(0, ctx.currentTime, .008);
+        setTimeout(() => {send({type:"dispose"}); node.disconnect(); gain.disconnect();}, 50);
+      };
+      endNative = stop;
+      signal?.addEventListener("abort", releaseNote, {once:true});
+      return;
+    }
     // For a staff audition, reuse the exact sung note including its consonants.
     const score=wordsOf?.piece,track=score?.tracks.find(t=>t.id===v.id);
     const note=score && track && word!=="la" && seconds!==undefined

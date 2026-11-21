@@ -7,13 +7,13 @@ import type { MoppetSource, MoppetVoice } from "./voices.ts";
 
 /** Tag of the held character posture; a live edit replaces it (see SingerCore.setCharacter). */
 export const CHARACTER_TAG = 7001;
-/** The native CHIMERA Sing planner accepts vibrato depth in cents. */
-export const PLAN_VIBRATO = 0;
 /** For pitched singing, keep the character's timbre but let the score own F0.
  * In CHIMERA, fry pulls the oscillator towards 45 Hz. Old saved recipes and
  * live edits must go through the same boundary as factory voices. */
 export function singingSource(source: Partial<MoppetSource>): Partial<MoppetSource> {
-  const result: Partial<MoppetSource> = { fry: 0, drift: 0, glide: 0 };
+  const result: Partial<MoppetSource> = { fry: 0 };
+  if (Number.isFinite(source.glide)) result.glide = Math.min(.050, Math.max(.025, source.glide!));
+  if (Number.isFinite(source.drift)) result.drift = Math.min(6, Math.max(3, source.drift!));
   for (const key of ["tension","breathiness","roughness","brightness","pressure","vibratoRate"] as const) {
     const n = source[key];
     if (typeof n === "number" && Number.isFinite(n)) result[key] = n;
@@ -40,10 +40,13 @@ export function characterGesture(v: MoppetVoice, t0: number, end: number, tag: n
  * `nasal`: the velum recipe only colours solo-voiced pieces; on sustained choir parts it swallowed the voice.
  */
 export function shapeGesture(g: Gesture, v: MoppetVoice, nasal: boolean, speech = false): Gesture {
+  if (!speech && (g.label === "s" || g.label === "f" || g.label === "h")) {
+    return {...g, targets: {...g.targets, abduction: Math.max(.45, g.targets.abduction ?? 0)}};
+  }
   const vibrato = g.targets.vibrato;
   if ((!g.label || !VOWEL.test(g.label)) && vibrato === undefined) return g;
   const targets = { ...g.targets };
-  if (vibrato !== undefined && !speech) targets.vibrato = 0;
+  if (vibrato !== undefined && !speech) targets.vibrato = v.vibrato;
   if (g.label && VOWEL.test(g.label)) {
     if (targets.root !== undefined) targets.root = Math.max(-1, Math.min(1, targets.root + (v.artic.root || 0)));
     if (nasal) targets.velum = v.artic.velum;

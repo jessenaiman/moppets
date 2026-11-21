@@ -6,7 +6,6 @@ import { EnglishG2P, lyricsToSyllables, planPhrases, planSong } from "@chimera/w
 import { midiToHz } from "./singerCore.ts";
 import type { Gesture, Syllable } from "@chimera/wasm/types.ts";
 import type { Piece, ScoreEvent, Track } from "./music.ts";
-import { PLAN_VIBRATO } from "./character.ts";
 import type { MoppetVoice } from "./voices.ts";
 
 import { beatSeconds, LEAD_IN } from "./timeline.ts";
@@ -110,8 +109,17 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     if (!group.length) return;
     const syllables = phraseSyllables(track, group);
     const notes = group.map((e, i) => ({ midi: e.midi, beats: e.beats, syl: syllables[i] }));
-    const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: PLAN_VIBRATO });
-    gestures.push(...plan.gestures);
+    const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: v.vibrato });
+    // Time the swell from the written note and end it before any coda consonants.
+    gestures.push(...plan.gestures.filter(g => g.targets.vibrato === undefined));
+    for (const note of group) {
+      if (note.beats * beat < .35) continue;
+      const start = LEAD_IN + note.beat * beat;
+      const pitch = plan.gestures.find(g => g.label === "pitch" && Math.abs(g.t0 - start) < 1e-5);
+      if (!pitch || pitch.t1 <= start + .19) continue;
+      gestures.push({t0: start + .19, t1: pitch.t1, rampIn: .10, rampOut: .04,
+        strength: pitch.strength, targets: {vibrato: v.vibrato}, label: "vibrato"});
+    }
     end = Math.max(end, plan.end + 0.3);
     group = [];
   };

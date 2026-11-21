@@ -22,6 +22,7 @@ declare class AudioWorkletProcessor {
 declare const sampleRate: number;
 
 export type ToLive =
+  | { type: "dispose" }
   | { type: "voice"; body: { female: number; child: number }; size: number; artic: Record<string, number>; source: Record<string, number> }
   | { type: "mouth"; values: Record<string, number> }
   | { type: "source"; values: Record<string, number> }
@@ -48,6 +49,7 @@ class LiveMoppet extends AudioWorkletProcessor {
   private readonly x: X;
   private readonly h: number;
   private quanta = 0;
+  private disposed = false;
   constructor(o: { processorOptions: { module: WebAssembly.Module } }) {
     super();
     this.x = new WebAssembly.Instance(o.processorOptions.module, {}).exports as unknown as X;
@@ -66,6 +68,11 @@ class LiveMoppet extends AudioWorkletProcessor {
   private on(m: ToLive): void {
     const { x, h } = this;
     switch (m.type) {
+      case "dispose":
+        x.moppet_free(h);
+        this.disposed = true;
+        this.port.onmessage = null;
+        break;
       case "voice":
         x.moppet_set_body(h, m.body.female, m.body.child, m.size);
         this.patch(ARTIC_KEYS, m.artic);
@@ -96,6 +103,7 @@ class LiveMoppet extends AudioWorkletProcessor {
   }
 
   process(_in: Float32Array[][], outputs: Float32Array[][]): boolean {
+    if (this.disposed) return false;
     const out = outputs[0]?.[0];
     if (!out) return true;
     const p = this.x.moppet_render(this.h, out.length);
