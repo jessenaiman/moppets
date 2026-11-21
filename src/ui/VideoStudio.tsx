@@ -150,6 +150,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     setComposition("Rehearsal");
     transport.reset();
     setSelection({ kind: "stage" });
+    if (lesson === "cardboard-horse") setWorldLens("caravan");
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
 

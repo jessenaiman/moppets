@@ -1,0 +1,35 @@
+title: Four on a Cardboard Horse
+id: cardboard-horse
+tab: 00 · Cardboard Horse
+about: Neon, Tabby, Cue and Gruff pile onto a rocking cardboard horse caravan with mouth-beatbox hoofbeats
+lead: vee
+key: G
+bpm: 116
+beat: B . t K | B . t . | B . t K | . t B t (swing .18)
+backing: vee +0, tabby +4, scribe +2, gruff +0
+bass: gruff
+stage: vee, tabby, scribe, gruff
+finale: "Whoa" on 7
+
+[saddle up]
+vee: "Grab the reins and hop right on" = 0 2 4 4 5 4 2/2 | I 4, IV 4 ; do nod
+tabby: "Climb the roof and sing along" = 4 5 7 5 4 2 0/2 | V 4, I 4 ; do laugh
+scribe: "Hold the map the wrong way up" = 2 4 5 5 4 2 1/2 | II 4, V 4 ; do tilt
+gruff: "Wheels roll fast so mind your cup" = 0 2 4 2 1 -1 0/2 | IV 4, I 4 ; do shrug
+
+[trot chorus, choir]
+vee: "Four on a cardboard horse we ride" = 4/.5 4/.5 5 4 2 4 5 7/2 | I 4, IV 4 ; do nod
+  + tabby @6: "Clip clop" = 5 7
+tabby: "Wheels go round on the sunset side" = 7/.5 5/.5 4 5 4 2 1 2/2 | V 4, I 4 ; do laugh
+  + scribe @6: "Whoa there" = 4 2
+scribe: "Clip and clop down the paper hill" = 4/.5 4/.5 5 4 2 4 5 7/2 | IV 4, VI 4 ; do tilt
+  + gruff @6: "Hang on" = 0 2
+gruff: "Four bright voices and one big thrill" = 5/.5 4/.5 2 4 2 1 -1 0/2 | V 4, I 4 ; do bow
+
+[horn break]
+scribe: "Honk the horn" = 7 5 7/2 | V 4 ; do gasp
+tabby: "Look no hands" = 8 7 5/2 | IV 4 ; do laugh
+vee: "Spin those wheels" = 4 5 7/2 | I 4 ; do nod
+gruff: "Hold your hats" = 2 1 0/2 | V 2, I 2 ; do bow
+
+[repeat trot chorus]

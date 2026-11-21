@@ -3,6 +3,7 @@
  * A new file goes in this list; its place here is its place in the tabs.
  */
 import { parseSongFile, type SongFile } from "./songFile.ts";
+import cardboardHorse from "../../songs/cardboard-horse.song";
 import tabbySolo from "../../songs/tabby-solo.song";
 import loading from "../../songs/loading.song";
 import autocomplete from "../../songs/autocomplete.song";
@@ -42,6 +43,7 @@ import intro from "../../songs/intro.song";
 import introstudio404 from "../../songs/intro-studio404.song";
 
 const FILES: [string, string][] = [
+  ["cardboard-horse.song", cardboardHorse],
   ["tabby-solo.song", tabbySolo],
   ["chip.song", chip],
   ["tabby.song", tabby],

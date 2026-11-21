@@ -171,58 +171,69 @@ export const CaravanWorld3D: React.FC<CaravanWorld3DProps> = ({
 
     const castCount = Math.max(1, Math.min(MAX_RIDERS, st.cast.length));
     const darkAmt = st.darkness;
+    const secName = st.plate.sectionName.toLowerCase();
+    const isSaddleUp = secName.includes("saddle");
+    const isGallop = secName.includes("trot") || secName.includes("chorus") || secName.includes("reprise");
+    const isHornBreak = secName.includes("horn");
+    const actProgress = clamp01((b - st.plate.startBeat) / Math.max(4, st.plate.endBeat - st.plate.startBeat));
 
-    // 1. Camera with intent (subtle scenic framing + optional drag-to-orbit)
-    const az = orbit ? orbit.azimuth : lerp(-0.12, 0.14, clamp01(st.plateIndex / Math.max(1, st.plates.length - 1)));
-    const el = orbit ? orbit.elevation : 0.24;
-    const dist = castCount >= 5 ? 12.8 : 11.6;
+    // 1. Camera with intent (sweeping push-in on [horn break], wide joyous gallop on chorus!)
+    const baseAz = isHornBreak
+      ? lerp(-0.18, 0.16, actProgress)
+      : lerp(-0.12, 0.14, clamp01(st.plateIndex / Math.max(1, st.plates.length - 1)));
+    const az = orbit ? orbit.azimuth : baseAz;
+    const el = orbit ? orbit.elevation : isHornBreak ? 0.2 : 0.24;
+    const dist = (castCount >= 5 ? 12.8 : 11.4) - (isHornBreak ? 1.15 : 0);
     h.camera.position.set(
       Math.sin(az) * Math.cos(el) * dist + 0.3,
       Math.sin(el) * dist + 1.45,
       Math.cos(az) * Math.cos(el) * dist,
     );
-    h.camera.lookAt(0.25, 1.45, 0);
+    h.camera.lookAt(isHornBreak ? 0.65 : 0.25, 1.45, 0);
 
-    // 2. Beat-locked parade motion (wheels spin, horse rocks, fenceposts & hills scroll cleanly!)
-    const travel = b * 1.1;
-    const stepBounce = Math.abs(Math.sin(b * Math.PI)) * (st.singing ? 0.11 : 0.04);
-    const hornHop = horn > 0 ? Math.abs(Math.sin(horn * 1.7 + b * 2)) * 0.24 : 0;
+    // 2. Beat-locked story choreography (walk -> gallop trot -> automated horn break hop -> sunset cruise!)
+    const speedMul = isGallop ? 1.55 : isHornBreak ? 1.85 : 1.05;
+    const travel = b * speedMul;
+    const stepBounce = Math.abs(Math.sin(b * Math.PI * (isGallop ? 2 : 1))) * (isGallop ? 0.16 : st.singing ? 0.1 : 0.04);
+    const autoHornHop = isHornBreak ? Math.abs(Math.sin(b * Math.PI * 2)) * 0.26 : 0;
+    const manualHornHop = horn > 0 ? Math.abs(Math.sin(horn * 1.7 + b * 2)) * 0.24 : 0;
+    const hornHop = Math.max(autoHornHop, manualHornHop);
 
     h.wagonGroup.position.y = stepBounce + hornHop;
-    h.wagonGroup.rotation.z = Math.sin(b * Math.PI * 0.5) * 0.025 + (hornHop > 0.05 ? 0.04 : 0);
+    h.wagonGroup.rotation.z = Math.sin(b * Math.PI * (isGallop ? 1 : 0.5)) * (isGallop ? 0.04 : 0.024) + (hornHop > 0.08 ? 0.055 : 0);
 
-    h.horseGroup.position.y = stepBounce * 0.9 + hornHop * 0.7;
-    h.horseGroup.rotation.z = Math.sin(b * Math.PI) * 0.14;
+    h.horseGroup.position.y = stepBounce * 0.9 + hornHop * 0.75;
+    h.horseGroup.rotation.z = Math.sin(b * Math.PI * (isGallop ? 2 : 1)) * (isGallop ? 0.22 : 0.14);
 
     for (const wheel of h.wheels) {
-      wheel.rotation.z = -travel * 1.35;
+      wheel.rotation.z = -travel * 1.45;
     }
 
     // Repeating wooden milepost fence scrolling smoothly behind the road
-    const fenceWrap = ((travel * 1.4) % 2.4);
+    const fenceWrap = (travel * 1.45) % 2.4;
     h.fenceGroup.position.x = -fenceWrap;
 
-    // Gentle parallax hills
-    h.hillNear.position.x = -((travel * 0.45) % 6) + 3;
-    h.hillFar.position.x = -((travel * 0.2) % 8) + 4;
+    // Parallax folded sunset hills
+    h.hillNear.position.x = -((travel * 0.5) % 6) + 3;
+    h.hillFar.position.x = -((travel * 0.22) % 8) + 4;
 
     // Horn brass ring flash & playful paper dust puff behind the rear wheel
-    h.hornMat.emissive.set(st.primaryAccent);
-    h.hornMat.emissiveIntensity = 0.5 + st.energyA * 1.4 + (hornHop > 0.04 ? 1.5 : 0);
-    const puffScale = 0.72 + Math.abs(Math.sin(b * Math.PI)) * 0.35 + hornHop * 1.6;
+    h.hornMat.emissive.set(isHornBreak ? "#ffcb47" : st.primaryAccent);
+    h.hornMat.emissiveIntensity = 0.55 + st.energyA * 1.4 + (isHornBreak ? 1.8 : 0) + (manualHornHop > 0.04 ? 1.5 : 0);
+    const puffScale = 0.74 + Math.abs(Math.sin(b * Math.PI)) * 0.35 + (isGallop ? 0.28 : 0) + hornHop * 2.1;
     h.dustGroup.scale.setScalar(puffScale);
 
-    // 3. Sunset-to-Twilight atmosphere lighting tinted to the cast
-    h.keyLight.intensity = lerp(2.5, 0.55, darkAmt);
-    h.keyLight.color.setHex(darkAmt > 0.4 ? 0x89a8de : 0xffd7a1);
-    h.hemiLight.intensity = lerp(1.15, 0.42, darkAmt);
-    h.sunDisc.position.y = lerp(3.4, 1.3, darkAmt) + st.energyA * 0.2;
-    h.sunMat.emissiveIntensity = lerp(0.95, 0.2, darkAmt) + st.energyA * 0.5;
+    // 3. Sunset-to-Golden-Hour atmosphere lighting tinted to the cast
+    h.keyLight.intensity = lerp(2.5, 0.65, darkAmt) + (isHornBreak ? 0.35 : 0);
+    h.keyLight.color.setHex(darkAmt > 0.4 ? 0x89a8de : isHornBreak ? 0xffe29c : 0xffd7a1);
+    h.hemiLight.intensity = lerp(1.15, 0.45, darkAmt);
+    h.sunDisc.position.y = lerp(3.4, 1.3, darkAmt) + st.energyA * 0.22;
+    h.sunMat.emissiveIntensity = lerp(0.95, 0.22, darkAmt) + st.energyA * 0.5 + (isHornBreak ? 0.45 : 0);
 
     h.spotLight.color.set(st.primaryAccent);
     h.accentLight.color.set(st.secondaryAccent);
-    h.spotLight.intensity = 1.8 + st.energyA * 3.4;
-    h.accentLight.intensity = 1.2 + st.energyB * 2.4;
+    h.spotLight.intensity = 1.9 + st.energyA * 3.6;
+    h.accentLight.intensity = 1.3 + st.energyB * 2.6;
 
     // 4. Mount EVERY onstage performer in `state.cast` inside the parade caravan!
     let spotX = -0.8;
@@ -237,16 +248,27 @@ export const CaravanWorld3D: React.FC<CaravanWorld3DProps> = ({
 
       const isSpot = spotId ? performer.id === spotId : performer.id === st.lead.id;
       const u = castCount === 1 ? 0.5 : idx / (castCount - 1);
-      // Wagon deck spans x = -3.35 .. +1.25; solo rides tall in the center, ensemble spreads across wagon + lead saddle!
+      // Wagon deck spans x = -3.25 .. +1.45; solo rides center, 4-pack spreads cleanly across wagon + front saddle!
       const rx = castCount === 1 ? -0.95 : lerp(-3.2, 1.45, u);
       const rz = castCount <= 2 ? 0.1 : idx % 2 === 0 ? 0.34 : -0.26;
-      const baseScale = castCount === 1 ? 1.05 : castCount <= 3 ? 0.88 : castCount <= 5 ? 0.74 : 0.64;
+      const baseScale = castCount === 1 ? 1.05 : castCount <= 4 ? 0.86 : castCount <= 5 ? 0.74 : 0.64;
       const scale = isSpot ? baseScale * 1.12 : baseScale;
-      const bounce = performer.singing ? 0.12 + performer.level * 0.18 : 0;
 
-      slot.mesh.scale.set(scale, scale, 1);
-      slot.mesh.position.set(rx, 1.15 + (2.35 * scale) * 0.46 + bounce, rz + (isSpot ? 0.22 : 0));
-      slot.mesh.rotation.z = performer.singing ? Math.sin(b * Math.PI + idx) * 0.05 : 0;
+      // Sequential joyous boarding pop during [saddle up] (each rider hops cleanly up on their 8-beat turn!)
+      const boardPop = isSaddleUp && b > 0.05
+        ? clamp01((b - idx * 8 + 1.5) / 1.5)
+        : 1;
+      const gallopPairBounce = isGallop ? Math.abs(Math.sin(b * Math.PI + idx * 1.4)) * 0.12 : 0;
+      const singBounce = performer.singing ? 0.14 + performer.level * 0.2 : 0;
+      const riderY = 1.15 + (2.35 * scale) * 0.46 + singBounce + gallopPairBounce - (1 - boardPop) * 0.55;
+
+      slot.mesh.scale.set(scale, scale * Math.max(0.55, boardPop), 1);
+      slot.mesh.position.set(rx, riderY, rz + (isSpot || performer.singing ? 0.24 : 0));
+      slot.mesh.rotation.z = performer.singing
+        ? Math.sin(b * Math.PI * 1.5 + idx) * 0.07
+        : isHornBreak
+          ? Math.sin(b * Math.PI * 2 + idx) * 0.08
+          : 0;
 
       if (isSpot) spotX = rx;
 

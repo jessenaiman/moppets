@@ -51,15 +51,37 @@ try {
     }
   }
 
-  // 2. Pick Found Things via Vinyl Crates Navigator & switch to Meadow Caravan 3D
-  await page.locator('[data-song-id="found"]').click();
-  await page.getByRole("tab", { name: "Caravan 3D" }).click();
+  // 2. Pick "Four on a Cardboard Horse" via Vinyl Crates -> auto-launches Caravan 3D with 4 riders!
+  await page.locator('[data-song-id="cardboard-horse"]').click();
   await page.waitForSelector('.nw-stage[data-world-lens="caravan"]', { timeout: 5000 });
-  await page.waitForTimeout(350);
+  const horseCast = (await page.locator(".nw-stage").getAttribute("data-cast-keys")) ?? "";
+  if (horseCast.split(",").filter(Boolean).length !== 4) {
+    throw new Error(`Expected 4 riders on Four on a Cardboard Horse, got "${horseCast}"`);
+  }
+  await page.waitForTimeout(300);
+  if (screenshotDir) {
+    await page.screenshot({ path: `${screenshotDir}/cardboard-horse-saddle.png`, fullPage: false });
+  }
+
+  // Play live CHIMERA 4-part quartet + mouth-beatbox hoofbeats!
+  await page.getByRole("button", { name: "Play video" }).click();
+  await page.waitForFunction(() => (window as any).__choir.ensemble.getState().time > 0.3, { timeout: 15000 });
+  await page.getByRole("button", { name: "Pause video" }).click();
+
+  // Scrub to [trot chorus] (~45%) and [horn break] (~70%) for visual choreography verification
+  const seekBar = page.getByRole("slider", { name: "Seek rehearsal" });
+  const maxFrames = Number((await seekBar.getAttribute("max")) ?? "1000");
+  await seekBar.fill(String(Math.round(maxFrames * 0.42)));
+  await page.waitForTimeout(300);
+  if (screenshotDir) {
+    await page.screenshot({ path: `${screenshotDir}/cardboard-horse-trot.png`, fullPage: false });
+  }
+  await seekBar.fill(String(Math.round(maxFrames * 0.68)));
+  await page.waitForTimeout(300);
   await page.getByRole("button", { name: /Honk horn/i }).click();
   await page.waitForTimeout(180);
   if (screenshotDir) {
-    await page.screenshot({ path: `${screenshotDir}/caravan-found-things.png`, fullPage: false });
+    await page.screenshot({ path: `${screenshotDir}/cardboard-horse-horn.png`, fullPage: false });
   }
 
   // 3. Open Poster Wall Drawer, pick Tabby Takes the Stage, switch to 35mm Reel
