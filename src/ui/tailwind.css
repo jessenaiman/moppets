@@ -260,3 +260,24 @@
   color: #0e1a17 !important;
   box-shadow: 0 0 14px rgba(80, 207, 173, 0.35);
 }
+
+/* Use reading typography for the score rather than the instrument panel display font. */
+.public-score {
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  letter-spacing: normal;
+}
+.public-score :is(button, select) {
+  min-height: 44px;
+  min-width: 44px;
+  padding-inline: 10px;
+  font: 600 14px/1.2 "Instrument Sans", system-ui, sans-serif;
+  letter-spacing: normal;
+  color: #292524;
+}
+.public-score button[aria-pressed="true"] {
+  color: white;
+  background: #165e52;
+}
+.public-score button:disabled {
+  opacity: .45;
+}

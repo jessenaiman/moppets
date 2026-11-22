@@ -93,7 +93,7 @@ export function PublicPerformance() {
   const voices = useMoppet(s=>s.voices);
   const [world,setWorld] = useState<WorldLens>("diorama");
   const [videos,setVideos] = useState(false);
-  return <main className="mx-auto grid w-full max-w-6xl gap-3 px-3 pb-12 text-stone-100 sm:px-6">
+  return <main className="mx-auto grid w-full max-w-[1280px] gap-3 px-3 pb-12 text-stone-100 sm:px-6">
     <header className="flex flex-wrap items-center justify-between gap-2 py-2">
       <span className="font-serif text-2xl">The Moppets</span>
       <nav className="flex items-center gap-1" aria-label="Views">
