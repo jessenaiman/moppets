@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    background: #171916;
+    color: #f3eee2;
+    --panel: #22251e;
+    --edge: #494b3f;
+    --accent: #eacb88;
+  }
+
+  h1, h2, #lyric {
+    font-family: Georgia, serif;
+  }
+
+  h1 {
+    margin-top: .35rem;
+    font-size: clamp(2.15rem, 8vw, 3.5rem);
+    letter-spacing: -.035em;
+    line-height: 1;
+  }
+
+  h2, #lyric {
+    font-size: 1.4rem;
+    line-height: 1.25;
+  }
+
+  button, input, select {
+    @apply min-h-11 rounded-lg border px-2 sm:px-3;
+    border-color: var(--edge);
+    background: #303329;
+    font-size: 1rem;
+  }
+
+  button {
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  button[aria-pressed="true"], #replay {
+    color: #272318;
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  button:disabled {
+    cursor: default;
+    opacity: .45;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  label {
+    @apply grid min-w-0 gap-1.5;
+    color: #dbd6c7;
+    font-size: .85rem;
+  }
+
+  input, select {
+    @apply w-full;
+    color: #f3eee2;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border;
+    border-color: var(--edge);
+    background: var(--panel);
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+  }
+
+  .portraits {
+    background: radial-gradient(ellipse at 50% 90%, #474936, var(--panel) 70%);
+  }
+
+  .portrait {
+    width: 100%;
+    max-height: 11rem;
+    object-fit: contain;
+    transition: opacity .16s ease-out;
+  }
+
+  .portraits[data-mode="gruff"] [data-part="vee"],
+  .portraits[data-mode="vee"] [data-part="gruff"] {
+    opacity: .46;
+  }
+
+  .cue {
+    min-height: 6.5rem;
+    border-block: 1px solid var(--edge);
+    background: #191b17;
+  }
+
+  .muted, #status {
+    color: #c5c0b1;
+    font-size: .875rem;
+  }
+
+  #status:empty {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portrait {
+      transition: none;
+    }
+  }
+}
