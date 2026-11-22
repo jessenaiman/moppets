@@ -4,6 +4,12 @@ Floppy-disk torso, PCB feather crest, circuit wings and two small grounded bird 
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Chip’s floppy held a backup of the studio’s rehearsal notes. The load-out crew took the computer drives, and his disk slipped behind the drawer when it shut. Chip treats the drawer as a place that hands you one new thing at a time. Clank lent him a spare circuit board for his crest. He wants to try everything once and sing with the rest. He keeps a child’s drawing that looks like him, from before.
+
+In **Chip Reads the Manual**, the crest cocks at each new question. One wing opens on the high note when the choir comes in.
+
 ## Acting
 
 Circuit-board crest · One wing

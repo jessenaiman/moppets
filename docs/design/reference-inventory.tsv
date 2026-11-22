@@ -1,0 +1,689 @@
+Asset path (relative to magic-studio/assets/moppet-choir)	Source group	Candidate production use (from path)	File available
+docs/design/cue-desk/concept-A.webp	docs/design/cue-desk	Review for bible placement	True
+docs/design/cue-desk/concept-B.webp	docs/design/cue-desk	Review for bible placement	True
+docs/design/cue-desk/concept-C.webp	docs/design/cue-desk	Review for bible placement	True
+docs/design/cue-desk/score.png	docs/design/cue-desk	Review for bible placement	True
+docs/design/cue-desk/script-desk.webp	docs/design/cue-desk	Review for bible placement	True
+moppets/chip/parts/body_floppy.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/chip_body_glow.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/chip_pcb_glow.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/chip_wing_glow.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/crest_pcb.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/head_rest.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/head_sing.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/leg_left.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/leg_right.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/tail_fan.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/wing_left.png	moppets/chip/parts	Rig components	True
+moppets/chip/parts/wing_right.png	moppets/chip/parts	Rig components	True
+moppets/clank/parts/arm_left.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/arm_right.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/body_torso.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/clank_crt_glow.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/gaffer_tape.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/head_rest.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/head_sing.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/leg_left.png	moppets/clank/parts	Rig components	True
+moppets/clank/parts/leg_right.png	moppets/clank/parts	Rig components	True
+moppets/cue/flow-plug-tip.png	moppets/cue	Review for bible placement	True
+moppets/cue/flow-plug.png	moppets/cue	Review for bible placement	True
+moppets/cue/flow-prompt.png	moppets/cue	Review for bible placement	True
+moppets/cue/right-on-cue/cue-sheet.png	moppets/cue/right-on-cue	Review for bible placement	True
+moppets/cue/right-on-cue/duet-stage.png	moppets/cue/right-on-cue	Review for bible placement	True
+moppets/cue/right-on-cue/matte.png	moppets/cue/right-on-cue	Review for bible placement	True
+moppets/cue/right-on-cue/poses/0.png	moppets/cue/right-on-cue/poses	Performance pose	True
+moppets/cue/right-on-cue/poses/1.png	moppets/cue/right-on-cue/poses	Performance pose	True
+moppets/cue/right-on-cue/poses/2.png	moppets/cue/right-on-cue/poses	Performance pose	True
+moppets/cue/right-on-cue/poses/3.png	moppets/cue/right-on-cue/poses	Performance pose	True
+moppets/gruff/(Footage)/arm_left.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/arm_right.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/body_torso.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/drawer-bass.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/gruff_tube_glow.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/head_rest.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/head_sing.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/leg_left.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/(Footage)/leg_right.png	moppets/gruff/(Footage)	Review for bible placement	True
+moppets/gruff/turnaround/back.png	moppets/gruff/turnaround	Character turnaround	True
+moppets/gruff/turnaround/front.png	moppets/gruff/turnaround	Character turnaround	True
+moppets/gruff/turnaround/profile.png	moppets/gruff/turnaround	Character turnaround	True
+moppets/gruff/turnaround/three-quarter.png	moppets/gruff/turnaround	Character turnaround	True
+moppets/hertz/parts/arm_left.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/arm_right.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/crt_rest.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/crt_sing.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/ear_left.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/ear_right.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/hertz_crt_glow.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/leg_left.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/leg_right.png	moppets/hertz/parts	Rig components	True
+moppets/hertz/parts/spring.png	moppets/hertz/parts	Rig components	True
+moppets/neon/cutouts/boot.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/caster.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/chest.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/head.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/left.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/mouth.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/cutouts/right.png	moppets/neon/cutouts	Rig components	True
+moppets/neon/parts.png	moppets/neon	Review for bible placement	True
+moppets/neon/repair-bay.png	moppets/neon	Review for bible placement	True
+moppets/neon/rig-plates/boot.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/rig-plates/caster.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/rig-plates/chest.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/rig-plates/head.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/rig-plates/left.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/rig-plates/right.png	moppets/neon/rig-plates	Rig components	True
+moppets/neon/scarf-matte.png	moppets/neon	Review for bible placement	True
+moppets/neon/scarf-poses/0.png	moppets/neon/scarf-poses	Wardrobe movement	True
+moppets/neon/scarf-poses/1.png	moppets/neon/scarf-poses	Wardrobe movement	True
+moppets/neon/scarf-poses/2.png	moppets/neon/scarf-poses	Wardrobe movement	True
+moppets/neon/scarf-poses/3.png	moppets/neon/scarf-poses	Wardrobe movement	True
+moppets/neon/twin-take-sheet.png	moppets/neon	Review for bible placement	True
+moppets/neon/views/back.png	moppets/neon/views	Character turnaround	True
+moppets/neon/views/front.png	moppets/neon/views	Character turnaround	True
+moppets/neon/views/side.png	moppets/neon/views	Character turnaround	True
+moppets/neon/views/three-quarter.png	moppets/neon/views	Character turnaround	True
+moppets/tabby/(Footage)/arm_left.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/arm_right.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/bezel_closed.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/bezel_open.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/body_torso_intact.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/ear_left.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/ear_right.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00001.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00002.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00003.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00004.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00005.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00006.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00007.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00008.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00009.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00010.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00011.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00012.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00013.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00014.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00015.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00016.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00017.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00018.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00019.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00020.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00021.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00022.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00023.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00024.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00025.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00026.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00027.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00028.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00029.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00030.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00031.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00032.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00033.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00034.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00035.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00036.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00037.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00038.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00039.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00040.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00041.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00042.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00043.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00044.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00045.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00046.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00047.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/frame_00048.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/leg_left.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/leg_right.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/tabby_tablet_glow.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/tail_ribbon.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_3q.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_3q_raw.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_back.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_back_raw.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_front.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_front_raw.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_side.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tabby/(Footage)/turn_side_raw.png	moppets/tabby/(Footage)	Review for bible placement	True
+moppets/tracking/parts/arm_left.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/arm_right.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/buttons.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/chassis_rest.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/chassis_sing.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/leg_left.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/leg_right.png	moppets/tracking/parts	Rig components	True
+moppets/tracking/parts/tracking_vfd_glow.png	moppets/tracking/parts	Rig components	True
+moppets/watt/parts/arm_left.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/arm_right.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/body_rest.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/face_sing.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/leg_left.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/leg_right.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/mane_cables.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/watt_jack_glow.png	moppets/watt/parts	Rig components	True
+moppets/watt/parts/watt_switch_glow.png	moppets/watt/parts	Rig components	True
+moppets/zap/hand/cuff.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/felt-swatch.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/glove-kit.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/index.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/middle.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/palm.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/patch-fabric.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/ring.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/hand/thumb.png	moppets/zap/hand	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0001.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0002.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0003.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0004.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0005.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0006.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0007.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0008.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0009.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0010.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0011.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0012.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0013.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0014.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0015.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0016.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0017.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0018.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0019.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0020.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0021.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0022.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0023.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0024.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0025.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0026.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0027.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0028.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0029.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0030.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0031.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0032.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0033.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0034.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0035.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0036.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0037.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0038.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0039.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0040.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0041.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0042.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0043.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0044.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0045.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0046.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0047.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0048.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/mitt-pass/cel-0049.png	moppets/zap/mitt-pass	Review for bible placement	True
+moppets/zap/tape-programs.png	moppets/zap	Review for bible placement	True
+public/layouts/layout-a.webp	public/layouts	Stage layout	True
+public/layouts/layout-b.webp	public/layouts	Stage layout	True
+public/layouts/layout-c.webp	public/layouts	Stage layout	True
+public/moppets/band/clacker-play.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/band/clacker-rest.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/band/rattle-play.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/band/rattle-rest.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/band/thrum-play.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/band/thrum-rest.webp	public/moppets/band	Stage sprite or pose	True
+public/moppets/chip/closed.webp	public/moppets/chip	Stage sprite or pose	True
+public/moppets/chip/head.webp	public/moppets/chip	Stage sprite or pose	True
+public/moppets/chip/open.webp	public/moppets/chip	Stage sprite or pose	True
+public/moppets/clank/closed.webp	public/moppets/clank	Stage sprite or pose	True
+public/moppets/clank/head.webp	public/moppets/clank	Stage sprite or pose	True
+public/moppets/clank/open.webp	public/moppets/clank	Stage sprite or pose	True
+public/moppets/cue/closed.webp	public/moppets/cue	Stage sprite or pose	True
+public/moppets/cue/open.webp	public/moppets/cue	Stage sprite or pose	True
+public/moppets/gruff/closed.webp	public/moppets/gruff	Stage sprite or pose	True
+public/moppets/gruff/open.webp	public/moppets/gruff	Stage sprite or pose	True
+public/moppets/hertz/closed.webp	public/moppets/hertz	Stage sprite or pose	True
+public/moppets/hertz/open.webp	public/moppets/hertz	Stage sprite or pose	True
+public/moppets/neon/closed.webp	public/moppets/neon	Stage sprite or pose	True
+public/moppets/neon/open.webp	public/moppets/neon	Stage sprite or pose	True
+public/moppets/pip/closed.webp	public/moppets/pip	Stage sprite or pose	True
+public/moppets/pip/open.webp	public/moppets/pip	Stage sprite or pose	True
+public/moppets/scribe/closed.webp	public/moppets/scribe	Stage sprite or pose	True
+public/moppets/scribe/head.webp	public/moppets/scribe	Stage sprite or pose	True
+public/moppets/scribe/open.webp	public/moppets/scribe	Stage sprite or pose	True
+public/moppets/tabby/closed.webp	public/moppets/tabby	Stage sprite or pose	True
+public/moppets/tabby/head.webp	public/moppets/tabby	Stage sprite or pose	True
+public/moppets/tabby/open.webp	public/moppets/tabby	Stage sprite or pose	True
+public/moppets/tracking/closed.webp	public/moppets/tracking	Stage sprite or pose	True
+public/moppets/tracking/open.webp	public/moppets/tracking	Stage sprite or pose	True
+public/moppets/vee/body.webp	public/moppets/vee	Stage sprite or pose	True
+public/moppets/vee/closed.webp	public/moppets/vee	Stage sprite or pose	True
+public/moppets/vee/head.webp	public/moppets/vee	Stage sprite or pose	True
+public/moppets/vee/open.webp	public/moppets/vee	Stage sprite or pose	True
+public/moppets/watt/closed.webp	public/moppets/watt	Stage sprite or pose	True
+public/moppets/watt/open.webp	public/moppets/watt	Stage sprite or pose	True
+public/moppets/zap/closed.webp	public/moppets/zap	Stage sprite or pose	True
+public/moppets/zap/open.webp	public/moppets/zap	Stage sprite or pose	True
+public/rehearsal/actions/neon/neon-0.webp	public/rehearsal/actions/neon	Rehearsal reference	True
+public/rehearsal/actions/neon/neon-1.webp	public/rehearsal/actions/neon	Rehearsal reference	True
+public/rehearsal/actions/neon/neon-2.webp	public/rehearsal/actions/neon	Rehearsal reference	True
+public/rehearsal/actions/neon/neon-3.webp	public/rehearsal/actions/neon	Rehearsal reference	True
+public/rehearsal/band/click-play.webp	public/rehearsal/band	Rehearsal reference	True
+public/rehearsal/band/click-rest.webp	public/rehearsal/band	Rehearsal reference	True
+public/rehearsal/band/house-band-v2-nobg.webp	public/rehearsal/band	Rehearsal reference	True
+public/rehearsal/band/house-band.webp	public/rehearsal/band	Rehearsal reference	True
+public/rehearsal/band/studio-404-empty-stage.webp	public/rehearsal/band	Rehearsal reference	True
+public/rehearsal/cast/amplifier/staged-front.webp	public/rehearsal/cast/amplifier	Character reference	True
+public/rehearsal/cast/chip/exposures.webp	public/rehearsal/cast/chip	Character reference	True
+public/rehearsal/cast/chip/sprites.webp	public/rehearsal/cast/chip	Character reference	True
+public/rehearsal/cast/chip/staged-front.webp	public/rehearsal/cast/chip	Character reference	True
+public/rehearsal/cast/chip/storyboard.webp	public/rehearsal/cast/chip	Character reference	True
+public/rehearsal/cast/chip/turnaround.webp	public/rehearsal/cast/chip	Character reference	True
+public/rehearsal/cast/clacker/exposures.webp	public/rehearsal/cast/clacker	Character reference	True
+public/rehearsal/cast/clacker/sprites.webp	public/rehearsal/cast/clacker	Character reference	True
+public/rehearsal/cast/clacker/staged-front.webp	public/rehearsal/cast/clacker	Character reference	True
+public/rehearsal/cast/clacker/storyboard.webp	public/rehearsal/cast/clacker	Character reference	True
+public/rehearsal/cast/clacker/turnaround.webp	public/rehearsal/cast/clacker	Character reference	True
+public/rehearsal/cast/clank/exposures.webp	public/rehearsal/cast/clank	Character reference	True
+public/rehearsal/cast/clank/sprites.webp	public/rehearsal/cast/clank	Character reference	True
+public/rehearsal/cast/clank/staged-front.webp	public/rehearsal/cast/clank	Character reference	True
+public/rehearsal/cast/clank/storyboard.webp	public/rehearsal/cast/clank	Character reference	True
+public/rehearsal/cast/clank/turnaround.webp	public/rehearsal/cast/clank	Character reference	True
+public/rehearsal/cast/click/exposures.webp	public/rehearsal/cast/click	Character reference	True
+public/rehearsal/cast/click/sprites.webp	public/rehearsal/cast/click	Character reference	True
+public/rehearsal/cast/click/staged-front.webp	public/rehearsal/cast/click	Character reference	True
+public/rehearsal/cast/click/storyboard.webp	public/rehearsal/cast/click	Character reference	True
+public/rehearsal/cast/click/turnaround.webp	public/rehearsal/cast/click	Character reference	True
+public/rehearsal/cast/cue/acting-rgba.png	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/acting-rgba.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/exposures.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/expressions.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/parts.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/singing-rgba.png	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/singing-rgba.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/sprites.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/stage-props.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/stage.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/staged-front.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/storyboard.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/cue/turnaround.webp	public/rehearsal/cast/cue	Character reference	True
+public/rehearsal/cast/fuzz/staged-front.webp	public/rehearsal/cast/fuzz	Character reference	True
+public/rehearsal/cast/gruff/exposures.webp	public/rehearsal/cast/gruff	Character reference	True
+public/rehearsal/cast/gruff/sprites.webp	public/rehearsal/cast/gruff	Character reference	True
+public/rehearsal/cast/gruff/staged-front.webp	public/rehearsal/cast/gruff	Character reference	True
+public/rehearsal/cast/gruff/storyboard.webp	public/rehearsal/cast/gruff	Character reference	True
+public/rehearsal/cast/gruff/turnaround.webp	public/rehearsal/cast/gruff	Character reference	True
+public/rehearsal/cast/hertz/exposures.webp	public/rehearsal/cast/hertz	Character reference	True
+public/rehearsal/cast/hertz/sprites.webp	public/rehearsal/cast/hertz	Character reference	True
+public/rehearsal/cast/hertz/staged-front.webp	public/rehearsal/cast/hertz	Character reference	True
+public/rehearsal/cast/hertz/storyboard.webp	public/rehearsal/cast/hertz	Character reference	True
+public/rehearsal/cast/hertz/turnaround.webp	public/rehearsal/cast/hertz	Character reference	True
+public/rehearsal/cast/moonbeam/exposures.webp	public/rehearsal/cast/moonbeam	Character reference	True
+public/rehearsal/cast/moonbeam/sprites.webp	public/rehearsal/cast/moonbeam	Character reference	True
+public/rehearsal/cast/moonbeam/staged-front.webp	public/rehearsal/cast/moonbeam	Character reference	True
+public/rehearsal/cast/moonbeam/storyboard.webp	public/rehearsal/cast/moonbeam	Character reference	True
+public/rehearsal/cast/moonbeam/turnaround.webp	public/rehearsal/cast/moonbeam	Character reference	True
+public/rehearsal/cast/neon/exposures.webp	public/rehearsal/cast/neon	Character reference	True
+public/rehearsal/cast/neon/sprites.webp	public/rehearsal/cast/neon	Character reference	True
+public/rehearsal/cast/neon/staged-front.webp	public/rehearsal/cast/neon	Character reference	True
+public/rehearsal/cast/neon/storyboard.webp	public/rehearsal/cast/neon	Character reference	True
+public/rehearsal/cast/neon/turnaround.webp	public/rehearsal/cast/neon	Character reference	True
+public/rehearsal/cast/skip/staged-front.webp	public/rehearsal/cast/skip	Character reference	True
+public/rehearsal/cast/tabby/exposures.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/tabby/front-reference.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/tabby/sprites.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/tabby/staged-front.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/tabby/storyboard.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/tabby/turnaround.webp	public/rehearsal/cast/tabby	Character reference	True
+public/rehearsal/cast/thrum/exposures.webp	public/rehearsal/cast/thrum	Character reference	True
+public/rehearsal/cast/thrum/sprites.webp	public/rehearsal/cast/thrum	Character reference	True
+public/rehearsal/cast/thrum/staged-front.webp	public/rehearsal/cast/thrum	Character reference	True
+public/rehearsal/cast/thrum/storyboard.webp	public/rehearsal/cast/thrum	Character reference	True
+public/rehearsal/cast/thrum/turnaround.webp	public/rehearsal/cast/thrum	Character reference	True
+public/rehearsal/cast/tracking/exposures.webp	public/rehearsal/cast/tracking	Character reference	True
+public/rehearsal/cast/tracking/sprites.webp	public/rehearsal/cast/tracking	Character reference	True
+public/rehearsal/cast/tracking/staged-front.webp	public/rehearsal/cast/tracking	Character reference	True
+public/rehearsal/cast/tracking/storyboard.webp	public/rehearsal/cast/tracking	Character reference	True
+public/rehearsal/cast/tracking/turnaround.webp	public/rehearsal/cast/tracking	Character reference	True
+public/rehearsal/cast/watt/exposures.webp	public/rehearsal/cast/watt	Character reference	True
+public/rehearsal/cast/watt/sprites.webp	public/rehearsal/cast/watt	Character reference	True
+public/rehearsal/cast/watt/staged-front.webp	public/rehearsal/cast/watt	Character reference	True
+public/rehearsal/cast/watt/storyboard.webp	public/rehearsal/cast/watt	Character reference	True
+public/rehearsal/cast/watt/turnaround.webp	public/rehearsal/cast/watt	Character reference	True
+public/rehearsal/cast/zap/exposures.webp	public/rehearsal/cast/zap	Character reference	True
+public/rehearsal/cast/zap/sprites.webp	public/rehearsal/cast/zap	Character reference	True
+public/rehearsal/cast/zap/staged-front.webp	public/rehearsal/cast/zap	Character reference	True
+public/rehearsal/cast/zap/storyboard.webp	public/rehearsal/cast/zap	Character reference	True
+public/rehearsal/cast/zap/turnaround.webp	public/rehearsal/cast/zap	Character reference	True
+public/rehearsal/cue-stage/braid.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/casting-arm.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/casting-mitt.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/chest-crt.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/grip-arm.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/grip-mitt.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/housing.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/leather-boot.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/pencil-left.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/pencil-right.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/plug.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/stage.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/cue-stage/wooden-peg.png	public/rehearsal/cue-stage	Rehearsal reference	True
+public/rehearsal/duo/cue-0.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/cue-1.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/cue-2.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/cue-3.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/neon-0.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/neon-1.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/neon-2.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/duo/neon-3.webp	public/rehearsal/duo	Rehearsal reference	True
+public/rehearsal/exposure-keys/chip.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/clacker.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/clank.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/click.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/cue.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/gruff.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/hertz.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/moonbeam.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/neon.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/tabby.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/thrum.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/tracking.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/watt.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/exposure-keys/zap.webp	public/rehearsal/exposure-keys	Exposure reference	True
+public/rehearsal/img/chip-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/chip-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/clank-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/clank-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/critics-hertz.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/critics-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/critics-tracking.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/cue-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/cue-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/fuzz-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/fuzz-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/gruff-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/gruff-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/hertz-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/hertz-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/neon-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/neon-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/skip-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/skip-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/tabby-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/tabby-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/tracking-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/tracking-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/watt-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/watt-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/zap-rest.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/img/zap-sing.webp	public/rehearsal/img	Rehearsal reference	True
+public/rehearsal/moonbeam/expressions.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/idle.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/jump.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/leap-0.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/leap-1.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/leap-2.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/leap-3.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/reach.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/react.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/walk-left.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/moonbeam/walk-right.webp	public/rehearsal/moonbeam	Rehearsal reference	True
+public/rehearsal/pins/cord/back.webp	public/rehearsal/pins/cord	Pinned performance	True
+public/rehearsal/pins/cord/front.webp	public/rehearsal/pins/cord	Pinned performance	True
+public/rehearsal/pins/cord/prompt.png	public/rehearsal/pins/cord	Pinned performance	True
+public/rehearsal/pins/cue/bow.webp	public/rehearsal/pins/cue	Pinned performance	True
+public/rehearsal/pins/cue/cast.webp	public/rehearsal/pins/cue	Pinned performance	True
+public/rehearsal/pins/cue/listen.webp	public/rehearsal/pins/cue	Pinned performance	True
+public/rehearsal/pins/cue/offer.webp	public/rehearsal/pins/cue	Pinned performance	True
+public/rehearsal/pins/cue/recover.webp	public/rehearsal/pins/cue	Pinned performance	True
+public/rehearsal/pins/neon/acknowledge.webp	public/rehearsal/pins/neon	Pinned performance	True
+public/rehearsal/pins/neon/answer.webp	public/rehearsal/pins/neon	Pinned performance	True
+public/rehearsal/pins/neon/listen.webp	public/rehearsal/pins/neon	Pinned performance	True
+public/rehearsal/pins/neon/snag.webp	public/rehearsal/pins/neon	Pinned performance	True
+public/rehearsal/pins/neon/step.webp	public/rehearsal/pins/neon	Pinned performance	True
+public/rehearsal/pins/tabby/bow.webp	public/rehearsal/pins/tabby	Pinned performance	True
+public/rehearsal/props/mic-boom.webp	public/rehearsal/props	Prop handling	True
+public/rehearsal/props/mic-desk.webp	public/rehearsal/props	Prop handling	True
+public/rehearsal/props/mic-ribbon.webp	public/rehearsal/props	Prop handling	True
+public/rehearsal/props/mic-short.webp	public/rehearsal/props	Prop handling	True
+public/rehearsal/rigs/chip/closed.webp	public/rehearsal/rigs/chip	Performance rig	True
+public/rehearsal/rigs/chip/open.webp	public/rehearsal/rigs/chip	Performance rig	True
+public/rehearsal/rigs/chip/sing-closed.webp	public/rehearsal/rigs/chip	Performance rig	True
+public/rehearsal/rigs/chip/solo/closed.webp	public/rehearsal/rigs/chip/solo	Performance rig	True
+public/rehearsal/rigs/chip/solo/open.webp	public/rehearsal/rigs/chip/solo	Performance rig	True
+public/rehearsal/rigs/chip/solo/prop.webp	public/rehearsal/rigs/chip/solo	Performance rig	True
+public/rehearsal/rigs/clank/closed.webp	public/rehearsal/rigs/clank	Performance rig	True
+public/rehearsal/rigs/clank/open.webp	public/rehearsal/rigs/clank	Performance rig	True
+public/rehearsal/rigs/clank/sing-closed.webp	public/rehearsal/rigs/clank	Performance rig	True
+public/rehearsal/rigs/clank/solo/closed.webp	public/rehearsal/rigs/clank/solo	Performance rig	True
+public/rehearsal/rigs/clank/solo/open.webp	public/rehearsal/rigs/clank/solo	Performance rig	True
+public/rehearsal/rigs/clank/solo/prop.webp	public/rehearsal/rigs/clank/solo	Performance rig	True
+public/rehearsal/rigs/cue/closed.webp	public/rehearsal/rigs/cue	Performance rig	True
+public/rehearsal/rigs/cue/open.webp	public/rehearsal/rigs/cue	Performance rig	True
+public/rehearsal/rigs/cue/sing-closed.webp	public/rehearsal/rigs/cue	Performance rig	True
+public/rehearsal/rigs/gruff/closed.webp	public/rehearsal/rigs/gruff	Performance rig	True
+public/rehearsal/rigs/gruff/open.webp	public/rehearsal/rigs/gruff	Performance rig	True
+public/rehearsal/rigs/gruff/sing-closed.webp	public/rehearsal/rigs/gruff	Performance rig	True
+public/rehearsal/rigs/hertz/closed.webp	public/rehearsal/rigs/hertz	Performance rig	True
+public/rehearsal/rigs/hertz/open.webp	public/rehearsal/rigs/hertz	Performance rig	True
+public/rehearsal/rigs/hertz/sing-closed.webp	public/rehearsal/rigs/hertz	Performance rig	True
+public/rehearsal/rigs/hertz/solo/closed.webp	public/rehearsal/rigs/hertz/solo	Performance rig	True
+public/rehearsal/rigs/hertz/solo/open.webp	public/rehearsal/rigs/hertz/solo	Performance rig	True
+public/rehearsal/rigs/hertz/solo/prop.webp	public/rehearsal/rigs/hertz/solo	Performance rig	True
+public/rehearsal/rigs/neon/closed.webp	public/rehearsal/rigs/neon	Performance rig	True
+public/rehearsal/rigs/neon/open.webp	public/rehearsal/rigs/neon	Performance rig	True
+public/rehearsal/rigs/neon/sing-closed.webp	public/rehearsal/rigs/neon	Performance rig	True
+public/rehearsal/rigs/neon/solo/roll-closed.webp	public/rehearsal/rigs/neon/solo	Performance rig	True
+public/rehearsal/rigs/neon/solo/roll-open.webp	public/rehearsal/rigs/neon/solo	Performance rig	True
+public/rehearsal/rigs/neon/solo/sing-closed.webp	public/rehearsal/rigs/neon/solo	Performance rig	True
+public/rehearsal/rigs/neon/solo/sing-open.webp	public/rehearsal/rigs/neon/solo	Performance rig	True
+public/rehearsal/rigs/tabby/closed.webp	public/rehearsal/rigs/tabby	Performance rig	True
+public/rehearsal/rigs/tabby/open.webp	public/rehearsal/rigs/tabby	Performance rig	True
+public/rehearsal/rigs/tabby/sing-closed.webp	public/rehearsal/rigs/tabby	Performance rig	True
+public/rehearsal/rigs/tabby/solo/closed.webp	public/rehearsal/rigs/tabby/solo	Performance rig	True
+public/rehearsal/rigs/tabby/solo/open.webp	public/rehearsal/rigs/tabby/solo	Performance rig	True
+public/rehearsal/rigs/tracking/closed.webp	public/rehearsal/rigs/tracking	Performance rig	True
+public/rehearsal/rigs/tracking/open.webp	public/rehearsal/rigs/tracking	Performance rig	True
+public/rehearsal/rigs/tracking/sing-closed.webp	public/rehearsal/rigs/tracking	Performance rig	True
+public/rehearsal/rigs/tracking/solo/closed.webp	public/rehearsal/rigs/tracking/solo	Performance rig	True
+public/rehearsal/rigs/tracking/solo/open.webp	public/rehearsal/rigs/tracking/solo	Performance rig	True
+public/rehearsal/rigs/tracking/solo/prop.webp	public/rehearsal/rigs/tracking/solo	Performance rig	True
+public/rehearsal/rigs/watt/closed.webp	public/rehearsal/rigs/watt	Performance rig	True
+public/rehearsal/rigs/watt/open.webp	public/rehearsal/rigs/watt	Performance rig	True
+public/rehearsal/rigs/watt/sing-closed.webp	public/rehearsal/rigs/watt	Performance rig	True
+public/rehearsal/rigs/watt/solo/closed.webp	public/rehearsal/rigs/watt/solo	Performance rig	True
+public/rehearsal/rigs/watt/solo/open.webp	public/rehearsal/rigs/watt/solo	Performance rig	True
+public/rehearsal/rigs/watt/solo/prop.webp	public/rehearsal/rigs/watt/solo	Performance rig	True
+public/rehearsal/rigs/zap/closed.webp	public/rehearsal/rigs/zap	Performance rig	True
+public/rehearsal/rigs/zap/open.webp	public/rehearsal/rigs/zap	Performance rig	True
+public/rehearsal/rigs/zap/sing-closed.webp	public/rehearsal/rigs/zap	Performance rig	True
+public/rehearsal/rigs/zap/solo/cue-arm.png	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/keypad.webp	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/mitts.webp	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/plate-rest.png	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/plate-sing.png	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/rest.png	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/sing.png	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/zap-cart.webp	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/rigs/zap/solo/zap-contact.webp	public/rehearsal/rigs/zap/solo	Performance rig	True
+public/rehearsal/sets/chip.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/clank.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/cue.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/gruff-bench.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/gruff.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/neon-repair.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/neon.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/right-on-cue.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/tabby.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/watt.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/zap-crt-bars.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/zap-crt-playing.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/zap-programs.webp	public/rehearsal/sets	Location and staging	True
+public/rehearsal/sets/zap.webp	public/rehearsal/sets	Location and staging	True
+storyboard/found-things-full/panels/board-01.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-02.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-03.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-04.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-05.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-06.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-07.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/panels/board-08.jpg	storyboard/found-things-full/panels	Storyboard panel	True
+storyboard/found-things-full/production/cast.jpg	storyboard/found-things-full/production	Storyboard reference	True
+storyboard/found-things-full/production/imagined-stage.webp	storyboard/found-things-full/production	Storyboard reference	True
+storyboard/found-things-full/production/tiny-stage.webp	storyboard/found-things-full/production	Storyboard reference	True
+storyboard/found-things-short/Found-Things-storyboard.jpg	storyboard/found-things-short	Storyboard reference	True
+storyboard/found-things-short/boards/01.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/02.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/03.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/04.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/05.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/06.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/found-things-short/boards/07.jpg	storyboard/found-things-short/boards	Storyboard reference	True
+storyboard/neon-playbook/assets/cast/chip-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/chip-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/chip-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clacker-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clacker-play.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clacker-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clank-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clank-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/clank-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/click-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/click-play.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/click-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/critics-degauss.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/critics-hertz.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/critics-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/critics-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/critics-tracking.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/cue-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/cue-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/cue-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/gruff-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/gruff-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/gruff-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/hertz-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/hertz-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/hertz-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-head-visemes.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-rest-cutout.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-sing-cutout.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/neon-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/rattle-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/rattle-play.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/rattle-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tabby-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tabby-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tabby-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tabby-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/thrum-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/thrum-play.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/thrum-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tracking-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tracking-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/tracking-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/watt-pair.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/watt-rest.png	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/watt-rest.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/cast/watt-sing.webp	storyboard/neon-playbook/assets/cast	Character reference	True
+storyboard/neon-playbook/assets/props/mic-boom.webp	storyboard/neon-playbook/assets/props	Prop handling	True
+storyboard/neon-playbook/assets/props/mic-desk.webp	storyboard/neon-playbook/assets/props	Prop handling	True
+storyboard/neon-playbook/assets/props/mic-ribbon.webp	storyboard/neon-playbook/assets/props	Prop handling	True
+storyboard/neon-playbook/assets/props/mic-short.webp	storyboard/neon-playbook/assets/props	Prop handling	True
+storyboard/neon-playbook/assets/props/stage-mics-set.png	storyboard/neon-playbook/assets/props	Prop handling	True
+storyboard/neon-playbook/assets/reviews/effectcraft-cue-study.png	storyboard/neon-playbook/assets/reviews	Storyboard reference	True
+storyboard/neon-playbook/assets/reviews/neon-composite-strip.png	storyboard/neon-playbook/assets/reviews	Storyboard reference	True
+storyboard/neon-playbook/assets/reviews/s11-live-2.png	storyboard/neon-playbook/assets/reviews	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-01.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-02.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-03.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-04.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-05.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-06.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-07.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-08.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-09.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/shots/shot-10.png	storyboard/neon-playbook/assets/shots	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-01-full.jpg	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-01-shelf-stage.png	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-02-fresnel-rig.png	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-02-full.jpg	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-03-cord-cue-rack.png	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-03-full.jpg	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-04-critic-balcony.png	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-04-floor-archive.png	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/assets/worlds/loc-04-full.jpg	storyboard/neon-playbook/assets/worlds	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/chip__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/chip__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/clank__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/clank__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/clank__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/clank__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/click__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/click__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/click__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/click__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/cue__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/cue__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/cue__rig_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/cue__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/cue__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/gruff__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/gruff__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/gruff__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/gruff__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/hertz__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/hertz__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/hertz__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/loc-04-empty__01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/loc-04-empty__02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/neon__cutouts_breakout_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/neon__cutouts_breakout_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/neon__rig_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/neon__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/neon__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/stage_mics__props_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/tabby__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/tabby__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/tracking__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/tracking__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/tracking__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt__rig_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt__sprite_grid_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt__turnaround_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt_squirrel__cutouts_01.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/flow-outputs/watt_squirrel__cutouts_02.png	storyboard/neon-playbook/flow-outputs	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-001.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-002.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-003.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-004.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-005.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-006.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-007.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-008.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-009.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-010.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-011.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-012.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-013.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-014.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-015.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-016.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-017.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+storyboard/neon-playbook/storyboard/slides/page-018.png	storyboard/neon-playbook/storyboard/slides	Storyboard reference	True
+watch/posters/autocomplete.webp	watch/posters	Show artwork	True
+watch/posters/close-up.webp	watch/posters	Show artwork	True
+watch/posters/cue-playbook.webp	watch/posters	Show artwork	True
+watch/posters/loading.webp	watch/posters	Show artwork	True
+watch/posters/lullaby.webp	watch/posters	Show artwork	True
+watch/posters/neon-playbook.webp	watch/posters	Show artwork	True
+watch/posters/rewind.webp	watch/posters	Show artwork	True
+watch/videos/found-things-poster.webp	watch/videos	Review for bible placement	True

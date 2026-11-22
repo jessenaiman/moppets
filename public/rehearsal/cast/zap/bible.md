@@ -4,6 +4,12 @@ Upright early-1990s universal remote, small green LCD face, crowded rubber keypa
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Zap switched inputs at the edit cart. It fell into the bottom drawer on the last day and went into storage with the cart. Zap thinks a drawer is where directors wait for their turn. Back with Tracking and Hertz, it takes the ability to switch channels as permission to call the cuts. Watt lent it the AA behind its sprung door. It wants to get each performer into the right shot. One worn button keeps its secret.
+
+In **Every Button**, the mitt hovers, commits, and the LCD checks the result. Keep the battery-door pop for the biggest miscue.
+
 ## Acting
 
 Button-pressing mitt · LCD eyes · Battery door

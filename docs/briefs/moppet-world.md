@@ -68,6 +68,8 @@ Latch writes songs by listening for the thing somebody nearly said. The pedal ti
 
 Cue likes to call places. Latch waits until Cue gives the signal, even when everybody is already in place. On a good night Cue gets to announce a surprise and Latch gets to be surprised.
 
+In **After You**, Cue calls places and Clank doubles Latch in harmony. Latch lowers the rubber tread to open the line, then cuts off “A sur—” halfway through its own interruption. They let four beats of silence pass before Cue asks Latch to wait again and finally says the desk came back. The rear hinge stays bolted to the floor through the whole rehearsal.
+
 ## Cue and Neon’s duet
 
 Cue gives Neon a place to stand by casting his cord as a loop. Neon steps inside the loop on his answering line. When Cue bows early, Neon gives him two beats of silence and a quiet “Too soon.” They get another chorus to try it together. [Acting notes for Right on Cue](studio-404-expressive-acting.md#right-on-cue)

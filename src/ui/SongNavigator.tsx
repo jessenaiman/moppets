@@ -27,10 +27,11 @@ interface CatalogEntry {
 }
 
 function portrait(artKey: string) {
-  return artKey === "moonbeam" ? "/rehearsal/cast/moonbeam/staged-front.webp" : `/rehearsal/img/${artKey}-rest.webp`;
+  if (artKey === "latch") return "/rehearsal/cast/latch/staged-front.png";
+  return ["moonbeam","amplifier","click","thrum","clacker"].includes(artKey) ? `/rehearsal/cast/${artKey}/staged-front.webp` : `/rehearsal/img/${artKey}-rest.webp`;
 }
 
-function buildCatalog(studio404: boolean, freshSkitTitle?: string): CatalogEntry[] {
+export function buildCatalog(studio404: boolean, freshSkitTitle?: string): CatalogEntry[] {
   const entries: CatalogEntry[] = [];
 
   const resolveCastFromIds = (ids: readonly string[], title: string) => {

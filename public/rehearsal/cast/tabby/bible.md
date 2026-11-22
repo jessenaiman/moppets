@@ -4,6 +4,12 @@ A discarded pen tablet dressed as a cat. Cracked glass with aqua ring eyes, a fi
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Tabby was the pen tablet used to draw turnarounds. The crew set her aside after the glass cracked and packed the working tablet. Tabby treats the crack like a line she has to hit for her bow. Chip lent her the flat ribbon link under her cuff. She learned her steps and bows from one clipped rehearsal video stuck on her screen and wants the room to hear her own voice.
+
+In **One Tape**, her eyes find the sound before an ear tries to follow. Give the occasional word in somebody else’s voice room to land.
+
 ## Acting
 
 Aqua ring eyes · Loose antenna ears · Whisker tips

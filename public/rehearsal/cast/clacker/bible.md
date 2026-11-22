@@ -31,3 +31,9 @@ Turnaround source: ImageGen turnaround study from approved rest portrait
 ## Rehearsal exposures
 
 [11 source exposures](exposures.webp) · [Source frames](exposures.json)
+
+## One Quiet Bar
+
+Clacker came from a school keyboard cart with one working speaker and a broken sustain jack. The cart rolled out with the replacement keyboard. Clacker stayed on the tuning bench with a repair ticket looped through the sustain jack. Keeping wrists over the keys was the only way to keep a chord ringing, and lifting both wrists together still feels like a formal end to a take.
+
+In **the last key**, Clacker hovers over the board during “I just need one last” (beats 100–107½). Land the single strike on “key” at beat 107½ and lift both wrists as Click starts the next line at beat 108. Hold them clear through the final silent bar.

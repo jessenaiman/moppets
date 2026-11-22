@@ -4,6 +4,12 @@ Ink-drawn moon jellyfish with a teal bell, navy outline and four trailing tentac
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Moonbeam was a little electric jellyfish from an underwater set. Her narrow bell had been wired into a painted flat. When the flat went onto the scenery rack, she went with it. She took the glow-in-the-dark tape on the flat for a mark where she was meant to wait. Neon lent her a short length of the wire that runs to the little lamp inside her bell. She wants one whole turn in the followspot.
+
+In **Borrowed Light**, her leading tentacle traces the spot as it follows Thrum’s bass. She calls the blackout and lights the bell for her answer.
+
 ## Acting
 
 Bell face · One leading tentacle · Bell glow

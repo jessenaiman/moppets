@@ -31,3 +31,9 @@ Turnaround source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppe
 ## Rehearsal exposures
 
 [8 source exposures](exposures.webp) · [Source frames](exposures.json)
+
+## One Quiet Bar
+
+Click used to sit on a school percussion shelf beside a film can full of spare sticks. Players could hear the can from the hallway whenever somebody dropped a stick into it. At load-out somebody packed the drum kit and set the metronome back on the shelf with the spare sticks. Click kept the can and turned the accident into a downbeat.
+
+In **the extra tick**, Click counts from beat 52 and raises both sticks after “four.” Hold them in the air through “and,” then drop one onto the film can on “tick” at beat 59½. Lift both sticks again before Thrum says “There is no and in four.”

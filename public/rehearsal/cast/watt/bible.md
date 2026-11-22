@@ -4,6 +4,12 @@ Upright six-socket power strip, glowing red rocker, grounded plug and a bushy ta
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Watt powered the edit cart. His strip was screwed to the underside, so it stayed there when the crew cleared the sockets and wheeled the cart into storage. Watt reads MAX LOAD as a request to hold as many friends as he can. Gruff lent him the rainbow leads at the base of his tail. Watt wants every socket full. His own plug hangs free.
+
+In **Every Socket**, his rocker lights on the accent, then a ripple runs to the tip of his tail. The archive cart needs him to play a tape.
+
 ## Acting
 
 Red rocker · Cable tail

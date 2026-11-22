@@ -4,6 +4,12 @@ Brass teleprompter hood, cream paper face, two physical pencil brows, green ches
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Cue held the lines under the studio camera. At load-out the camera went in its case, but the prompter hood was too wide to fit and stayed on its stand. Cue took the STAND BY card literally and still waits beside the mark. He wants everyone to have a line. Clank lent him the braided cable he lays out as a loop. One script stays tucked away, with its last page blank.
+
+In **Right on Cue**, he casts his cable to give Neon a mark, then bows two beats too early. Watch the pencil brow catch the mistake before the hand gives the next entrance.
+
 ## Acting
 
 Pencil brows · Cueing hand

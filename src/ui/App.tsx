@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { MoppetRight } from "./MoppetPanel.tsx";
 
+import { CastGallery } from "./CastGallery";
 import { ScreeningRoom } from "./ScreeningRoom";
 import { useMoppet } from "../choir/store";
 
@@ -30,7 +31,8 @@ function TopBar() {
         <span className="tagline">CHIMERA Physical Choir · Interactive Worlds</span>
       </div>
       <div className="topbar-right">
-        <a href={'?watch='+encodeURIComponent(lesson)} className="rounded-md border border-[#62ceac] bg-[#204638] px-3 py-2 text-sm font-bold text-white">Watch films</a>
+        <a href="?cast" className="px-2 py-2 text-sm underline">Cast</a>
+        <a href={'?watch='+encodeURIComponent(lesson)} className="rounded-md border border-[#62ceac] bg-[#204638] px-3 py-2 text-sm font-bold text-white">Watch performances</a>
         <div className="topbar-volume" aria-label="Master audio volume">
           <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute master volume" : "Mute master volume"} title={muted ? "Unmute" : "Mute"}>
             {muted ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
@@ -55,7 +57,9 @@ function TopBar() {
 }
 
 export function App() {
-  const watch = new URLSearchParams(window.location.search).get("watch");
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("cast")) return <CastGallery/>;
+  const watch = params.get("watch");
   if (watch !== null) return <ScreeningRoom id={watch}/>;
   return (
     <div className="app text-colors mode-moppet">

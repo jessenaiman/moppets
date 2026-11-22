@@ -4,6 +4,12 @@ Scuffed sign-box head with cyan and rose glass rings, magenta scarf, dark jacket
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Neon lit the backstage door. One tube had started flickering, so the crew taped the corner and left the sign on the repair bench on the last day. Neon takes the tape for a stage mark. Watt lent him his frayed braided cord and Cue patched the corner with gaffer tape. He wants both rings to agree before he calls a tune a song. He learned from the archive variety shows. The scratch behind his grille still reads *ON AIR — TAKE 1*.
+
+In **Right on Cue**, Neon steps inside Cue’s loop on the answering line. His rings glance down when the caster catches. When Cue bows too soon, he holds two beats and gives a quiet correction.
+
 ## Acting
 
 Twin neon rings · Scarf hand

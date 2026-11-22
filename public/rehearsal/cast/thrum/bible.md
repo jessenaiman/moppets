@@ -31,3 +31,9 @@ Turnaround source: ImageGen turnaround study from approved rest portrait
 ## Rehearsal exposures
 
 [13 source exposures](exposures.webp) · [Source frames](exposures.json)
+
+## One Quiet Bar
+
+Thrum worked the patch bay in a booth with a broken call button. The operator sent short signals down the return cable instead. The racks went out first; the return module stayed bolted under the booth desk. Thrum kept one coil from that line and learned to tell a real reply from an echo by watching the two needles.
+
+In **the long return**, the return stays open while Thrum sings three increasingly low “on” notes at beats 78, 80 and 82. Let the pluck action mark each repeat and allow a longer settle after the last one. At beat 84, release the cable to its rest position as Amplifier asks Thrum to close the return.

@@ -4,6 +4,12 @@ A giant tangle of old broadcast multicore cable in an indigo stage coat. His mou
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Gruff ran the studio’s broadcast signals. His tape label came loose, so at load-out nobody could say where his far end went. They coiled him on the workshop shelf. Gruff still keeps one hand on every lead he passes across. He wants to feel the band answer from the other end. Tabby lent him the felt patch on his sleeve and stitched it on with a strand of ribbon cable.
+
+In **Left in the Workshop**, let the gap between the coils soften before the huge loop hand gives the pickup on his one-string bass. Clank joins his voice.
+
 ## Acting
 
 Coil mouth · One enormous loop hand

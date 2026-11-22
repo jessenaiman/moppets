@@ -4,6 +4,12 @@ Old PC monitor head and rusty tower body, worn tape and jointed sleeves. Keep th
 
 ![Current staging reference](staged-front.webp)
 
+## Story
+
+Clank’s computer sorted the studio’s cue files. His tower was too heavy for the last cart going out, so the crew left him under the desk. Clank took the loading notice on his screen as an instruction to keep thinking. Chip lent him a spare jumper that holds a sleeve joint together. Clank wants to give exactly the right answer. He keeps one old calculation running and never says what it is for.
+
+In **The Late Answer**, hold the CRT blank through the missed entrance. One sleeve rises when the answer finally arrives.
+
 ## Acting
 
 CRT face · One jointed sleeve
