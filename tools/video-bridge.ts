@@ -4,6 +4,7 @@
  * (`remotion render`). Dev server only (`apply: "serve"`).
  */
 import { spawn, type ChildProcess } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createReadStream, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolve } from "node:path";
@@ -121,17 +122,19 @@ export function videoBridge(): Plugin {
         const slug = u.searchParams.get("slug") ?? "";
         if (!SLUG_RE.test(slug)) return sendText(res, 400, "Invalid slug");
         const dir = `${VIDEO_DIR}/${slug}`;
-        const hasAudio = existsSync(`${dir}/mix.wav`);
-        const exports = existsSync(dir)
-          ? readdirSync(dir)
-              .filter((f) => /^edit-.*\.mp4$/.test(f))
-              .sort()
-              .map((file) => ({ file, url: `/__video/media/${slug}/${file}` }))
-          : [];
+        const files = existsSync(dir) ? readdirSync(dir) : [];
+        const audio = files
+          .filter(file => /^mix(?:-[0-9a-f]{64})?\.wav$/.test(file))
+          .map(file => ({ file, changed: statSync(`${dir}/${file}`).mtimeMs }))
+          .sort((a, b) => b.changed - a.changed)[0];
+        const exports = files
+          .filter(file => /^edit-.*\.mp4$/.test(file))
+          .sort()
+          .map(file => ({ file, url: `/__video/media/${slug}/${file}` }));
         sendJson(res, 200, {
           slug,
-          hasAudio,
-          audioUrl: hasAudio ? `/__video/media/${slug}/mix.wav` : null,
+          hasAudio: Boolean(audio),
+          audioUrl: audio ? `/__video/media/${slug}/${audio.file}` : null,
           exports,
         });
       });
@@ -154,8 +157,13 @@ export function videoBridge(): Plugin {
           if (total === 0) return sendText(res, 400, "Empty WAV payload");
           const dir = `${VIDEO_DIR}/${slug}`;
           mkdirSync(dir, { recursive: true });
-          writeFileSync(`${dir}/mix.wav`, Buffer.concat(chunks, total));
-          sendJson(res, 200, { audioUrl: `/__video/media/${slug}/mix.wav?t=${Date.now()}` });
+          const wav = Buffer.concat(chunks, total);
+          const revision = createHash("sha256").update(wav).digest("hex");
+          const file = `mix-${revision}.wav`;
+          const path = `${dir}/${file}`;
+          // A running export can still be reading an earlier score's mix.
+          if (!existsSync(path)) writeFileSync(path, wav);
+          sendJson(res, 200, { audioUrl: `/__video/media/${slug}/${file}` });
         } catch (e) {
           sendText(res, 400, e instanceof Error ? e.message : String(e));
         }
@@ -174,6 +182,7 @@ export function videoBridge(): Plugin {
         if (!existsSync(REMOTION_BIN)) return sendText(res, 500, "Remotion CLI binary not found");
         try {
           const { slug, props } = await readJsonBody<{ slug: string; props: MoppetVideoProps }>(req);
+          if (activeProc) return sendText(res, 409, "Another video job is already running");
           if (!slug || !SLUG_RE.test(slug) || !props) return sendText(res, 400, "Invalid render payload");
           if (props.audioUrl?.startsWith("blob:")) {
             return sendText(res, 400, "audioUrl cannot be a blob: URL; upload WAV via POST /__video/audio first");

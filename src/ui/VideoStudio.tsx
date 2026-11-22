@@ -1,22 +1,22 @@
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
 import {MusicRack} from "./MusicRack";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { useAudio } from "../audio/audio.ts";
-import { exportWav, pause, stop, useEnsemble } from "../choir/ensemble.ts";
+import { renderWav } from "../choir/ensemble.ts";
+import { useVoiceLevels } from "../choir/voiceLevels.ts";
 import { useRehearsalTransport } from "./useRehearsalTransport.ts";
 import { MoppetComposition } from "../remotion/MoppetComposition";
 import { SongNavigator } from "./SongNavigator.tsx";
 import { WORLD_LENSES, type WorldLens } from "../stage/worlds.ts";
 const loadActionStrip = () => import("../rehearsal/NeonActions").then(m => ({default: m.ActionStrip}));
 import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
-import { RemotionDock, type StudioComposition } from "./RemotionDock";
 import { useMoppet } from "../choir/store.ts";
 import { useController } from "../choir/controller.ts";
 import { midiBytes } from "../choir/midi.ts";
 import { midiSupported } from "./midi.ts";
-import { STUDIO_404_CAST } from "../choir/studio404.ts";
+import { STUDIO_404_CAST, voicesForMode } from "../choir/studio404.ts";
 import {
   buildVideoProject,
   compositionDimensions,
@@ -56,12 +56,15 @@ const BUBBLE_PRESETS: { label: string; bg: string; fg: string; color: string }[]
   { label: "Tally Ember", bg: "rgba(28, 13, 12, 0.90)", fg: "#fff5f2", color: "#e06a4f" },
 ];
 
+const compositions = ["Rehearsal", "Cue-Bench-Pack", "Neon-Actions", ...exposureCatalog.map(item => item.id)];
+type StudioComposition = typeof compositions[number];
 const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
-export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;livePreview?:React.ReactNode;controller:React.ReactNode}) {
+type PreparedMix = Pick<MoppetVideoProps, "stageDurationSec" | "vocalTiming"> & { audioUrl: string };
+
+export function VideoStudio({controller}:{controller?: React.ReactNode}) {
   const [timelineOpen,setTimelineOpen] = useState(false);
   const [audioError,setAudioError] = useState("");
-  const [advancedOpen,setAdvancedOpen]=useState(false);
   const [composition,setComposition]=useState<StudioComposition>("Rehearsal");
   const [worldLens, setWorldLens] = useState<WorldLens>("diorama");
   const lesson = useMoppet((s) => s.lesson);
@@ -73,7 +76,6 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const setMidi = useController((s) => s.setMidi);
   const midiFileRef = useRef<HTMLInputElement | null>(null);
   const playerRef = useRef<PlayerRef>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
   const [project, setProject] = useState<MoppetVideoProps>(() => buildVideoProject(piece, voices, studio404));
   const [selection, setSelection] = useState<Selection>({ kind: "stage" });
   const [zoom, setZoom] = useState<1 | 2>(1);
@@ -117,48 +119,75 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     return () => clearInterval(t);
   }, [bridgeOn, job?.status, refreshAssets, slug]);
 
+  const band = useMoppet(s => s.band);
+  const voiceLevels = useVoiceLevels(s => s.levels);
+  const masterVolume = useAudio(s => s.volume);
+  const revision = useMemo(() => ({ piece, voices, studio404, band, voiceLevels }), [piece, voices, studio404, band, voiceLevels]);
+  const [rendered, setRendered] = useState<{ revision: typeof revision; mix: PreparedMix } | null>(null);
+  const [synthBusy, setSynthBusy] = useState(false);
+  const currentMix = rendered?.revision === revision ? rendered.mix : null;
+  const requestRef = useRef<{ abort: AbortController; promise: Promise<PreparedMix | null> } | null>(null);
+  const isCurrent = useCallback(() => {
+    const state = useMoppet.getState();
+    return state.piece === piece && state.voices === voices && state.studio404 === studio404 &&
+      state.band === band && useVoiceLevels.getState().levels === voiceLevels;
+  }, [piece, voices, studio404, band, voiceLevels]);
+
+  const previewProject = useMemo(() => ({
+    ...project,
+    ...currentMix,
+    worldLens,
+    waitingForScore: currentMix === null,
+  }), [project, currentMix, worldLens]);
   const dims = compositionDimensions(project.aspect);
-  const study=exposureCatalog.find(item=>item.id===composition);
-  const { fps, introFrames, stageFrames, outroFrames } = videoFrameLayout(project);
-  const stageEnd = introFrames + stageFrames;
-  const totalFrames = stageEnd + outroFrames;
+  const study = exposureCatalog.find(item => item.id === composition);
+  const { fps, introFrames, stageFrames, outroFrames } = videoFrameLayout(previewProject);
+  const totalFrames = introFrames + stageFrames + outroFrames;
   const totalSec = totalFrames / fps;
   const introSec = introFrames / fps;
   const outroSec = outroFrames / fps;
-  const showingRehearsal = composition === "Rehearsal" && !livePreview;
-  // Always play live CHIMERA audio directly so edits, voice sliders, and master volume apply immediately.
-  const playbackError = useAudio(s => s.error);
-  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames, lesson);
-  const ensembleMessage = useEnsemble(s => s.message);
-  const vocalTiming = useEnsemble(s => s.vocalTiming);
-  const previewProject = useMemo(() => ({
-    ...project,
-    audioUrl: null,
-    vocalTiming,
-    worldLens,
-  }), [project, vocalTiming, worldLens]);
+  const showingRehearsal = composition === "Rehearsal";
+  const transport = useRehearsalTransport(playerRef, showingRehearsal, totalFrames);
   const curSec = transport.frame / fps;
-  const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
+  const curStageSec = Math.max(0, Math.min(previewProject.stageDurationSec, curSec - introSec));
   const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
+
+  useLayoutEffect(() => {
+    const player = playerRef.current;
+    if (showingRehearsal && player) {
+      player.pause();
+      player.seekTo(0);
+    }
+    setAudioError("");
+    setSynthBusy(false);
+    setRendered(null);
+    return () => {
+      requestRef.current?.abort.abort();
+      requestRef.current = null;
+    };
+  }, [revision]);
+
+  useEffect(() => {
+    const audioUrl = rendered?.mix.audioUrl;
+    return () => { if (audioUrl?.startsWith("blob:")) URL.revokeObjectURL(audioUrl); };
+  }, [rendered]);
+
+  useEffect(() => {
+    playerRef.current?.setVolume(masterVolume);
+  }, [masterVolume, composition]);
 
   useEffect(() => {
     const next = buildVideoProject(piece, voices, studio404);
     next.intro.enabled = false;
     next.outro.enabled = false;
-    setAudioError("");
     setProject(next);
     setComposition("Rehearsal");
-    transport.reset();
     setSelection({ kind: "stage" });
     if (lesson === "cardboard-horse") setWorldLens("caravan");
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
 
   const selectComposition = (id: StudioComposition) => {
-    if (showingRehearsal) {
-      if (transport.busy) stop();
-      else pause();
-    }
     playerRef.current?.pause();
     setComposition(id);
   };
@@ -171,9 +200,9 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const resetFromScore = () => {
     const next = buildVideoProject(piece, voices, studio404, {
       aspect: project.aspect,
-      audioUrl: project.audioUrl,
     });
     setProject(next);
+    transport.reset();
     setSelection({ kind: "stage" });
   };
 
@@ -184,57 +213,55 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     }));
   };
 
-  const [synthBusy, setSynthBusy] = useState(false);
-  const blobAudioRef = useRef<string | null>(null);
-  const startAudio = useAudio((s) => s.start);
-
-  useEffect(() => {
-    return () => {
-      if (blobAudioRef.current) URL.revokeObjectURL(blobAudioRef.current);
-    };
-  }, []);
-
-  const preparing=useRef(false);
-  const prepareMix = async () => {
-    if(preparing.current)return null;
-    preparing.current=true;
-    const sameScore = () => useMoppet.getState().piece === piece && useMoppet.getState().voices === voices;
+  const prepareMix = useCallback((refresh = false): Promise<PreparedMix | null> => {
+    if (requestRef.current) return requestRef.current.promise;
+    if (currentMix && !refresh) return Promise.resolve(currentMix);
+    const abort = new AbortController();
     setAudioError("");
     setSynthBusy(true);
-    try {
-      const out = await exportWav(startAudio);
-      if (!sameScore()) return null;
-      if (blobAudioRef.current) {
-        URL.revokeObjectURL(blobAudioRef.current);
-        blobAudioRef.current = null;
+
+    const promise = (async () => {
+      try {
+        const out = await renderWav(piece, voicesForMode(voices, studio404), { signal: abort.signal });
+        if (abort.signal.aborted || !isCurrent()) return null;
+        const wav = new Blob([out.bytes], { type: "audio/wav" });
+        let audioUrl: string;
+        if (bridgeOn) {
+          const response = await fetch(`/__video/audio?slug=${encodeURIComponent(slug)}`, {
+            method: "POST", headers: { "content-type": "audio/wav" }, body: wav, signal: abort.signal,
+          });
+          if (!response.ok) throw new Error(await response.text());
+          ({ audioUrl } = await response.json() as { audioUrl: string });
+        } else {
+          audioUrl = URL.createObjectURL(wav);
+        }
+        if (abort.signal.aborted || !isCurrent()) {
+          if (audioUrl.startsWith("blob:")) URL.revokeObjectURL(audioUrl);
+          return null;
+        }
+        const mix = { audioUrl, vocalTiming: out.vocalTiming, stageDurationSec: out.durationSec };
+        setRendered({ revision, mix });
+        return mix;
+      } catch (error) {
+        if (!abort.signal.aborted && isCurrent()) {
+          playerRef.current?.pause();
+          setAudioError(error instanceof Error ? error.message : "Could not prepare rehearsal audio.");
+        }
+        return null;
+      } finally {
+        if (requestRef.current?.abort === abort) {
+          requestRef.current = null;
+          setSynthBusy(false);
+        }
       }
-      let nextAudioUrl: string;
-      if (bridgeOn) {
-        const resp = await fetch(`/__video/audio?slug=${encodeURIComponent(slug)}`, {
-          method: "POST",
-          headers: { "content-type": "audio/wav" },
-          body: new Blob([out.bytes as BlobPart], { type: "audio/wav" }),
-        });
-        if (!resp.ok) throw new Error(await resp.text());
-        const data = (await resp.json()) as { audioUrl: string };
-        nextAudioUrl = data.audioUrl;
-      } else {
-        const url = URL.createObjectURL(new Blob([out.bytes as BlobPart], { type: "audio/wav" }));
-        blobAudioRef.current = url;
-        nextAudioUrl = url;
-      }
-      if (!sameScore()) return null;
-      const mix = { audioUrl: nextAudioUrl, vocalTiming: out.vocalTiming, stageDurationSec: out.durationSec };
-      setProject((cur) => ({ ...cur, ...mix }));
-      return mix;
-    } catch(error) {
-      if (sameScore()) setAudioError(error instanceof Error ? error.message : "Could not prepare rehearsal audio.");
-      return null;
-    } finally {
-      preparing.current=false;
-      setSynthBusy(false);
-    }
-  };
+    })();
+    requestRef.current = { abort, promise };
+    return promise;
+  }, [bridgeOn, currentMix, isCurrent, piece, revision, slug, studio404, voices]);
+
+  useEffect(() => {
+    if (showingRehearsal && transport.playing && !currentMix) void prepareMix();
+  }, [showingRehearsal, transport.playing, currentMix, prepareMix]);
 
   const midiOn = midi.status === "on";
   const downloadScoreMidi = () => {
@@ -289,8 +316,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   };
 
   const triggerRender = async () => {
-    const mix = await prepareMix();
-    if (!mix || mix.audioUrl.startsWith("blob:")) return;
+    const mix = await prepareMix(currentMix?.audioUrl.startsWith("blob:"));
+    if (!mix || mix.audioUrl.startsWith("blob:") || !isCurrent()) return;
     try {
       const props = { ...project, ...mix, worldLens };
       const r = await fetch("/__video/render", { method: "POST", body: JSON.stringify({ slug, props }) });
@@ -307,7 +334,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   };
 
   const downloadPropsJson = () => {
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ ...project, ...currentMix, worldLens }, null, 2)], { type: "application/json" });
     const u = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = u;
@@ -378,8 +405,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
               {project.cameraAutoFollow ? "Auto-follow" : "Wide"}
             </button>
 
-            <button type="button" disabled={synthBusy || transport.busy || job?.status === "running"} onClick={() => void prepareMix()}>
-              {synthBusy ? "Preparing WAV…" : project.audioUrl ? "Refresh WAV" : "Prepare WAV"}
+            <button type="button" disabled={synthBusy || transport.busy || job?.status === "running"} onClick={() => void prepareMix(true)}>
+              {synthBusy ? "Preparing WAV…" : currentMix ? "Refresh WAV" : "Prepare WAV"}
             </button>
 
             <details className="vs-more">
@@ -467,45 +494,35 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
 
         <div className="vs-main vs-score-desk">
           <div className="vs-stage-col">
-            <div className={`vs-player-frame${livePreview ? " live-preview" : ""}${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay" ref={stageRef}>
-              {livePreview ?? (composition==="Rehearsal" ? <Player
-                key="rehearsal" controls={false} ref={playerRef} component={MoppetComposition} inputProps={previewProject}
+            <label className="vs-field">
+              <span>Composition</span>
+              <select value={composition} onChange={event => selectComposition(event.target.value)}>
+                {compositions.map(id => <option key={id} value={id}>{id.replaceAll("-", " ")}</option>)}
+              </select>
+            </label>
+            <div className={`vs-player-frame${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay">
+              {composition === "Rehearsal" ? <Player
+                key="rehearsal" controls ref={playerRef} component={MoppetComposition} inputProps={previewProject}
                 durationInFrames={totalFrames} compositionWidth={dims.width} compositionHeight={dims.height}
-                fps={fps} numberOfSharedAudioTags={0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
+                fps={fps} numberOfSharedAudioTags={1} initialVolume={masterVolume} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
                 : composition==="Cue-Bench-Pack" ? <Player key="cue" ref={playerRef} component={BenchPack}
                   durationInFrames={cycleLength*2} compositionWidth={1280} compositionHeight={720} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>
                 : study ? <Player key={study.id} ref={playerRef} component={CastExposure} inputProps={{study}} durationInFrames={study.count*study.hold} compositionWidth={960} compositionHeight={720} fps={24} controls loop style={{width:"100%",height:"100%"}}/>
                 : <Player key="neon" ref={playerRef} lazyComponent={loadActionStrip} inputProps={{review:true}}
                   durationInFrames={720} compositionWidth={820} compositionHeight={680} fps={24}
-                  controls loop style={{width:"100%",height:"100%"}}/>)}
-              {showingRehearsal && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
-                <button type="button" disabled={synthBusy && !transport.playing}
-                  aria-label={transport.playing || transport.busy ? "Pause video" : "Play video"} onClick={transport.toggle}>
-                  <span aria-hidden="true">{transport.playing || transport.busy ? "Ⅱ" : "▶"}</span>
-                </button>
-                <span>{fmtSec(curSec)} / {fmtSec(totalSec)}</span>
-                <input type="range" min={0} max={totalFrames - 1} step={1} value={transport.frame}
-                  aria-label="Seek rehearsal" aria-valuetext={fmtSec(curSec)}
-                  onChange={e => transport.seekTo(Number(e.target.value))} />
-                <button type="button" aria-label="Toggle fullscreen" onClick={() => {
-                  if (document.fullscreenElement) void document.exitFullscreen();
-                  else void stageRef.current?.requestFullscreen();
-                }}><span aria-hidden="true">⛶</span></button>
-              </div>}
+                  controls loop style={{width:"100%",height:"100%"}}/>}
             </div>
-            {showingRehearsal && playbackError && <p role="alert" className="vs-meta">{playbackError}</p>}
-            {showingRehearsal && !playbackError && (transport.busy || ensembleMessage.startsWith("Could not") || ensembleMessage.startsWith("No sound"))
-              && <p role="status" className="vs-meta">{ensembleMessage}</p>}
+            {showingRehearsal && transport.error && <p role="alert" className="vs-meta">{transport.error}</p>}
           </div>
 
           <MusicRack timeSec={showingRehearsal ? curStageSec : undefined} playing={showingRehearsal ? transport.playing : undefined}
             onSeek={showingRehearsal ? seconds => seekToSec(introFrames / fps + seconds) : undefined}/>
         </div>
-        <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
+        {controller && <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>}
         {audioError && <p role="alert">Rehearsal audio: {audioError}</p>}
         {synthBusy && <p role="status">Preparing the score audio…</p>}
-        <details className="vs-timeline-disclosure" onToggle={event=>{setTimelineOpen(event.currentTarget.open);if(!event.currentTarget.open)setAdvancedOpen(false)}}>
+        <details className="vs-timeline-disclosure" onToggle={event => setTimelineOpen(event.currentTarget.open)}>
           <summary>Timeline</summary>
           {timelineOpen && <>
 
@@ -662,7 +679,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                     style={{ left: pct(introSec), width: pct(project.stageDurationSec) }}
                     onClick={() => setSelection({ kind: "stage" })}
                   >
-                    <span>{project.audioUrl ? "48 kHz CHIMERA studio mix" : "CHIMERA rehearsal mix"}</span>
+                    <span>{currentMix ? "48 kHz CHIMERA studio mix" : "CHIMERA rehearsal mix"}</span>
                   </button>
                 </div>
               </div>
@@ -834,11 +851,6 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
               </div>
             )}
           </aside></details>}
-        {!livePreview && <details className="vs-advanced" onToggle={e=>setAdvancedOpen(e.currentTarget.open)}>
-          <summary>Remotion layers</summary>
-          {advancedOpen&&<RemotionDock project={previewProject} playerRef={playerRef} composition={composition} setComposition={selectComposition}
-            onSeek={showingRehearsal ? transport.seekTo : undefined} onToggle={showingRehearsal ? transport.toggle : undefined}/>}
-        </details>}
           </>}
         </details>
       </div>

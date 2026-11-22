@@ -2,9 +2,10 @@
  * The Moppets app: the stage, the score and the workbench, on CHIMERA's engine
  * with Tailwind CSS v4 responsive layout and clear direct volume control.
  */
-import { useRef } from "react";
+import { lazy, Suspense, useRef } from "react";
 import { useAudio } from "../audio/audio.ts";
-import { MoppetRight } from "./MoppetPanel.tsx";
+import { PublicPerformance } from "./PublicPerformance.tsx";
+const AdminDesk = import.meta.env.DEV ? lazy(() => import("./MoppetPanel.tsx").then(m => ({default: m.MoppetRight}))) : null;
 
 function TopBar() {
   const volume = useAudio((s) => s.volume);
@@ -50,10 +51,11 @@ function TopBar() {
 }
 
 export function App() {
+  if (!AdminDesk || location.pathname !== "/admin") return <PublicPerformance/>;
   return (
     <div className="app text-colors mode-moppet">
       <TopBar />
-      <main className="wall wall-moppet view-stage"><MoppetRight /></main>
+      <main className="wall wall-moppet view-stage"><Suspense fallback="Opening studio…"><AdminDesk /></Suspense></main>
     </div>
   );
 }

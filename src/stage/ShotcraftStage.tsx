@@ -39,7 +39,7 @@ import type { Actor } from "../choir/choreo.ts";
 import { featuredAt, sceneFeatured } from "../choir/choreo.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { gestureAt, gestureSeconds, type GesturePose } from "../choir/gestures.ts";
-import { beatSeconds } from "../choir/timeline.ts";
+import { beatSeconds, LEAD_IN } from "../choir/timeline.ts";
 import { STUDIO_404_CAST, STUDIO_404_CREW, studio404Name } from "../choir/studio404.ts";
 import { duetCriticsStateAt, studio404DanceAt } from "../choir/studio404Anim.ts";
 import { bandFor, CRASH, HAT, KICK, OPEN_HAT, SNARE, type BandNote, type BandPart } from "../choir/band.ts";
@@ -781,16 +781,15 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   >(() => {
     const bs = beatSeconds(piece);
     if (customBubbles) {
-      const stageSec = 0.2 + beat * bs;
-      const active = customBubbles.filter((b) => stageSec >= b.startSec && stageSec < b.startSec + b.durationSec);
+      const active = customBubbles.filter((b) => timeSec >= b.startSec && timeSec < b.startSec + b.durationSec);
       return active.map((b) => {
-        const startBeat = Math.max(0, (b.startSec - 0.2) / bs);
-        const endBeat = Math.max(startBeat + 0.25, (b.startSec + b.durationSec - 0.2) / bs);
+        const startBeat = (b.startSec - LEAD_IN) / bs;
+        const endBeat = (b.startSec + b.durationSec - LEAD_IN) / bs;
         const words: KaraokeWordSpan[] = b.words?.length
           ? b.words.map((w) => ({
               text: w.text,
-              startBeat: Math.max(0, (w.startSec - 0.2) / bs),
-              endBeat: Math.max(0.08, (w.endSec - 0.2) / bs),
+              startBeat: (w.startSec - LEAD_IN) / bs,
+              endBeat: (w.endSec - LEAD_IN) / bs,
             }))
           : mapSkitWords(b.text, startBeat, endBeat);
         const isLegacyCream = b.bg.toLowerCase() === "#f6ecd2";
@@ -879,7 +878,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
     });
 
     return layoutStageCapsules(inputs, beat).map((capsule) => ({ capsule, showTail: true }));
-  }, [customBubbles, performing, liveMidiSpeech, voices, studio404, actors, piece, beat, poses]);
+  }, [customBubbles, performing, liveMidiSpeech, voices, studio404, actors, piece, beat, poses, timeSec]);
 
   const breathe = still ? 1 : 1 + 0.025 * Math.sin(timeSec * 1.6);
   const vhsOffsetY = isVhsRoll && !still ? Math.sin(timeSec * 22) * 1.4 : 0;
@@ -1412,7 +1411,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
               capsule={soloSet ? { ...capsule, centerX: 0.82, topY: onCart ? 0.55 : 0.15, maxWidthPct: 29 }
                 : cueAndNeon ? { ...capsule, centerX: capsule.speaker.toUpperCase().includes("NEON") ? 0.30 : 0.70,
                   topY: 0.055, maxWidthPct: 36, roleLabel: "DUET" } : capsule}
-              beat={beat}
+              beat={customBubbles ? (timeSec - LEAD_IN) / beatSeconds(piece) : beat}
               timeSec={timeSec}
               bgOverride={bg}
               fgOverride={fg}

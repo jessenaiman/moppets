@@ -1,4 +1,3 @@
-import { rehearsalStudio } from "./tools/rehearsal-studio";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -16,7 +15,7 @@ const chimera = fileURLToPath(new URL("./chimera/src", import.meta.url));
 const songText = { name: "song-text", load: (id: string) => (id.endsWith(".song") ? `export default ${JSON.stringify(readFileSync(id, "utf8"))};` : null) };
 
 export default defineConfig({
-  plugins: [tailwindcss(), rehearsalStudio(), songText, react(), soundcraftBridge(), claudeWriter(), songBridge(), videoBridge()],
+  plugins: [tailwindcss(), songText, react(), soundcraftBridge(), claudeWriter(), songBridge(), videoBridge()],
   resolve: {
     alias: [
       { find: /^@chimera\//, replacement: `${chimera}/` },

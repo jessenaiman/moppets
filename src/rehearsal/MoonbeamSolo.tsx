@@ -103,10 +103,9 @@ function Followspot({project}:{project:MoppetVideoProps}) {
 }
 
 export function MoonbeamSolo({project}:{project:MoppetVideoProps}) {
-  const {fps, width, height} = useVideoConfig();
+  const {fps, width, height, durationInFrames: total} = useVideoConfig();
   const piece = project.piece;
   const track = piece?.tracks.find(t=>t.id === 'vee');
-  const total = Math.max(1, Math.round(project.stageDurationSec * fps));
   const scale = Math.min(width / 1280, height / 720);
   const shots: {from:number; duration:number; name:string; action:Action; restingX:number; phrase?:Phrase}[] = [];
   let cursor = 0, restingX = 680;

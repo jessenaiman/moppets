@@ -66,6 +66,8 @@ export type MoppetVideoProps = {
   stageDurationSec: number;
   audioUrl: string | null;
   audioVolume: number;
+  /** Preview is waiting for its score revision to finish rendering. */
+  waitingForScore?: boolean;
   vocalTiming?: VocalTiming;
   cameraAutoFollow: boolean;
   intro: TitleCardConfig;
@@ -90,7 +92,7 @@ export function videoFrameLayout(
 ) {
   const fps = Math.max(1, props.fps || 30);
   const introFrames = props.intro.enabled ? Math.round(Math.max(0.4, props.intro.durationSec) * fps) : 0;
-  const stageFrames = Math.round(Math.max(1, props.stageDurationSec) * fps);
+  const stageFrames = Math.ceil(Math.max(1, props.stageDurationSec) * fps);
   const outroFrames = props.outro.enabled ? Math.round(Math.max(0.4, props.outro.durationSec) * fps) : 0;
   return { fps, introFrames, stageFrames, outroFrames };
 }

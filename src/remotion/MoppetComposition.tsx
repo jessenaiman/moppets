@@ -11,6 +11,7 @@ import {
   continueRender,
   Html5Audio,
   useRemotionEnvironment,
+  useBufferState,
   Img,
   Sequence,
   interpolate,
@@ -243,7 +244,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
   }, []);
 
   const showBand = piece.stage?.includes("band") || (piece.kind !== "skit" && piece.chords.length > 0);
-  const useMeasuredMouths = piece.title === "Found Things" && !!props.vocalTiming;
+  const useMeasuredMouths = Boolean(props.vocalTiming && (props.audioUrl || piece.title === "Found Things"));
   const preloadUrls = React.useMemo(() => {
     const urls = new Set<string>();
     if (props.studio404) {
@@ -418,15 +419,22 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
   const { fps } = useVideoConfig();
   const { isPlayer } = useRemotionEnvironment();
   const { introFrames, stageFrames, outroFrames } = videoFrameLayout({ ...props, fps });
+  const buffer = useBufferState();
+  const waiting = isPlayer && props.waitingForScore && !props.audioUrl;
+  React.useLayoutEffect(() => {
+    if (!waiting) return;
+    const handle = buffer.delayPlayback();
+    return () => handle.unblock();
+  }, [buffer, waiting]);
 
   return (
     <AbsoluteFill style={{ background: "#070203" }}>
       {introFrames > 0 && (
-        <Sequence from={0} durationInFrames={introFrames}>
+        <Sequence name="Title" from={0} durationInFrames={introFrames}>
           <TitleSlide card={props.intro} />
         </Sequence>
       )}
-      <Sequence from={introFrames} durationInFrames={stageFrames}>
+      <Sequence name="Performance" from={introFrames} durationInFrames={stageFrames}>
         {props.audioUrl && (isPlayer
           ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
           : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
@@ -439,7 +447,7 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         </>}
       </Sequence>
       {outroFrames > 0 && (
-        <Sequence from={introFrames + stageFrames} durationInFrames={outroFrames}>
+        <Sequence name="End card" from={introFrames + stageFrames} durationInFrames={outroFrames}>
           <TitleSlide card={props.outro} isOutro />
         </Sequence>
       )}

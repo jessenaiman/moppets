@@ -35,16 +35,14 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-Open [the rehearsal desk](http://127.0.0.1:5417/) for the song picker or
-[the live instrument](http://127.0.0.1:5417/?mode=live) for the stage, synth and MIDI controller.
-**Live puppets** switches between them. **Music desk** opens notation and editing.
-To test the production player locally, run `bun run build` and `bun run preview`, then open
-[the production preview](http://127.0.0.1:5418/). `bun run test` rebuilds the wasm and runs the Rust and Bun tests.
+Open [the public stage](http://127.0.0.1:5417/) to pick a song and place, follow the full-band score or view MIDI notes.
+The development server also provides [the local creation desk](http://127.0.0.1:5417/admin) with the live instrument, hardware MIDI, score editor and a separate Remotion video preview.
+Production builds only include the audience view. To serve one locally, use `bun run build` and `bun run preview`.
 
 ## Screening and recordings
 
-The public app opens on **Found Things**. Remotion plays the finished recording alongside the animated score.
-Changing notes, voices, or the mix uses live rehearsal audio. The standalone screening page in
+The public stage prepares the selected written score with CHIMERA. The audio element supplies the clock for the cast, score and note display. The Clips tab plays finished videos.
+The standalone screening page in
 [`watch/index.html`](watch/index.html) also plays exported videos and full-length songs. To view it locally,
 run `python3 -m http.server 8000 --directory watch` and open [the screening page](http://localhost:8000/).
 

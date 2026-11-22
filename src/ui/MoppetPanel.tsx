@@ -1,7 +1,6 @@
 import { measures } from "../choir/meter.ts";
 import { NewRehearsal } from "./NewRehearsal";
 import { CastReferences } from "./CastReferences";
-import {buildVideoProject} from "../choir/videoProject";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
@@ -42,7 +41,6 @@ import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
 
 const VideoStudio = lazy(() => import("./VideoStudio"));
-const PortableStage = lazy(() => import("./PortableStage").then(m => ({default: m.PortableStage})));
 const RehearsalStaffPanel = lazy(() => import("./StaffEditor").then(m => ({default: m.RehearsalStaffPanel})));
 const VexStaffLine = lazy(() => import("./StaffEditor").then(m => ({default: m.VexStaffLine})));
 
@@ -1280,7 +1278,7 @@ function Workbench() {
     applyControl(key, n);
     const playing = useEnsemble.getState().status === "playing";
     // a body is built when the singer's engine is, so it waits for the next performance
-    setNote(playing && group !== "body" && group !== "size" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
+    setNote(playing && group !== "body" ? "Heard about 0.3 s later on this singer's engine." : "Saved to this Moppet. Applied on its next performance.");
   };
   const solo = () => {
     singSolo();
@@ -1290,8 +1288,7 @@ function Workbench() {
     setNote("Rendering this voice…");
     try {
       const m = useMoppet.getState();
-      const index = m.piece.kind === "solo" ? 0 : selected;
-      const out = await exportWav(start, index);
+      const out = await exportWav(start, v.id);
       download(new Blob([out.bytes], { type: "audio/wav" }), `${v.id}${m.piece.kind === "solo" ? "-introduction" : "-part"}.wav`);
       setNote(`${v.name}'s voice is ready.`);
     } catch (e) {
@@ -1383,7 +1380,7 @@ export function MoppetRight() {
 function RehearsalDesk() {
   const [cameraFollow,setCameraFollow]=useState(true);
   const [desk, setDesk] = useState(false);
-  const [liveDesk,setLiveDesk]=useState(() => new URLSearchParams(location.search).get("mode") === "live");
+  const [liveDesk,setLiveDesk]=useState(() => new URLSearchParams(location.search).get("mode") !== "video");
   const showLive = liveDesk;
   const [writing,setWriting]=useState(false);
   const [references,setReferences]=useState(false);
@@ -1397,11 +1394,6 @@ function RehearsalDesk() {
   const v = voices[selected];
   const name = studio404 ? studio404Name(v.id, v.name) : v.name;
   const piece = useMoppet((s) => s.piece);
-  const guestPreview = useMemo(()=>{
-    if(!showLive || piece.title!=="Borrowed Light") return null;
-    const project=buildVideoProject(piece,voices,studio404);
-    return {...project,fps:24,intro:{...project.intro,enabled:false},outro:{...project.outro,enabled:false}};
-  },[showLive,piece,voices,studio404]);
   useEffect(() => {
     // load the score on first arrival
     if (useMoppet.getState().piece === piece) {
@@ -1414,8 +1406,8 @@ function RehearsalDesk() {
   function toggleLiveDesk() {
     stop();
     const url = new URL(location.href);
-    if (liveDesk) url.searchParams.delete("mode");
-    else url.searchParams.set("mode", "live");
+    if (liveDesk) url.searchParams.set("mode", "video");
+    else url.searchParams.delete("mode");
     history.replaceState(null, "", url);
     setLiveDesk(!liveDesk);
   }
@@ -1424,7 +1416,6 @@ function RehearsalDesk() {
           <div className="bay-toolbar-group">
             <button type="button" aria-pressed={references} onClick={() => setReferences(!references)}>Cast bibles</button>
             <button type="button" aria-pressed={writing} onClick={() => setWriting(!writing)}>Write &amp; rehearse</button>
-            <button type="button" aria-pressed={liveDesk} onClick={toggleLiveDesk}>Live puppets</button>
           </div>
           <div className="bay-toolbar-group">
             <button type="button" aria-pressed={chimeraLab} onClick={() => setChimeraLab(!chimeraLab)}>🎙 Vowel &amp; Beatbox</button>
@@ -1439,10 +1430,15 @@ function RehearsalDesk() {
       </div>;
   return (
     <div className={`right right-moppet right-stage${showLive ? " warm" : ""}`}>
+      <nav className="flex items-center gap-2 px-3 py-2" aria-label="Creation workspace">
+        <a href="/">Public stage</a>
+        <button type="button" aria-pressed={showLive} onClick={() => { if (!showLive) toggleLiveDesk(); }}>Live stage</button>
+        <button type="button" aria-pressed={!showLive} onClick={() => { if (showLive) toggleLiveDesk(); }}>Video preview</button>
+      </nav>
       {showLive ? <>
-        {guestPreview ? <PortableStage project={guestPreview}/> : <Stage cameraFollow={cameraFollow}/>}
+        <Stage cameraFollow={cameraFollow}/>
         <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
-      </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller}/>}
+      </> : <VideoStudio controller={controller}/>}
 
       {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">
         {(desk || liveDesk) && <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)}/>}

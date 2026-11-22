@@ -1,111 +1,60 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import type { PlayerRef } from "@remotion/player";
-import { useAudio } from "../audio/audio.ts";
-import { pause, play, seek, stop, useEnsemble } from "../choir/ensemble.ts";
 
 export function useRehearsalTransport(
   playerRef: RefObject<PlayerRef | null>,
   enabled: boolean,
-  fps: number,
-  introFrames: number,
-  stageEnd: number,
   totalFrames: number,
-  lesson: string,
 ) {
   const [frame, setFrame] = useState(0);
-  const [cardPlaying, setCardPlaying] = useState(false);
-  const status = useEnsemble(s => s.status);
-  const card = useRef<"intro" | "outro" | null>(null);
-  const shownFrame = useRef(0);
-  const stageTime = (f: number) => (f - introFrames) / fps;
-  const show = (target: number) => {
-    const f = Math.max(0, Math.min(totalFrames - 1, target));
-    shownFrame.current = f;
-    setFrame(f);
-    const player = playerRef.current;
-    if (player && player.getCurrentFrame() !== f) player.seekTo(f);
-  };
-  const stopCard = () => {
-    if (!card.current) return;
-    card.current = null;
-    setCardPlaying(false);
-    playerRef.current?.pause();
-  };
-  const playCard = (which: "intro" | "outro", f: number) => {
-    show(f);
-    card.current = which;
-    setCardPlaying(true);
-    playerRef.current?.play();
-  };
+  const [playing, setPlaying] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!enabled) return;
-    const player = playerRef.current;
+    const player = enabled && playerRef.current;
     if (!player) return;
-    const onFrame = ({detail}: {detail: {frame: number}}) => {
-      if (!card.current) return;
-      if (card.current === "intro" && detail.frame >= introFrames) {
-        stopCard();
-        show(introFrames);
-        void play(useAudio.getState().start, 0);
-      } else {
-        shownFrame.current = detail.frame;
-        setFrame(detail.frame);
-      }
+    const onFrame = ({ detail }: { detail: { frame: number } }) => setFrame(detail.frame);
+    const onPlay = () => { setPlaying(true); setError(""); };
+    const onPause = () => { setPlaying(false); setBusy(false); };
+    const onWait = () => setBusy(true);
+    const onResume = () => setBusy(false);
+    const onError = ({ detail }: { detail: { error: Error } }) => {
+      onPause();
+      setError(detail.error.message);
     };
-    const unsubscribe = useEnsemble.subscribe((state, prev) => {
-      if (state.status === "preparing" && prev.status !== "preparing") stopCard();
-      if (state.status === "ended" && prev.status !== "ended" && stageEnd < totalFrames) {
-        playCard("outro", stageEnd);
-      } else if (state.status === "idle" && prev.status !== "idle" && state.time === 0) {
-        stopCard();
-        show(0);
-      } else if (!card.current && (state.time !== prev.time || state.status === "preparing" && prev.status !== "preparing")) {
-        show(Math.min(stageEnd - 1, introFrames + Math.round(state.time * fps)));
-      }
-    });
+    setFrame(player.getCurrentFrame());
+    setPlaying(player.isPlaying());
+    setBusy(false);
+    setError("");
     player.addEventListener("frameupdate", onFrame);
-    player.addEventListener("ended", stopCard);
-    const state = useEnsemble.getState();
-    show(state.status === "idle" ? shownFrame.current : Math.min(stageEnd - 1, introFrames + Math.round(state.time * fps)));
+    player.addEventListener("seeked", onFrame);
+    player.addEventListener("play", onPlay);
+    player.addEventListener("pause", onPause);
+    player.addEventListener("ended", onPause);
+    player.addEventListener("waiting", onWait);
+    player.addEventListener("resume", onResume);
+    player.addEventListener("error", onError);
     return () => {
-      unsubscribe();
       player.removeEventListener("frameupdate", onFrame);
-      player.removeEventListener("ended", stopCard);
-      stopCard();
+      player.removeEventListener("seeked", onFrame);
+      player.removeEventListener("play", onPlay);
+      player.removeEventListener("pause", onPause);
+      player.removeEventListener("ended", onPause);
+      player.removeEventListener("waiting", onWait);
+      player.removeEventListener("resume", onResume);
+      player.removeEventListener("error", onError);
     };
-  }, [playerRef, enabled, fps, introFrames, stageEnd, totalFrames, lesson]);
+  }, [enabled, playerRef]);
 
   const seekTo = (target: number) => {
-    stopCard();
-    const f = Math.max(0, Math.min(totalFrames - 1, target));
-    if (f >= introFrames && f < stageEnd) seek(stageTime(f));
-    else if (["preparing", "rendering"].includes(useEnsemble.getState().status)) stop();
-    else pause();
-    show(f);
+    if (!enabled) return;
+    playerRef.current?.seekTo(Math.max(0, Math.min(totalFrames - 1, target)));
   };
-
-  const toggle = () => {
-    if (card.current) return stopCard();
-    const state = useEnsemble.getState();
-    if (state.status === "playing" || state.status === "buffering") return pause();
-    if (state.status === "preparing" || state.status === "rendering") return stop();
-    const f = shownFrame.current === totalFrames - 1 ? 0 : shownFrame.current;
-    if (f < introFrames || f >= stageEnd) {
-      // A title card is silent and uses Remotion's transport before/after the score.
-      stop();
-      // Unlock Web Audio during the tap, before the silent title card hands off to the choir.
-      if (f < introFrames) void useAudio.getState().start().catch(stopCard);
-      playCard(f < introFrames ? "intro" : "outro", f);
-    } else {
-      void play(useAudio.getState().start, stageTime(f));
-    }
-  };
-
   const reset = () => {
-    stopCard();
-    show(0);
+    if (!enabled) return;
+    playerRef.current?.pause();
+    seekTo(0);
   };
-  const busy = status === "preparing" || status === "rendering" || status === "buffering";
-  return { frame, busy, playing: cardPlaying || status === "playing", seekTo, toggle, reset };
+  return { frame, playing, busy, error, seekTo, reset };
 }
