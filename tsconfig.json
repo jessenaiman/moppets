@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": [
+      "bun"
+    ],
+    "paths": {
+      "@chimera/*": [
+        "./chimera/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "tools",
+    "tests"
+  ],
+  "exclude": [
+    "chimera"
+  ]
+}

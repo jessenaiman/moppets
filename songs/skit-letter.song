@@ -1,0 +1,16 @@
+kind: skit
+id: letter
+title: Dear Sandwich
+about: Scribe the typewriter helps Pip write a letter by finishing every sentence
+
+[scene 1]
+pip: "Scribe, can you help me write a letter to my"
+scribe: "Sandwich?"
+pip: "To my grandmother!" ; do gasp
+scribe: "Dear Grandmother, you are my favorite sandwich."
+
+[scene 2]
+clank: "It is close. It is not correct. But it is close." ; do nod
+pip: "Let me try. Dear Grandmother, I miss you."
+scribe: "And your sandwiches."
+pip: "Okay. That part is true." ; do shrug

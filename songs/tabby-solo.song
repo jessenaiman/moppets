@@ -1,0 +1,33 @@
+title: Ribbon and Felt
+id: tabby-solo
+tab: 00 · Tabby Solo
+about: Two knocks on Tabby's glass start a call that comes back in her own voice.
+lead: tabby
+key: D dorian
+bpm: 112
+beat: B . . t | . . K . | B . t . | . K . . (swing .14)
+backing:
+bass: none
+stage: tabby
+finale: "Mew" on 0
+
+[knock at the glass]
+"Tap tap. Is that me?" = 0/.5 0/.5 4/.5 2/.5 -1/2 | I 2, VII 2 ; do tilt
+"One small voice in a cracked glass sea" = -2/1.5 0/.5 4/2 3/.5 2/.5 1 4 5 | III 4, IV 4
+
+[call and echo]
+"Mew, mew, can you hear?" = 7/1.5 2/.5 2/.5 1/.5 4 | I 2, V 2
+"Here, here, in the seam" = 5/1.5 0/.5 0/.5 -1/.5 2 | IV 2, I 2
+
+[dance break]
+"Left paw, right paw" = -2/.75 2/1.25 -1/.75 3/1.25 | III 2, VII 2
+"Watch me turn around" = 4/.5 4/.5 7 5/.5 2/1.5 | I 2, IV 2
+rest 4
+
+[return]
+"Mew, mew, now I hear" = 7/1.5 2/.5 2/.5 1/.5 5 | I 2, IV 2
+"My own voice rings clear" = 5/.5 4/.5 2/1.5 -1/.5 0 | IV 2, I 2
+
+[curtain call]
+"Take a bow" = 4/1.5 2/.5 0/2 | V 2, I 2 ; do bow
+rest 4

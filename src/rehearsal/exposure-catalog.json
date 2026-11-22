@@ -1,0 +1,114 @@
+[
+  {
+    "id": "Chip-Exposure-Keys",
+    "slug": "chip",
+    "width": 360,
+    "height": 480,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Clacker-Exposure-Keys",
+    "slug": "clacker",
+    "width": 256,
+    "height": 256,
+    "count": 11,
+    "hold": 6
+  },
+  {
+    "id": "Clank-Exposure-Keys",
+    "slug": "clank",
+    "width": 360,
+    "height": 480,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Click-Exposure-Keys",
+    "slug": "click",
+    "width": 480,
+    "height": 480,
+    "count": 8,
+    "hold": 6
+  },
+  {
+    "id": "Cue-Exposure-Keys",
+    "slug": "cue",
+    "width": 336,
+    "height": 384,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Gruff-Exposure-Keys",
+    "slug": "gruff",
+    "width": 192,
+    "height": 256,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Hertz-Exposure-Keys",
+    "slug": "hertz",
+    "width": 192,
+    "height": 256,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Moonbeam-Exposure-Keys",
+    "slug": "moonbeam",
+    "width": 344,
+    "height": 384,
+    "count": 48,
+    "hold": 3
+  },
+  {
+    "id": "Neon-Exposure-Keys",
+    "slug": "neon",
+    "width": 320,
+    "height": 480,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Tabby-Exposure-Keys",
+    "slug": "tabby",
+    "width": 360,
+    "height": 480,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Thrum-Exposure-Keys",
+    "slug": "thrum",
+    "width": 256,
+    "height": 256,
+    "count": 13,
+    "hold": 6
+  },
+  {
+    "id": "Tracking-Exposure-Keys",
+    "slug": "tracking",
+    "width": 192,
+    "height": 256,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Watt-Exposure-Keys",
+    "slug": "watt",
+    "width": 360,
+    "height": 480,
+    "count": 32,
+    "hold": 3
+  },
+  {
+    "id": "Zap-Exposure-Keys",
+    "slug": "zap",
+    "width": 256,
+    "height": 256,
+    "count": 32,
+    "hold": 3
+  }
+]

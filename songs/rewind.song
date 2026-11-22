@@ -1,0 +1,38 @@
+title: Rewind, Be Kind
+id: rewind
+tab: 08 · Rewind, Be Kind
+about: 08 · Vee remembers the last ten minutes perfectly, and the rest not at all
+lead: vee
+key: F
+bpm: 104
+beat: B . t . | Pf . t K | B . t . | Pf . t K (swing .45)
+backing: pip +2, tabby +4, scribe +0, gruff +2
+finale: "Kind" on 7
+
+tune a = 0/.5 0/.5 2 4 4 5 4 2/2 | I 4, VI 4
+
+[verse 1]
+"I keep the last ten minutes near" = a
+"I play them back so crisp and clear" = 4 4/.5 5/.5 7 7 5 4 4/2 | IV 4, V 4
+"But Tuesday's tape got wound too tight" = a
+"It sounds like soup and socks and night" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+
+[chorus, choir]
+"Rewind be kind rewind" = 2/.5 4/1.5 5/.5 7/1.5 5/.5 4/3.5 | I 4, V 4
+"I hold what fits upon my reel" = 4/.5 4/.5 5 7 5 4 2 4/2 | IV 4, I 4
+"Rewind be kind rewind" = 2/.5 4/1.5 5/.5 7/1.5 5/.5 4/3.5 | I 4, VI 4
+"Repeat the parts that matter most" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
+
+[verse 2]
+rest 2
+"Wub wub wub wub" = 4 3 1/2 -1/2 | I 6
+tabby: "Oh no the tape" = 7 5 4 2 | VI 4
+"Hang on rewinding" = -1/.5 0/.5 2/.5 4/.5 7/2 | V 4 ; do shrug
+
+[verse 3]
+"You told me that you like the blue" = a
+"You told me that you have a cat" = 4 4/.5 5/.5 7 7 5 4 4/2 | IV 4, V 4
+"And way back when you said your name" = a
+"I think it might have been a spoon" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+
+[repeat chorus]

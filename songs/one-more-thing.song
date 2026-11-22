@@ -1,0 +1,26 @@
+title: One More Thing
+id: one-more-thing
+tab: 25 · One More Thing
+about: 25 · Chip brings his drawer of found things to try on stage
+lead: chip
+key: E
+bpm: 140
+beat: B . t K | . t B . | t B . K | . B t . (swing .12)
+backing:
+bass: none
+stage: chip
+finale: "Try" on 7
+
+# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+
+[verse]
+"I found a key I found a shoe" = 0/.5 2/.5 4 0/.5 2/.5 4 5 7/3 | I 4, II 4
+"I found a spinning top" = 0/.5 2/.5 4 5/.5 6/.5 7/5 | IV 4, V 4 ; do nod
+"I keep them in a little drawer" = 7/.5 5/.5 4 7/.5 5/.5 4 2 1/3 | I 4, VI 4
+"And try them till they stop" = 2/.5 4/.5 5 4 2 0/4 | IV 4, I 4
+
+[chorus]
+"One more thing to try" = 0/.5 4/.5 2/.5 6/.5 4 | I 2, V 1 ; do gasp
+"A bow and a wave" = 1/.5 5/.5 3/.5 7/.5 5 | II 2, IV 1
+"When the audience comes in" = 0/.5 2/.5 4/.5 6/.5 7 8 9/4 | II 4, V 4
+"I will show them all I save" = 9 7 8 6 7 5/.5 4/2.5 | IV 4, I 4 ; do bow

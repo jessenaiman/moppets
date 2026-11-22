@@ -1,0 +1,24 @@
+title: Band Night
+id: band-night
+tab: 14 · Band Night
+about: 14 · Tabby and Pip sing in front of the band from the back of the drawer
+lead: tabby
+key: C
+bpm: 104
+backing: 
+bass: none
+stage: band, tabby, pip
+finale: "Play" on 7
+
+[verse 1]
+"Here comes the band from the back of the drawer" = 4/.5 4/.5 5 4/.5 2/.5 4 5/.5 4/.5 2 0/2 | I 4, IV 4 ; do nod
+pip: "Cord and a keyboard and cans on the floor" = 2/.5 2/.5 4 2/.5 1/.5 2 4/.5 2/.5 1 0/2 | V 4, I 4
+"Thrum takes the low part, he hums it so deep" = 4/.5 4/.5 5 4/.5 2/.5 4 5/.5 7/.5 5 4/2 | I 4, IV 4
+pip: "Clacker plays keys while the tin drummer sleeps" = 5/.5 4/.5 2 1/.5 2/.5 4 2/.5 1/.5 -1 0/2 | V 4, I 4 ; react laugh
+
+[chorus]
+"Play it again, play it again" = 7 7/.5 5/.5 4/2 7 7/.5 5/.5 4/2 | I 4, V 4 ; do nod
+  + pip: "Play it again, play it again" = 4 4/.5 2/.5 0/2 4 4/.5 2/.5 2/2
+"The band in the drawer never sleeps" = 4/.5 4/.5 5 7 5/.5 4/.5 2 0/3 | IV 4, I 4
+
+[repeat chorus]

@@ -1,0 +1,64 @@
+title: Found Things
+id: found
+tab: 13 · Found Things
+about: 13 · The finale: the Found Things thank whoever left them behind
+lead: tabby
+key: D
+bpm: 92
+bass: none
+beat: B . t . | Pf . t . | B . t . | Pf . t K (swing .1)
+backing: vee +0, pip +2, scribe +4, clank +0, zap +4
+finale: "Belong" = 1 0/3
+
+# Verse voices in stage order: Pip sings Spool, Tabby and Gruff sing themselves, and Vee sings Clacker.
+tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
+tune b = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4
+tune end = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2
+tune low = 4 4 5 4 2 1 0/2 | VI 4, IV 4
+tune lift = 0 2 4 5 7/.5 7/.5 9 7/2 | IV 4, V 4
+
+[verse 1]
+rest 8
+pip: "I was a tape left in a drawer" = a ; do nod
+tabby: "I was a screen that lost its glow" = a ; do nod
+gruff: "I was a tangle left for dead" = a ; do nod
+vee: "I was the keys by the back door" = b ; do nod
+
+[chorus, choir]
+"We are the found things put to use" = 4/.5 4/.5 5 7 7 5 4 2/2 | I 4, V 4
+  + chip: "We are the found things put to use" = 6/.5 6/.5 7 9 9 7 6 4/2
+  + gruff: "We are the found things put to use" = 2/.5 2/.5 3 5 5 3 2 0/2
+"Built from the bits that you let loose" = 2 2/.5 4/.5 5 5 4 2 1/2 | VI 4, V 4
+  + chip: "Built from the bits that you let loose" = 4 4/.5 6/.5 7 7 6 4 3/2
+  + gruff: "Built from the bits that you let loose" = 0 0/.5 2/.5 3 3 2 0 -1/2
+"Thank you for all you left behind" = 4/.5 4/.5 5 7 8 7 5 4/2 | IV 4, I 4
+  + chip: "Thank you for all you left behind" = 6/.5 6/.5 7 9 10 9 7 6/2
+  + gruff: "Thank you for all you left behind" = 2/.5 2/.5 3 5 6 5 3 2/2
+"At four oh four we all belong" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2
+  + chip: "At four oh four we all belong" = 6 7/.5 6/.5 4 3 4 3 2/2
+  + gruff: "At four oh four we all belong" = 2 3/.5 2/.5 0 -1 0 -1 -2/2
+
+[verse 2]
+pip: "I kept a tape of one last show" = a ; do nod
+tabby: "I had a voice I kept inside" = a ; do nod
+gruff: "I felt a tug along my wire" = 0/.5 2/.5 4 4 5 4 2 4 4 | I 4, VI 4 ; do nod
+vee: "I knew one chord from that old show" = b ; do nod
+
+[repeat chorus]
+
+[verse 3]
+pip: "I found the show. I pressed rewind" = a ; do nod
+tabby: "I heard the tune and sang along" = a ; do nod
+gruff: "I plucked my string. The floor hummed too" = a ; do nod
+vee: "I played that chord. You knew it too" = b ; do nod
+
+[repeat chorus]
+
+[bridge]
+vee: "I counted down to zero" = low ; do nod                       # Click on camera, Vee singing
+clank: "Zero means there's nothing there" = low ; do tilt
+"Quiet is a kind of song" = low
+chip: "So let's count down again from ten" = lift ; do nod
+  + cue @7: "Places" = 4/.5 4/.5                                   # Biscuit on camera; Cue calls places
+
+[repeat chorus]

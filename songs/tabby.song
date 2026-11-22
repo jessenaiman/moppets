@@ -1,0 +1,28 @@
+title: Tabby Takes the Stage
+id: tabby
+tab: 04 · Tabby’s song
+about: 04 · The soprano introduces herself, with the choir on the chorus
+lead: tabby
+key: G major
+bpm: 100
+beat: B . t K | . t B . | t B . K | . B t . (swing 0.05)
+backing: vee +0, pip +2, scribe +4, gruff +2
+tracks: tabby vee scribe clank pip gruff zap
+registers: tabby 0
+breath: .25
+finale: "Hum" on 7
+
+[verse]
+"Hello my name is Tabby Cat" = 0/0.5 2/0.5 4 7 4 5 4 2/1.75 | I 4, VI 4
+"I stitch my songs from scraps of thread" = 4 4/0.5 2/0.5 4 7 7 5 4/1.75 | V 4, I 4
+"My screen is cracked but I can glow" = 0/0.5 2/0.5 4 7 8 7 5 4/1.75 | I 4, I 4
+"And sing the highest note I know" = 7 5/0.5 4/0.5 7 5 1 1 0/1.75 | I 4, V 2, I 2
+
+[chorus, choir]
+"Tabby Tabby hear me singing" = 7 7/0.5 5/0.5 4 5 7 5 7/1.75 | I 4, IV 4
+"Stars and solder keep me ringing" = 5/0.5 4/0.5 2 2 1 1 2 4/1.75 | VI 4, V 4
+"Every Moppet join me here" = 4 5/0.5 7/0.5 7 5 7 5 5/1.75 | I 4, IV 4
+"Sing it loud and sing it so clear" = 8/0.5 7/0.5 5 3 5 1 2 7/1.75 | II 4, V 2, I 2
+
+[repeat verse]
+[repeat chorus]

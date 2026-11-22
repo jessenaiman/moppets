@@ -1,0 +1,27 @@
+title: The Late Answer
+id: late-answer
+tab: 21 · The Late Answer
+about: 21 · Clank answers the question from the song before
+lead: clank
+key: C aeolian
+bpm: 80
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .3)
+backing:
+bass: none
+stage: clank
+finale: "Yes" on 0
+
+# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+
+[verse]
+"You asked me what I'd like to sing" = 0/.5 0/.5 2/.5 3/.5 2 0 -1 0/3 | I 4, VI 4
+"I'm thinking very hard" = 3/1.5 3/1.5 2/.5 1/.5 0 -2/3 | III 4, VII 4 ; do nod
+"The answer is a little late" = 4/.5 4/.5 5/.5 4/.5 3 2 3 0/3 | VI 4, VII 4
+"It's stuck inside my card" = 2/1.5 2/1.5 1/.5 0/.5 -1 0/3 | IV 4, I 4
+
+[chorus]
+"Wait for it please wait" = -2/2 -2/.5 -2/.5 1/.5 0/.5 | VI 3, I 1 ; do gasp
+rest 2
+"It's loading in here" = 0/1.5 -1/.5 -2/.5 -3/.5 -4 | I 2, IV 2
+"When the audience arrives" = 7/.5 7/.5 6 5 4/.5 3/.5 4/4 | VI 4, VII 4
+"I'll have answered you last year" = 4 3 2 1/.5 0/.5 -1 0/3 | VII 4, I 4 ; do bow

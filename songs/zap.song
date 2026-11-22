@@ -1,0 +1,52 @@
+title: Every Button
+id: zap
+tab: 18 · Every Button
+about: 18 · Zap is back from the drawer, has far too many buttons, and is sure of every one
+lead: zap
+key: A
+bpm: 128
+backing:
+bass: none
+stage: zap
+finale: "Zap" on 7
+
+# The Remote's Cut (S-5): Zap's own song. Zap appoints itself the director; every chorus is a cut.
+
+[verse 1]
+"I've got a button for the rain" = 0/.5 0/.5 4 4 5 5 4 4/2 | I 4, V 4
+"A button for the sun" = 4 5 4 2 1 0/3 | IV 4, I 4
+"A button with the label gone" = 0/.5 0/.5 4 4 5 5 4 4/2 | I 4, V 4
+"I press it just for fun" = 4 5 4 2 1 0/3 | IV 4, I 4 ; do shrug
+
+[chorus]
+"Zap" = 4/2 | I 2
+rest 2
+"Cut to the" = 2/.5 3/.5 4/.5 | I 1.5
+rest 0.5
+"Moon" = 7/2 | IV 2
+"Zap" = 4/2 | I 2
+rest 2
+"Cut to the" = 2/.5 3/.5 4/.5 | I 1.5
+rest 0.5
+"Rhyme" = 0/2 | I 2
+"Click click" = 4/.5 4/.5 | V 1
+rest 0.5
+"That's the one" = 7 6/.5 7 | I 2.5
+
+[verse 2]
+"One more press for luck" = 4 4 5 4 2/4 | I 4, V 4
+"Cut to the bright blue sky" = 7 5 4 2 1 0/3 | IV 4, I 4
+"Now I'm in the frame" = 4 4 5 4 2/4 | I 4, V 4
+"Cut to a sleepy cat" = 7 5 4 2 1 0/3 | IV 4, I 4 ; react laugh
+
+[bridge]
+"Hold that frame" = -2 -1 0/2 | VI 4
+"Leave one spark" = -3 -2 -1/2 | IV 4
+"I know this button" = -2/.5 0 -1/.5 -2 -3 | II 4
+"In the dark" = -2/.5 -1/.5 -3/2 | V 3
+rest 1
+
+[repeat chorus]
+
+[washboard]
+rest 4

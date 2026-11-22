@@ -1,0 +1,82 @@
+title: The First Hello
+id: intro
+tab: The first hello
+about: Six verses in turn, then the whole workshop on the chorus
+arrangement: introduction
+lead: vee
+key: D major
+bpm: 116
+bass: none
+breath: .25
+
+tune hello = 0 2 4 2 1 0 1 0/.75 | I 4, IV 4
+tune reply = 0 1 2 4 3 2 1 0/.75 | V 4, I 4
+
+[vee]
+vee: "I am Vee my teeth keep the beat" = hello
+vee: "I bite the tape and tap my feet" = reply
+turnaround V 4
+
+[scribe]
+scribe: "I am Scribe I type what you say" = hello
+scribe: "Then pass the page and hop away" = reply
+turnaround V 4
+
+[clank]
+clank: "I am Clank I hold the whole room" = hello
+clank: "My big old heart is made of boom" = reply
+turnaround V 4
+
+[pip]
+pip: "I am Flash I catch the bright glow" = hello
+pip: "I wink at all the stars I know" = reply
+turnaround V 4
+
+[gruff]
+gruff: "I am Babel I speak all tongues" = hello
+gruff: "My radio warms up my lungs" = reply
+turnaround V 4
+
+[tabby]
+tabby: "I am Tabby stitched from old cloth" = hello
+tabby: "My screen purrs soft and keeps you warm" = reply
+turnaround V 4
+
+[chip]
+chip: "I am Chip I read all the words" = hello
+chip: "And then I hum until it sings" = reply
+turnaround V 4
+
+[zap]
+zap: "I am Zap I change the channel" = hello
+zap: "Every button means I'm sure" = reply
+turnaround V 4
+
+[neon]
+neon: "I light the room with two bright tubes" = hello
+neon: "My twin notes hum above the stage" = reply
+turnaround V 4
+
+[cue]
+cue: "I read the words that cross my screen" = hello
+cue: "My old scroll turns to start the scene" = reply
+turnaround V 4
+
+[tracking]
+tracking: "I wind the tape from reel to reel" = hello
+tracking: "My wheels can sing the notes I feel" = reply
+turnaround V 4
+
+[hertz]
+hertz: "I shine a line across my glass" = hello
+hertz: "I watch the shapes and colors pass" = reply
+turnaround V 4
+
+[watt]
+watt: "My switch lights up the whole front row" = hello
+watt: "Plug in and see the red lamps glow" = reply
+turnaround V 4
+
+[chorus]
+"We are the scraps that found a song" = hello
+"At four oh four we all belong" = reply

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "(rustup target list --installed | grep -qx wasm32-unknown-unknown || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --target wasm32-unknown-unknown) && bun install --frozen-lockfile",
+  "buildCommand": "export PATH=\"$HOME/.cargo/bin:$PATH\" && git lfs install --local && git lfs pull && bun run build",
+  "outputDirectory": "dist",
+  "git": {
+    "deploymentEnabled": {
+      "t3/**": false
+    }
+  },
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/data/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
+  ]
+}

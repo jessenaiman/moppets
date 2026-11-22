@@ -1,0 +1,26 @@
+title: Every Socket
+id: every-socket
+tab: 22 · Every Socket
+about: 22 · Watt is happiest when everyone is plugged in
+lead: pip
+key: F
+bpm: 132
+beat: B . t K | . t B . | t B . K | . B t . (swing .12)
+backing:
+bass: none
+stage: pip
+finale: "On" on 7
+
+# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+
+[verse]
+"I've got six holes and all are full" = 0/.5 4/.5 7/.5 4/.5 0/.5 4/.5 7 9/2 | I 4, IV 2
+"I hum when you plug in" = 7/.5 4/.5 2/.5 4/.5 0 4/3 | IV 2, I 4 ; do nod
+"The tapes can play the lights can glow" = 0/.5 4/.5 7/.5 4/.5 1/.5 4/.5 8 7/2 | I 4, V 2
+"My switch is all a grin" = 9/.5 7/.5 4/.5 2/.5 1 0/3 | V 2, I 4
+
+[chorus]
+"Plug in plug in friends" = 0/.75 4/.75 0/.5 7/.75 4/1.25 | I 2, V 2 ; do gasp
+"The show needs the juice" = 2/.5 6/.75 2/.75 5/.5 7/1.5 | V 2, I 2
+"When the audience walks in" = 0/.5 2/.5 4/.5 7/.5 9 7 4/2 | IV 4, V 2
+"Not a socket will be loose" = 9/.5 7/.5 4/.5 2/.5 4 1 0/2 | V 2, I 4 ; do bow

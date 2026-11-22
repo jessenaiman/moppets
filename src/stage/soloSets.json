@@ -1,0 +1,34 @@
+[
+  {
+    "art": "neon",
+    "name": "Neon repair bay"
+  },
+  {
+    "art": "cue",
+    "name": "Script desk"
+  },
+  {
+    "art": "clank",
+    "name": "Computer bench"
+  },
+  {
+    "art": "watt",
+    "name": "Power patch panel"
+  },
+  {
+    "art": "gruff",
+    "name": "Valve room"
+  },
+  {
+    "art": "tabby",
+    "name": "Velvet recital stage"
+  },
+  {
+    "art": "chip",
+    "name": "Parts drawers"
+  },
+  {
+    "art": "zap",
+    "name": "AV cart edit bay"
+  }
+]

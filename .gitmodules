@@ -1,0 +1,4 @@
+[submodule "chimera"]
+	path = chimera
+	url = https://github.com/jamesondh/chimera-vocal-synth.git
+	branch = main

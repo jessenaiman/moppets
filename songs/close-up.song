@@ -1,0 +1,26 @@
+title: Close-Up
+id: close-up
+tab: 23 · Close-Up
+about: 23 · Gruff practises looking small for the camera
+lead: gruff
+key: D lydian
+bpm: 76
+beat: B . t . | Pf . t K | B . t . | Pf . t K (swing .2)
+backing:
+bass: none
+stage: gruff
+finale: "Small" on 0
+
+# The Remote's Cut (S-5): the act this Moppet has been rehearsing in study hall for the show.
+
+[verse]
+"They say the lens can see the heart" = 4 4/.5 3/.5 2 2/.5 1/.5 0 -1/3 | I 4, II 4
+"I smile at it all day" = 0/1.5 2/.5 3 4 3 2/3 | I 4, II 4 ; do nod
+"I keep my valves turned down to low" = 4 4/.5 3/.5 2 2/.5 1/.5 0 -3/3 | I 4, VI 4
+"So I don't scare away" = -1/1.5 0/.5 1 2 1 0/3 | II 4, I 4
+
+[chorus]
+"Look I am so small" = -3/2 1/.5 0/.5 -1 -3/2 | I 3, II 3 ; do gasp
+"Soft as a wool sock" = 1/2 0/.5 -1/.5 -3 -4/2 | II 3, V 3
+"When the audience is here" = 0/.5 0/.5 1 2 3 4 3/3 | II 4, V 4
+"They will love me most of all" = 4 3 2 1/.5 0/.5 -1 0/3 | V 4, I 4 ; do bow

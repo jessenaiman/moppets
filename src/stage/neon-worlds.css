@@ -1,0 +1,1349 @@
+/* Neon Beyond-the-Studio Multi-Lens Performance Worlds (S-26)
+ * Remotion-clean: ZERO CSS transitions or CSS keyframe animations — all motion is
+ * deterministically driven by CHIMERA beat / frame state.
+ */
+
+.nw-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nw-performer-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Shared Floating Lens Switcher Pill (resets global Moppet button chrome) */
+.nw-lens-dock {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(3px, 0.35cqw, 6px);
+  padding: clamp(3px, 0.35cqw, 5px);
+  border-radius: 999px;
+  background: rgba(11, 20, 18, 0.8);
+  border: 1px solid rgba(235, 224, 196, 0.28);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.sc-stage button.nw-lens-pill,
+.nw-stage button.nw-lens-pill {
+  appearance: none;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  box-shadow: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(242, 234, 212, 0.84);
+  font: 600 clamp(9.5px, 0.86cqw, 13px) / 1.1 "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  padding: clamp(5px, 0.48cqw, 8px) clamp(8px, 0.9cqw, 13px);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sc-stage button.nw-lens-pill:hover,
+.nw-stage button.nw-lens-pill:hover {
+  color: #fffaf0;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+}
+
+.sc-stage button.nw-lens-pill.active,
+.nw-stage button.nw-lens-pill.active {
+  background: #f2e8cd;
+  color: #132822;
+  border-color: #f2e8cd;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+
+.sc-stage button.nw-ghost-btn,
+.nw-stage button.nw-ghost-btn {
+  appearance: none;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  box-shadow: none;
+  border: 1px solid rgba(235, 224, 196, 0.34);
+  background: rgba(12, 28, 23, 0.72);
+  color: #f3ead3;
+  font: 600 clamp(9.5px, 0.84cqw, 12.5px) / 1.1 "Instrument Sans", system-ui, sans-serif;
+  padding: clamp(5px, 0.48cqw, 8px) clamp(10px, 0.92cqw, 14px);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.sc-stage button.nw-ghost-btn:hover,
+.nw-stage button.nw-ghost-btn:hover {
+  border-color: #f2e8cd;
+  background: rgba(242, 232, 205, 0.18);
+  color: #ffffff;
+}
+
+/* Shared Neon Cutout Rig + Live Cyan/Rose Tube Aura */
+.nw-performer {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.nw-performer-atlas {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  z-index: 2;
+}
+
+.nw-tube-aura {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 3;
+}
+
+.nw-tube-aura-cyan {
+  left: 24%;
+  top: 22%;
+  width: 26%;
+  height: 18%;
+  background: radial-gradient(circle, rgba(60, 230, 245, 0.62) 0%, transparent 72%);
+}
+
+.nw-tube-aura-rose {
+  left: 50%;
+  top: 22%;
+  width: 26%;
+  height: 18%;
+  background: radial-gradient(circle, rgba(255, 78, 140, 0.62) 0%, transparent 72%);
+}
+
+/* ───────────────────── LENS 1: REAL THREE.JS 3D FOLDED SONGBOOK ───────────────────── */
+.nw-diorama {
+  background: radial-gradient(ellipse 92% 84% at 50% 48%, #21463a 0%, #163229 58%, #0e221c 100%);
+  color: #f3ead3;
+  padding: clamp(12px, 2cqw, 28px) clamp(14px, 2.4cqw, 36px);
+  cursor: grab;
+}
+
+.nw-diorama:active {
+  cursor: grabbing;
+}
+
+.nw-diorama.is-dark {
+  background: radial-gradient(ellipse 86% 80% at 50% 50%, #142230 0%, #0b141c 60%, #060a10 100%);
+}
+
+.nw-three-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nw-three-host {
+  width: 100%;
+  height: 100%;
+}
+
+.nw-diorama-top {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: clamp(8px, 1.4cqw, 20px);
+  pointer-events: none;
+}
+
+.nw-masthead {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.32cqw, 5px);
+  max-width: 52%;
+}
+
+.nw-brand-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.6cqw, 10px);
+}
+
+.nw-book-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(18px, 1.8cqw, 26px);
+  height: clamp(18px, 1.8cqw, 26px);
+  border-radius: 5px;
+  background: #ebd08f;
+  color: #163029;
+  flex: none;
+}
+
+.nw-brand-title {
+  font: 700 clamp(10.5px, 1.05cqw, 16px) / 1.1 Georgia, "Noto Serif", serif;
+  color: #f3ead3;
+}
+
+.nw-brand-meta {
+  font: 600 clamp(8.5px, 0.72cqw, 11px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  color: #93b5a6;
+}
+
+.nw-chapter-eyebrow {
+  margin-top: clamp(3px, 0.4cqw, 7px);
+  font: 600 clamp(8.5px, 0.74cqw, 11.5px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.16em;
+  color: #a6c4b5;
+}
+
+.nw-chapter-title {
+  margin: 0;
+  font: 700 clamp(17px, 2.8cqw, 42px) / 1.02 Georgia, "Noto Serif Display", serif;
+  letter-spacing: -0.02em;
+  color: #f7efda;
+}
+
+.nw-chapter-sub {
+  margin: 0;
+  font: 400 clamp(9.5px, 0.92cqw, 13.5px) / 1.3 Georgia, serif;
+  color: #c7d9ce;
+}
+
+.nw-top-controls {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.65cqw, 10px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  pointer-events: auto;
+}
+
+.nw-diorama-bottom {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: clamp(10px, 1.6cqw, 24px);
+  pointer-events: none;
+}
+
+.nw-story-caption {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.3cqw, 5px);
+  max-width: 60%;
+}
+
+.nw-caption-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 clamp(8.5px, 0.74cqw, 11px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.15em;
+  color: #9ac0b0;
+}
+
+.nw-dot-cyan {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5cebf7;
+  box-shadow: 0 0 8px #5cebf7;
+}
+
+.nw-caption-line {
+  margin: 0;
+  font: 600 clamp(12px, 1.55cqw, 24px) / 1.24 Georgia, "Noto Serif", serif;
+  color: #f6eed8;
+}
+
+.nw-word {
+  color: rgba(246, 238, 216, 0.42);
+}
+
+.nw-word.lit {
+  color: #f7f0dd;
+}
+
+.nw-plate-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.45cqw, 7px);
+  padding: clamp(6px, 0.75cqw, 11px) clamp(10px, 1.15cqw, 16px);
+  border-radius: clamp(10px, 1cqw, 14px);
+  background: rgba(11, 24, 20, 0.78);
+  border: 1px solid rgba(235, 224, 196, 0.26);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.nw-stepper-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(8px, 1cqw, 16px);
+  font: 600 clamp(8px, 0.68cqw, 10.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: #a6c3b5;
+}
+
+.nw-stepper-meta strong {
+  color: #f0d48f;
+}
+
+.nw-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.7cqw, 10px);
+}
+
+.nw-stage button.nw-step-btn {
+  appearance: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  width: clamp(22px, 1.9cqw, 28px);
+  height: clamp(22px, 1.9cqw, 28px);
+  border-radius: 50%;
+  border: 1px solid rgba(235, 224, 196, 0.36);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3ead3;
+  font-size: clamp(10px, 0.9cqw, 13px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nw-stage button.nw-step-btn:hover {
+  border-color: #f0d48f;
+  background: rgba(240, 212, 143, 0.14);
+  color: #f0d48f;
+}
+
+.nw-step-dots {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 0.85cqw, 12px);
+}
+
+.nw-stage button.nw-step-dot {
+  appearance: none;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  box-shadow: none;
+  width: clamp(9px, 0.78cqw, 12px);
+  height: clamp(9px, 0.78cqw, 12px);
+  border-radius: 50%;
+  border: 1.5px solid rgba(235, 224, 196, 0.5);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nw-stage button.nw-step-dot.active {
+  background: #f0d48f;
+  border-color: #f0d48f;
+  box-shadow: 0 0 10px rgba(240, 212, 143, 0.75);
+}
+
+/* ───────────────────── LENS 2: OPTICAL SIGNAL WORLD ───────────────────── */
+.nw-signal {
+  background: #070a12;
+  color: #f4f7fc;
+  padding: clamp(12px, 2cqw, 28px) clamp(14px, 2.4cqw, 36px);
+}
+
+.nw-signal-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.nw-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(6cqw);
+}
+
+.nw-orb-cyan {
+  width: 56%;
+  height: 74%;
+  left: -12%;
+  top: -16%;
+  background: radial-gradient(circle, rgba(60, 230, 245, 0.55), transparent 68%);
+}
+
+.nw-orb-rose {
+  width: 56%;
+  height: 74%;
+  right: -10%;
+  bottom: -18%;
+  background: radial-gradient(circle, rgba(255, 78, 140, 0.52), transparent 68%);
+}
+
+.nw-signal-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 18%, transparent 100%);
+}
+
+.nw-signal-top,
+.nw-signal-body,
+.nw-signal-foot {
+  position: relative;
+  z-index: 10;
+}
+
+.nw-signal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.nw-signal-badges {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1cqw, 14px);
+}
+
+.nw-signal-pill {
+  padding: clamp(4px, 0.42cqw, 6px) clamp(8px, 0.9cqw, 13px);
+  border-radius: 999px;
+  background: rgba(60, 230, 245, 0.14);
+  border: 1px solid rgba(60, 230, 245, 0.45);
+  color: #5cebf7;
+  font: 700 clamp(8.5px, 0.74cqw, 11.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em;
+}
+
+.nw-signal-song {
+  font: 500 clamp(11px, 1.15cqw, 18px) / 1.1 Georgia, serif;
+  color: #dbe5f4;
+}
+
+.nw-signal-song em {
+  color: #ff69a1;
+  font-style: italic;
+}
+
+.nw-signal-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 0.95fr 1.15fr;
+  gap: clamp(12px, 2cqw, 30px);
+  align-items: center;
+  padding: clamp(6px, 1cqw, 14px) 0;
+}
+
+.nw-signal-editorial {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 0.9cqw, 14px);
+}
+
+.nw-signal-eyebrow {
+  font: 700 clamp(8.5px, 0.75cqw, 12px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.16em;
+  color: #5cebf7;
+}
+
+.nw-signal-lyric {
+  margin: 0;
+  font: 600 clamp(17px, 3cqw, 46px) / 1.08 Georgia, "Noto Serif Display", serif;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+
+.nw-signal-desc {
+  margin: 0;
+  font: 400 clamp(9.5px, 0.98cqw, 15px) / 1.4 "Instrument Sans", system-ui, sans-serif;
+  color: #94a3b8;
+}
+
+.nw-tube-meters {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.6cqw, 9px);
+  margin-top: clamp(2px, 0.4cqw, 6px);
+}
+
+.nw-meter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font: 600 clamp(8px, 0.68cqw, 10.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+}
+
+.nw-meter-track {
+  height: clamp(4px, 0.45cqw, 7px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.nw-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.nw-meter-fill.cyan {
+  background: linear-gradient(90deg, #1ea7c4, #5cebf7);
+  box-shadow: 0 0 12px #5cebf7;
+}
+
+.nw-meter-fill.rose {
+  background: linear-gradient(90deg, #c92d69, #ff649c);
+  box-shadow: 0 0 12px #ff649c;
+}
+
+.nw-signal-aperture {
+  position: relative;
+  height: 100%;
+  border-radius: clamp(14px, 1.5cqw, 24px);
+  background: radial-gradient(circle at 50% 50%, rgba(28, 38, 62, 0.65) 0%, rgba(9, 12, 20, 0.92) 78%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.nw-signal-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.nw-signal-actor {
+  position: relative;
+  height: 90%;
+  aspect-ratio: 420 / 480;
+  z-index: 4;
+}
+
+.nw-signal-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(6px, 0.68cqw, 10px) clamp(10px, 1.2cqw, 18px);
+  border-radius: clamp(8px, 0.9cqw, 14px);
+  background: rgba(17, 22, 34, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font: 600 clamp(8px, 0.72cqw, 11.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  color: #94a3b8;
+}
+
+.nw-foot-sec {
+  margin: 0 clamp(4px, 0.55cqw, 9px);
+  opacity: 0.45;
+}
+
+.nw-foot-sec.active {
+  opacity: 1;
+  color: #f8fafc;
+}
+
+.nw-signal-lock {
+  color: #5cebf7;
+}
+
+/* ───────────────────── LENS 3: KINETIC LYRIC ZINE ───────────────────── */
+.nw-zine {
+  background: #f3ede0;
+  color: #14171f;
+  padding: clamp(10px, 1.6cqw, 24px) clamp(12px, 1.8cqw, 28px);
+  gap: clamp(8px, 1.2cqw, 18px);
+}
+
+.nw-zine.is-dark {
+  background: #1c2029;
+  color: #f3ede0;
+}
+
+.nw-zine-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(6px, 0.65cqw, 10px) clamp(10px, 1cqw, 16px);
+  border-radius: clamp(8px, 0.9cqw, 13px);
+  background: #14171f;
+  color: #f3ede0;
+}
+
+.nw-zine-strap {
+  font: 700 clamp(8px, 0.74cqw, 11.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: #f5a623;
+  white-space: nowrap;
+}
+
+.nw-zine-spread {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.28fr 0.82fr;
+  gap: clamp(10px, 1.5cqw, 22px);
+}
+
+.nw-zine-poster {
+  background: #ffffff;
+  color: #14171f;
+  border: 2.5px solid #14171f;
+  border-radius: clamp(10px, 1.1cqw, 16px);
+  box-shadow: clamp(5px, 0.6cqw, 10px) clamp(5px, 0.6cqw, 10px) 0 #14171f;
+  padding: clamp(10px, 1.6cqw, 26px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nw-zine.is-dark .nw-zine-poster {
+  background: #131720;
+  color: #f3ede0;
+  border-color: #5cebf7;
+  box-shadow: clamp(5px, 0.6cqw, 10px) clamp(5px, 0.6cqw, 10px) 0 #ff4e8c;
+}
+
+.nw-zine-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: clamp(5px, 0.6cqw, 9px);
+  font: 700 clamp(8px, 0.74cqw, 11.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+
+.nw-zine-type {
+  font: 900 clamp(18px, 3.8cqw, 58px) / 1.02 Georgia, "Noto Serif Display", serif;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.nw-zine .nw-word {
+  color: rgba(20, 23, 31, 0.28);
+}
+
+.nw-zine .nw-word.lit {
+  color: #14171f;
+}
+
+.nw-zine.is-dark .nw-word {
+  color: rgba(243, 237, 224, 0.28);
+}
+
+.nw-zine.is-dark .nw-word.lit {
+  color: #f3ede0;
+}
+
+.nw-zine-rule {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-top: 2px solid currentColor;
+  padding-top: clamp(5px, 0.6cqw, 9px);
+  font: 500 clamp(9px, 0.85cqw, 13px) / 1.2 "Instrument Sans", system-ui, sans-serif;
+}
+
+.nw-zine-beat {
+  font: 700 clamp(8.5px, 0.8cqw, 12px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  color: #d82765;
+  white-space: nowrap;
+}
+
+.nw-zine-frame {
+  background: #101a24;
+  color: #f8fafc;
+  border: 2.5px solid #14171f;
+  border-radius: clamp(10px, 1.1cqw, 16px);
+  box-shadow: clamp(5px, 0.6cqw, 10px) clamp(5px, 0.6cqw, 10px) 0 #00b8d4;
+  padding: clamp(8px, 1.2cqw, 18px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nw-zine-frame-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font: 700 clamp(8px, 0.68cqw, 10.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  color: #5cebf7;
+}
+
+.nw-zine-actor {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: 420 / 480;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nw-zine-spectrum {
+  width: 100%;
+  height: clamp(5px, 0.55cqw, 9px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  overflow: hidden;
+}
+
+.nw-zine-spectrum span {
+  height: 100%;
+}
+
+/* ───────────────────── LENS 4: VINYL LP TURNTABLE WORLD ───────────────────── */
+.nw-vinyl {
+  background: radial-gradient(ellipse 88% 82% at 62% 52%, #241b17 0%, #15100e 60%, #0b0807 100%);
+  color: #f5ebd4;
+  padding: clamp(12px, 1.9cqw, 26px) clamp(14px, 2.2cqw, 34px);
+  gap: clamp(10px, 1.4cqw, 20px);
+}
+
+.nw-vinyl.is-dark {
+  background: radial-gradient(ellipse 86% 80% at 62% 52%, #131826 0%, #0a0d16 62%, #05070c 100%);
+}
+
+.nw-vinyl-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.nw-vinyl-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1cqw, 14px);
+}
+
+.nw-vinyl-cat {
+  padding: clamp(4px, 0.42cqw, 6px) clamp(8px, 0.85cqw, 12px);
+  border-radius: 6px;
+  background: rgba(245, 166, 35, 0.16);
+  border: 1px solid rgba(245, 166, 35, 0.48);
+  color: #f5b950;
+  font: 700 clamp(8.5px, 0.74cqw, 11.5px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+}
+
+.nw-vinyl-album {
+  font: 600 clamp(11px, 1.15cqw, 18px) / 1.1 Georgia, serif;
+  color: #f5ebd4;
+}
+
+.nw-vinyl-album em {
+  color: #5cebf7;
+  font-style: italic;
+}
+
+.nw-vinyl-deck {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 0.92fr 1.15fr;
+  gap: clamp(14px, 2.2cqw, 34px);
+  align-items: center;
+  z-index: 10;
+}
+
+.nw-sleeve-card {
+  height: 92%;
+  border-radius: clamp(10px, 1.1cqw, 16px);
+  background: #f0e4c6;
+  color: #1b1714;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.58);
+}
+
+.nw-sleeve-strip {
+  width: clamp(10px, 1.2cqw, 18px);
+  background: linear-gradient(180deg, #3ce6f5 0%, #f5b950 50%, #ff4e8c 100%);
+  flex: none;
+}
+
+.nw-sleeve-inner {
+  flex: 1;
+  padding: clamp(12px, 1.7cqw, 26px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(6px, 0.8cqw, 12px);
+}
+
+.nw-sleeve-eyebrow {
+  font: 700 clamp(8px, 0.72cqw, 11px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  color: #7c5c3e;
+}
+
+.nw-sleeve-title {
+  margin: 0;
+  font: 700 clamp(17px, 2.5cqw, 38px) / 1.05 Georgia, "Noto Serif Display", serif;
+  color: #171412;
+}
+
+.nw-sleeve-lyric {
+  margin: 0;
+  font: 600 clamp(11px, 1.25cqw, 19px) / 1.3 Georgia, serif;
+  color: #2f2822;
+}
+
+.nw-sleeve-card .nw-word {
+  color: rgba(27, 23, 20, 0.35);
+}
+
+.nw-sleeve-card .nw-word.lit {
+  color: #171412;
+}
+
+.nw-sleeve-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px, 0.4cqw, 6px);
+  border-top: 1.5px solid rgba(27, 23, 20, 0.22);
+  padding-top: clamp(6px, 0.8cqw, 12px);
+}
+
+.nw-track-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  font: 500 clamp(8.5px, 0.78cqw, 12px) / 1.25 "JetBrains Mono", ui-monospace, monospace;
+  color: rgba(27, 23, 20, 0.56);
+}
+
+.nw-track-row.active {
+  color: #171412;
+  font-weight: 700;
+}
+
+.nw-platter-wrap {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nw-vinyl-disc {
+  position: relative;
+  height: 92%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      #14151a 0px,
+      #14151a 2px,
+      #1f222a 2.5px,
+      #121318 4.5px
+    );
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.72), inset 0 0 30px rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nw-vinyl-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 20deg,
+    transparent 0deg,
+    rgba(60, 230, 245, 0.18) 38deg,
+    transparent 76deg,
+    transparent 180deg,
+    rgba(255, 78, 140, 0.2) 220deg,
+    transparent 262deg
+  );
+  pointer-events: none;
+}
+
+.nw-vinyl-label {
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f5b950 0%, #c8523d 100%);
+  border: 3px solid #f5ebd4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #141210;
+  font: 800 clamp(9px, 0.9cqw, 14px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.nw-vinyl-label small {
+  font-size: 0.72em;
+  letter-spacing: 0.12em;
+}
+
+.nw-tonearm {
+  position: absolute;
+  right: 5%;
+  top: 8%;
+  width: clamp(10px, 1cqw, 16px);
+  height: 62%;
+  transform-origin: 50% 6%;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.nw-tonearm-pivot {
+  display: block;
+  width: clamp(22px, 2.2cqw, 34px);
+  height: clamp(22px, 2.2cqw, 34px);
+  border-radius: 50%;
+  background: radial-gradient(circle, #e8c77f 0%, #8f6b32 100%);
+  border: 2px solid #2b2218;
+  transform: translateX(-28%);
+}
+
+.nw-tonearm-rod {
+  display: block;
+  width: 4px;
+  height: 78%;
+  margin: -4px auto 0;
+  background: linear-gradient(90deg, #9fa8b4, #f0f4f8, #7b8490);
+}
+
+.nw-tonearm-head {
+  display: block;
+  width: clamp(14px, 1.3cqw, 20px);
+  height: clamp(20px, 1.9cqw, 28px);
+  margin: -2px auto 0;
+  border-radius: 3px;
+  background: #d94c38;
+  border: 1.5px solid #f5ebd4;
+}
+
+.nw-vinyl-actor {
+  position: absolute;
+  height: 82%;
+  aspect-ratio: 420 / 480;
+  z-index: 8;
+}
+
+/* Optional Archive-404 Back-to-Worlds Floating Pill */
+.nw-archive-return {
+  position: absolute;
+  top: clamp(8px, 1.2cqw, 16px);
+  right: clamp(8px, 1.2cqw, 16px);
+  z-index: 230;
+}
+
+@container (max-width: 620px) {
+  .nw-chapter-sub,
+  .nw-brand-meta,
+  .nw-zine-strap,
+  .nw-signal-desc {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   S-29: POLYMORPHIC ENSEMBLE & CHIMERA 3D ANATOMICAL X-RAY LENS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.nw-ensemble-strip {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.4rem;
+}
+
+.nw-ensemble-slot {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.nw-performer.compact {
+  width: 100%;
+  height: 82%;
+}
+
+.nw-ensemble-tag {
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 14, 18, 0.8);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nw-chimera {
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(22, 68, 102, 0.35), transparent 72%),
+    linear-gradient(180deg, #061018 0%, #091926 55%, #050c12 100%);
+  color: #e6f4fb;
+}
+
+.nw-chimera-top {
+  position: absolute;
+  inset: 14px 18px auto 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nw-xray-grid {
+  position: absolute;
+  inset: 60px 20px 64px 20px;
+  z-index: 12;
+  display: grid;
+  gap: 12px;
+  align-items: stretch;
+  justify-items: stretch;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.nw-xray-grid.count-1 {
+  grid-template-columns: minmax(260px, 440px);
+  justify-content: center;
+}
+
+.nw-xray-grid.count-2 {
+  grid-template-columns: repeat(2, minmax(220px, 380px));
+  justify-content: center;
+}
+
+.nw-xray-grid.count-3,
+.nw-xray-grid.count-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nw-xray-grid.count-5,
+.nw-xray-grid.count-6,
+.nw-xray-grid.count-7,
+.nw-xray-grid.count-8 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nw-xray-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(79, 182, 242, 0.28);
+  background: rgba(8, 22, 34, 0.78);
+  box-shadow: inset 0 0 24px rgba(79, 182, 242, 0.08);
+  min-height: 0;
+}
+
+.nw-xray-card.singing {
+  border-color: var(--xray-accent, #5cebf7);
+  box-shadow: inset 0 0 28px rgba(79, 182, 242, 0.16), 0 0 22px rgba(79, 182, 242, 0.24);
+}
+
+.nw-xray-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nw-xray-head span {
+  color: rgba(190, 226, 245, 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-xray-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.nw-xray-meter {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(79, 182, 242, 0.16);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.nw-xray-bar {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.nw-chimera-foot {
+  position: absolute;
+  inset: auto 18px 14px 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(79, 182, 242, 0.28);
+  background: rgba(6, 17, 26, 0.88);
+}
+
+.nw-chimera-speaker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.nw-chimera-lyric {
+  margin: 0;
+  flex: 1;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: #f4fbff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   S-30: MEADOW CARAVAN 3D & 35MM FLATBED CINEMA STRIP
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.nw-caravan {
+  background:
+    radial-gradient(ellipse 80% 55% at 28% 22%, rgba(255, 198, 118, 0.32), transparent 62%),
+    linear-gradient(180deg, #362535 0%, #7d4c49 38%, #c9855c 64%, #3c5d49 100%);
+  color: #fbf4e6;
+}
+
+.nw-caravan.is-dark {
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 20%, rgba(92, 148, 214, 0.25), transparent 65%),
+    linear-gradient(180deg, #0d1626 0%, #1c2c44 48%, #203736 100%);
+}
+
+.nw-rider-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(20, 14, 11, 0.78);
+  border: 1px solid rgba(248, 239, 226, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.nw-rider-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #e3bd7f;
+}
+
+.nw-rider-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.nw-stage button.nw-rider-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(25, 18, 14, 0.85);
+  color: #f8efe2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nw-stage button.nw-rider-pill.active {
+  background: #f8efe2;
+  color: #17110d;
+}
+
+.nw-filmstrip {
+  background: linear-gradient(180deg, #0e0b09 0%, #17120e 50%, #0b0907 100%);
+  color: #f4ead8;
+}
+
+.nw-film-sprockets {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  z-index: 15;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 10px,
+    rgba(244, 217, 165, 0.28) 10px 30px,
+    transparent 30px 48px
+  );
+  border-block: 1px solid rgba(227, 189, 127, 0.22);
+}
+
+.nw-film-sprockets.top { top: 8px; }
+.nw-film-sprockets.bottom { bottom: 8px; }
+
+.nw-film-head {
+  position: absolute;
+  inset: 36px 20px auto 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nw-film-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.nw-film-stock {
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: rgba(227, 189, 127, 0.16);
+  color: #e3bd7f;
+  font-weight: 700;
+}
+
+.nw-film-tc {
+  color: #f8efe2;
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-film-strip-row {
+  position: absolute;
+  inset: 68px 16px 38px 16px;
+  z-index: 12;
+  display: grid;
+  grid-template-columns: 0.55fr 1.9fr 0.55fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.nw-film-gate {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  border: 2px solid rgba(227, 189, 127, 0.24);
+  background: radial-gradient(circle at 50% 45%, rgba(44, 32, 24, 0.92), rgba(14, 10, 8, 0.96));
+  overflow: hidden;
+  padding: 10px 12px;
+}
+
+.nw-film-gate.ghost {
+  opacity: 0.34;
+  filter: sepia(0.35) contrast(0.9);
+}
+
+.nw-film-gate.hero {
+  box-shadow: 0 0 36px rgba(227, 189, 127, 0.16), inset 0 0 24px rgba(0, 0, 0, 0.55);
+}
+
+.nw-gate-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.nw-gate-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #e3bd7f;
+}
+
+.nw-gate-title {
+  color: #f8efe2;
+  font-weight: 700;
+}
+
+.nw-gate-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.nw-gate-caption {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(248, 239, 226, 0.14);
+  font-size: 0.88rem;
+  color: #faf4e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

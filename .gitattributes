@@ -1,0 +1,4 @@
+public/plugin-vocals/*.ogg filter=lfs diff=lfs merge=lfs -text
+public/rehearsal/audio/*.mp3 filter=lfs diff=lfs merge=lfs -text
+public/scored-vocals/*.ogg filter=lfs diff=lfs merge=lfs -text
+watch/rehearsal/audio/*.mp3 filter=lfs diff=lfs merge=lfs -text

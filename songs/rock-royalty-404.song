@@ -1,0 +1,66 @@
+title: Rock Royalty 404
+id: rock-royalty-404
+tab: 00 · Rock Royalty 404
+about: 00 · Spare Parts rock Studio 404 — Caretaker opens the hall door for their big audition
+lead: tabby
+key: E minor
+bpm: 134
+beat: B . t K | . t B . | t B . K | . B t .
+backing: vee +0, chip +2, pip +4, clank +0
+bass: gruff
+stage: band, tabby, gruff, chip, vee, clank
+finale: "Four oh four" = 7 7 7/2
+
+[intro]
+chip: "One two three four" = 4 5 6 7 | I 4 ; do nod
+  + gruff @0: "One two three four" = 0 0 2 0
+  + vee @2: "Hey hey" = 7 7
+
+[verse 1]
+"Tap a screen and want a hit right now" = 4/.5 4/.5 5 4/.5 2/.5 4 5 4 2/2 | I 4, V 4 ; do tilt
+"Throw the old box out when new hits town" = 4/.5 4/.5 5 4/.5 2/.5 4 2 1 0/2 | VI 4, V 4 ; react shrug
+gruff: "Thirty years unplugged in dust and rust" = 0/.5 0/.5 2 4 4/.5 2/.5 0 2 0/2 | I 4, IV 4 ; do nod
+clank: "No one thought the amp was worth a plug" = 2/.5 2/.5 4 2/.5 1/.5 2 4 2 0/2 | V 4, I 4
+chip: "No cloud just old tape" = 7 5/1.5 4/.5 2 0/2 | IV 4, V 2 ; do laugh
+  + vee @0: "Who cares" = 7 7/2
+"Made on a yardstick loud and proud" = 4/.5 4/.5 2 4 5 4 2 0/2 | I 4, V 4
+
+[pre-chorus]
+clank: "No one hears us score four oh four" = 0/.5 0/.5 2 2 4 4 2 0/2 | VI 4, V 4 ; do tilt
+  + chip @4: "Four oh four" = 7 7 7/2
+vee: "Still do not care plug in one more" = 4/.5 4/.5 5 5 7 5 4 7/2 | IV 4, V 4 ; do nod
+  + gruff @4: "Plug in one more" = 0/.5 2/.5 4 0/2
+
+[chorus, choir]
+"You left us unplugged in the dark back room" = 7/.5 7/.5 7/.5 5/.5 4 4/.5 5/.5 7 5 4/2 | I 4, VI 4 ; do nod
+  + chip: "You left us unplugged in the dark back room" = 9/.5 9/.5 9/.5 7/.5 6 6/.5 7/.5 9 7 6/2
+  + gruff: "You left us unplugged in the dark back room" = 0/.5 0/.5 0/.5 2/.5 4 4/.5 2/.5 0 2 0/2
+"Now hear thirty years of tube amp boom" = 4/.5 4/.5 5/.5 4/.5 2 4 5 4 7/2 | IV 4, V 4 ; do laugh
+  + chip: "Now hear thirty years of tube amp boom" = 6/.5 6/.5 7/.5 6/.5 4 6 7 6 9/2
+  + gruff: "Now hear thirty years of tube amp boom" = 0/.5 0/.5 2/.5 0/.5 -1 0 2 2 4/2
+"No quick button yeah we learned the hard way" = 7/.5 7/.5 5/.5 4/.5 4/.5 4/.5 5 4 2 0/2 | VI 4, IV 4
+  + vee: "No quick button yeah we learned the hard way" = 4/.5 4/.5 2/.5 0/.5 0/.5 0/.5 2 0 -1 0/2
+"Old junk is louder than your new play" = 4/.5 5/.5 4/.5 2/.5 4 5 7 5 7/2 | II 4, V 4
+"Worth keeping plugged in" = 7 5 4 5 7/2 | IV 4, V 2 ; do nod
+  + gruff @2: "Plug one more in" = 0/.5 2/.5 4 0/2
+"Studio four oh four watch the show begin" = 4/.5 4/.5 4/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 5 7/2 | I 4, V 4 ; do bow
+
+[verse 2]
+"Skip a track before the bass drops down" = 4/.5 4/.5 5 4/.5 2/.5 4 5 4 0/2 | I 4, V 4 ; do tilt
+"Two brief stops and they all frown and pout" = 4/.5 4/.5 5 4/.5 2/.5 4 2 1 0/2 | VI 4, V 4 ; react gasp
+gruff: "Twenty winters for a power strip" = 0/.5 0/.5 2/.5 0/.5 2 4 4 2 0/2 | IV 4, I 4 ; do nod
+pip: "Hands are clips and I still let it rip" = 7/.5 7/.5 5 4/.5 4/.5 5 7 5 4/2 | V 4, I 4 ; do laugh
+  + chip @4: "Let it rip" = 9 7 9/2
+vee: "Thrum caught the echo Click counts four" = 4/.5 5/.5 4 2 4 5 4 7/2 | IV 4, V 4
+clank: "Clacker plays jazz off the closet floor" = 5/.5 5/.5 4 2 4/.5 4/.5 2 1 0/2 | II 4, V 4 ; do nod
+
+[breakdown]
+rest 2
+chip: "Wait listen the hall door" = 4/2 4 2 4 5 7/2 | VI 4, IV 4 ; do gasp
+"Show him we are ready four oh four" = 4/.5 5/.5 4/.5 2/.5 4 5 7 7 7/2 | IV 4, V 4 ; do nod
+  + gruff @4: "Four oh four" = 0 2 0/2
+  + vee @0: "It is our big show" = 4/.5 4/.5 5/.5 5/.5 4 7/2
+chip: "Just one solo" = 7/.5 7/.5 9 7/2 | V 4 ; do laugh
+  + gruff @0: "Just one solo" = 0/.5 0/.5 4 0/2
+
+[repeat chorus]

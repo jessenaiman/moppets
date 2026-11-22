@@ -1,0 +1,26 @@
+title: Cue Playbook III: Everyone
+id: cue-blank
+tab: 28 · Cue Playbook III: Everyone
+about: 28 · Everyone together: Cue reaches the last page of the scroll and finds it blank; the Moppets write it together
+lead: scribe
+key: E aeolian
+bpm: 88
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .2)
+backing: vee +0, pip +2, tabby +4, gruff +2, chip +7, clank +0, zap +4
+bass: none
+finale: "Page" on 7
+
+[act 3]
+"Here's the last page of my scroll" = 4 5 4 2 1 0 -1/2 | VI 4, VII 4 ; do tilt
+"But the last page has no words" = 2 2 2 1 0 -1 0/2 | IV 4, VII 4 ; do shrug
+rest 2
+tabby: "Then we'll write it all together" = 0/.5 2/.5 4 5 7 5 4 4/2 | I 4, VI 4 ; do nod
+  + gruff @4: "all together" = 0 2 4/.5 2/1.5
+
+[chorus, choir]
+"All the lines you sang tonight" = 4 5 7 5 4 2 4/2 | VI 4, VII 4
+  + chip @4: "sang tonight" = 7 8 9/2
+  + zap @4: "Click" = 7/4
+"That's the page I'll keep" = 4 5 4 2 0/4 | IV 4, I 4 ; do bow
+  + vee: "Twice for me" = 4 5 4/2
+  + clank @4: "Yes" = 0/4

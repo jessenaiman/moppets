@@ -1,0 +1,713 @@
+/* Unified 16:9 Shotcraft Theatrical Stage & Karaoke Speech Capsules (live React + Remotion parity) */
+
+.sc-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a0a0d 0%, #0f0507 60%, #070203 100%);
+  user-select: none;
+}
+
+.sc-plane {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 56%;
+}
+
+.sc-curtain-base,
+.sc-curtain-lit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 74.5%;
+  pointer-events: none;
+}
+
+.sc-curtain-base {
+  z-index: 1;
+}
+
+.sc-curtain-lit {
+  z-index: 2;
+}
+
+.sc-curtain-tint {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+}
+
+.sc-svg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.sc-beams {
+  z-index: 18;
+  mix-blend-mode: screen;
+}
+
+/* Grounded Upstage Band Riser */
+.sc-band-riser {
+  position: absolute;
+  left: 7%;
+  right: 24%;
+  bottom: 25.5%;
+  height: 22.5%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sc-riser-deck {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 19%;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #42221c 0%, #24120f 45%, #120807 100%);
+  border-top: 1.5px solid rgba(255, 224, 180, 0.34);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.68), 0 8px 18px rgba(0, 0, 0, 0.72);
+}
+
+.sc-band-members {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 15%;
+  height: 83%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.sc-band-member {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  transform-origin: 50% 94%;
+  filter: brightness(0.88) saturate(0.95) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.65));
+}
+
+.sc-band-member.hit {
+  filter: brightness(1.02) saturate(1.04) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 12px rgba(255, 224, 150, 0.32));
+}
+
+.sc-band-sprite {
+  position: absolute;
+  inset: 0;
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+/* Stage Apron Floor + Specular Lip + Reflection Pools */
+.sc-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 74.5%;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 224, 190, 0.018) 0px, rgba(255, 224, 190, 0.018) 1px, transparent 1px, transparent 14px),
+    linear-gradient(180deg, #2b1512 0%, #160908 58%, #090404 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.sc-floor-lip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 74.5%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 4%, rgba(255, 230, 194, 0.50) 35%, rgba(255, 230, 194, 0.34) 68%, transparent 96%);
+  pointer-events: none;
+  z-index: 8;
+}
+
+.sc-floor-pools,
+.sc-emissive-dark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.sc-emissive-dark {
+  z-index: 16;
+}
+
+/* Standalone Studio 404 Stage Microphones Prop Set */
+.sc-stage-mics {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-mic {
+  position: absolute;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+}
+
+.sc-mic img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.72));
+}
+
+.sc-mic-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(5, 1, 2, 0.84) 0%, transparent 74%);
+  z-index: 0;
+}
+
+.sc-mic-ribbon {
+  left: 1.8%;
+  bottom: 11.2%;
+  width: 3.3%;
+  z-index: 120;
+}
+
+.sc-mic-boom {
+  left: 22.8%;
+  bottom: 13.8%;
+  width: 5.0%;
+  z-index: 62;
+}
+
+.sc-mic-short {
+  left: 34.0%;
+  bottom: 11.8%;
+  width: 3.4%;
+  z-index: 120;
+}
+
+.sc-mic-desk {
+  left: 76.2%;
+  bottom: 12.6%;
+  width: 3.1%;
+  z-index: 56;
+}
+
+/* Tracking & Hertz: Stage-right performers sharing the AV lead */
+.sc-stage .sc-duet-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 46;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor {
+  position: absolute;
+  bottom: 10.5%;
+  height: auto;
+  aspect-ratio: 384 / 512;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor[data-art-key="tracking"] {
+  left: 84.0%;
+  width: 13.0%;
+  z-index: 48;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor[data-art-key="hertz"] {
+  left: 93.8%;
+  width: 11.4%;
+  z-index: 47;
+}
+
+.sc-stage .sc-duet-stage .sc-duet-actor .name-tag {
+  position: absolute;
+  bottom: -9.5%;
+  left: -4%;
+  right: -4%;
+  padding: 2px 0;
+  text-align: center;
+  font: 700 clamp(8px, 0.72cqw, 14px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.02em;
+  color: rgba(248, 239, 226, 0.88);
+  text-shadow: 0 2px 6px #050102, 0 0 8px rgba(5, 1, 2, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Cast Layer on Stage Floor */
+.sc-stage .sc-cast {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: block;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.sc-stage .sc-cast .sc-puppet {
+  position: absolute;
+  flex: none;
+  width: 14.2%;
+  height: auto;
+  aspect-ratio: 384 / 512;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  transform-origin: 50% 100%;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Canonical found-object proportions (README: "Gruff and Clank are giants") */
+.sc-stage .sc-cast .sc-puppet[data-art-key="gruff"] { width: 15.8%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="clank"] { width: 15.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="neon"]  { width: 14.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="cue"]   { width: 14.4%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="tabby"] { width: 13.4%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="watt"]  { width: 12.6%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key="chip"]  { width: 12.4%; }
+
+.sc-stage .sc-cast .sc-puppet:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.sc-puppet.selected::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -2%;
+  height: 3px;
+  border-radius: 99px;
+  background: #3fbfa0;
+  box-shadow: 0 0 10px rgba(63, 191, 160, 0.8);
+  pointer-events: none;
+}
+
+.sc-foot-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -1%;
+  width: 68%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(5, 1, 2, 0.82) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sc-puppet .sprite,
+.sc-duet-actor .sprite {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  aspect-ratio: 384 / 512;
+  background-size: 400% 200%;
+  background-position: var(--cel, 100% 100%);
+  background-repeat: no-repeat;
+  transform-origin: 50% 96%;
+  transform: translate(var(--gx, 0%), var(--gy, 0%)) rotate(var(--grot, 0deg))
+    scale(calc((2 - var(--sy, 1)) * var(--face, 1) * var(--gsx, 1)), calc(var(--sy, 1) * var(--gsy, 1)));
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.62));
+}
+
+.sc-puppet .sprite.solo {
+  transform: translate(var(--gx, 0%), var(--gy, 0%)) rotate(var(--grot, 0deg))
+    scale(calc((2 - var(--sy, 1)) * var(--face, 1) * var(--gsx, 1)), calc(var(--sy, 1) * var(--gsy, 1)));
+}
+
+.sc-puppet .solo-head {
+  position: absolute;
+  left: var(--hx, 25%);
+  top: var(--hy, 0%);
+  aspect-ratio: 384 / 512;
+  background-size: 400% 200%;
+  background-position: var(--head, 0% 0%);
+  background-repeat: no-repeat;
+  transform: rotate(var(--tilt, 0deg));
+}
+
+/* Mutually exclusive 3-state sprite sheets: NEVER stack open over closed simultaneously */
+:is(.sc-puppet, .sc-duet-actor) .sprite-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-sing-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-open {
+  position: absolute;
+  inset: 0;
+  background-size: 400% 200%;
+  background-position: var(--cel, 100% 100%);
+  background-repeat: no-repeat;
+}
+
+:is(.sc-puppet, .sc-duet-actor) .sprite-closed {
+  visibility: visible;
+}
+
+:is(.sc-puppet, .sc-duet-actor) .sprite-sing-closed,
+:is(.sc-puppet, .sc-duet-actor) .sprite-open {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).singing:not(.mouth-open).has-sing-closed .sprite-closed {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).singing:not(.mouth-open).has-sing-closed .sprite-sing-closed {
+  visibility: visible;
+}
+
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-closed,
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-sing-closed {
+  visibility: hidden;
+}
+
+:is(.sc-puppet, .sc-duet-actor).mouth-open .sprite-open {
+  visibility: visible;
+}
+
+.sc-cast .sc-puppet .name-tag {
+  position: absolute;
+  bottom: -9.5%;
+  left: 6%;
+  right: 6%;
+  padding: 2px 4px;
+  text-align: center;
+  font: 700 clamp(8.5px, 0.78cqw, 14.5px) / 1.1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: rgba(248, 239, 226, 0.88);
+  text-shadow: 0 2px 6px #050102, 0 0 8px rgba(5, 1, 2, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Vignette, Film Grain & VHS Vertical-Hold Gag */
+.sc-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 180;
+  background: radial-gradient(ellipse 76% 74% at 50% 48%, transparent 38%, rgba(5, 1, 2, 0.60) 100%);
+}
+
+.sc-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 182;
+  opacity: 0.075;
+  mix-blend-mode: soft-light;
+  background-size: 220px 220px;
+}
+
+.sc-vhs-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 184;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 2px,
+    rgba(0, 0, 0, 0.16) 2px,
+    rgba(0, 0, 0, 0.16) 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Self-Luminous Shotcraft Frosted Glass Karaoke Speech Capsules */
+.sc-capsules-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 220;
+}
+
+.sc-capsule-wrap {
+  position: absolute;
+  width: max-content;
+  min-width: 18%;
+  transform-origin: 50% 100%;
+}
+
+.sc-capsule {
+  position: relative;
+  border-radius: clamp(12px, 1.55cqw, 30px);
+  padding: clamp(6px, 0.95cqw, 18px) clamp(10px, 1.65cqw, 32px) clamp(8px, 1.25cqw, 24px);
+  border: 1.5px solid rgba(255, 238, 218, 0.25);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  overflow: hidden;
+}
+
+.sc-capsule-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-capsule-rim {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 1.5px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 236, 0.70) 25%, rgba(255, 248, 236, 0.45) 75%, transparent);
+  pointer-events: none;
+}
+
+.sc-capsule-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(5px, 0.65cqw, 12px);
+  margin-bottom: clamp(3px, 0.45cqw, 9px);
+  white-space: nowrap;
+}
+
+.sc-capsule-dot {
+  width: clamp(6px, 0.62cqw, 12px);
+  height: clamp(6px, 0.62cqw, 12px);
+  border-radius: 50%;
+  flex: none;
+}
+
+.sc-capsule-speaker {
+  font: 700 clamp(9px, 1.25cqw, 24px) / 1 "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.sc-capsule-role {
+  font: 600 clamp(8.5px, 0.92cqw, 18px) / 1 "JetBrains Mono", ui-monospace, monospace;
+  color: rgba(248, 239, 226, 0.52);
+}
+
+.sc-capsule-wave {
+  margin-left: auto;
+  padding-left: clamp(6px, 0.8cqw, 16px);
+  height: clamp(12px, 1.55cqw, 30px);
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.5px, 0.2cqw, 4px);
+  flex: none;
+}
+
+.sc-capsule-wave i {
+  display: inline-block;
+  width: clamp(1.8px, 0.2cqw, 4px);
+  border-radius: 99px;
+}
+
+/* Q11-Compliant Narrative Karaoke Subtitle Type: 2.95cqw = 56.6px at 1920x1080 */
+.sc-capsule-words {
+  position: relative;
+  font: 760 clamp(12px, 2.95cqw, 57px) / 1.18 "Instrument Sans", "DM Sans", system-ui, sans-serif;
+  letter-spacing: -0.024em;
+  overflow-wrap: break-word;
+}
+
+.sc-kword {
+  position: relative;
+  display: inline-block;
+  margin-right: 0.25em;
+}
+
+.sc-kword:last-child {
+  margin-right: 0;
+}
+
+.sc-kword-dim {
+  color: rgba(248, 239, 226, 0.27);
+}
+
+.sc-kword-lit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-kword-finger {
+  position: absolute;
+  bottom: -0.08em;
+  height: clamp(2px, 0.34cqw, 6.5px);
+  border-radius: 99px;
+  pointer-events: none;
+}
+
+.sc-capsule-tail {
+  position: relative;
+  top: -1.5px;
+  width: clamp(16px, 1.85cqw, 36px);
+  height: clamp(8px, 0.92cqw, 18px);
+  transform: translateX(-50%);
+  display: block;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+@media (max-width: 650px) {
+  .sc-stage {
+    min-height: 236px;
+  }
+  .sc-capsule-role {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .sc-cast .sc-puppet .name-tag {
+    left: 50%;
+    right: auto;
+    width: max-content;
+    transform: translateX(-50%);
+    font-size: 8.5px;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(12, 5, 6, 0.8);
+  }
+  .sc-cast .sc-puppet:nth-child(odd) .name-tag {
+    bottom: -9%;
+  }
+  .sc-cast .sc-puppet:nth-child(even) .name-tag {
+    bottom: -23%;
+  }
+  .sc-critics-tag {
+    font-size: 8.5px;
+    letter-spacing: 0.01em;
+    bottom: -22%;
+  }
+}
+
+.sc-solo-setting {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+.sc-stage[data-solo-set] .sc-stage-mics,
+.sc-stage[data-solo-set] .sc-floor,
+.sc-stage[data-solo-set] .sc-floor-lip,
+.sc-stage[data-solo-set] .sc-floor-pools { display: none; }
+.sc-stage[data-solo-set] .sc-cast .sc-puppet[data-art-key] { width: 34%; }
+.zap-solo { display: block; width: 100%; aspect-ratio: 290 / 420; position: relative; }
+.zap-solo img { display: block; width: 100%; height: 100%; }
+.zap-solo i {
+  position: absolute; border-radius: 30%; background: currentColor;
+  box-shadow: 0 0 0.5em currentColor; mix-blend-mode: screen; pointer-events: none;
+  transition: opacity 80ms ease-out;
+}
+.zap-solo .zap-transmit { left: 28%; top: 8%; width: 22%; height: 3.3%; color: #ff4837; transform: rotate(-6deg); }
+
+.zap-solo .zap-cue-arm { position: absolute; inset: 0; transform-origin: 58% 41%; transition: transform 120ms ease-out; }
+.zap-solo .zap-body { position: relative; }
+.sc-stage[data-solo-set] .sc-capsule-words { font-size: clamp(12px, 1.8cqw, 32px); }
+@container (max-width: 540px) {
+  .sc-stage[data-solo-set] .sc-capsule-head { display: none; }
+}
+
+.sc-stage[data-solo-set] .sc-cast .sc-puppet .name-tag { bottom: -5%; }
+
+.sc-stage[data-solo-set="zap"] .sc-solo-setting { background-size: 100% 100%; }
+.sc-cart-crt { position:absolute;left:76.145833%;top:5.555556%;width:15.625%;height:27.777778%; }
+.sc-stage[data-solo-set="zap"] .sc-cast .sc-puppet[data-art-key="zap"] { height:83.333333%;width:auto;aspect-ratio:370/450; }
+.sc-stage[data-solo-set="zap"] .sc-foot-shadow { display:none; }
+.sc-stage[data-solo-set="zap"] .sc-svg-layer,
+.sc-stage[data-solo-set="zap"] .sc-puppet.selected::after { display: none; }
+
+.sc-stage[data-solo-set="gruff"] .sc-solo-setting { background-size: 100% 100%; }
+.sc-stage[data-solo-set="gruff"] .sc-cast .sc-puppet[data-art-key="gruff"] { height: 84%; width: auto; aspect-ratio: 3/4; }
+.sc-stage[data-solo-set="gruff"] .solo-live-rig { transform: none; }
+.sc-stage[data-solo-set="gruff"] .sc-foot-shadow { bottom: 2%; width: 36%; }
+
+/* Glass, deck lamp and reflected light register to the photographed AV cart. */
+.zap-room-spill { position:absolute; inset:0; mix-blend-mode:screen; }
+.zap-tv-glass { position:absolute; left:78.85%; top:11.65%; width:11.2%; height:21.8%; border-radius:16% / 19%; transform:rotate(-2deg); overflow:hidden; isolation:isolate; }
+.zap-tv-glass::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:repeating-linear-gradient(0deg,#18221922 0 1px,transparent 1px 3px); box-shadow:inset 0 0 .8cqw .25cqw #191e17aa; }
+.zap-tv-picture,.zap-tv-self,.zap-tv-archive,.zap-tv-roll { position:absolute; }
+.zap-tv-picture { inset:0; }
+.zap-tv-self { height:105%;width:100%;object-fit:contain;bottom:-9%; }
+.zap-tv-archive { width:140%;height:140%;left:-18%;top:-26%; }
+.zap-tv-roll { height:12%;left:0;right:0;background:#e1f0d3aa; }
+.zap-deck-lamp { position:absolute; left:85.7%;top:44.8%;width:1%;height:.75%; border-radius:30%; box-shadow:0 0 .5cqw #c1df9d; }
+.zap-crt-spark {position:absolute;left:48%;top:49%;width:4%;height:2%;border-radius:50%;background:#e9ffd6;box-shadow:0 0 .45cqw #acdfa2;}
+.zap-sunshower {position:absolute;inset:0;background:repeating-linear-gradient(108deg,transparent 0 13%,#c2dfeb96 14%,transparent 16%);}
+.sc-stage[data-solo-set="zap"] .zap-solo {filter:drop-shadow(0 .28cqw .16cqw #402a1e78);}
+
+.sc-stage[data-solo-set="neon"]:has(.neon-performer) .sc-cast .sc-puppet[data-art-key="neon"] {height:87%;width:auto;aspect-ratio:3/4;}
+.neon-performer {display:block;width:100%;height:100%;background-repeat:no-repeat;}
+.sc-stage:has(.neon-performer) .sc-svg-layer,.sc-stage:has(.neon-performer) .sc-puppet.selected::after,.sc-stage:has(.neon-performer) .sc-foot-shadow {display:none;}
+.neon-bay-lights,.neon-bay-lights i {position:absolute;inset:0;pointer-events:none;}
+.neon-cyan-spill {background:radial-gradient(ellipse at 14% 52%,#04d4ef66,transparent 34%),radial-gradient(ellipse at 28% 88%,#21c9c538,transparent 22%);mix-blend-mode:screen;}
+.neon-rose-spill {background:radial-gradient(ellipse at 92% 51%,#fd458466,transparent 35%),radial-gradient(ellipse at 72% 87%,#eb65643d,transparent 22%);mix-blend-mode:screen;}
+
+.cue-prompt-stand {
+  position: absolute; left: 14%; bottom: 14%; width: 23%; height: 31%;
+  perspective: 65cqw;
+  background: linear-gradient(90deg,#4e3427,#c08c54,#443226) center bottom / 4% 70% no-repeat,
+    radial-gradient(ellipse,#3d261b 32%,transparent 67%) center bottom / 55% 10% no-repeat;
+}
+.cue-prompt-card {
+  position: absolute; inset: 0 0 45%; display: grid; place-items: center;
+  border: 1px solid #b39767; border-radius: 4%; background: #e9ddba;
+  box-shadow: 0 .4cqw .55cqw #26170b80; transform-style: preserve-3d;
+}
+.cue-prompt-card span { font: italic bold 2cqw Georgia,serif; color: #513527; backface-visibility: hidden; transform: translateZ(1px); }
+.cue-partner-mark { position: absolute; left: 68%; bottom: 11%; width: 8%; height: 3%; background: linear-gradient(24deg,transparent 42%,#efd393 43% 56%,transparent 57%),linear-gradient(-24deg,transparent 42%,#efd393 43% 56%,transparent 57%); }
+.neon-partner-spot { background: radial-gradient(ellipse 15% 5% at 69% 89%,#ffc2dfbc,transparent 95%); }
+.neon-partner-spot[data-shared="true"] { background: radial-gradient(ellipse 17% 5% at 69% 89%,#ffadd9ad,transparent 95%),radial-gradient(ellipse 15% 5% at 43% 89%,#8cf3ff9c,transparent 95%); }
+.rehearsal-actor { display:block; width:100%; height:100%; background-size:400% 400%; background-repeat:no-repeat; transform-origin:50% 95%; }
+.sc-stage .sc-cast .sc-puppet[data-art-key]:has(.rehearsal-actor) { height:84%; width:auto; aspect-ratio:420/480; }
+.sc-stage[data-duet] .sc-cast .sc-puppet[data-art-key]:has(.rehearsal-actor) { height:64%; }
+.sc-stage[data-duet] .sc-stage-mics { display:none; }
+.sc-stage .sc-cast .sc-puppet:is(:has(.rehearsal-actor),:has(.workshop-solo)) .name-tag {
+  left:50%;right:auto;width:max-content;min-width:22%;transform:translateX(-50%);border-radius:.12em;
+  bottom:-5%; background:linear-gradient(112deg,#d6ad70,#fff1c9 42%,#e0ba80);
+  border:1px solid #936c43; color:#372514; padding:.28em 1.25em;
+  box-shadow:0 .18em .24em #25170eb3; text-shadow:none; font:bold clamp(9px,1.5cqw,24px) Georgia,serif;
+}
+.workshop-solo {position:relative;display:block;width:100%;height:100%;background-repeat:no-repeat;}
+.sc-stage[data-solo-set] .sc-cast .sc-puppet[data-art-key]:has(.workshop-solo){width:auto;height:88%;aspect-ratio:3/4;}
+.workshop-prop {position:absolute;display:block;background-repeat:no-repeat;aspect-ratio:120/96;pointer-events:none;}
+.workshop-solo[data-act=chip] .workshop-prop {width:30%;filter:drop-shadow(0 .15cqw .12cqw #24170ecc);}
+.workshop-solo[data-act=watt] .workshop-prop {width:47%;left:90%;bottom:4%;filter:drop-shadow(0 .22cqw .16cqw #20170dcc);}
+.workshop-solo[data-act=clank] .workshop-prop {width:37%;left:32%;top:39%;}
+.critic-performance {position:relative;display:block;width:100%;aspect-ratio:3/4;background-repeat:no-repeat;}
+.critic-tape {position:absolute;left:34%;top:30%;width:32%;aspect-ratio:120/96;background-repeat:no-repeat;}
+.critic-cable {position:absolute;left:86%;bottom:12%;width:6.5%;aspect-ratio:120/96;background-repeat:no-repeat;z-index:46;}
+.ensemble-puppet {display:block;width:100%;aspect-ratio:3/4;object-fit:contain;pointer-events:none;}
+.stage-cord {position:absolute;inset:0;pointer-events:none;background-repeat:no-repeat;}
+.stage-cord[data-side=back]{z-index:39;}
+.stage-cord[data-side=front]{z-index:43;}
+.stage-cord[data-solo=true]{transform-origin:0 85%;transform:translateX(-19%) scaleY(1.25);}
+.sc-stage .sc-puppet:has(.rehearsal-actor) .sc-foot-shadow{display:block;bottom:2%;height:4%;width:33%;left:49%;opacity:1!important;background:radial-gradient(ellipse at 25% 50%,#291304ed 0%,#351b0f9e 15%,transparent 34%),radial-gradient(ellipse at 74% 50%,#311b0ce6 0%,#38221190 15%,transparent 30%);}
+.sc-stage .sc-puppet:has(.rehearsal-actor).selected::after{display:none;}
+.cue-prompt-card img{position:absolute;width:105%;height:130%;backface-visibility:hidden;transform:translateZ(.5px);}

@@ -1,0 +1,33 @@
+/* Keep Remotion’s native track tree, drag handles, menus and keyboard bindings. */
+html.studio404-timeline body {background:#211a15}
+html.studio404-timeline [role="region"][aria-label="Timeline"] {
+  position:fixed !important; inset:0 !important; width:100% !important; height:100% !important;
+  z-index:20; visibility:visible; background:#251e19 !important;color:#efe3cf;
+  font-family:"Instrument Sans","DM Sans",system-ui,sans-serif;
+}
+html.studio404-timeline [role="region"][aria-label="Timeline"] button {color:#e3ceaf}
+html.studio404-timeline [role="region"][aria-label="Timeline"] button:hover {background-color:#493726 !important}
+html.studio404-timeline [role="region"][aria-label="Timeline"] :focus-visible {outline:2px solid #e8b766;outline-offset:-2px}
+
+/* Studio exposes these palette variables for the shell, library and tracks. */
+body, [role="region"][aria-label="Timeline"] {
+  --remotion-studio-background:#251b14;
+  --remotion-studio-input-background:#35291f;
+  --remotion-studio-tab-hover-background:#443629;
+  --remotion-studio-light-color:#f4ead6;
+  --remotion-studio-light-text:#d7c7ac;
+  --remotion-studio-ruler-color:#c5b298;
+  --remotion-studio-line-color:#584531;
+  --remotion-studio-splitter-color:#19120d;
+  --remotion-studio-timeline-track-separator:#453627;
+  --remotion-studio-timeline-background-color:#211a14;
+  --remotion-studio-timeline-selected-background-color:#795b38;
+  --remotion-studio-timeline-selected-label-background-color:#5e472f;
+  --remotion-studio-timeline-blue:#a67a43;
+  --remotion-studio-blue:#bc925a;
+  --remotion-studio-primary-button-background:#936d41;
+  --remotion-studio-focus-color:#f2c77e;
+  --remotion-studio-timeline-playhead-color:#e7a455;
+}
+html.studio404-timeline body {visibility:hidden}
+html.studio404-timeline :is([role="menu"],[role="dialog"],[role="tooltip"],[role="listbox"]) {visibility:visible}

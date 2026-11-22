@@ -1,0 +1,45 @@
+{
+  "version": "0.1.0",
+  "params": {
+    "breath": {
+      "f32": 8.0
+    },
+    "breathy": {
+      "f32": 0.15
+    },
+    "bright": {
+      "f32": 0.25
+    },
+    "fry": {
+      "f32": 0.0
+    },
+    "gain": {
+      "f32": 0.0
+    },
+    "glide": {
+      "f32": 0.06
+    },
+    "pressed": {
+      "f32": 0.5
+    },
+    "restart": {
+      "bool": true
+    },
+    "ring": {
+      "f32": 0.0
+    },
+    "rough": {
+      "f32": 0.1
+    },
+    "vibrato": {
+      "f32": 35.0
+    },
+    "vibrato_rate": {
+      "f32": 6.0
+    }
+  },
+  "fields": {
+    "settings": "{\"version\":1,\"lyrics\":\"Hello there, I am a voice made of air.\",\"body\":{\"female\":0.0,\"child\":0.0},\"mode\":\"sing\",\"artic\":{},\"tipFree\":true,\"voiced\":true,\"f0\":110.0,\"startSyllable\":0,\"speech\":{\"text\":\"Hello. Can you hear me?\",\"ipa\":false,\"rate\":1.0,\"startLine\":0},\"beat\":{\"steps\":[{\"id\":\"B\"},null,{\"id\":\"t\"},null,{\"id\":\"Pf\"},null,{\"id\":\"t\"},null,{\"id\":\"B\"},null,{\"id\":\"t\"},null,{\"id\":\"Pf\"},null,{\"id\":\"t\"},null],\"bpm\":96.0,\"swing\":0.0,\"preset\":\"Boots and cats\",\"mic\":true,\"follow\":true}}",
+    "window": "[1280,800]"
+  }
+}
