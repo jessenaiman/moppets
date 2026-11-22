@@ -279,10 +279,6 @@ export function handleControl(c: MidiControl): boolean {
 
 onMidiControl(handleControl);
 
-export function lockVoiceControls() {
-  useController.setState({ learning: null, bend: 0 });
-}
-
 export function resetSelectedVocal() {
   pending.delete(useMoppet.getState().selected);
   useController.setState({ learning: null, bend: 0 });
