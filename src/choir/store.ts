@@ -245,7 +245,8 @@ export const useMoppet = create<MoppetState>((set, get) => {
   freshSkit: null,
   songEdits: loadEdits(),
   editSongFile: (change) => {
-    const cur = currentFile(get().lesson);
+    const lesson = get().lesson;
+    const cur = currentFile(lesson);
     if (!cur) return;
     change(cur.parsed);
     const text = printSongFile(cur.parsed);
@@ -257,10 +258,23 @@ export const useMoppet = create<MoppetState>((set, get) => {
     // syllables are counted by the pronouncing dictionary: without it, the letter rules miscount
     // ("check" as two) and a good edit read as unsingable
     const apply = () => {
+      if (get().lesson !== lesson) return;
       if (get().songEdits[cur.file] !== (text === SONG_SOURCES.get(cur.file) ? undefined : text)) return; // edited again since
       const problems = fileProblems(cur.parsed);
       if (problems.length) return set({ status: `Not singable yet: ${problems[0]}${problems.length > 1 ? ` (and ${problems.length - 1} more)` : ""}. The score keeps the last version that fits.` });
       const { piece, baseBpm } = applyTempo(scoreFor(get()), get().tempoScale);
+      // Lead sheets have no MIDI velocities. Keep them on the same authored notes
+      // when the score editor recompiles a part after a pitch or duration edit.
+      for (const track of piece.tracks) {
+        const previous = get().piece.tracks.find((t) => t.id === track.id)?.events;
+        if (!previous || previous.length !== track.events.length) continue;
+        track.events.forEach((event, i) => {
+          const old = previous[i];
+          if (old.vel !== undefined && event.src && event.src.join() === old.src?.join()) {
+            event.vel = old.vel;
+          }
+        });
+      }
       set({ piece, baseBpm, status: cur.parsed.kind === "song" ? "Edited: every line fits its notes." : "Edited." });
       loadPiece(piece);
     };
@@ -485,7 +499,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
     const { piece: raw, changed, kept } = scoreFromMidi(get().piece, parseMidi(bytes));
     const { piece, baseBpm } = applyTempo(raw, get().tempoScale);
     const name = (id: string) => get().voices.find((v) => v.id === id)?.name ?? id;
-    const msg = [changed.length ? `Singing your notes for ${changed.map(name).join(", ")}.` : "No notes moved.", kept.length ? `Kept the old notes for ${kept.map((k) => k.replace(/^\w+/, name)).join("; ")}: each syllable needs one note.` : ""];
+    const msg = [changed.length ? `Updated MIDI for ${changed.map(name).join(", ")}.` : "No MIDI changes.", kept.length ? `Kept the old notes for ${kept.map((k) => k.replace(/^\w+/, name)).join("; ")}: each syllable needs one note.` : ""];
     set({ piece, baseBpm, status: msg.filter(Boolean).join(" ") });
     loadPiece(piece);
   },

@@ -4,6 +4,7 @@ import type { Piece } from "./music.ts";
 import { BAND_SETUP, bandFor, type BandId, type BandPart } from "./band.ts";
 
 export const PPQ = 480;
+const DEFAULT_SINGER_VELOCITY = 85;
 
 function variable(n: number): number[] {
   const bytes = [n & 127];
@@ -26,7 +27,7 @@ export function midiBytes(piece: Piece): Uint8Array {
   const tracks=[chunk("MTrk",[...conductor,0,255,47,0])];
   // the singers on channels 1.., then the band's parts on their General MIDI channels and programs
   const parts: { name: string; channel: number; program?: number; notes: { beat: number; beats: number; midi: number; vel: number }[] }[] = [
-    ...piece.tracks.map((t, i) => ({ name: t.id, channel: i, notes: t.events.map((e) => ({ ...e, vel: 85 })) })),
+    ...piece.tracks.map((t, i) => ({ name: t.id, channel: i, notes: t.events.map((e) => ({ ...e, vel: e.vel ?? DEFAULT_SINGER_VELOCITY })) })),
     ...bandFor(piece).map((b) => ({ name: `band ${b.id}`, channel: b.channel, program: b.id === "drums" ? undefined : b.program, notes: b.notes })),
   ];
   parts.forEach((track) => {
@@ -141,9 +142,17 @@ export function scoreFromMidi(piece: Piece, file: ReturnType<typeof parseMidi>):
       kept.push(`${t.id} (${m.notes.length} notes for ${t.events.length} syllables)`);
       return t;
     }
-    const same = m.notes.every((n, k) => n.midi === t.events[k].midi && Math.abs(n.beat - t.events[k].beat) < 1e-3 && Math.abs(n.beats - t.events[k].beats) < 1e-3);
-    if (!same) changed.push(t.id);
-    return { ...t, events: m.notes.map((n, k) => ({ ...t.events[k], beat: n.beat, beats: n.beats, midi: n.midi })) };
+    const events = m.notes.map((n, k) => ({
+      ...t.events[k], beat: n.beat, beats: n.beats, midi: n.midi,
+      vel: n.vel ?? t.events[k].vel,
+    }));
+    if (events.some((n, k) => {
+      const old = t.events[k];
+      return n.midi !== old.midi || Math.abs(n.beat - old.beat) >= 1e-3 ||
+        Math.abs(n.beats - old.beats) >= 1e-3 ||
+        (n.vel ?? DEFAULT_SINGER_VELOCITY) !== (old.vel ?? DEFAULT_SINGER_VELOCITY);
+    })) changed.push(t.id);
+    return { ...t, events };
   });
   const end = Math.max(piece.beats, ...tracks.flatMap((t) => t.events.map((e) => e.beat + e.beats)));
   // compared at MIDI resolution and in time order, so an untouched round trip reads as unchanged

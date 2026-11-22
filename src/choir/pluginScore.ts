@@ -16,7 +16,9 @@ export function instrumentPart(piece: Piece, track: Track, voice: MoppetVoice) {
     lyrics: lines.join(piece.kind === "skit" ? "\n" : " ").replaceAll("_"," - "),
     body: voice.body, source: { pressed:voice.source.tension, breath:voice.source.pressure, bright:voice.source.brightness,
       breathy:voice.source.breathiness, rough:voice.source.roughness },
-    notes: track.events.map(e=>[e.beat,e.beats,e.midi]) };
+    notes: track.events.map(e => e.vel === undefined
+      ? [e.beat, e.beats, e.midi]
+      : [e.beat, e.beats, e.midi, e.vel]) };
 }
 export type InstrumentPart = ReturnType<typeof instrumentPart> & {artic?: Record<string,number>};
 export async function partKey(part: InstrumentPart) {

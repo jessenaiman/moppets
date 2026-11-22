@@ -36,6 +36,8 @@ export interface ScoreEvent {
   beat: number;
   beats: number;
   midi: number;
+  /** Authored MIDI note-on velocity (1–127), when supplied. */
+  vel?: number;
   text: string;
   strong?: boolean;
   /** lyric line this note belongs to (a key into the track's `phrases`) */
