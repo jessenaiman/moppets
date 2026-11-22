@@ -18,3 +18,16 @@ storyboard/**/*.pptx
 
 # EffectCraft authoring projects live in the Speedy asset library.
 *.ecproj
+
+# Local links to production artwork and editable masters on Speedy.
+/moppets/**/*.anicraft
+/moppets/**/*.blend
+/moppets/**/*.mcmat
+/moppets/**/*.mcraft
+/moppets/**/*.png
+/moppets/**/*.tcraft
+/storyboard/**/*.designcraft
+/storyboard/**/*.jpg
+/storyboard/**/*.png
+/storyboard/**/*.webp
+/tools/**/*.anicraft
