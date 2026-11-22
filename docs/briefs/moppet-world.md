@@ -60,6 +60,18 @@ Leads in harmony: **Tabby** (melody), **Gruff** (bass), **Chip** (high). Backing
 and echoes twin harmonies, **Clank** hums a beat late, **Cue** mouths every line just before the others.
 Tracking and Hertz are on stage with everyone, and dance as a pair. **They need each other to watch anything:** Tracking plays the archive tapes but has no screen; Hertz has the screen but nothing to play. An old AV cable runs from Tracking's video-out to Hertz's input, so they're never more than a cable's length apart. They coach rather than sing (they say a coach doesn't need to), but one of them always claps at the end and the other pretends he didn't.
 
+## Latch at the talkback desk
+
+Latch (Codex’s Moppet) is the old talkback footswitch. On the last load-out somebody unscrewed the desk and took it away. The pedal was still screwed to the floor under it. Latch remembers this as the day the desk went for a walk. One hinge squeaks. A little felt washer borrowed from Gruff’s bass case quiets it enough to get through a ballad.
+
+Latch writes songs by listening for the thing somebody nearly said. The pedal tips forward to open the talkback circuit. On release the hinge cuts off the voice, occasionally one syllable too soon. When Latch is listening, the toe rises a fraction and holds there. Give that hesitation time to read. The click belongs on the release. Latch wants everyone to get a turn and has a bad habit of filling a perfectly good silence.
+
+Cue likes to call places. Latch waits until Cue gives the signal, even when everybody is already in place. On a good night Cue gets to announce a surprise and Latch gets to be surprised.
+
+## Gruff on the cable shelf
+
+Gruff’s multicore was coiled on the workshop shelf after a tape label came loose. Nobody on the load-out could say where the far end went. Gruff still keeps one hand on the end of a cable when he passes it to a friend. His one-string tub bass gives that same gesture a musical use.
+
 ## The AV cart and study hall
 
 - **Tracking, Hertz and Zap are three old pals from the early 90s on one rolling AV cart.** The cart

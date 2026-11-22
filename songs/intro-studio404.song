@@ -33,8 +33,9 @@ pip: "Plug in with me and sing tonight" = reply
 turnaround V 4
 
 [gruff]
-gruff: "I am Gruff my valves hum so low" = hello
-gruff: "Sit close by and share my warm glow" = reply
+# Latch: Let the band leave a space after “low” for one tub-bass pluck.
+gruff: "One string is plenty, nice and low" = hello
+gruff: "Hold this end tight and don’t let go" = reply
 turnaround V 4
 
 [tabby]
