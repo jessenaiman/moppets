@@ -18,23 +18,11 @@ export interface MidiControl {
   /** 0..127: the controller's value, or the note's velocity (0 for a release) */
   value: number;
 }
-/** Listeners see every control change, and every note first: returning true claims the note, so it doesn't play. */
-const controlListeners = new Set<(c: MidiControl) => boolean | void>();
-/** notes a listener claimed, by "owner \0 note", so their release is claimed too */
+// Launchkey pads must be claimed before a note reaches the singer.
 const claimed = new Set<string>();
+type ControllerHandlers = MidiHandlers & { control: (event: MidiControl) => boolean };
 
-export function onMidiControl(fn: (c: MidiControl) => boolean | void): () => void {
-  controlListeners.add(fn);
-  return () => void controlListeners.delete(fn);
-}
-
-function offer(c: MidiControl): boolean {
-  let taken = false;
-  for (const fn of controlListeners) if (fn(c)) taken = true;
-  return taken;
-}
-
-let handlers: MidiHandlers | null = null;
+let handlers: ControllerHandlers | null = null;
 let access: MIDIAccess | null = null;
 let pending: Promise<void> | null = null;
 /** bumped by disconnect: a connection still waiting for permission then gives up */
@@ -112,14 +100,14 @@ function attach(a: MIDIAccess): void {
         ? d[1]>=96&&d[1]<104?d[1]-96:d[1]>=112&&d[1]<120?d[1]-112+8:undefined
         : undefined;
       if (kind === 0x90 && d.length > 2 && d[2] > 0) {
-        if (offer({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: d[2] })) claimed.add(owner + SEP + d[1]);
+        if (handlers?.control({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: d[2] })) claimed.add(owner + SEP + d[1]);
         else press(owner, d[1], d[2]);
       } else if (kind === 0x80 || kind === 0x90) {
-        if (claimed.delete(owner + SEP + d[1])) offer({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: 0 });
+        if (claimed.delete(owner + SEP + d[1])) handlers?.control({ kind: "note", channel, dawPad:sessionPad, number: d[1], value: 0 });
         else lift(owner, d[1]);
       } else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
-      else if (kind === 0xe0 && d.length > 2) offer({kind:"bend",channel,number:0,value:((d[2]<<7)+d[1]-8192)/8192});
-      else if (kind === 0xb0 && d.length > 2) offer({ kind: "cc", channel, number: d[1], value: d[2] });
+      else if (kind === 0xe0 && d.length > 2) handlers?.control({kind:"bend",channel,number:0,value:((d[2]<<7)+d[1]-8192)/8192});
+      else if (kind === 0xb0 && d.length > 2) handlers?.control({ kind: "cc", channel, number: d[1], value: d[2] });
     };
   });
   // unplugged inputs release what they held
@@ -129,7 +117,7 @@ function attach(a: MIDIAccess): void {
 }
 
 /** Ask for MIDI access and listen (one request at a time; resolves when connected). */
-export function connectMidi(h: MidiHandlers): Promise<void> {
+export function connectController(h: ControllerHandlers): Promise<void> {
   handlers = h;
   if (access) return Promise.resolve();
   if (pending) return pending;
@@ -151,7 +139,7 @@ export function connectMidi(h: MidiHandlers): Promise<void> {
   return p;
 }
 
-export function disconnectMidi(): void {
+export function disconnectController(): void {
   generation++;
   pending = null;
   if (access) {

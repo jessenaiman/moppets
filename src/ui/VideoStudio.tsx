@@ -390,7 +390,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                   className={midiOn ? "on" : ""}
                   aria-pressed={midiOn}
                   disabled={!midiSupported()}
-                  onClick={() => setMidi(!midiOn)}
+                  onClick={() => setMidi(!midiOn, "keyboard")}
                 >
                   {!midiSupported()
                     ? "MIDI: Needs HTTPS"
@@ -402,7 +402,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                           ? midi.inputs[0]
                             ? `MIDI: ${midi.inputs[0]}`
                             : "MIDI: Ready"
-                          : "Connect MIDI"}
+                          : "Connect MIDI keyboard"}
                 </button>
 
                 <input

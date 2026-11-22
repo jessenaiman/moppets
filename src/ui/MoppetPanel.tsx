@@ -979,7 +979,7 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
           return (
             <g key={`${t.id}${i}`} className={editable ? "note-edit" : undefined} opacity={edit && !mine ? 0.25 : 1}>
               <rect x={x} y={y - (editable ? 4 : 2.5)} width={width} height={editable ? 8 : 5} rx={1.5} fill={color} opacity={0.85} onPointerDown={editable ? (ev) => start(ev, t.id, i, "pitch") : undefined}>
-                <title>{`${t.id}: ${noteName(e.midi, piece.key, piece.mode)}, beat ${e.beat + 1}${e.text ? `, ${e.text}` : ""}`}</title>
+                <title>{`${t.id}: ${noteName(e.midi, piece.key, piece.mode)}, beat ${e.beat + 1}${e.text ? `, ${e.text}` : ""}${e.vel === undefined ? "" : `, velocity ${e.vel}`}`}</title>
               </rect>
               {editable && <rect className="note-end" x={x + width - 4} y={y - 6} width={6} height={12} fill="transparent" onPointerDown={(ev) => start(ev, t.id, i, "length")} />}
               {words?.[i] && x >= free && (free = x + words[i]!.length * 5 + 3) && <text x={x + 1} y={y - 7} fill="#fff4d6" fontSize={9} pointerEvents="none">{words[i]}</text>}
@@ -1167,7 +1167,8 @@ function MidiStrip() {
   const learning = useController((s) => s.learning);
   const resetMap = useController((s) => s.resetMap);
   if (!midiSupported()) return null;
-  const on = midi.status === "on";
+  const controllerMode = useController((s) => s.midiMode === "controller");
+  const on = midi.status === "on" && controllerMode;
   const status = midi.status === "connecting" ? "Connecting…" : midi.status === "denied" ? "Blocked by the browser" : on ? (midi.inputs.length ? midi.inputs.join(", ") : "Plug one in") : "Off";
   return (
     <div className="midi-strip">

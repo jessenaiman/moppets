@@ -4,7 +4,8 @@ import { setVoiceLevel } from "./voiceLevels.ts";
  * while CC 7 adjusts the selected singer's volume cleanly. No artificial voice-editing lockouts. */
 import { create } from "zustand";
 import { useAudio } from "../audio/audio.ts";
-import { connectMidi, disconnectMidi, midiSupported, onMidiControl, type MidiControl, type MidiStatus } from "../ui/midi.ts";
+import { connectController, disconnectController, type MidiControl } from "../ui/midi.ts";
+import { connectMidi, disconnectMidi, midiSupported, type MidiStatus, type MidiHandlers } from "@chimera/ui/midi.ts";
 import { useMoppet } from "./store.ts";
 import { editVoice } from "./ensemble.ts";
 import { liveNoteOff, liveNoteOn, MOUTH, moveMouth, offerStaffMidi, auditionNote, useLive } from "./live.ts";
@@ -135,7 +136,8 @@ interface ControllerState {
   resetMap: () => void;
   /** the browser's MIDI connection and the inputs it sees */
   midi: { status: MidiStatus; inputs: string[] };
-  setMidi: (on: boolean) => void;
+  setMidi: (on: boolean, mode?: "keyboard" | "controller") => void;
+  midiMode: "keyboard" | "controller";
 }
 
 function saveMap(map: Record<number, ControlKey>): void {
@@ -159,9 +161,14 @@ export const useController = create<ControllerState>((set, get) => ({
     set({ map: { ...DEFAULT_MAP }, learning: null, last: "Knobs back to the Launchkey layout." });
   },
   midi: { status: "off", inputs: [] },
-  setMidi: (on) => {
+  midiMode: "controller",
+  setMidi: (on, mode = "controller") => {
+    const previous = get();
+    if (on && (previous.midi.status === "connecting" || previous.midi.status === "on") && previous.midiMode === mode) return;
+    if (previous.midiMode === "keyboard") disconnectMidi();
+    else disconnectController();
+    set({ midiMode: mode });
     if (!on) {
-      disconnectMidi();
       set({ midi: { status: "off", inputs: [] } });
       return;
     }
@@ -172,7 +179,7 @@ export const useController = create<ControllerState>((set, get) => ({
     set({ midi: { status: "connecting", inputs: [] } });
     // the click that connects is also the gesture that may start audio
     void useAudio.getState().start();
-    connectMidi({
+    const handlers: MidiHandlers = {
       // staff step-input gets first claim when a staff note is selected; otherwise keys play the live Moppet
       noteOn: (n, v) => {
         touchControl("key", n);
@@ -192,8 +199,10 @@ export const useController = create<ControllerState>((set, get) => ({
         liveNoteOff(n);
       },
       inputs: (names) => set({ midi: { status: "on", inputs: names } }),
-    }).catch(() => {
-      if (get().midi.status === "connecting") set({ midi: { status: "denied", inputs: [] } });
+    };
+    const connection = mode === "keyboard" ? connectMidi(handlers) : connectController({ ...handlers, control: handleControl });
+    connection.catch(() => {
+      if (get().midiMode === mode && get().midi.status === "connecting") set({ midi: { status: "denied", inputs: [] } });
     });
   },
 }));
@@ -277,7 +286,6 @@ export function handleControl(c: MidiControl): boolean {
   return false;
 }
 
-onMidiControl(handleControl);
 
 export function resetSelectedVocal() {
   pending.delete(useMoppet.getState().selected);

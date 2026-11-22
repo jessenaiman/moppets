@@ -689,7 +689,7 @@ export function RehearsalStaffPanel() {
           <button type="button" className={isLooping ? "on" : ""} aria-pressed={isLooping} disabled={!phraseRange || busy} onClick={toggleLoop} title="Loop the selected line on stage">
             {isLooping ? "■ Stop loop" : "↻ Loop line"}
           </button>
-          <button type="button" className={midi.status === "on" ? "on" : ""} disabled={!midiSupported()} aria-pressed={midi.status === "on"} onClick={() => setMidi(midi.status !== "on")} title="Connect a MIDI keyboard for step-input on the selected note">
+          <button type="button" className={midi.status === "on" ? "on" : ""} disabled={!midiSupported()} aria-pressed={midi.status === "on"} onClick={() => setMidi(midi.status !== "on", "keyboard")} title="Connect a MIDI keyboard for step-input on the selected note">
             {midiLabel}
           </button>
         </div>
