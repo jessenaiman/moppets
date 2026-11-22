@@ -66,6 +66,24 @@ function keysNote(out: Float32Array, start: number, n: BandNote, fs: number, len
   }
 }
 
+/** GM square lead. Limit the odd harmonics so high notes stay clear. */
+function squareNote(out: Float32Array, start: number, note: BandNote, rate: number, length: number): void {
+  const frequency = hz(note.midi);
+  const harmonics = Math.min(7, Math.floor(7500 / frequency));
+  const release = Math.round(rate * 0.02);
+  const total = Math.min(out.length - start, length + release);
+  const gain = note.vel / 127 * 0.18;
+  for (let i = 0; i < total; i++) {
+    const cycle = frequency * i / rate;
+    let sample = 0;
+    for (let harmonic = 1; harmonic <= harmonics; harmonic += 2) {
+      sample += tsin(cycle * harmonic) / harmonic;
+    }
+    const envelope = Math.min(1, i / (0.004 * rate), (length + release - i) / release);
+    out[start + i] += sample * envelope * gain;
+  }
+}
+
 /** The kit: a pitched-down sine kick, a noisy snare, hats of high noise. */
 function drumHit(out: Float32Array, start: number, n: BandNote, fs: number, rand: () => number, len: number): void {
   const g = n.vel / 127;
@@ -121,7 +139,10 @@ export function renderBand(piece: Piece, sampleRate: number, frames: number): Fl
       if (start < 0 || start >= frames) continue;
       const len = Math.floor(n.beats * beat * sampleRate);
       if (p.id === "bass") bassNote(out, start, n, sampleRate, len);
-      else if (p.id === "keys") keysNote(out, start, n, sampleRate, len);
+      else if (p.id === "keys") {
+        const renderKeys = p.program === 80 ? squareNote : keysNote;
+        renderKeys(out, start, n, sampleRate, len);
+      }
       else drumHit(out, start, n, sampleRate, rand, len);
     }
   return out;

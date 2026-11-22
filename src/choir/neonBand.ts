@@ -1,37 +1,49 @@
 import type { BandNote, BandPart } from "./band.ts";
 import type { Piece } from "./music.ts";
 
-/** A syncopated bass riff and offbeat keys around Neon's native beatbox. */
+/** Four monophonic phrases. The opening contour returns before the last bar answers it. */
+const hook = [
+  [74, 77, 81, 77, 81, 79, 77, 74],
+  [70, 74, 77, 74, 77, 75, 74, 70],
+  [74, 79, 82, 79, 82, 81, 79, 74],
+  [76, 79, 84, 79, 77, 76, 74, 72],
+];
+const entrances = [0, .5, 1, 1.75, 2, 2.5, 3, 3.5];
+
 export function neonBand(piece: Piece): BandPart[] {
   const bass: BandNote[] = [];
-  const keys: BandNote[] = [];
-  const near = (pitchClass: number, floor: number) => floor + (pitchClass - floor + 120) % 12;
-  const bassRiff = [[0, 0.65, 0, 100], [0.75, 0.4, 0, 72], [1.5, 0.45, 2, 86], [2, 0.7, 0, 96], [3.5, 0.33, 2, 82]];
-  const bridgeStart = piece.sections?.find(section => section.name === "the dark")?.beat;
+  const lead: BandNote[] = [];
+  const drums: BandNote[] = [];
+  const bassPitch = (pc: number) => 36 + pc;
+  const finaleBeat = piece.sections?.find(section => section.name === "Finale")?.beat;
+
   for (const chord of piece.chords) {
-    const finale = piece.sections?.at(-1)?.name === "Finale" && chord.beat === piece.sections.at(-1)?.beat;
-    if (finale) {
-      bass.push({ beat: chord.beat, beats: chord.beats, midi: near(chord.tones[0], 38), vel: 98 });
-      for (const tone of chord.tones) keys.push({ beat: chord.beat, beats: chord.beats, midi: near(tone, 60), vel: 76 });
+    const [root, , fifth] = chord.tones;
+    const start = chord.beat;
+    if (start === finaleBeat) {
+      lead.push({ beat: start, beats: 2, midi: 74, vel: 88 });
+      bass.push({ beat: start, beats: 2, midi: bassPitch(root), vel: 96 });
+      drums.push({ beat: start, beats: .2, midi: 36, vel: 92 });
       continue;
     }
-    if (bridgeStart !== undefined && chord.beat >= bridgeStart && chord.beat < bridgeStart + 8) {
-      bass.push({ beat: chord.beat, beats: chord.beats * 0.6, midi: near(chord.tones[0], 38), vel: 82 });
-      continue;
-    }
-    for (const [offset, duration, tone, vel] of bassRiff) {
+    const phrase = hook[Math.floor(start / 4) % hook.length];
+    for (const [index, offset] of entrances.entries()) {
       if (offset >= chord.beats) break;
-      bass.push({ beat: chord.beat + offset, beats: Math.min(duration, chord.beats - offset), midi: near(chord.tones[tone], 38), vel });
+      lead.push({
+        beat: start + offset, beats: Math.min(index === 2 ? .63 : .32, chord.beats - offset),
+        midi: phrase[index], vel: index === 2 || index === 4 ? 103 : 87,
+      });
     }
-    for (const offset of [1.25, 2.75, 3.5]) {
-      if (offset >= chord.beats) break;
-      for (const tone of chord.tones.slice(1)) {
-        keys.push({ beat: chord.beat + offset, beats: Math.min(0.23, chord.beats - offset), midi: near(tone, 60), vel: offset === 2.75 ? 89 : 75 });
-      }
+    for (const [offset, length, pitch, vel] of [[0, .62, root, 102], [1.5, .3, root, 78], [2, .55, fifth, 87], [3.5, .35, root, 91]]) {
+      if (offset < chord.beats) bass.push({ beat: start + offset, beats: Math.min(length, chord.beats - offset), midi: bassPitch(pitch), vel });
+    }
+    for (const [offset, midi, vel] of [[0, 36, 94], [.5, 42, 47], [1, 38, 80], [1.5, 36, 72], [2.5, 42, 47], [3, 38, 82], [3.5, 36, 75]]) {
+      if (offset < chord.beats) drums.push({ beat: start + offset, beats: .12, midi, vel });
     }
   }
   return [
     { id: "bass", channel: 10, program: 33, notes: bass },
-    { id: "keys", channel: 11, program: 4, notes: keys },
+    { id: "keys", channel: 11, program: 80, notes: lead },
+    { id: "drums", channel: 9, program: 0, notes: drums },
   ];
 }

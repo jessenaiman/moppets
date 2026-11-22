@@ -49,7 +49,7 @@ function scoreParts(piece: Piece): Part[] {
   }));
 
   const band = bandFor(piece).filter((part) => part.notes.length > 0);
-  for (const { id, notes } of band) parts.push({ id: `band-${id}`, name: BAND_SETUP[id].name, notes, percussion: id === "drums" });
+  for (const { id, program, notes } of band) parts.push({ id: `band-${id}`, name: id === "keys" && program === 80 ? "Square lead" : BAND_SETUP[id].name, notes, percussion: id === "drums" });
   if (!band.length && piece.pluck) {
     const notes = piece.pluck.flatMap((midi, beat) => midi === null ? [] : [{ beat, beats: 0.28 / beatSeconds(piece), midi }]);
     if (notes.length) parts.push({ id: "pluck", name: "Pluck", notes });

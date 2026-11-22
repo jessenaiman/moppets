@@ -1,36 +1,23 @@
 title: Lights Wake Up
 id: take-two
 tab: 19 · Lights Wake Up
-about: Neon brings the repair bay to life over a bass riff and a mouth-beatbox groove
+about: Neon sings a harmony under a four-bar arcade melody
 lead: vee
-key: D dorian
-bpm: 106
-beat: B . t K | Pf t . t | B B t K | Pf . B t (swing 0.1)
+key: D aeolian
+bpm: 112
 backing:
 bass: none
+registers: vee 0
 stage: band, vee
 finale: "Glow" on 0
 
 [after hours]
-"Lights wake up at night" = 2 2/.5 1/.5 0 -1 | I 4
-turnaround VII .5
-"Flip the switch" = -1/.5 -2/.5 -1/1.5 | VII 2.5
-turnaround VII 1
-"Lights wake up at night" = 2 2/.5 1/.5 0 -1 | I 4
-turnaround IV .5
-"Watch them glow" = 0/.5 2/.5 3/2.5 | IV 3.5
+turnaround VI 4
+turnaround IV 4
+turnaround VII 4
 
 [twin take]
-"Glow with me" = 4/.5 5/.5 7/2 | I 3
-turnaround I 1
-"Fill the street" = 4/.5 5/.5 6/2 | VII 3
-turnaround VII 1
-"From the floor" = 3/.5 4/.5 5/1 | IV 2
-"To the roof" = 4/.5 3/.5 2/1 | IV 2
-"Let it glow" = 2/.5 1/.5 0/3 | V 1, I 3
-
-[the dark]
-turnaround I 4
-turnaround IV 4
-
-[repeat twin take]
+"Leave a light on" = 2/1.5 2/.5 0 0 | I 4
+"I'll leave mine on" = 0/1.5 0/.5 2 2 | VI 4
+"Till you get home" = 3/1.5 3/.5 0 0 | IV 4
+"I can see you" = 1/1.5 1/.5 -1 -1 | VII 4
