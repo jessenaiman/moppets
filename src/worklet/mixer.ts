@@ -128,9 +128,10 @@ class MixerProcessor extends AudioWorkletProcessor {
     this.port.postMessage(m);
   }
 
-  /** Is every sounding stem's audio here for [frame, frame+128)? */
-  private ready(): boolean {
-    const from = this.frame, to = from + 128;
+  /** Start and recover with a reserve across all stems. Workers render 300 ms ahead. */
+  private ready(quantum: number): boolean {
+    const from = this.frame;
+    const to = from + (this.buffering ? Math.max(quantum, Math.ceil(sampleRate * 0.18)) : quantum);
     for (let v = 0; v < this.queues.length; v++) {
       if (from >= this.ends[v]) continue;
       const q = this.queues[v];
@@ -155,7 +156,7 @@ class MixerProcessor extends AudioWorkletProcessor {
       for (const o of outputs) for (const ch of o) ch.fill(0);
       return true;
     }
-    if (!this.ready()) {
+    if (!this.ready(out[0].length)) {
       if (!this.buffering) {
         this.underruns++;
         this.buffering = true;

@@ -4,6 +4,8 @@
  * each performance's real cast portraits, accent palette, BPM/key, and category filters.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { play, useEnsemble } from "../choir/ensemble.ts";
+import { useAudio } from "../audio/audio.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { SKITS } from "../choir/skits.ts";
 import { CAST } from "../choir/voices.ts";
@@ -137,7 +139,12 @@ export function SongNavigator() {
   }, [catalog, lesson, setLesson]);
 
   const selectAct = (id: Lesson) => {
+    if (id === lesson) return;
+    const status = useEnsemble.getState().status;
     setLesson(id);
+    if (status === "playing" || status === "buffering" || status === "preparing") {
+      void play(useAudio.getState().start);
+    }
     const url = new URL(window.location.href);
     url.searchParams.set("act", id);
     window.history.replaceState(window.history.state, "", url);
