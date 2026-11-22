@@ -30,6 +30,7 @@ export interface SingerConfig {
   voice: MoppetVoice;
   gestures: Gesture[];
   firstF0: number;
+  envelopeOnly?: boolean;
 }
 
 const onset = (g: Gesture) => g.t0 - g.rampIn;
@@ -51,6 +52,7 @@ function renderBlock(x: EngineExports, handle: number, out: Float32Array, offset
 export class SingerCore {
   private readonly h: number;
   readonly stem: Float32Array;
+  readonly envelope?: Float32Array;
   rendered = 0;
   /** one record per hop; allocated at the first snapshot (its size depends on the body) */
   tele: Float32Array | null = null;
@@ -63,6 +65,7 @@ export class SingerCore {
   constructor(private readonly x: EngineExports, private readonly cfg: SingerConfig) {
     const h = (this.h = x.engine_new(cfg.sampleRate));
     this.stem = new Float32Array(cfg.frames);
+    if (cfg.envelopeOnly) this.envelope = new Float32Array(Math.floor(cfg.frames / cfg.hop));
     x.engine_set_body(h, cfg.voice.body.female, cfg.voice.body.child);
     this.setCharacter(cfg.voice.artic);
     this.setSource(cfg.voice.source);
@@ -147,6 +150,10 @@ export class SingerCore {
     if (index % 1) return; // the short final chunk carries no telemetry slot of its own
     const x = this.x, p = x.engine_telemetry(this.h);
     const head = new Float64Array(x.memory.buffer, p, TELE_HEADER);
+    if (this.envelope) {
+      this.envelope[index] = head[TELE.outRms];
+      return;
+    }
     const size = telemetryLength(head);
     if (!this.tele) {
       this.recordSize = size;

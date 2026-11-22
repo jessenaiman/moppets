@@ -18,7 +18,7 @@ import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
 import { midiToHz, hopFor, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
 import { beatReady, parseBeat } from "@chimera/wasm/engine.ts";
 import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes } from "./mix.ts";
-import { bandFor } from "./band.ts";
+import { bandEnabled, bandFor } from "./band.ts";
 import { poseFromRecord, SILENT_POSE, type Pose } from "./pose.ts";
 import { MIX_LEVEL, type MoppetArtic, type MoppetSource, type MoppetVoice } from "./voices.ts";
 import type { Piece } from "./music.ts";
@@ -71,6 +71,7 @@ let sessionsMade = 0;
 const post = (m: MixerIn, t: Transferable[] = []) => node?.port.postMessage(m, t);
 
 useVoiceLevels.subscribe(() => {
+  cancelExport();
   if (session) post({ type: "voiceLevels", values: session.levels() });
 });
 
@@ -101,6 +102,12 @@ function onMixer(m: MixerOut): void {
   }
 }
 
+type OfflineRender = {
+  progress?: (fraction: number) => void;
+  stem: (index: number, pcm: Float32Array, total: number) => void;
+  error: (error: Error) => void;
+};
+
 class Session {
   readonly frames: number;
   readonly sampleRate: number;
@@ -108,11 +115,11 @@ class Session {
   readonly vocalTiming: VocalTiming;
   readonly singers: Singer[] = [];
   readonly gains: number[];
-  planError: string | null = null;
+  private disposed = false;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean) {
+  constructor(readonly piece: Piece, voices: MoppetVoice[], sampleRate: number, private readonly offline?: OfflineRender) {
     sessionsMade++;
-    this.sampleRate = ctx.sampleRate;
+    this.sampleRate = sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
     this.hop = hopFor(this.sampleRate);
     this.vocalTiming = { framesPerSecond: this.sampleRate / this.hop, envelopes: {} };
@@ -122,66 +129,91 @@ class Session {
     const spawn = (i: number, cfg: SingerConfig | null, voice: MoppetVoice | null, pluck?: Float32Array, cue?: CueConfig, backing?: Backing) => {
       const worker = new Worker(new URL("./singer.worker.ts", import.meta.url), { type: "module" });
       workersAlive++;
-      const channel = new MessageChannel();
-      ports.push(channel.port1);
-      const init: ToSinger = { type: "init", module: cfg || cue ? module : null, port: channel.port2, voiceIndex: i, config: cfg, cue, pluck, backing, paced, lookahead: LOOKAHEAD };
+      const channel = offline ? undefined : new MessageChannel();
+      const transfers: Transferable[] = [];
+      if (channel) {
+        ports.push(channel.port1);
+        transfers.push(channel.port2);
+      }
+      if (pluck) transfers.push(pluck.buffer);
+      const init: ToSinger = { type: "init", module: cfg || cue ? module : null, port: channel?.port2, voiceIndex: i, config: cfg, cue, pluck, backing, paced: !offline, lookahead: LOOKAHEAD, reportProgress: !!offline?.progress };
       worker.onmessage = (e: MessageEvent<FromSinger>) => this.onSinger(e.data);
-      worker.onerror = (e) => fail(`Singer ${voice?.name ?? "accompaniment"}: ${e.message}`);
-      worker.postMessage(init, pluck ? [channel.port2, pluck.buffer] : [channel.port2]);
+      worker.onerror = (e) => this.onError(voice, e.message);
+      worker.onmessageerror = () => this.onError(voice, "Could not read render data.");
       const s: Singer = { worker, voice, index: i, rendered: 0, frames: this.frames, rtf: 0, tele: null, recordSize: 0, nArtic: 0, nPh: 0, nOr: 0, nScope: 0, edited: false };
       this.singers.push(s);
       ends.push(this.frames);
+      worker.postMessage(init, transfers);
     };
     const plans = piece.tracks.map(track => {
-      const voice = voices.find(v => v.id === track.id)!;
+      const voice = voices.find(v => v.id === track.id);
+      if (!voice) throw new Error(`Missing voice for ${track.id}.`);
       return { voice, plan: track.events.length ? planTrack(track, piece, voice) : null };
     });
-    plans.forEach(({ voice, plan }, i) => {
-      if (!plan) {
-        spawn(i, null, voice, new Float32Array(this.frames));
-        return;
-      }
-      spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
-        gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi) }, voice);
-      const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
-      this.singers[i].nativeEnvelope = envelope;
-      this.vocalTiming.envelopes[voice.id] = envelope;
-    });
-    // the backing renders in its own worker; the band is resolved here, where the band switch lives
-    if (hasAccompaniment(piece)) spawn(piece.tracks.length, null, null, undefined, undefined, { piece: { ...piece, band: bandFor(piece) }, sampleRate: this.sampleRate, frames: this.frames });
-    {
-      const hop = this.hop, sampleRate = this.sampleRate, frames = this.frames, start = LEAD_IN;
-      let index = this.singers.length;
-      for (const e of extraStems(piece)) {
-        if (e === "beat") {
-          const b = piece.beat!;
-          spawn(index++, null, null, undefined, { sampleRate, frames, hop, beat: { steps: parseBeat(b.text), bpm: piece.bpm, swing: b.swing, startSeconds: start, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } });
-        } else {
-          const calls = (piece.cameos ?? []).filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) }));
-          spawn(index++, null, null, undefined, { sampleRate, frames, hop, creature: { id: e, calls } });
+    try {
+      plans.forEach(({ voice, plan }, i) => {
+        if (!plan) {
+          spawn(i, null, voice, new Float32Array(this.frames));
+          return;
+        }
+        spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
+          gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi), envelopeOnly: !!offline }, voice);
+        const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
+        this.singers[i].nativeEnvelope = envelope;
+        this.vocalTiming.envelopes[voice.id] = envelope;
+      });
+      // the backing renders in its own worker; the band is resolved here, where the band switch lives
+      if (hasAccompaniment(piece)) spawn(piece.tracks.length, null, null, undefined, undefined, { piece: { ...piece, band: bandFor(piece) }, sampleRate: this.sampleRate, frames: this.frames });
+      {
+        const hop = this.hop, sampleRate = this.sampleRate, frames = this.frames, start = LEAD_IN;
+        let index = this.singers.length;
+        for (const e of extraStems(piece)) {
+          if (e === "beat") {
+            const b = piece.beat!;
+            spawn(index++, null, null, undefined, { sampleRate, frames, hop, beat: { steps: parseBeat(b.text), bpm: piece.bpm, swing: b.swing, startSeconds: start, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } });
+          } else {
+            const calls = (piece.cameos ?? []).filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) }));
+            spawn(index++, null, null, undefined, { sampleRate, frames, hop, creature: { id: e, calls } });
+          }
         }
       }
+      this.gains = pieceGains(piece, MIX_LEVEL);
+      if (!offline) {
+        post({ type: "setup", ends, gains: this.gains, ports }, ports);
+        post({ type: "voiceLevels", values: this.levels() });
+      }
+    } catch (error) {
+      this.dispose();
+      for (const port of ports) port.close();
+      throw error;
     }
-    this.gains = pieceGains(piece, MIX_LEVEL);
-    post({ type: "setup", ends, gains: this.gains, ports }, ports);
-    post({ type: "voiceLevels", values: this.levels() });
   }
 
   levels() {
     return this.piece.tracks.map(t => voiceLevel(t.id));
   }
 
+  private onError(voice: MoppetVoice | null, message: string): void {
+    if (this.disposed) return;
+    const error = new Error(`${voice?.name ?? "Accompaniment"}: ${message}`);
+    if (this.offline) this.offline.error(error);
+    else if (session === this) fail(error.message);
+  }
+
   private onSinger(m: FromSinger): void {
-    if (session !== this) return;
+    if (this.disposed || (!this.offline && session !== this)) return;
     const s = this.singers[m.voiceIndex];
     switch (m.type) {
       case "progress":
         s.rendered = m.rendered;
         s.rtf = m.rtf;
-        this.onProgress();
+        if (this.offline?.progress) {
+          const fraction = this.singers.reduce((frames, singer) => frames + singer.rendered, 0) / (this.singers.length * this.frames);
+          this.offline.progress(fraction);
+        } else if (!this.offline) this.onProgress();
         break;
       case "telemetry":
-        if (!s.tele) {
+        if (!this.offline && !s.tele) {
           s.recordSize = m.recordSize;
           const head = m.records;
           s.nArtic = head[TELE.nArtic];
@@ -190,7 +222,7 @@ class Session {
           s.nScope = head[TELE.nScope];
           s.tele = new Float32Array(m.recordSize * Math.ceil(this.frames / this.hop));
         }
-        s.tele.set(m.records, m.from * m.recordSize);
+        s.tele?.set(m.records, m.from * m.recordSize);
         if (s.nativeEnvelope) {
           for (let i = 0; i < m.records.length / m.recordSize; i++) {
             s.nativeEnvelope[m.from + i] = m.records[i * m.recordSize + TELE.outRms];
@@ -198,10 +230,13 @@ class Session {
         }
         break;
       case "error":
-        fail(`${s.voice?.name ?? "Accompaniment"}: ${m.message}`);
+        this.onError(s.voice, m.message);
         break;
       case "stem":
-        pendingStems?.deliver(m.voiceIndex, m.pcm);
+        if (s.nativeEnvelope && m.envelope) {
+          for (let i = 0; i < m.envelope.length; i++) s.nativeEnvelope[i] = m.envelope[i];
+        }
+        this.offline?.stem(m.voiceIndex, m.pcm, this.singers.length);
         break;
     }
   }
@@ -253,6 +288,8 @@ class Session {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     for (const s of this.singers) {
       s.worker.terminate();
       workersAlive--;
@@ -262,7 +299,6 @@ class Session {
 
 let resumeAt = 0;
 let playFromFrame = 0;
-let pendingStems: { deliver: (i: number, pcm: Float32Array) => void } | null = null;
 
 function fail(message: string): void {
   cancel();
@@ -333,7 +369,6 @@ function beginPlaying(frame: number): void {
   post({ type: "play", generation, frame });
   for (const s of session.singers) {
     s.worker.postMessage({ type: "seek", frame, generation } satisfies ToSinger);
-    s.worker.postMessage({ type: "pace", paced: true } satisfies ToSinger);
   }
   startTick();
   set({ status: "buffering", time: frame / session.sampleRate, howPlaying: "live", message: "Waiting for the singers…", progress: get().progress });
@@ -359,6 +394,7 @@ function stopVisuals(): void {
 
 /** Choose the next performance. Clears whatever was prepared. */
 export function loadPiece(next: Piece): void {
+  cancelExport();
   playToken++;
   disposeSession();
   piece = next;
@@ -429,7 +465,7 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
   if (!sessionFresh() || session!.sampleRate !== audio.ctx.sampleRate) {
     disposeSession();
     try {
-      session = new Session(piece, voicesProvider(), audio.ctx, true);
+      session = new Session(piece, voicesProvider(), audio.ctx.sampleRate);
     } catch (error) {
       if (token !== playToken) return;
       session = null;
@@ -466,6 +502,7 @@ export function stop(): void {
 
 /** Abandon a render in progress. */
 export function cancel(): void {
+  cancelExport();
   playToken++;
   disposeSession();
   set({ status: "idle", time: 0, progress: 0, message: "Rendering cancelled. Nothing is playing.", howPlaying: null, loopRange: null });
@@ -490,6 +527,7 @@ export function seek(seconds: number): void {
 
 /** Solo one Moppet in the main mix (or restore the full choir). */
 export function setSoloMix(on: boolean): void {
+  cancelExport();
   set({ soloMix: on });
   if (session) post({ type: "soloMix", voice: soloMixIndex() });
 }
@@ -513,6 +551,7 @@ export async function playLoop(start: () => Promise<void>, range: { startSec: nu
 
 /** Choose which singer the instruments inspect. */
 export function inspect(id: string): void {
+  if (soloId !== id && get().soloMix) cancelExport();
   soloId = id;
   if (session) {
     post({ type: "solo", voice: Math.max(0, session.indexOf(id)) });
@@ -523,6 +562,7 @@ export function inspect(id: string): void {
 
 /** A control moved: it reaches the singer's own engine at its render head. */
 export function editVoice(id: string, edit: { source?: Partial<MoppetSource>; artic?: MoppetArtic; rerender?: boolean }): void {
+  cancelExport();
   const i = session?.singers.findIndex((s) => s.voice?.id === id) ?? -1;
   if (i < 0 || !session) return;
   const s = session.singers[i];
@@ -560,54 +600,115 @@ export function scopeOf(id: string, seconds?: number): Float32Array | null {
   return t ? (t.t.glottalFlow as Float32Array) : null;
 }
 
-/** Render to the end if needed, then the piece through the same bus as playback, as a WAV. `only`: one singer's stem. */
-export async function exportWav(start: () => Promise<void>, only?: number) {
-  if (!session || !sessionFresh()) {
-    await start();
-    await g2p.load();
-    if (!audio.ctx) throw new Error("audio not started");
-    await ensureMixer(audio.ctx);
-    if (!piece) throw new Error("no piece");
-    disposeSession();
-    session = new Session(piece, voicesProvider(), audio.ctx, false);
-    set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering", vocalTiming: session.vocalTiming });
-  } else {
-    for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);
-  }
-  const s = session;
-  const token = ++exportToken;
-  await new Promise<void>((resolve, reject) => {
-    const check = () => {
-      if (token !== exportToken || session !== s) return reject(new Error("cancelled"));
-      if (s.singers.every((v) => v.rendered >= v.frames)) return resolve();
-      set({ status: get().status === "rendering" ? "rendering" : get().status, message: `Rendering the WAV ${Math.round(get().progress * 100)} %…` });
-      setTimeout(check, 100);
-    };
-    check();
-  });
-  const stems: Float32Array[] = await new Promise((resolve) => {
-    const out: Float32Array[] = [];
-    let n = 0;
-    pendingStems = {
-      deliver: (i, pcm) => {
-        out[i] = pcm;
-        if (++n === s.singers.length) {
-          pendingStems = null;
-          resolve(out);
-        }
-      },
-    };
-    for (const v of s.singers) v.worker.postMessage({ type: "stem" } satisfies ToSinger);
-  });
-  if (get().status === "rendering") set({ status: "idle", message: "" });
-  const levels = s.levels();
-  const mix = only === undefined
-    ? mixStems(stems, s.gains, s.frames, levels)
-    : mixStems([stems[only]], [s.gains[only]], stems[only].length, [levels[only] ?? 1]);
-  const bytes = wavBytes(mix.samples, s.sampleRate, only === undefined ? mix.samples : undefined);
-  return { bytes, peak: mix.peak, nonFinite: mix.nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
+interface WavOptions {
+  onProgress?: (fraction: number) => void;
+  signal?: AbortSignal;
+  only?: number | string;
+  soloId?: string;
 }
-let exportToken = 0;
+
+interface WavRender {
+  bytes: ArrayBuffer;
+  peak: number;
+  nonFinite: number;
+  durationSec: number;
+  vocalTiming: VocalTiming;
+}
+
+/** Render a score revision without opening the audio device or changing transport. */
+export async function renderWav(piece: Piece, voices: MoppetVoice[], options: WavOptions = {}): Promise<WavRender> {
+  const { signal, soloId, onProgress } = options;
+  signal?.throwIfAborted();
+  const score = structuredClone(piece);
+  const cast = structuredClone(voices);
+  const levels = score.tracks.map(({ id }) => voiceLevel(id));
+  const band = bandEnabled();
+  const only = typeof options.only === "string" ? score.tracks.findIndex(({ id }) => id === options.only) : options.only;
+  const solo = soloId === undefined ? -1 : score.tracks.findIndex(({ id }) => id === soloId);
+  if (only !== undefined && (!Number.isInteger(only) || !score.tracks[only])) throw new Error("That voice has no part in this score.");
+
+  return new Promise((resolve, reject) => {
+    let job: Session | undefined;
+    const stems: Float32Array[] = [];
+    let remaining: number | undefined;
+    let finished = false;
+    const cleanup = () => {
+      finished = true;
+      signal?.removeEventListener("abort", abort);
+      job?.dispose();
+    };
+    const error = (cause: unknown) => {
+      if (finished) return;
+      cleanup();
+      reject(cause);
+    };
+    const abort = () => error(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    void g2p.load().then(() => {
+      if (finished) return;
+      if (band !== bandEnabled()) throw new Error("Accompaniment changed. Prepare the mix again.");
+      job = new Session(score, cast, 48000, {
+        error,
+        progress: onProgress && ((fraction) => {
+          if (finished || fraction >= 1) return;
+          try {
+            onProgress(fraction);
+          } catch (cause) {
+            error(cause);
+          }
+        }),
+        stem: (index, pcm, total) => {
+          if (!job || finished || stems[index]) return;
+          if (pcm.length !== job.frames) return error(new Error("A rendered stem is incomplete."));
+          stems[index] = pcm;
+          remaining ??= total;
+          if (--remaining > 0) return;
+          try {
+            const selected = only ?? solo;
+            const gains = job.gains.map((gain, index) => selected < 0 || index === selected ? gain : 0);
+            const mix = mixStems(stems, gains, job.frames, levels);
+            if (mix.nonFinite) throw new Error("CHIMERA produced invalid audio.");
+            const stereo = only === undefined ? mix.samples : undefined;
+            const bytes = wavBytes(mix.samples, job.sampleRate, stereo);
+            const vocalTiming = job.vocalTiming;
+            for (const [index, track] of score.tracks.entries()) {
+              if (!gains[index] || levels[index] === 0) delete vocalTiming.envelopes[track.id];
+            }
+            const durationSec = job.frames / job.sampleRate;
+            onProgress?.(1);
+            if (finished) return;
+            cleanup();
+            resolve({ bytes, peak: mix.peak, nonFinite: mix.nonFinite, durationSec, vocalTiming });
+          } catch (cause) {
+            error(cause);
+          }
+        },
+      });
+      if (!job.singers.length) throw new Error("The score has no renderable parts.");
+    }).catch(error);
+  });
+}
+
+let exportRequest: AbortController | undefined;
+function cancelExport(): void {
+  exportRequest?.abort();
+}
+
+/** Download the current full mix, or the requested singer's stem. */
+export async function exportWav(_start: () => Promise<void>, only?: number | string, signal?: AbortSignal): Promise<WavRender> {
+  if (!piece) throw new Error("No score is selected.");
+  cancelExport();
+  const request = exportRequest = new AbortController();
+  try {
+    return await renderWav(piece, voicesProvider(), {
+      only,
+      soloId: get().soloMix ? soloId : undefined,
+      signal: signal ? AbortSignal.any([request.signal, signal]) : request.signal,
+    });
+  } finally {
+    if (exportRequest === request) exportRequest = undefined;
+  }
+}
 
 export function ensembleDebug() {
   return { pos, workersAlive, sessionsMade, hasSession: !!session, singers: session?.singers.map((s) => ({ id: s.voice?.id ?? "pluck", rendered: s.rendered, frames: s.frames, rtf: s.rtf })) ?? [] };
@@ -615,6 +716,7 @@ export function ensembleDebug() {
 
 /** Called when leaving Moppet mode: nothing keeps playing or running. */
 export function leaveEnsemble(): void {
+  cancelExport();
   playToken++;
   disposeSession();
   set({ status: "idle", time: 0, progress: 0, message: "", howPlaying: null });

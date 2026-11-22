@@ -17,17 +17,15 @@ export interface Backing {
 }
 
 export type ToSinger =
-  | { type: "init"; module: WebAssembly.Module | null; port: MessagePort; voiceIndex: number; config: SingerConfig | null; cue?: CueConfig; pluck?: Float32Array; backing?: Backing; paced: boolean; lookahead: number }
-  | { type: "pace"; paced: boolean }
+  | { type: "init"; module: WebAssembly.Module | null; port?: MessagePort; voiceIndex: number; config: SingerConfig | null; cue?: CueConfig; pluck?: Float32Array; backing?: Backing; paced: boolean; lookahead: number; reportProgress?: boolean }
   | { type: "seek"; frame: number; generation: number }
   | { type: "source"; values: Partial<MoppetSource> }
-  | { type: "character"; artic: MoppetArtic }
-  | { type: "stem" };
+  | { type: "character"; artic: MoppetArtic };
 
 export type FromSinger =
   | { type: "progress"; voiceIndex: number; rendered: number; frames: number; rtf: number }
   | { type: "telemetry"; voiceIndex: number; recordSize: number; from: number; records: Float32Array }
-  | { type: "stem"; voiceIndex: number; pcm: Float32Array }
+  | { type: "stem"; voiceIndex: number; pcm: Float32Array; envelope?: Float32Array }
   | { type: "error"; voiceIndex: number; message: string };
 
 const scope = self as unknown as { postMessage(m: FromSinger, t?: Transferable[]): void; onmessage: ((e: MessageEvent<ToSinger>) => void) | null };
@@ -38,7 +36,7 @@ const TELE_BATCH = 12; // hops per telemetry message (~200 ms at 60 Hz)
 
 let core: SingerCore | CueCore | null = null;
 let pluck: Float32Array | null = null;
-let port: MessagePort;
+let port: MessagePort | undefined;
 let voiceIndex = 0;
 let frames = 0;
 let hop = 800;
@@ -51,6 +49,7 @@ let sent = 0;
 let renderMs = 0;
 let scheduled = false;
 let lastProgress = 0;
+let reportProgress = false;
 
 function rendered(): number {
   return core ? core.rendered : frames;
@@ -82,7 +81,7 @@ function postProgress(force: boolean): void {
 /** Send rendered audio to the mixer up to the send window (or to the end). */
 function pump(): void {
   const stem = core ? core.stem : pluck;
-  if (!stem) return;
+  if (!port || !stem) return;
   const limit = Math.min(rendered(), playhead + Math.round(SEND_AHEAD * sampleRate));
   // audio-thread messages are not free: send in blocks, never a hop at a time
   while (limit - sent >= (limit >= frames ? 1 : 2048) && sent < limit) {
@@ -104,10 +103,17 @@ function work(): void {
       // a slice of a few hops per turn keeps seeks and control messages prompt
       for (let i = 0; i < 6 && core.rendered < target; i++) did += core.step();
       if (did) renderMs += performance.now() - t0;
-      postTelemetry(core.rendered >= frames);
+      if (port) postTelemetry(core.rendered >= frames);
     }
     pump();
-    postProgress(rendered() >= frames);
+    if (port || reportProgress) postProgress(rendered() >= frames);
+    if (!port && rendered() >= frames) {
+      const pcm = core?.stem ?? pluck!;
+      const envelope = core instanceof SingerCore ? core.envelope : undefined;
+      const transfers: Transferable[] = [pcm.buffer];
+      if (envelope) transfers.push(envelope.buffer);
+      scope.postMessage({ type: "stem", voiceIndex, pcm, envelope }, transfers);
+    }
     if (core && core.rendered < frames && (!paced || core.rendered < playhead + Math.round(lookahead * sampleRate))) schedule();
   } catch (err) {
     fail(err);
@@ -128,8 +134,9 @@ scope.onmessage = (e: MessageEvent<ToSinger>) => {
         port = m.port;
         voiceIndex = m.voiceIndex;
         paced = m.paced;
+        reportProgress = m.reportProgress ?? false;
         lookahead = m.lookahead;
-        port.onmessage = (ev: MessageEvent<{ playhead: number }>) => {
+        if (port) port.onmessage = (ev: MessageEvent<{ playhead: number }>) => {
           playhead = ev.data.playhead;
           schedule();
         };
@@ -157,10 +164,6 @@ scope.onmessage = (e: MessageEvent<ToSinger>) => {
         schedule();
         break;
       }
-      case "pace":
-        paced = m.paced;
-        schedule();
-        break;
       case "seek":
         generation = m.generation;
         playhead = m.frame;
@@ -173,12 +176,6 @@ scope.onmessage = (e: MessageEvent<ToSinger>) => {
       case "character":
         if (core instanceof SingerCore) core.setCharacter(m.artic);
         break;
-      case "stem": {
-        const stem = core ? core.stem : pluck!;
-        const pcm = stem.slice(0, rendered());
-        scope.postMessage({ type: "stem", voiceIndex, pcm }, [pcm.buffer]);
-        break;
-      }
     }
   } catch (err) {
     fail(err);
