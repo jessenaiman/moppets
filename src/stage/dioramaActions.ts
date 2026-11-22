@@ -33,5 +33,10 @@ export function dioramaActions(piece: Piece, beat: number, seconds: number, movi
     const frame = Math.floor((beat - welcome.beat) * 60 / piece.bpm * 8);
     if (frame >= 0 && frame < 8) actions.watt = strip("watt/socket-gestures.webp", frame, true);
   }
+  const nod = piece.cues?.find(cue => cue.who === "clank" && cue.gesture === "nod");
+  if (piece.title === "The Late Answer" && nod) {
+    const frame = Math.floor((beat - nod.beat) * 60 / piece.bpm * 8);
+    if (frame >= 0 && frame < 8) actions.clank = strip("clank/thinking.webp", frame, true);
+  }
   return actions;
 }
