@@ -24,9 +24,9 @@ The earlier mechanical metronome is an archived rehearsal design.
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/flow-outputs/click__sprite_grid_01.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/click__sprite_grid_01.png
 
-Turnaround source: storyboard/neon-playbook/flow-outputs/click__turnaround_01.png
+Turnaround source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/click__turnaround_01.png
 
 ## Rehearsal exposures
 

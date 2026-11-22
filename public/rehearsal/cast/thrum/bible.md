@@ -24,7 +24,7 @@ Thrum plays the echo returns in the house band. The earlier Moonbeam rehearsal f
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/assets/cast/thrum-pair.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/assets/cast/thrum-pair.png
 
 Turnaround source: ImageGen turnaround study from approved rest portrait
 

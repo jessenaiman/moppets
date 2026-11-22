@@ -24,9 +24,9 @@ The front reference supersedes the ear construction on the earlier rehearsal she
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/flow-outputs/tabby__sprite_grid_01.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/tabby__sprite_grid_01.png
 
-Turnaround source: storyboard/neon-playbook/flow-outputs/tabby__turnaround_01.png
+Turnaround source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/tabby__turnaround_01.png
 
 ## Rehearsal exposures
 

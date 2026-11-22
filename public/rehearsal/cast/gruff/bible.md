@@ -24,9 +24,9 @@ New giant cable design. Earlier solo pictures show the retired combined amp/cabl
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/flow-outputs/gruff__sprite_grid_01.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/gruff__sprite_grid_01.png
 
-Turnaround source: storyboard/neon-playbook/flow-outputs/gruff__turnaround_01.png
+Turnaround source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/gruff__turnaround_01.png
 
 ## Rehearsal exposures
 

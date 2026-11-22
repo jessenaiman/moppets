@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, Composition, Img, OffthreadVideo, registerRoot, staticFile } from "remotion";
-import performance from "./clips/ribbon-and-felt.webm";
-import soundtrack from "./(Footage)/6-tabby-solo.wav";
+import performance from "../../moppets/tabby/clips/ribbon-and-felt.webm";
+import soundtrack from "../../moppets/tabby/(Footage)/6-tabby-solo.wav";
 
 function RibbonAndFelt() {
   return (

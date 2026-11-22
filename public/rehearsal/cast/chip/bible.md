@@ -24,9 +24,9 @@ Keep every tail, limb, ear, plug lead and moving costume part attached at its ow
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/flow-outputs/chip__sprite_grid_01.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/chip__sprite_grid_01.png
 
-Turnaround source: storyboard/neon-playbook/flow-outputs/chip__turnaround_01.png
+Turnaround source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/flow-outputs/chip__turnaround_01.png
 
 ## Rehearsal exposures
 

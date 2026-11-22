@@ -25,7 +25,7 @@ Two knocks on D open the verse. Tabby drops from the high “mew” into a lower
 
 Both 31-second takes contain the turn and bow. The closed and open bezels share the same body animation. The Remotion master uses the CHIMERA jaw data captured while rendering this lead sheet.
 
-The live player selects the closed or open take using the current singer telemetry and follows the ensemble clock. The `Ribbon and Felt - Vocal Performance` composition stores the original song’s mouth switches on the open take’s opacity track for frame-accurate export. `Solo.tsx` frames that performance with the ribbon mic and original 48 kHz recording. Render from the repository root with `bunx remotion render moppets/tabby/Solo.tsx TabbySolo out/tabby-solo/ribbon-and-felt-curtain-call.mp4`.
+The live player selects the closed or open take using the current singer telemetry and follows the ensemble clock. The `Ribbon and Felt - Vocal Performance` composition stores the original song’s mouth switches on the open take’s opacity track for frame-accurate export. `TabbySolo.tsx` frames that performance with the ribbon mic and original 48 kHz recording. Render from the repository root with `bunx remotion render src/remotion/TabbySolo.tsx TabbySolo out/tabby-solo/ribbon-and-felt-curtain-call.mp4`.
 
 ## One Tape
 

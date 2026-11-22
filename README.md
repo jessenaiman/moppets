@@ -75,3 +75,5 @@ Pronouncing Dictionary and the fonts (in `chimera/public/`).
 EffectCraft project masters live under `/run/media/jesse/Speedy/magic-studio/assets/moppet-choir/`, following their former repository paths. The web build uses the exported media.
 
 The same Speedy library holds character artwork, storyboards, Craft and Blender masters, and copies of published media. Git retains the exported files used by the web app, watch page, and documentation.
+
+Storyboards and their exports live in `/run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir`. The Colab bootstrap script lives in `tools/storyboards/bootstrap-found-things.py`.

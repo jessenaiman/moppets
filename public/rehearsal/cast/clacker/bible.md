@@ -24,7 +24,7 @@ Draft turnaround inferred from the front portrait.
 
 ## Earlier rehearsal sources
 
-Sprite source: storyboard/neon-playbook/assets/cast/clacker-pair.png
+Sprite source: /run/media/jesse/Speedy/magic-studio-assets/storyboards/moppet-choir/neon-playbook/assets/cast/clacker-pair.png
 
 Turnaround source: ImageGen turnaround study from approved rest portrait
 

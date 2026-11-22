@@ -10,10 +10,8 @@ src/audio/moppet.wasm
 # Vendored agent skill (video-shotcraft) with third-party music: reinstall from skills-lock.json.
 .agents/
 .hermes/
-# Storyboard builds: takes, PDF and PPTX regenerate from the DesignCraft sources beside them.
-storyboard/**/exports/
-storyboard/**/*.pdf
-storyboard/**/*.pptx
+# Storyboards are authored in the Speedy asset library.
+/storyboard/
 .vercel
 
 # EffectCraft authoring projects live in the Speedy asset library.
@@ -26,8 +24,4 @@ storyboard/**/*.pptx
 /moppets/**/*.mcraft
 /moppets/**/*.png
 /moppets/**/*.tcraft
-/storyboard/**/*.designcraft
-/storyboard/**/*.jpg
-/storyboard/**/*.png
-/storyboard/**/*.webp
 /tools/**/*.anicraft
