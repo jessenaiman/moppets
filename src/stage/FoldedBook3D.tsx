@@ -685,7 +685,7 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       const reviewedTexture = action ? loadAtlas(resolveUrl(action.atlasUrl)) : undefined;
       const reviewed = reviewedTexture?.image ? action : undefined;
       const tex = reviewedTexture?.image ? reviewedTexture : loadAtlas(resolveUrl(performer.cel.atlasUrl));
-      const material = reviewed && performer.artKey === "chip" ? slot.photo : slot.mat;
+      const material = reviewed?.prelit ? slot.photo : slot.mat;
       slot.mesh.material = material;
       if (material.map !== tex) {
         material.map = tex;

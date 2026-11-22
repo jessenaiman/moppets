@@ -2,6 +2,7 @@ import type { Piece } from "../choir/music";
 
 export interface DioramaAction {
   atlasUrl: string;
+  prelit?: boolean;
   frame: number;
   cols: number;
   rows: number;
@@ -9,9 +10,9 @@ export interface DioramaAction {
 
 export type DioramaActions = Record<string, DioramaAction>;
 
-const strip = (atlasUrl: string, frame: number): DioramaAction => ({
+const strip = (atlasUrl: string, frame: number, prelit = false): DioramaAction => ({
   atlasUrl: "/rehearsal/performances/" + atlasUrl,
-  frame, cols: 4, rows: 2,
+  frame, prelit, cols: 4, rows: 2,
 });
 
 export function dioramaActions(piece: Piece, beat: number, seconds: number, moving: boolean): DioramaActions {
@@ -25,7 +26,12 @@ export function dioramaActions(piece: Piece, beat: number, seconds: number, movi
   }
   const bow = piece.cues?.filter(cue => cue.who === "chip" && cue.gesture === "bow" && cue.beat <= beat).at(-1);
   if (bow && beat < bow.beat + 3) {
-    actions.chip = strip("chip/acting.webp", Math.floor((beat - bow.beat) * 8 / 3));
+    actions.chip = strip("chip/acting.webp", Math.floor((beat - bow.beat) * 8 / 3), true);
+  }
+  const welcome = piece.cues?.find(cue => cue.who === "pip" && cue.gesture === "gasp");
+  if (piece.title === "Every Socket" && welcome) {
+    const frame = Math.floor((beat - welcome.beat) * 60 / piece.bpm * 8);
+    if (frame >= 0 && frame < 8) actions.watt = strip("watt/socket-gestures.webp", frame, true);
   }
   return actions;
 }
