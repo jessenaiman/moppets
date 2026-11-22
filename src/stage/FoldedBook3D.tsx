@@ -1,3 +1,4 @@
+import type { DioramaActions } from "./dioramaActions";
 /**
  * Real Three.js 3D Pop-Up Tabletop Storybook Diorama for Neon ("The Folded Songbook").
  *
@@ -19,13 +20,9 @@ export interface FoldedBook3DProps {
   userOrbit: { azimuth: number; elevation: number } | null;
   bellImpulse: number;
   resolveAsset: (path: string) => string;
-  motionSeconds?: number;
-  tabbyWalk?: boolean;
+  actions?: DioramaActions;
 }
 
-// Reviewed Neon step: eight transparent cels in row-major order.
-const NEON_STEP = { atlasUrl: "/rehearsal/performances/neon/step.webp", cols: 4, rows: 2, frames: 8, fps: 8 };
-const TABBY_WALK = { atlasUrl: "/rehearsal/performances/tabby/walk-right.webp", cols: 4, rows: 2, frames: 8, fps: 12 };
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -488,6 +485,7 @@ const MAX_STANDEES = 8;
 interface StandeeSlot {
   mesh: THREE.Mesh;
   mat: THREE.MeshStandardMaterial;
+  photo: THREE.MeshBasicMaterial;
 }
 
 interface SceneHandles {
@@ -519,20 +517,18 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
   userOrbit,
   bellImpulse,
   resolveAsset,
-  motionSeconds,
-  tabbyWalk,
+  actions,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const handlesRef = useRef<SceneHandles | null>(null);
-  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset, motionSeconds, tabbyWalk });
-  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset, motionSeconds, tabbyWalk };
+  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset, actions });
+  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset, actions };
 
   const renderNow = () => {
     const h = handlesRef.current;
     if (!h) return;
     const { state: st, beat: b, userOrbit: orbit, bellImpulse: chime, resolveAsset: resolveUrl } = latestPropsRef.current;
 
-    const { motionSeconds: seconds } = latestPropsRef.current;
     if (hostRef.current) delete hostRef.current.dataset.castMotion;
     const loadAtlas = (url: string) => {
       let texture = h.atlasTextures.get(url);
@@ -685,19 +681,18 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       }
 
       // Keep the existing standee while the reviewed atlas decodes.
-      const action = performer.artKey === "neon" ? NEON_STEP
-        : performer.artKey === "tabby" && latestPropsRef.current.tabbyWalk ? TABBY_WALK : undefined;
-      const reviewedTexture = action && seconds !== undefined ? loadAtlas(resolveUrl(action.atlasUrl)) : undefined;
+      const action = latestPropsRef.current.actions?.[performer.artKey];
+      const reviewedTexture = action ? loadAtlas(resolveUrl(action.atlasUrl)) : undefined;
       const reviewed = reviewedTexture?.image ? action : undefined;
       const tex = reviewedTexture?.image ? reviewedTexture : loadAtlas(resolveUrl(performer.cel.atlasUrl));
-      if (slot.mat.map !== tex) {
-        slot.mat.map = tex;
-        slot.mat.needsUpdate = true;
+      const material = reviewed && performer.artKey === "chip" ? slot.photo : slot.mat;
+      slot.mesh.material = material;
+      if (material.map !== tex) {
+        material.map = tex;
+        material.needsUpdate = true;
       }
       const { cols, rows } = reviewed ?? performer.cel;
-      const frame = reviewed
-        ? Math.floor(Math.max(0, seconds ?? 0) * reviewed.fps) % reviewed.frames
-        : performer.cel.frame;
+      const frame = reviewed?.frame ?? performer.cel.frame;
       if (reviewed && hostRef.current) hostRef.current.dataset.castMotion = `${performer.artKey}:${frame}`;
       const col = frame % cols;
       const row = Math.floor(frame / cols);
@@ -1001,7 +996,8 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       mesh.receiveShadow = false;
       mesh.visible = false;
       popupPivot.add(mesh);
-      return { mesh, mat };
+      const photo = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, toneMapped: false });
+      return { mesh, mat, photo };
     });
 
     const handles: SceneHandles = {
@@ -1046,6 +1042,9 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       handlesRef.current = null;
       spreadTextures.forEach((t) => t.dispose());
       handles.atlasTextures.forEach((t) => t.dispose());
+      for (const slot of standees) {
+        (slot.mesh.material === slot.mat ? slot.photo : slot.mat).dispose();
+      }
       scene.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {
           obj.geometry.dispose();

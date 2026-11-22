@@ -1,3 +1,4 @@
+import { dioramaActions } from "./dioramaActions";
 /**
  * Generic OO Multi-Lens Performance Worlds (`WorldsStage` — `S-29`).
  *
@@ -442,8 +443,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
             userOrbit={interactive ? userOrbit : null}
             bellImpulse={bellImpulse}
             resolveAsset={resolveAsset}
-            motionSeconds={castDioramaMotion ? (performing && !still ? timeSec : 0) : undefined}
-            tabbyWalk={performing && !still && piece.title === "Ribbon and Felt" && (beat < 4 || piece.sections?.filter(s => s.beat <= beat).at(-1)?.name === "dance break")}
+            actions={castDioramaMotion ? dioramaActions(piece, beat, timeSec, performing && !still) : undefined}
           />
         </div>
 
