@@ -315,7 +315,7 @@ export function computeWorldState(params: {
   }
 
   const words = detail?.words ?? [];
-  const lineText = detail?.text ?? firstLyricLine(piece);
+  const lineText = detail?.text ?? (performing ? "" : firstLyricLine(piece));
   const lineProgress = detail
     ? clamp01((effectiveBeat - detail.startBeat) / Math.max(0.25, detail.endBeat - detail.startBeat))
     : 0;

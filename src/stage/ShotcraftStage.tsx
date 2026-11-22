@@ -40,7 +40,8 @@ import type { Actor } from "../choir/choreo.ts";
 import { featuredAt, sceneFeatured } from "../choir/choreo.ts";
 import { cuesFor } from "../choir/cues.ts";
 import { gestureAt, gestureSeconds, type GesturePose } from "../choir/gestures.ts";
-import { beatSeconds } from "../choir/timeline.ts";
+import { SceneCaptions } from "./SceneCaptions";
+import { beatSeconds, LEAD_IN } from "../choir/timeline.ts";
 import { STUDIO_404_CAST, STUDIO_404_CREW, studio404Name } from "../choir/studio404.ts";
 import { duetCriticsStateAt, studio404DanceAt } from "../choir/studio404Anim.ts";
 import { bandFor, CRASH, HAT, KICK, OPEN_HAT, SNARE, type BandNote, type BandPart } from "../choir/band.ts";
@@ -783,16 +784,16 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   >(() => {
     const bs = beatSeconds(piece);
     if (customBubbles) {
-      const stageSec = 0.2 + beat * bs;
+      const stageSec = LEAD_IN + beat * bs;
       const active = customBubbles.filter((b) => stageSec >= b.startSec && stageSec < b.startSec + b.durationSec);
       return active.map((b) => {
-        const startBeat = Math.max(0, (b.startSec - 0.2) / bs);
-        const endBeat = Math.max(startBeat + 0.25, (b.startSec + b.durationSec - 0.2) / bs);
+        const startBeat = Math.max(0, (b.startSec - LEAD_IN) / bs);
+        const endBeat = Math.max(startBeat + 0.25, (b.startSec + b.durationSec - LEAD_IN) / bs);
         const words: KaraokeWordSpan[] = b.words?.length
           ? b.words.map((w) => ({
               text: w.text,
-              startBeat: Math.max(0, (w.startSec - 0.2) / bs),
-              endBeat: Math.max(0.08, (w.endSec - 0.2) / bs),
+              startBeat: Math.max(0, (w.startSec - LEAD_IN) / bs),
+              endBeat: Math.max(0.08, (w.endSec - LEAD_IN) / bs),
             }))
           : mapSkitWords(b.text, startBeat, endBeat);
         const isLegacyCream = b.bg.toLowerCase() === "#f6ecd2";
@@ -1408,7 +1409,13 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
       <div className="sc-grain" data-layout="overlay" aria-hidden="true" style={{ backgroundImage: GRAIN_DATA_URI }} />
 
       {/* 12. Self-Luminous Shotcraft Speech-Bubble Subtitles Layer (Above Vignette & Blackout!) */}
-      {placedCapsules.length > 0 && (
+      {(piece.kind === "skit" || placedCapsules.length > 2 || (performing && !isSoloStage && !cueAndNeon)) ? (
+        <SceneCaptions time={beat} comic={piece.kind === "skit"} lines={placedCapsules.map(({capsule:c, bg, fg, showTail}) => ({
+          key:c.key, speaker:c.speaker, text:c.text, accent:c.accent, x:c.centerX, y:c.topY, bg, fg, tail:showTail,
+          start:c.startBeat, end:c.endBeat,
+          words:c.words.map(w=>({text:w.text, start:w.startBeat, end:w.endBeat})),
+        }))}/>
+      ) : placedCapsules.length > 0 && (
         <div className="sc-capsules-layer" data-layout="overlay">
           {placedCapsules.map(({ capsule, bg, fg, showTail }) => (
             <ShotcraftSpeechCapsule

@@ -152,7 +152,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     transport.reset();
     setSelection({ kind: "stage" });
     if (lesson === "cardboard-horse") setWorldLens("caravan");
-    if (lesson === "right-on-cue") setWorldLens("archive");
+    if (lesson === "right-on-cue" || piece.kind === "skit") setWorldLens("archive");
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
 
@@ -182,7 +182,16 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const updateBubble = (id: string, patch: Partial<VideoBubbleClip>) => {
     setProject((cur) => ({
       ...cur,
-      bubbles: cur.bubbles.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+      bubbles: cur.bubbles.map(b => {
+        if (b.id !== id) return b;
+        const next = {...b, ...patch};
+        if (next.text !== b.text) next.words = undefined;
+        else if (b.words && (next.startSec !== b.startSec || next.durationSec !== b.durationSec)) {
+          const retime = (t: number) => next.startSec + (t - b.startSec) * next.durationSec / b.durationSec;
+          next.words = b.words.map(w => ({...w, startSec:retime(w.startSec), endSec:retime(w.endSec)}));
+        }
+        return next;
+      }),
     }));
   };
 

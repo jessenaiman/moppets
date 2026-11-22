@@ -4,6 +4,7 @@
  * Zero `stage.mp4` capture hack; 100% parity between live booth, `@remotion/player`, and export.
  */
 import React from "react";
+import { SceneCaptions } from "../stage/SceneCaptions";
 import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
@@ -416,6 +417,16 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
   );
 };
 
+function SoloSubtitles({project}: {project:MoppetVideoProps}) {
+  const time = useCurrentFrame() / useVideoConfig().fps;
+  const lines = project.bubbles.filter(b => time >= b.startSec && time < b.startSec + b.durationSec);
+  return <SceneCaptions time={time} lines={lines.map(b => ({
+    key:b.id, speaker:b.speaker, text:b.text, accent:b.color, bg:b.bg, fg:b.fg,
+    start:b.startSec, end:b.startSec+b.durationSec,
+    words:(b.words ?? []).map(w=>({text:w.text,start:w.startSec,end:w.endSec})),
+  }))}/>;
+}
+
 export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
   const { fps } = useVideoConfig();
   const { isPlayer } = useRemotionEnvironment();
@@ -432,9 +443,9 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         {props.audioUrl && (isPlayer
           ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
           : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
-        {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
+        {props.slug === "borrowed-light" ? <><MoonbeamSolo project={props}/><SoloSubtitles project={props}/></>
           : props.studio404 && props.slug === "line" ?
-          <StageFit><Audition project={props} neon={false}/></StageFit>
+          <><StageFit><Audition project={props} neon={false}/></StageFit><SoloSubtitles project={props}/></>
           : <MoppetStageScene props={props} interactive={isPlayer}/>}
       </Sequence>
       {outroFrames > 0 && (

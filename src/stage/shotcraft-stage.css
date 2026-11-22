@@ -711,3 +711,18 @@
 .sc-stage .sc-puppet:has(.rehearsal-actor) .sc-foot-shadow{display:block;bottom:2%;height:4%;width:33%;left:49%;opacity:1!important;background:radial-gradient(ellipse at 25% 50%,#291304ed 0%,#351b0f9e 15%,transparent 34%),radial-gradient(ellipse at 74% 50%,#311b0ce6 0%,#38221190 15%,transparent 30%);}
 .sc-stage .sc-puppet:has(.rehearsal-actor).selected::after{display:none;}
 .cue-prompt-card img{position:absolute;width:105%;height:130%;backface-visibility:hidden;transform:translateZ(.5px);}
+
+/* Paper dialogue balloons and a stable subtitle lane above the player controls. */
+.scene-captions { position:absolute; inset:0; z-index:221; pointer-events:none; container-type:inline-size; }
+.scene-caption { color:var(--ink); background:var(--paper); font:700 3.5cqw/1.22 "Instrument Sans",system-ui,sans-serif; text-wrap:balance; overflow-wrap:anywhere; }
+.scene-speaker { font:800 .62em/1.1 "Instrument Sans",system-ui,sans-serif; letter-spacing:.045em; text-transform:uppercase; }
+.is-balloon .scene-caption { position:absolute; top:7%; width:max-content; max-width:58%; padding:1.1% 2.2% 1.5%; border:.23cqw solid #251a18; border-radius:2.5cqw 2cqw 2.6cqw 1.6cqw; box-shadow:.45cqw .5cqw 0 var(--voice); transform-origin:50% 100%; }
+.is-balloon .scene-speaker { display:block; margin-bottom:.28em; }
+.scene-caption[data-tail]::after { content:""; position:absolute; top:99%; width:3cqw; height:2cqw; background:var(--paper); clip-path:polygon(0 0,100% 0,10% 100%); }
+.scene-caption[data-tail=left]::after { left:15%; }
+.scene-caption[data-tail=right]::after { right:15%; transform:scaleX(-1); }
+.is-subtitle { display:flex; flex-direction:column; justify-content:flex-start; align-items:center; gap:.3cqw; padding:3% 4% 0; }
+.is-subtitle .scene-caption { padding:.27em .62em; border-radius:.34em; border-inline-start:.15em solid var(--voice); max-width:90%; text-align:center; font-size:3.7cqw; }
+.is-subtitle .scene-speaker { color:var(--voice); margin-inline-end:.4em; }
+.scene-word[data-current] { text-decoration:underline; text-decoration-color:var(--voice); text-decoration-thickness:.13em; text-underline-offset:.11em; }
+.is-balloon .scene-word[data-current] { background:color-mix(in srgb,var(--voice) 26%,transparent); border-radius:.13em; }
