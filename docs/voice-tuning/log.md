@@ -162,3 +162,32 @@ Stored as `out/clarity/best/` (gitignored: re-measure on a new machine).
 - Hypothesis (lead 5): Gruff's rough source makes Whisper invent words.
 - Measured (`out/clarity/e9`, full run): Gruff 70.2 → 72.2, no clear change; its grain moved
   closer to Clank's (4.5 → 3.1 dB apart, the distinct line is 3). Reverted.
+
+## Found Things · Scribe's sung words · 2026-11-20
+
+Reference: the four solo lines in the shipped score, 30 words total. Each run
+rendered the same written pitches and note starts with SingerCore. The word-break
+trial shortened note releases between words by 35 ms. The trials used the
+installed whisper.cpp builds of small.en and medium.en with no previous text or
+decoding fallback. This was a song-specific screen. The speech judge's
+faster-whisper environment was unavailable, and its files and thresholds stayed
+as they were.
+
+| One change per run | Small.en edits, raw | Small.en edits, capped per line | Medium.en edits |
+|---|---:|---:|---:|
+| Current recipe | 134 | 29 | 23 |
+| Tongue root 0.20 → 0 | 28 | 28 | |
+| Tract size 0.95 → 1.12 | 28 | 28 | |
+| Epilarynx 0.55 → 0.25 | 28 | 28 | |
+| Raise consonant gesture strength 65% | 28 | 28 | 23 |
+| Larynx 0.50 → 0 | 28 | 28 | |
+| Vocal tension 0.78 → 0.45 | 27 | 27 | 23 |
+| Lengthen onset and coda segments 60% | 134 | 29 | |
+| Add 45 ms before vowels following stop onsets | 129 | 27 | |
+| Plan each word with a 35 ms release gap | 28 | 28 | |
+
+The raw baseline includes one long repeated syllable hallucination. Capping
+errors per line shows how little the other runs changed. No run recovered the
+opening line reliably. All trials remain local for audition. The reference and
+lighter-tension clips are in `out/clarity-found/baseline/` and
+`out/clarity-found/tension/`, respectively, with the first line in `00.wav`.
