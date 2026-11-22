@@ -47,14 +47,19 @@ export function neonBand(piece: Piece): BandPart[] {
           vel: 62,
         });
     }
-    // Short upper-register thirds answer after the attack. Leave all written rests clear.
-    for (const pc of [third, fifth])
-      keys.push({
-        beat: chord.beat + 0.67,
-        midi: 60 + pc,
-        beats: 0.27,
-        vel: 56,
-      });
+    // In the verse, let the vocal give way to a short piano answer.
+    // The opening bar is the band's first chance to state that figure.
+    if (section === "after hours" || chord.beat === 0) {
+      for (const offset of [0, 0.5]) {
+        const beat = chord.beat + offset;
+        if (offset >= chord.beats || part?.events.some(note => note.beat <= beat && beat < note.beat + note.beats)) continue;
+        const pitch = offset ? third : fifth;
+        keys.push({ beat, midi: 67 + ((pitch - 67 + 24) % 12), beats: Math.min(0.42, chord.beats - offset), vel: 95 });
+      }
+    } else {
+      for (const pc of [third, fifth])
+        keys.push({ beat: chord.beat + 0.67, midi: 60 + pc, beats: 0.27, vel: 68 });
+    }
     // Keep the kit on the bar grid, including across short chord changes.
     // Chord gaps and the quiet bridge retain their written rests.
     for (let beat = Math.ceil(chord.beat); beat < chord.beat + chord.beats; beat++) {

@@ -11,10 +11,12 @@ stage: vee
 finale: "Two" on 0
 
 [after hours]
-"My left tube hums" = -3/.75 -2/.25 0 2/2 | I 4
-"My right comes late" = 1/.75 2/.25 3 5/2 | IV 4
-"I saved your place" = 2/.75 4/.25 6 4/2 | VII 4
-"Here by my light" = 2/.75 1/.25 -1 0/2 | V 2, I 2
+"My left tube hums" = 0/.5 2/.5 4/1 2/1 | I 3
+turnaround I 1
+"My right comes late" = 0/.5 2/.5 5/2 3/1 | IV 4
+"I saved your place" = 6/.5 4/.5 3/1 4/1 | VII 3
+turnaround VII 1
+"Here by my light" = 1/.5 2/.5 1/1 0/2 | V 2, I 2
 
 [twin take]
 "One light" = 4 2/2 | I 3
