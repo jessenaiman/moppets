@@ -71,3 +71,5 @@ before building the app against its pinned engine.
 
 [MIT](LICENSE), as CHIMERA. Bundled third-party files keep their own licenses: the CMU
 Pronouncing Dictionary and the fonts (in `chimera/public/`).
+
+EffectCraft project masters live under `/run/media/jesse/Speedy/magic-studio/assets/moppet-choir/`, following their former repository paths. The web build uses the exported media.

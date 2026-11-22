@@ -15,3 +15,6 @@ storyboard/**/exports/
 storyboard/**/*.pdf
 storyboard/**/*.pptx
 .vercel
+
+# EffectCraft authoring projects live in the Speedy asset library.
+*.ecproj
