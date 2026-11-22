@@ -282,7 +282,7 @@ export function computeWorldState(params: {
     const mouthOpen = p.singing && p.open > MOUTH_OPEN_THRESHOLD;
     const cel = duetTake && (ident.artKey === "neon" || ident.artKey === "cue")
       ? duetCel(duetTake, ident.artKey)
-      : resolvePerformerCel(ident.artKey, p, effectiveBeat, plateIndex, mouthOpen, fmvManifests[ident.artKey]);
+      : resolvePerformerCel(ident.artKey, p, effectiveBeat, plateIndex, mouthOpen, fmvManifests[ident.artKey], still || !performing);
     return {
       ...ident,
       singing: p.singing,

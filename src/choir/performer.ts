@@ -5,6 +5,7 @@
  * polymorphic avatar resolution (Flow FMV cel atlas -> Pin atlas -> WebP sprite pair)
  * into one single data-driven entity so NO stage world ever hardcodes a character.
  */
+import { castExposureCel } from "./castExposureCel.ts";
 import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 import { STUDIO_404_CAST } from "./studio404.ts";
 
@@ -87,7 +88,7 @@ export function resolvePerformerIdentity(
   if (songTitle === "Borrowed Light" && voice.id === "vee") {
     return {
       id: voice.id,
-      artKey: "neon",
+      artKey: "moonbeam",
       name: "Moonbeam",
       role: "Guest phosphor voice",
       color: "#9be7ff",
@@ -120,6 +121,7 @@ export function resolvePerformerCel(
   plateIndex: number,
   mouthOpen: boolean,
   manifest?: CharacterFmvManifest | null,
+  still = false,
 ): PerformerAvatarCel {
   const actionKey = pose.singing
     ? plateIndex >= 3
@@ -170,6 +172,15 @@ export function resolvePerformerCel(
     };
   }
 
+  const exposure = castExposureCel(artKey, pose, beat, mouthOpen, still);
+  if (exposure) return exposure;
+  if (artKey === "vee" || artKey === "scribe" || artKey === "pip") {
+    return {
+      atlasUrl: `/moppets/${artKey}/${mouthOpen ? "open" : "closed"}.webp`,
+      cols: 4, rows: 2, frame: still ? 0 : Math.floor(Math.max(0, beat) * 2) % 8,
+      action: pose.singing ? "sing" : "idle", source: "sprite-pair",
+    };
+  }
   // 3. Universal transparent rest/sing cutout WebP pair (works for Tabby, Zap, Gruff, Watt, Clank, Chip, Tracking, Hertz, etc.)
   const stateName = mouthOpen || (pose.singing && pose.level > 0.14) ? "sing" : "rest";
   return {

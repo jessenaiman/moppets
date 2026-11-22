@@ -3,7 +3,7 @@
  * Replaces the boring `<select>` Song/Skit dropdown with tactile visual cards showing
  * each performance's real cast portraits, accent palette, BPM/key, and category filters.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SONGBOOK } from "../choir/songbook.ts";
 import { SKITS } from "../choir/skits.ts";
 import { CAST } from "../choir/voices.ts";
@@ -22,6 +22,10 @@ interface CatalogEntry {
   cast: { id: string; artKey: string; name: string; color: string }[];
   leadColor: string;
   accentB: string;
+}
+
+function portrait(artKey: string) {
+  return artKey === "moonbeam" ? "/rehearsal/cast/moonbeam/staged-front.webp" : `/rehearsal/img/${artKey}-rest.webp`;
 }
 
 function buildCatalog(studio404: boolean, freshSkitTitle?: string): CatalogEntry[] {
@@ -125,6 +129,19 @@ export function SongNavigator() {
   const crateRef = useRef<HTMLDivElement>(null);
 
   const catalog = useMemo(() => buildCatalog(studio404, freshSkit?.title), [studio404, freshSkit?.title]);
+  const linkedAct = useRef(new URLSearchParams(window.location.search).get("act"));
+  useEffect(() => {
+    const act = linkedAct.current;
+    linkedAct.current = null;
+    if (act && act !== lesson && catalog.some(item => item.id === act)) setLesson(act);
+  }, [catalog, lesson, setLesson]);
+
+  const selectAct = (id: Lesson) => {
+    setLesson(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("act", id);
+    window.history.replaceState(window.history.state, "", url);
+  };
   const filtered = useMemo(
     () => (filter === "all" ? catalog : catalog.filter((item) => item.category === filter)),
     [catalog, filter],
@@ -134,7 +151,7 @@ export function SongNavigator() {
   const stepSong = (delta: number) => {
     if (!filtered.length) return;
     const next = filtered[(activeIdx + delta + filtered.length) % filtered.length];
-    if (next) setLesson(next.id);
+    if (next) selectAct(next.id);
   };
 
   return (
@@ -215,7 +232,7 @@ export function SongNavigator() {
               role="option"
               aria-selected={active}
               data-song-id={item.id}
-              onClick={() => setLesson(item.id)}
+              onClick={() => selectAct(item.id)}
               style={{
                 borderColor: active ? "#50cfad" : `${item.leadColor}55`,
                 background: active
@@ -229,7 +246,7 @@ export function SongNavigator() {
               {/* Overlapping real cast portrait sleeve */}
               <div className="relative flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-md border border-white/15 bg-[#120c09]">
                 <img
-                  src={`/rehearsal/img/${item.cast[0]?.artKey ?? "neon"}-rest.webp`}
+                  src={portrait(item.cast[0]?.artKey ?? "neon")}
                   alt=""
                   className="h-11 w-11 object-contain"
                   loading="lazy"
@@ -274,7 +291,7 @@ export function SongNavigator() {
                 key={`poster-${item.id}`}
                 type="button"
                 onClick={() => {
-                  setLesson(item.id);
+                  selectAct(item.id);
                   setPosterOpen(false);
                 }}
                 style={{
@@ -291,7 +308,7 @@ export function SongNavigator() {
                   {item.cast.slice(0, 3).map((c) => (
                     <img
                       key={c.id}
-                      src={`/rehearsal/img/${c.artKey}-rest.webp`}
+                      src={portrait(c.artKey)}
                       alt={c.name}
                       className="h-16 w-auto object-contain"
                       loading="lazy"
