@@ -53,7 +53,7 @@ export const STUDIO_404_CAST: Record<string, Studio404Persona> = {
   gruff: {
     voiceId: "gruff",
     name: "Gruff",
-    role: "Valve-amp bass",
+    role: "Galvanized washtub upright bass",
     artKey: "gruff",
     color: "#d98a4e",
   },
