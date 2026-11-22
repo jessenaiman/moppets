@@ -70,6 +70,7 @@ export interface Chord {
 export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong" | "skit";
 export interface Piece {
   meter?: string;
+  backingGroove?: "half-time" | "waltz" | "six-eight";
   meterChanges?: import("./meter").MeterChange[];
   kind: PieceKind;
   sections?: {name:string; beat:number}[];

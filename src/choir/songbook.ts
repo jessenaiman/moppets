@@ -45,6 +45,7 @@ export interface Section {
 }
 export interface Song {
   meter?: string;
+  backingGroove?: Piece["backingGroove"];
   lead: string;
   title: string;
   description: string;
@@ -219,7 +220,7 @@ export function buildSong(s: Song, options: IntroductionOptions = {}): Piece {
     tracks.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   } else if (!intro) tracks.sort((a, b) => (a.id === s.lead ? -1 : b.id === s.lead ? 1 : 0));
   const pluck = intro ? chords.flatMap(c => Array(c.beats).fill(scalePitch(c.degree, key, mode) - 24)) : undefined;
-  return { kind: intro ? "intro" : "motesong", ...(pluck ? {pluck} : {}), sections, title: s.title, key, mode, bpm: s.bpm, ...(s.meter?{meter:s.meter}:{}), beats: at, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
+  return { kind: intro ? "intro" : "motesong", ...(pluck ? {pluck} : {}), sections, title: s.title, key, mode, bpm: s.bpm, backingGroove: s.backingGroove, ...(s.meter?{meter:s.meter}:{}), beats: at, chords, tracks, description: s.description, beat: s.beat, cues, ...(s.stage ? { stage: s.stage } : {}) };
 }
 
 // ---------------------------------------------------------------------------------- the songs

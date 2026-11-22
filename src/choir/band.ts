@@ -9,6 +9,7 @@
  * already has a drummer, so its kit sits out. Where the chords stop (a songbook rest), the band does.
  */
 import type { Chord, Piece } from "./music.ts";
+import { beatsPerBar } from "./meter.ts";
 import { zapBand } from "./zapBand.ts";
 import { neonBand } from "./neonBand.ts";
 import { moonbeamBand } from "./moonbeamBand.ts";
@@ -66,6 +67,63 @@ const near = (pc: number, centre: number) => {
   return centre - base > 6 ? base + 12 : base;
 };
 
+interface SoloBacking {
+  bassBeats: number;
+  answerFifth: boolean;
+  keysAt: number;
+  kit: readonly [offset: number, midi: number, velocity: number][];
+}
+
+const soloBackings: Record<NonNullable<Piece["backingGroove"]>, SoloBacking> = {
+  "half-time": {
+    bassBeats: 1.2, answerFifth: false, keysAt: 2.5,
+    kit: [[0, KICK, 56], [1.5, HAT, 28], [2, SNARE, 46], [3.5, HAT, 23]],
+  },
+  "waltz": {
+    bassBeats: 0.52, answerFifth: true, keysAt: 1.5,
+    kit: [[0, KICK, 83], [0.5, HAT, 43], [1, SNARE, 65], [1.5, HAT, 37], [2, KICK, 62]],
+  },
+  "six-eight": {
+    bassBeats: 0.8, answerFifth: false, keysAt: 2,
+    kit: [[0, KICK, 65], [0.5, HAT, 33], [1.5, SNARE, 48], [2.5, HAT, 45]],
+  },
+};
+
+function bandParts(bass: BandNote[], keys: BandNote[], drums: BandNote[]): BandPart[] {
+  const part = (id: BandId, notes: BandNote[]): BandPart => ({ id, program: BAND_SETUP[id].program, channel: BAND_SETUP[id].channel, notes });
+  return [part("bass", bass), part("keys", keys), ...(drums.length ? [part("drums", drums)] : [])];
+}
+
+function arrangeSolo(piece: Piece, backing: SoloBacking): BandPart[] {
+  const bass: BandNote[] = [], keys: BandNote[] = [], drums: BandNote[] = [];
+  const chords = piece.chords;
+  for (const chord of chords) {
+    const root = near(chord.tones[0], 41);
+    bass.push({ beat: chord.beat, beats: Math.min(chord.beats, backing.bassBeats), midi: root, vel: 82 });
+    if (backing.answerFifth && chord.beats >= 3) {
+      bass.push({ beat: chord.beat + 2, beats: 0.45, midi: near(chord.tones[2], root + 7), vel: 67 });
+    }
+    const beats = Math.min(0.5, chord.beats - backing.keysAt);
+    if (beats > 0) {
+      for (const [pc, centre] of [[chord.tones[1], 60], [chord.tones[2], 65]]) {
+        keys.push({ beat: chord.beat + backing.keysAt, beats, midi: near(pc, centre), vel: 53 });
+      }
+    }
+  }
+  const barBeats = beatsPerBar(piece.meter);
+  const end = Math.max(...chords.map(chord => chord.beat + chord.beats));
+  if (!piece.beat) {
+    for (let bar = 0; bar < end; bar += barBeats) {
+      for (const [offset, midi, vel] of backing.kit) {
+        const beat = bar + offset;
+        const chord = offset < barBeats ? chordAt(chords, beat) : undefined;
+        if (chord) drums.push({ beat, beats: Math.min(0.18, chord.beat + chord.beats - beat), midi, vel });
+      }
+    }
+  }
+  return bandParts(bass, keys, drums);
+}
+
 export function arrange(piece: Piece): BandPart[] {
   if (piece.title === "Borrowed Light" && piece.stage?.includes("vee")) return moonbeamBand(piece);
   if ((piece.title === "Line?" || piece.title === "Right on Cue") && piece.stage?.includes("scribe")) return promptBand(piece);
@@ -73,6 +131,7 @@ export function arrange(piece: Piece): BandPart[] {
   if (piece.title === "Every Button" && piece.stage?.includes("zap") && piece.chords.length) return zapBand(piece);
   const chords = piece.chords;
   if (!chords.length) return [];
+  if (piece.backingGroove) return arrangeSolo(piece, soloBackings[piece.backingGroove]);
   const end = Math.max(...chords.map((c) => c.beat + c.beats));
   const ballad = piece.bpm < 92;
   // swung songs push the off-beat eighth late, as the beatbox does
@@ -142,6 +201,5 @@ export function arrange(piece: Piece): BandPart[] {
       drums.push({ beat: b, beats: 0.4, midi: HAT, vel: 52 }, { beat: b + off, beats: 0.4, midi: inBar === 3 ? OPEN_HAT : HAT, vel: 38 });
     }
   }
-  const part = (id: BandId, notes: BandNote[]): BandPart => ({ id, program: BAND_SETUP[id].program, channel: BAND_SETUP[id].channel, notes });
-  return [part("bass", bass), part("keys", keys), ...(drums.length ? [part("drums", drums)] : [])];
+  return bandParts(bass, keys, drums);
 }

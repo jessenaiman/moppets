@@ -252,10 +252,15 @@ export function parseSongFile(text: string, file = "song"): SongFile {
   const fin = /^"([^"]*)"\s+(?:on\s+(-?\d+)|=\s*(.+))$/.exec(meta.get("finale") ?? "");
   if (!fin && meta.get("arrangement") !== "introduction") throw new SongFileError(file, 1, `finale: "Word" on <degree>`);
   const finaleNotes = fin?.[3] ? parseNotes(fin[3]) : undefined;
+  const groove = meta.get("groove");
+  if (groove !== undefined && groove !== "half-time" && groove !== "waltz" && groove !== "six-eight") {
+    throw new SongFileError(file, 1, "Unknown backing groove: " + groove);
+  }
   const meter = meta.get("meter");
   if (meter !== undefined && !/^(?:[1-9]|[1-9]\d)\/(1|2|4|8|16|32)$/.test(meter)) throw new SongFileError(file,1,"Invalid meter; use a time signature such as 3/4 or 6/8");
   const song: Song = {
     ...(meter ? {meter} : {}),
+    ...(groove ? {backingGroove: groove} : {}),
     lead: need("lead"),
     title: need("title"),
     description: meta.get("about") ?? "",
@@ -312,6 +317,7 @@ export function printSongFile(f: SongFile): string {
     `key: ${s.key}${s.mode ? ` ${s.mode}` : ""}`,
     `bpm: ${fmt(s.bpm)}`,
     ...(s.meter ? [`meter: ${s.meter}`] : []),
+    ...(s.backingGroove ? [`groove: ${s.backingGroove}`] : []),
     ...(s.beat ? [`beat: ${s.beat.text} (swing ${fmt(s.beat.swing)})`] : []),
     `backing: ${s.seats.map(([w, o]) => `${w} +${fmt(o)}`).join(", ")}`,
     ...(s.bass ? [`bass: ${s.bass}`] : []),
