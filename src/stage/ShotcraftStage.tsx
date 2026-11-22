@@ -156,7 +156,7 @@ export interface ShotcraftStageProps {
   /** Playing or paused on a score */
   performing: boolean;
   /** Enable the reviewed Neon atlas on the public diorama. */
-  neonDioramaMotion?: boolean;
+  castDioramaMotion?: boolean;
   /** Actively advancing frames on the score */
   dancing: boolean;
   /** Reduced motion preference */
@@ -561,7 +561,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   timeSec,
   performing,
   dancing,
-  neonDioramaMotion = false,
+  castDioramaMotion = false,
   still = false,
   selectedIndex = 0,
   cameraFollow = true,
@@ -906,7 +906,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
         interactive={isInteractive}
         resolveAsset={resolveAsset}
         fmvManifests={castFmvManifests}
-        neonDioramaMotion={neonDioramaMotion}
+        castDioramaMotion={castDioramaMotion}
       />
     );
   }

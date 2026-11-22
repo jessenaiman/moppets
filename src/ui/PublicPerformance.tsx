@@ -65,7 +65,7 @@ function Performance({ piece, voices, world, setWorld }: {
   return <>
     <section aria-label={piece.title} className="relative aspect-video overflow-hidden rounded-xl bg-[#211814]">
       <ShotcraftStage piece={piece} voices={voices} studio404 beat={Math.max(0,(seconds - LEAD_IN)/beatSeconds(piece))}
-        timeSec={seconds} performing={playing || seconds > 0} dancing={playing} poses={poses} neonDioramaMotion
+        timeSec={seconds} performing={playing || seconds > 0} dancing={playing} poses={poses} castDioramaMotion
         still={window.matchMedia("(prefers-reduced-motion: reduce)").matches}
         selectedIndex={selected} onSelectActor={setSelected} interactive neonLens={world}
         onNeonLensChange={setWorld} showInternalLensBar={false} />

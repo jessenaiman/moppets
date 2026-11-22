@@ -19,11 +19,13 @@ export interface FoldedBook3DProps {
   userOrbit: { azimuth: number; elevation: number } | null;
   bellImpulse: number;
   resolveAsset: (path: string) => string;
-  neonMotionSeconds?: number;
+  motionSeconds?: number;
+  tabbyWalk?: boolean;
 }
 
 // Reviewed Neon step: eight transparent cels in row-major order.
 const NEON_STEP = { atlasUrl: "/rehearsal/performances/neon/step.webp", cols: 4, rows: 2, frames: 8, fps: 8 };
+const TABBY_WALK = { atlasUrl: "/rehearsal/performances/tabby/walk-right.webp", cols: 4, rows: 2, frames: 8, fps: 12 };
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -517,20 +519,21 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
   userOrbit,
   bellImpulse,
   resolveAsset,
-  neonMotionSeconds,
+  motionSeconds,
+  tabbyWalk,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const handlesRef = useRef<SceneHandles | null>(null);
-  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset, neonMotionSeconds });
-  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset, neonMotionSeconds };
+  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset, motionSeconds, tabbyWalk });
+  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset, motionSeconds, tabbyWalk };
 
   const renderNow = () => {
     const h = handlesRef.current;
     if (!h) return;
     const { state: st, beat: b, userOrbit: orbit, bellImpulse: chime, resolveAsset: resolveUrl } = latestPropsRef.current;
 
-    const { neonMotionSeconds: seconds } = latestPropsRef.current;
-    if (hostRef.current) delete hostRef.current.dataset.neonMotion;
+    const { motionSeconds: seconds } = latestPropsRef.current;
+    if (hostRef.current) delete hostRef.current.dataset.castMotion;
     const loadAtlas = (url: string) => {
       let texture = h.atlasTextures.get(url);
       if (!texture) {
@@ -682,10 +685,10 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       }
 
       // Keep the existing standee while the reviewed atlas decodes.
-      const reviewedTexture = performer.artKey === "neon" && seconds !== undefined
-        ? loadAtlas(resolveUrl(NEON_STEP.atlasUrl))
-        : undefined;
-      const reviewed = reviewedTexture?.image ? NEON_STEP : undefined;
+      const action = performer.artKey === "neon" ? NEON_STEP
+        : performer.artKey === "tabby" && latestPropsRef.current.tabbyWalk ? TABBY_WALK : undefined;
+      const reviewedTexture = action && seconds !== undefined ? loadAtlas(resolveUrl(action.atlasUrl)) : undefined;
+      const reviewed = reviewedTexture?.image ? action : undefined;
       const tex = reviewedTexture?.image ? reviewedTexture : loadAtlas(resolveUrl(performer.cel.atlasUrl));
       if (slot.mat.map !== tex) {
         slot.mat.map = tex;
@@ -695,7 +698,7 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
       const frame = reviewed
         ? Math.floor(Math.max(0, seconds ?? 0) * reviewed.fps) % reviewed.frames
         : performer.cel.frame;
-      if (reviewed && hostRef.current) hostRef.current.dataset.neonMotion = `step:${frame}`;
+      if (reviewed && hostRef.current) hostRef.current.dataset.castMotion = `${performer.artKey}:${frame}`;
       const col = frame % cols;
       const row = Math.floor(frame / cols);
       tex.repeat.set(1 / cols, 1 / rows);

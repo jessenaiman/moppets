@@ -37,7 +37,7 @@ export interface WorldsStageProps {
   interactive?: boolean;
   resolveAsset: (path: string) => string;
   fmvManifests?: Record<string, CharacterFmvManifest | null>;
-  neonDioramaMotion?: boolean;
+  castDioramaMotion?: boolean;
 }
 
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
@@ -304,7 +304,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
   interactive = false,
   resolveAsset,
   fmvManifests = {},
-  neonDioramaMotion = false,
+  castDioramaMotion = false,
 }) => {
   const [plateOverride, setPlateOverride] = useState<number | null>(null);
   const [userOrbit, setUserOrbit] = useState<{ azimuth: number; elevation: number } | null>(null);
@@ -442,7 +442,8 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
             userOrbit={interactive ? userOrbit : null}
             bellImpulse={bellImpulse}
             resolveAsset={resolveAsset}
-            neonMotionSeconds={neonDioramaMotion ? (performing && !still ? timeSec : 0) : undefined}
+            motionSeconds={castDioramaMotion ? (performing && !still ? timeSec : 0) : undefined}
+            tabbyWalk={performing && !still && piece.title === "Ribbon and Felt" && (beat < 4 || piece.sections?.filter(s => s.beat <= beat).at(-1)?.name === "dance break")}
           />
         </div>
 
