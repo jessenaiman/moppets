@@ -13,19 +13,21 @@ finale: "Glow" on 0
 
 [after hours]
 "Lights wake up at night" = 2 2/.5 1/.5 0 -1 | I 4
-"Flip the switch" = -1/.5 -2/.5 -1/2 | VII 3
+turnaround VII .5
+"Flip the switch" = -1/.5 -2/.5 -1/1.5 | VII 2.5
 turnaround VII 1
 "Lights wake up at night" = 2 2/.5 1/.5 0 -1 | I 4
-"Watch them glow" = 0/.5 2/.5 3/2 | IV 3
-turnaround IV 1
+turnaround IV .5
+"Watch them glow" = 0/.5 2/.5 3/2.5 | IV 3.5
 
 [twin take]
 "Glow with me" = 4/.5 5/.5 7/2 | I 3
 turnaround I 1
-"Fill the street" = 6/.5 5/.5 4/2 | VII 3
+"Fill the street" = 4/.5 5/.5 6/2 | VII 3
 turnaround VII 1
-"From the floor" = 3/.5 4/.5 5/2 | IV 3
-"To the roof" = 2/.5 1/.5 0/4 | I 5
+"From the floor" = 3/.5 4/.5 5/1 | IV 2
+"To the roof" = 4/.5 3/.5 2/1 | IV 2
+"Let it glow" = 2/.5 1/.5 0/3 | V 1, I 3
 
 [the dark]
 turnaround I 4
