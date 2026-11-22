@@ -443,7 +443,7 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         {props.audioUrl && (isPlayer
           ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
           : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
-        {props.slug === "borrowed-light" ? <><MoonbeamSolo project={props}/><SoloSubtitles project={props}/></>
+        {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
           : props.studio404 && props.slug === "line" ?
           <><StageFit><Audition project={props} neon={false}/></StageFit><SoloSubtitles project={props}/></>
           : <MoppetStageScene props={props} interactive={isPlayer}/>}
