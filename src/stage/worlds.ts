@@ -5,6 +5,7 @@
  * with zero hardcoded character names, sprites, or song titles.
  * Engine-free: safe across live stage, Remotion `<Player>`, and headless export.
  */
+import { rightOnCuePerformance, duetCel } from "../choir/rightOnCuePerformance";
 import type { Piece } from "../choir/music.ts";
 import { speechDetailForTrack, type KaraokeWordSpan } from "../choir/bubbles.ts";
 import {
@@ -274,11 +275,14 @@ export function computeWorldState(params: {
   const plateTurn = still || !performing ? 1 : clamp01(intoPlate / 1.6);
 
   // Build polymorphic PerformerFrames for every onstage cast member
+  const duetTake = studio404 ? rightOnCuePerformance(piece, still ? 0 : effectiveBeat) : null;
   const cast: PerformerFrame[] = castPairs.map(({ i }, idx) => {
     const ident = identities[idx];
     const p = poses[i] ?? { singing: false, level: 0, open: 0, viseme: 0 };
     const mouthOpen = p.singing && p.open > MOUTH_OPEN_THRESHOLD;
-    const cel = resolvePerformerCel(ident.artKey, p, effectiveBeat, plateIndex, mouthOpen, fmvManifests[ident.artKey]);
+    const cel = duetTake && (ident.artKey === "neon" || ident.artKey === "cue")
+      ? duetCel(duetTake, ident.artKey)
+      : resolvePerformerCel(ident.artKey, p, effectiveBeat, plateIndex, mouthOpen, fmvManifests[ident.artKey]);
     return {
       ...ident,
       singing: p.singing,

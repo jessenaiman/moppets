@@ -10,11 +10,12 @@ const clamp=(n:number)=>Math.max(0,Math.min(1,n));
 const cel=(phase:number)=>Math.round(47*clamp(phase));
 
 export function cordExposure(piece: Piece, beat: number) {
-  const pair=piece.title==="Right on Cue", start=piece.sections?.find(s=>s.name===(pair?"step inside":"prompt"))?.beat;
-  if(start===undefined || (!pair && piece.title!=="Line?"))return null;
-  const from=start+(pair?0:8);
-  if(beat<from)return null;
-  const end=piece.sections?.find(s=>s.name===(pair?"missed entrance":"blank card"))?.beat ?? piece.beats;
+  if (piece.title !== "Line?") return null;
+  const prompt = piece.sections?.find(s => s.name === "prompt");
+  if (!prompt) return null;
+  const from = prompt.beat + 8;
+  if (beat < from) return null;
+  const end = piece.sections?.find(s => s.name === "blank card")?.beat ?? piece.beats;
   if(beat>=end)return null;
   return cel(Math.min((beat-from)/3.6,(end-beat)/2));
 }
@@ -39,17 +40,13 @@ export function RehearsalActor({actor,piece,beat,still,rollingFrame,resolveAsset
   const t=Math.max(0,beat-(section?.beat??0)),phrase=Math.floor(t/4);
   let action:string="listen", phase=(t%4)/4;
   if(actor==="cue") {
-    if(section?.name==="missed entrance" && t<8) {
-      action="bow";phase=t<2 ? .17*t/2 : t<4 ? .17+.31*(t-2)/2 : t<6 ? .48+.12*(t-4)/2 : .6+.4*(t-6)/2;
-    }else if(section?.name==="step inside" || (section?.name==="prompt" && phrase>=2)){
-      action="cast";phase=clamp((t-(section.name==="prompt"?8:0))/4);
+    if(section?.name==="prompt" && phrase>=2){
+      action="cast";phase=clamp((t-8)/4);
     }else if(section?.name==="blank card"){action="recover";phase=t<4?t/8:t<8?.5:.5+.5*clamp((t-8)/4);}
     else if(section?.name==="invitation" || section?.name==="Finale" || phrase%2===0)action="offer";
   }else{
     action=section?.name==="the dark"?"listen":phrase%2?"answer":"acknowledge";
     if(rollingFrame!==undefined){action="snag";phase=rollingFrame/47;}
-    else if(section?.name==="step inside"){action=t<4?"listen":"step";phase=t<4?t/4:clamp((t-4)/4);}
-    else if(section?.name==="missed entrance"){action="acknowledge";phase=clamp((t-5)/4);}
   }
   const frame=still?0:cel(phase);
   return <span className="rehearsal-actor" data-action={action} data-frame={frame} aria-hidden="true"

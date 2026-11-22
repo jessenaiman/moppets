@@ -1,8 +1,7 @@
-import {StageFit} from "./StageFit";
 import {AbsoluteFill,Img,Sequence,staticFile,useCurrentFrame,useVideoConfig} from 'remotion';
 import type {MoppetVideoProps} from '../choir/videoProject';
 import {vocalLevelAt} from '../choir/vocalTiming';
-import {Cue,Duet} from './Duet';
+import {Cue} from './Cue';
 import {NeonMesh,pose,type Action} from './NeonActions';
 
 
@@ -46,15 +45,4 @@ export function Audition({project,neon}:{project:MoppetVideoProps;neon:boolean})
       <Cue arm={15+reach*strength} head={word.includes('who')?12*strength:word.includes('oh')?-9*strength:turn*(1-returned)*8+3*strength} mouth={mouth}/>
     </div></Sequence>
   </AbsoluteFill>;
-}
-export function CastMoment({project}:{project:MoppetVideoProps}){
-  const frame=useCurrentFrame(),{fps}=useVideoConfig();
-  const cast=project.bubbles.find(b=>b.speakerId==='scribe'&&b.text==='I lay the loop');
-  if(!cast)return null;
-  const v=performance(project,frame/fps);
-  const mouth=vocalLevelAt(project.vocalTiming,'scribe',frame/fps)??(v.line?.speakerId==='scribe'?v.mouth:0);
-  const neonMouth=vocalLevelAt(project.vocalTiming,'vee',frame/fps)??0;
-  return <Sequence name="Cord cast and caster catch" from={Math.max(0,Math.round((cast.startSec-.61)*fps))} durationInFrames={Math.round(6.25*fps)}>
-    <StageFit><Duet mouth={mouth} neonMouth={neonMouth}/></StageFit>
-  </Sequence>;
 }

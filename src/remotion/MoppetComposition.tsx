@@ -45,7 +45,6 @@ async function loadAuditions() {
   }
 }
 const Audition = React.lazy(() => loadAuditions().then(m => ({default: m.Audition})));
-const CastMoment = React.lazy(() => loadAuditions().then(m => ({default: m.CastMoment})));
 import { MoonbeamSolo } from "../rehearsal/MoonbeamSolo";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
 import { CharacterClip } from "./CharacterClip.tsx";
@@ -262,6 +261,9 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
           urls.add(resolveAsset(`/rehearsal/rigs/neon/solo/${state}.webp`));
         }
       }
+      if (pair) {
+        for (const side of ["back", "front"]) urls.add(resolveAsset(`/rehearsal/pins/cord/${side}.webp`));
+      }
       if (players.length) {
         const set = pair ? "right-on-cue" : players[0] === "neon" ? "neon-repair" : "cue";
         urls.add(resolveAsset(`/rehearsal/sets/${set}.webp`));
@@ -348,7 +350,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
 
   if (!portrait) {
     return (
-      <AbsoluteFill style={{ background: "#070203", opacity: fadeIn * fadeOut }}>
+      <AbsoluteFill style={{ background: "#070203", isolation: "isolate", opacity: fadeIn * fadeOut }}>
         {preloadLayer}
         {stageElement}
       </AbsoluteFill>
@@ -358,7 +360,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
   // 9:16 vertical framing: centered live 16:9 theatrical stage flanked by Studio 404 header & meter
   const beatPhase = Math.abs(Math.sin(Math.PI * beat));
   return (
-    <AbsoluteFill style={{ background: "#0a0405", display: "flex", flexDirection: "column", opacity: fadeIn * fadeOut }}>
+    <AbsoluteFill style={{ background: "#0a0405", isolation: "isolate", display: "flex", flexDirection: "column", opacity: fadeIn * fadeOut }}>
       {preloadLayer}
       <div
         style={{
@@ -433,10 +435,7 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
           : props.studio404 && props.slug === "line" ?
           <StageFit><Audition project={props} neon={false}/></StageFit>
-          : <>
-          <MoppetStageScene props={props} interactive={isPlayer}/>
-          {props.studio404 && props.slug==="right-on-cue" && <CastMoment project={props}/>}
-        </>}
+          : <MoppetStageScene props={props} interactive={isPlayer}/>}
       </Sequence>
       {outroFrames > 0 && (
         <Sequence from={introFrames + stageFrames} durationInFrames={outroFrames}>

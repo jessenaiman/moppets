@@ -24,6 +24,7 @@ import React, { useMemo, useState } from "react";
 import "./shotcraft-stage.css";
 import { zapCues, zapTake } from "./zapDirection.ts";
 import { atlasStyle, WorkshopSolo, workshopTake, workshopSongs, type WorkshopSinger } from "./WorkshopSolo.tsx";
+import { rightOnCuePerformance, duetCel } from "../choir/rightOnCuePerformance";
 import { StageCord, cordExposure, PinnedBow, RehearsalActor } from "./RehearsalActor.tsx";
 import { CuePromptStand } from "./CueSolo.tsx";
 import { NeonSolo, neonScore, neonTake, RepairBayLights } from "./NeonSolo.tsx";
@@ -611,7 +612,8 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const soloSet = soloArt ? soloSets.find(set => set.art === soloArt) : undefined;
   const workshopArt = soloArt && Object.hasOwn(workshopSongs,soloArt) && workshopSongs[soloArt as WorkshopSinger] === piece.title ? soloArt as WorkshopSinger : null;
   const workshop = workshopArt ? workshopTake(workshopArt, piece.tracks.find(t=>t.id===soloVoiceId),performing ? beat : 0,still) : null;
-  const cueAndNeon = studio404 && piece.title === "Right on Cue";
+  const duetTake = studio404 ? rightOnCuePerformance(piece, performing && !still ? beat : 0) : null;
+  const cueAndNeon = Boolean(duetTake);
   const onCart = soloSet?.art === "zap";
   const inRepairBay = soloSet?.art === "neon" && piece.title === "Take Two";
   const neonCues = useMemo(()=>inRepairBay ? neonScore(piece) : null,[inRepairBay,piece]);
@@ -619,7 +621,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const onValveBench = soloSet?.art === "gruff";
   const cartFrame = zapFrame(performing && !still ? beat : 0);
   const cueSolo = soloSet?.art==="cue" && piece.title==="Line?";
-  const cord = performing && !still ? cordExposure(piece,beat) : null;
+  const cord = duetTake ? duetTake.cordFrame : performing && !still ? cordExposure(piece,beat) : null;
   const bowStart = piece.title==="Ribbon and Felt" ? piece.sections?.find(s=>s.name==="curtain call")?.beat : undefined;
   const tabbyBow = performing && bowStart!==undefined && beat>=bowStart && beat<bowStart+8;
   const directing = onCart && piece.title === "Every Button";
@@ -631,9 +633,8 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   // or center cleanly when a solo song clears the stage (`stage: tabby`)
   const rawActors = liveActors ?? deterministicActors(piece, voices, beat, performing, studio404, still);
   const actors = useMemo(() => {
-    if (cueAndNeon) {
-      const entrance = piece.sections?.find(s => s.name === "step inside")?.beat ?? 20;
-      const travel = performing && !still ? clamp01((beat - entrance - 4) / 3) : 0;
+    if (duetTake) {
+      const travel = duetTake.neonTravel;
       return rawActors.map((a, i) => ({
         ...a, x: voices[i]?.id === "vee" ? 0.29 + travel * 0.08 : 0.69, depth: 0, lean: 0, hop: 0,
       }));
@@ -656,7 +657,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
       ...a,
       x: 0.11 + clamp01((a.x - 0.09) / 0.82) * 0.57, // Keep Neon inside the camera crop and Tracking clear at stage right.
     }));
-  }, [cueAndNeon, piece.sections, performing, rawActors, liveActors, studio404, isSoloStage, voices, soloVoiceId, still, dancing, beat]);
+  }, [duetTake, rawActors, liveActors, studio404, isSoloStage, voices, soloVoiceId, still, dancing, beat]);
 
   const showBand = piece.stage ? piece.stage.includes("band") : (piece.kind !== "skit" && piece.chords.length > 0);
   const computedBandParts = useMemo(
@@ -760,7 +761,8 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
 
   // Subtle 2.5D stage framing toward solo/duet singer or active MIDI Moppet (R4 compliant: smooth, zero beat-shake)
   const framing = useMemo(() => {
-    if (cueAndNeon || soloSet || !cameraFollow || still) return { zoom: 1, focusX: 0.5 };
+    if (duetTake && cameraFollow && !still) return duetTake.camera;
+    if (soloSet || !cameraFollow || still) return { zoom: 1, focusX: 0.5 };
     if (!performing && liveMidiSpeech) {
       const idx = Math.max(0, voices.findIndex((v) => v.id === liveMidiSpeech.voiceId));
       return { zoom: 1.035, focusX: clamp(actors[idx]?.x ?? 0.45, 0.25, 0.72) };
@@ -770,7 +772,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
       return { zoom: 1.04, focusX: clamp(avgX, 0.25, 0.72) };
     }
     return { zoom: 1, focusX: 0.5 };
-  }, [cueAndNeon, soloSet, cameraFollow, still, performing, liveMidiSpeech, voices, actors, singingIndices]);
+  }, [duetTake, soloSet, cameraFollow, still, performing, liveMidiSpeech, voices, actors, singingIndices]);
 
   const maxShiftPct = (framing.zoom - 1) * 46;
   const stageShiftXPct = clamp(-(framing.focusX - 0.5) * 100 * framing.zoom, -maxShiftPct, maxShiftPct);
@@ -1316,10 +1318,12 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
               : undefined;
             const actor = !offstage && (cueAndNeon || (soloSet?.art === "cue" && piece.title === "Line?") || neon)
               && (artKey === "neon" || artKey === "cue") ? artKey : null;
-            const customClip = tabbyBow && !offstage ? <PinnedBow phase={still ? 0 : (beat-bowStart!)/8} resolveAsset={resolveAsset}/> : workshopArt && workshop && !offstage
+            const scored = duetTake && actor ? duetCel(duetTake, actor) : null;
+            const customClip = scored ? <span className="rehearsal-actor" aria-hidden="true" data-action={scored.action} data-frame={scored.frame}
+              style={atlasStyle(resolveAsset(scored.atlasUrl), scored.frame, scored.cols, scored.rows)}/> : tabbyBow && !offstage ? <PinnedBow phase={still ? 0 : (beat-bowStart!)/8} resolveAsset={resolveAsset}/> : workshopArt && workshop && !offstage
               ? <WorkshopSolo actor={workshopArt} take={workshop} open={mouthOpen} resolveAsset={resolveAsset} />
               : actor
-              ? <RehearsalActor actor={actor} piece={piece} beat={performing ? beat : cueAndNeon && !still ? 4 + timeSec % 16 : 0} still={still || (!performing && !cueAndNeon)} rollingFrame={neon?.rolling ? neon.frame : undefined} resolveAsset={resolveAsset} />
+              ? <RehearsalActor actor={actor} piece={piece} beat={performing ? beat : 0} still={still || !performing} rollingFrame={neon?.rolling ? neon.frame : undefined} resolveAsset={resolveAsset} />
               : neon && !offstage ? <NeonSolo take={neon} open={mouthOpen} resolveAsset={resolveAsset} /> : soloSet?.art === "zap" && !offstage
               ? <ZapSolo take={take} still={still} beat={performing && !still ? beat : 0} level={p.singing ? p.level : 0} midi={liveMidiSpeech?.voiceId === v.id ? (liveMidiSpeech.midi ?? 60) : (sungNote?.midi ?? 60)} open={mouthOpen} resolveAsset={resolveAsset} />
               : renderCharacterOverride?.(v.id, artKey, spriteVars) ?? null;

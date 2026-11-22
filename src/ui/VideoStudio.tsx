@@ -1,6 +1,7 @@
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
+import {beatSeconds, LEAD_IN} from "../choir/timeline";
 import {MusicRack} from "./MusicRack";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { useAudio } from "../audio/audio.ts";
@@ -151,6 +152,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     transport.reset();
     setSelection({ kind: "stage" });
     if (lesson === "cardboard-horse") setWorldLens("caravan");
+    if (lesson === "right-on-cue") setWorldLens("archive");
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
 
@@ -494,6 +496,20 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                 }}><span aria-hidden="true">⛶</span></button>
               </div>}
             </div>
+            {showingRehearsal && piece.sections && piece.sections.length > 1 && (
+              <nav aria-label="Rehearsal scenes" className="flex flex-wrap gap-1 py-2">
+                {piece.sections.map((section, i, sections) => {
+                  const start = LEAD_IN + section.beat * beatSeconds(piece);
+                  const next = sections[i + 1];
+                  const active = curStageSec >= start && (!next || curStageSec < LEAD_IN + next.beat * beatSeconds(piece));
+                  return <button key={section.beat + "-" + i} type="button" aria-current={active ? "step" : undefined}
+                    className="rounded px-2 py-1 text-xs capitalize aria-[current=step]:bg-teal-900"
+                    onClick={() => transport.seekTo(introFrames + Math.ceil(start * fps))}>
+                    {section.name}
+                  </button>;
+                })}
+              </nav>
+            )}
             {showingRehearsal && (transport.busy || ensembleMessage.startsWith("Could not") || ensembleMessage.startsWith("No sound"))
               && <p role="status" className="vs-meta">{ensembleMessage}</p>}
           </div>

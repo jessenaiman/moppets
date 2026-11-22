@@ -19,3 +19,7 @@ For a spoken or sung beat, pick the feature the audience should look at. Let the
 | Clacker | Wrists over the keys | Keycap eyes | — | The wrists hover, land on the chord, and release. The two LED eyes glance up only after the chord rings. |
 | Moonbeam | Bell face | One leading tentacle | Bell glow | The face lands the lyric. One tip follows the wandering spot while the other three trail. Save the glow for her answer to the blackout. |
 | Amplifier | Grille mouth | One glowing valve | — | The grille opens into the phrase. One valve warms as the guitar chord rings out. |
+
+## Right on Cue
+
+Cue lends Neon a loop of cord as a stage mark. Read the open loop against the curtain before it settles onto the floor. Let Neon step into the mark, with the far arc behind his legs and the near arc in front. Keep both partners in view when Cue bows early. Hold the bottom of his bow through the two silent beats. Only then favor Neon for “Too soon.” On the last chord Cue waits for his partner.

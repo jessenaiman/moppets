@@ -68,6 +68,10 @@ Latch writes songs by listening for the thing somebody nearly said. The pedal ti
 
 Cue likes to call places. Latch waits until Cue gives the signal, even when everybody is already in place. On a good night Cue gets to announce a surprise and Latch gets to be surprised.
 
+## Cue and Neon’s duet
+
+Cue gives Neon a place to stand by casting his cord as a loop. Neon steps inside the loop on his answering line. When Cue bows early, Neon gives him two beats of silence and a quiet “Too soon.” They get another chorus to try it together. [Acting notes for Right on Cue](studio-404-expressive-acting.md#right-on-cue)
+
 ## Gruff on the cable shelf
 
 Gruff’s multicore was coiled on the workshop shelf after a tape label came loose. Nobody on the load-out could say where the far end went. Gruff still keeps one hand on the end of a cable when he passes it to a friend. His one-string tub bass gives that same gesture a musical use.
