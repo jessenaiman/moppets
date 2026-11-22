@@ -53,7 +53,7 @@ export function workshopTake(actor: WorkshopSinger, track: Track | undefined, be
 
 export function atlasStyle(url: string, frame: number, cols: number, rows: number): CSSProperties {
   return {backgroundImage:`url("${url}")`, backgroundSize:`${cols*100}% ${rows*100}%`,
-    backgroundPosition:`${frame%cols*100/(cols-1)}% ${Math.floor(frame/cols)*100/(rows-1)}%`};
+    backgroundPosition:`${frame%cols*100/Math.max(1, cols-1)}% ${Math.floor(frame/cols)*100/Math.max(1, rows-1)}%`};
 }
 
 export function WorkshopSolo({actor, take, open, resolveAsset}: {

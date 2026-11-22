@@ -1,0 +1,46 @@
+title: The Good Bit
+id: good-bit
+tab: Study Hall · The Good Bit
+about: Tracking rewinds a dance step. Hertz holds the picture until they spot the small move that makes it work.
+lead: tracking
+key: F mixolydian
+bpm: 100
+beat: B . t . | . t B . | B . t . | K . . . (swing .12)
+backing:
+bass: none
+stage: tracking, hertz
+finale: "Go" on 0
+
+tune play = 0/.5 0/.5 2 4/.5 4/.5 5 4 0/3 | I 4, IV 4
+tune back = 2 2/.5 1/.5 0 1/.5 2/.5 4 0/3 | V 4, I 4
+tune glass = 4/.5 5/.5 6/.5 5/.5 4 2 3 4/3 | VII 4, IV 4
+tune wait = 4 4 5/.5 4/.5 2 4/.5 2/.5 0/3 | IV 4, I 4
+tune step = 0 2/.5 4/.5 5 4 2/.5 2/.5 0/3 | I 4, I 4
+
+[rewind]
+tracking: "I marked the good bit on the tape" = play
+hertz: "I saw the big jump from the cart" = glass
+tracking: "The good bit starts a beat too soon" = back
+hertz: "Then wind it back and press the start" = wait
+
+[freeze]
+tracking: "Here comes the step we could not do" = play
+hertz: "Hold still and look just past the face" = glass
+tracking: "The heel lifts first and then the toe" = back
+hertz: "That gives the next foot room to trace" = wait
+  + tracking @4: "Heel then toe" = 2 1 0/2
+
+[try the step]
+hertz: "Let's walk that step right through the reel" = glass
+tracking: "You take the step and I will count" = play
+hertz: "One heel then toe and one heel then toe" = 4 5/.5 4/.5 2 4/.5 5/.5 4 2 0/2 | IV 4, VII 4
+  + tracking @4: "One two three four" = 0 1 2 4
+tracking: "My feet can do what I just saw" = step
+
+[the good bit]
+hertz: "I thought the big jump was the trick" = glass
+tracking: "The small step lets the whole thing fly" = back
+hertz: "We'll leave that bit right on the glass" = wait
+  + tracking @4: "Keep that frame" = 2 1 0/2
+tracking: "One heel one toe and off we go" = step
+  + hertz @4: "Off we go" = 4 2 2/2

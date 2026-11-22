@@ -15,12 +15,14 @@ import askme from "../../songs/askme.song";
 import pip from "../../songs/pip.song";
 import found from "../../songs/found.song";
 import bandNight from "../../songs/band-night.song";
+import quietBar from "../../songs/quiet-bar.song";
 import neonDuet from "../../songs/neon-duet.song";
 import neonCanon from "../../songs/neon-canon.song";
 import neonPlaybook from "../../songs/neon-playbook.song";
 import borrowedLight from "../../songs/borrowed-light.song";
 import takeTwo from "../../songs/take-two.song";
 import rightOnCue from "../../songs/right-on-cue.song";
+import latch from "../../songs/latch.song";
 import line from "../../songs/line.song";
 import lateAnswer from "../../songs/late-answer.song";
 import everySocket from "../../songs/every-socket.song";
@@ -36,6 +38,7 @@ import rerun from "../../songs/skit-rerun.song";
 import toaster from "../../songs/skit-toaster.song";
 import letter from "../../songs/skit-letter.song";
 import round from "../../songs/round.song";
+import goodBit from "../../songs/good-bit.song";
 
 import chip from "../../songs/chip.song";
 import tabby from "../../songs/tabby.song";
@@ -61,6 +64,7 @@ const FILES: [string, string][] = [
   ["pip.song", pip],
   ["found.song", found],
   ["band-night.song", bandNight],
+  ["quiet-bar.song", quietBar],
   ["neon-duet.song", neonDuet],
   ["neon-canon.song", neonCanon],
   ["neon-playbook.song", neonPlaybook],
@@ -69,6 +73,7 @@ const FILES: [string, string][] = [
   ["borrowed-light.song", borrowedLight],
   ["line.song", line],
   ["right-on-cue.song", rightOnCue],
+  ["latch.song", latch],
   ["late-answer.song", lateAnswer],
   ["every-socket.song", everySocket],
   ["close-up.song", closeUp],
@@ -82,6 +87,7 @@ const FILES: [string, string][] = [
   ["skit-toaster.song", toaster],
   ["skit-letter.song", letter],
   ["round.song", round],
+  ["good-bit.song", goodBit],
 ];
 
 const draftKey = "studio404-rehearsal-drafts-v1";

@@ -69,7 +69,7 @@ export function castExposureCel(
       return null;
   }
   return {
-    atlasUrl: `/rehearsal/exposure-keys/${artKey}.webp`,
+    atlasUrl: artKey === "thrum" || artKey === "clacker" ? `/rehearsal/band/${artKey}-action.webp` : `/rehearsal/exposure-keys/${artKey}.webp`,
     cols: 8, rows: Math.ceil(study.count / 8), frame, action, source: "pin-atlas",
   };
 }

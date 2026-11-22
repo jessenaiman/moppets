@@ -1,0 +1,40 @@
+title: One Quiet Bar
+id: quiet-bar
+tab: House Band · One Quiet Bar
+about: The house band tries to leave one empty bar. The guitar rings, the clock counts, the return echoes, and the keys have one more note.
+lead: scribe
+key: C mixolydian
+bpm: 104
+backing:
+bass: none
+stage: band, scribe, pip, gruff, vee
+finale: "Rest" on 0
+
+[count us in]
+pip: "One two three four" = 0 0 2 4/5 | I 4, I 4
+scribe: "Play one chord then leave one quiet bar" = 4/.5 4/.5 5/.5 4/.5 2 4/.5 3/.5 1 0/3 | IV 4, I 4
+
+[the held chord]
+pip: "Hands up when I cut you off" = 2 2 4 4 5 4 2/2 | IV 4, I 4
+scribe: "My chord is still a little warm" = 0/.5 2/.5 4/.5 5/.5 6 5/.5 4/.5 2/4 | I 4, IV 4
+vee: "The lamp is on the chord is gone" = 4 5 4 2 4 2 1 0 | V 4, I 4
+
+[the extra tick]
+scribe: "The chord has stopped so now we rest" = 4 4 5 4 2 3 1 0 | I 4, IV 4
+pip: "One two three four and tick" = 0 0 2 4 3/3.5 0/.5 | I 4, V 4
+gruff: "There is no and in four" = 2 4 4 2 1 0/3 | IV 4, I 4
+
+[the long return]
+vee: "Who left the patch return turned up" = 4 5 4 2 4 5 3 2 | I 4, IV 4
+gruff: "I left it on on on" = 0/.5 2/.5 4 5/2 3/2 1/2 | I 4, V 4
+scribe: "Close it now while we can hear" = 4 4 5 4 2 1 0/2 | IV 4, I 4
+
+[the last key]
+gruff: "Here comes the bar with nothing in" = 0 1 2 4 5 4 3 2 | I 4, IV 4
+vee: "I just need one last key" = 4 4 5 4 2/3.5 0/.5 | V 4, I 4
+pip: "Now both hands up and count with me" = 2 2 4 4 5 4 3 2 | IV 4, V 4
+
+[one quiet bar]
+scribe: "Play one chord then leave one quiet bar" = 4/.5 4/.5 5/.5 4/.5 2 4/.5 3/.5 1 0/3 | IV 4, I 4
+pip: "One two three four" = 0 0 0 0 | V 4
+rest 4

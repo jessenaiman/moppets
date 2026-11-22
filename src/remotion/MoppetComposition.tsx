@@ -46,6 +46,9 @@ async function loadAuditions() {
   }
 }
 const Audition = React.lazy(() => loadAuditions().then(m => ({default: m.Audition})));
+import { GoodBit } from "../rehearsal/GoodBit";
+import { QuietBar } from "../rehearsal/QuietBar";
+import { LatchAudition } from "../rehearsal/LatchAudition";
 import { MoonbeamSolo } from "../rehearsal/MoonbeamSolo";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
 import { CharacterClip, RibbonPerformance } from "./CharacterClip.tsx";
@@ -444,7 +447,7 @@ export const MoppetComposition: React.FC<MoppetVideoProps> = (props) => {
         {props.audioUrl && (isPlayer
           ? <Html5Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume} pauseWhenBuffering/>
           : <Audio name="CHIMERA mix" src={props.audioUrl} volume={props.audioVolume}/>)}
-        {props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
+        {props.slug === "the-good-bit" ? <><GoodBit project={props}/><SoloSubtitles project={props}/></> : props.slug === "one-quiet-bar" ? <><QuietBar project={props}/><SoloSubtitles project={props}/></> : props.slug === "after-you" ? <LatchAudition project={props}/> : props.slug === "borrowed-light" ? <MoonbeamSolo project={props}/>
           : props.studio404 && props.slug === "line" ?
           <><StageFit><Audition project={props} neon={false}/></StageFit><SoloSubtitles project={props}/></>
           : <MoppetStageScene props={props} interactive={isPlayer}/>}

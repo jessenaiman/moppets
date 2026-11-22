@@ -79,12 +79,26 @@ const PIN_ATLAS_ACTIONS: Record<string, { rest: string; sing: string; alt: strin
   cue: { rest: "listen", sing: "offer", alt: "cast", bow: "bow" },
 };
 
+const quietBarChairs: Record<string,{name:string;artKey:string;role:string;color:string}> = {
+  scribe:{name:"Amplifier",artKey:"amplifier",role:"House guitar",color:"#dfaa75"},
+  pip:{name:"Click",artKey:"click",role:"Drums and count-in",color:"#f4c96b"},
+  gruff:{name:"Thrum",artKey:"thrum",role:"Tape echo",color:"#83c7c3"},
+  vee:{name:"Clacker",artKey:"clacker",role:"Keys",color:"#a0cc88"},
+};
+
 /** Canonical artKey lookup across both legacy IDs (`vee`, `scribe`, `pip`) and direct names (`neon`, `cue`, `watt`). */
 export function resolvePerformerIdentity(
   voice: { id: string; name: string; role?: string; color: string },
   studio404: boolean,
   songTitle?: string,
 ): PerformerIdentity {
+  if (songTitle === "One Quiet Bar") {
+    const chair = quietBarChairs[voice.id];
+    if (chair) return {id:voice.id, ...chair,accentB:"#f2ca91"};
+  }
+  if (songTitle === "After You" && voice.id === "pip") {
+    return {id:voice.id,artKey:"latch",name:"Latch",role:"Talkback pedal",color:"#f0ac65",accentB:"#a3bebb"};
+  }
   if (songTitle === "Borrowed Light" && voice.id === "vee") {
     return {
       id: voice.id,

@@ -25,6 +25,7 @@ import "./shotcraft-stage.css";
 import { zapCues, zapTake } from "./zapDirection.ts";
 import { atlasStyle, WorkshopSolo, workshopTake, workshopSongs, type WorkshopSinger } from "./WorkshopSolo.tsx";
 import { rightOnCuePerformance, duetCel } from "../choir/rightOnCuePerformance";
+import { castExposureCel } from "../choir/castExposureCel";
 import { StageCord, cordExposure, PinnedBow, RehearsalActor } from "./RehearsalActor.tsx";
 import { CuePromptStand } from "./CueSolo.tsx";
 import { NeonSolo, neonScore, neonTake, RepairBayLights } from "./NeonSolo.tsx";
@@ -1015,24 +1016,29 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
                 const sy = p?.sy ?? 1;
                 const rot = (p?.rot ?? 0) * state.flip;
                 const isHit = state.play > 0.22;
+                const art = key === "rattle" ? "click" : key;
+                const exposure = studio404 ? castExposureCel(art, {singing:isHit}, beat, false, still || !performing) : null;
                 const restUrl = studio404 && key === "rattle" ? "/rehearsal/band/click-rest.webp" : `/moppets/band/${key}-rest.webp`;
                 const playUrl = studio404 && key === "rattle" ? "/rehearsal/band/click-play.webp" : `/moppets/band/${key}-play.webp`;
                 return (
                   <div
                     key={key}
+                    data-band-actor={art}
                     className={`sc-band-member${state.play > 0.15 ? " hit" : ""}`}
                     style={{
                       transform: `translate(${tx.toFixed(1)}%, ${ty.toFixed(1)}%) scale(${sx.toFixed(3)}, ${sy.toFixed(3)}) rotate(${rot.toFixed(2)}deg)`,
                     }}
                   >
-                    <span
+                    {exposure ? <span className="sc-band-sprite" data-cel={exposure.frame} style={
+                      atlasStyle(resolveAsset(exposure.atlasUrl),exposure.frame,exposure.cols,exposure.rows)
+                    }/> : <><span
                       className="sc-band-sprite"
                       style={{ backgroundImage: `url(${resolveAsset(restUrl)})`, visibility: isHit ? "hidden" : "visible" }}
                     />
                     <span
                       className="sc-band-sprite play"
                       style={{ backgroundImage: `url(${resolveAsset(playUrl)})`, visibility: isHit ? "visible" : "hidden" }}
-                    />
+                    /></>}
                   </div>
                 );
               })}

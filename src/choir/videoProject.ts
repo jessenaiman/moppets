@@ -15,6 +15,7 @@ import {
   type StageCapsuleInput,
 } from "./bubbles.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds } from "./timeline.ts";
+import { resolvePerformerIdentity } from "./performer";
 import { STUDIO_404_CAST, studio404Name } from "./studio404.ts";
 import type { MoppetVoice } from "./voices.ts";
 import type { VocalTiming } from "./vocalTiming.ts";
@@ -111,11 +112,10 @@ export function stageVoicesForPiece(
     ? voices.filter((v) => stageIds.includes(v.id))
     : voices.filter((v) => choirIds.includes(v.id) || piece.tracks.some((t) => t.id === v.id));
   const slotList = visible.length ? visible : voices;
-  return slotList.map((v) => ({
-    id: v.id,
-    name: piece.title === "Borrowed Light" && v.id === "vee" ? "Moonbeam" : studio404 ? studio404Name(v.id, v.name) : v.name,
-    color: studio404 ? (STUDIO_404_CAST[v.id]?.color ?? v.color) : v.color,
-  }));
+  return slotList.map(v => {
+    const {id, name, color} = resolvePerformerIdentity(v, studio404, piece.title);
+    return {id, name, color};
+  });
 }
 
 interface RawClip {
