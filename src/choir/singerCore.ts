@@ -19,12 +19,9 @@ export const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension",
 export const TELE = { f0: 3, voicing: 4, pLung: 5, outRms: 6, gate: 9, clock: 10, nArtic: 11, nPh: 12, nOr: 13, nScope: 14 } as const;
 /** engine state update rate for the views: every hop frames at ~60 Hz */
 export const hopFor = (sampleRate: number) => Math.round(sampleRate / 60);
-const MAX_RECORDS = 4000;
-/**
- * Gestures reach the engine this far ahead of the clock. Blending walks every scheduled gesture
- * each control step, so handing over a whole round at once cost more than real time.
- */
-const SCHEDULE_AHEAD = 0.5;
+// Pinned CHIMERA limits documented in chimera/docs/rust-engine.md.
+const MAX_SCHEDULE = 4000;
+const SCORE_CAPACITY = 16384;
 
 export interface SingerConfig {
   sampleRate: number;
@@ -35,21 +32,8 @@ export interface SingerConfig {
   firstF0: number;
 }
 
-/** Ring-out after a singer's last gesture before the engine may be parked (and how soon before an onset it wakes). */
-const REST_TAIL = 0.8, REST_LEAD = 0.25;
-const REST_MIN = 1.5;
-
-/** Merged spans when a singer sounds. Rests shorter than REST_MIN stay rendered. */
-function busyIntervals(gestures: Gesture[]): [number, number][] {
-  const spans: [number, number][] = [];
-  for (const g of gestures) {
-    const a = g.t0 - g.rampIn - REST_LEAD, b = g.t1 + g.rampOut + (g.releaseHold ?? 0) + REST_TAIL;
-    const last = spans[spans.length - 1];
-    if (last && a <= last[1] + REST_MIN) last[1] = Math.max(last[1], b);
-    else spans.push([a, b]);
-  }
-  return spans;
-}
+const onset = (g: Gesture) => g.t0 - g.rampIn;
+const releaseEnd = (g: Gesture) => g.t1 + g.rampOut + (g.releaseHold ?? 0);
 
 export function midiToHz(m: number): number {
   return 440 * 2 ** ((m - 69) / 12);
@@ -72,12 +56,9 @@ export class SingerCore {
   tele: Float32Array | null = null;
   recordSize = 0;
   telePosted = 0;
-  /** gestures not yet given to the engine, soonest first */
-  private pending: Gesture[];
-  private nextPending = 0;
-  /** intervals when this singer is making sound (gesture onsets to ring-out), for skipping long rests */
-  private busy: [number, number][];
-  private busyAt = 0;
+  private readonly overflow: Gesture[];
+  private nextGesture = 0;
+  private scheduledEnds: number[] = [];
 
   constructor(private readonly x: EngineExports, private readonly cfg: SingerConfig) {
     const h = (this.h = x.engine_new(cfg.sampleRate));
@@ -88,8 +69,12 @@ export class SingerCore {
     // the pitch and breath the planner's gestures start from; every sung note sets its own f0
     this.patch(SOURCE_KEYS, { f0: cfg.firstF0, voiced: 1 });
     x.engine_set_source(h);
-    this.pending = [...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
-    this.busy = busyIntervals(this.pending);
+    if (cfg.gestures.length <= SCORE_CAPACITY) {
+      this.overflow = [];
+      this.schedule(cfg.gestures, x.engine_clock(h));
+    } else {
+      this.overflow = [...cfg.gestures].sort((a, b) => onset(a) - onset(b));
+    }
   }
 
   private values(): Float64Array {
@@ -104,19 +89,34 @@ export class SingerCore {
     }
   }
 
-  /** Hand over gestures now due inside the schedule window. Times stay absolute on the timeline. */
-  private drip(): void {
-    const clock = this.timeline;
-    const from = this.nextPending;
-    while (this.nextPending < this.pending.length && this.pending[this.nextPending].t0 - this.pending[this.nextPending].rampIn < clock + SCHEDULE_AHEAD && this.nextPending - from < MAX_RECORDS) this.nextPending++;
-    const n = this.nextPending - from;
-    if (n === 0) return;
-    // engine_schedule places times relative to the voice clock
-    const part = this.pending.slice(from, this.nextPending).map((g) => ({
-      ...g, t0: g.t0 - clock, t1: g.t1 - clock,
-    }));
-    const written = writeGestures(this.x.memory.buffer, this.x.engine_records(this.h), part, MAX_RECORDS);
-    this.x.engine_schedule(this.h, written, 0, from === 0 ? 1 : 0);
+  private schedule(gestures: readonly Gesture[], clock: number): void {
+    const { x, h } = this;
+    for (let i = 0; i < gestures.length; i += MAX_SCHEDULE) {
+      const batch = gestures.slice(i, i + MAX_SCHEDULE);
+      const written = writeGestures(x.memory.buffer, x.engine_records(h), batch, MAX_SCHEDULE);
+      // CHIMERA adds clock + lead. Cancel the offset to keep the written score's times.
+      x.engine_schedule(h, written, -clock, 0);
+    }
+  }
+
+  /** Scores above native capacity hand over only gestures needed by the next render hop. */
+  private scheduleOverflow(frames: number): void {
+    const clock = this.x.engine_clock(this.h);
+    const until = clock + frames / this.cfg.sampleRate;
+    let next = this.nextGesture;
+    while (next < this.overflow.length && onset(this.overflow[next]) <= until) next++;
+    if (next === this.nextGesture) return;
+
+    // Budget for the native 100 ms prune interval, 200 ms retention and a control block.
+    const prunedBefore = clock - 0.3 - 128 / this.cfg.sampleRate;
+    this.scheduledEnds = this.scheduledEnds.filter(end => end > prunedBefore);
+    if (this.scheduledEnds.length + next - this.nextGesture > SCORE_CAPACITY) {
+      throw new Error(`${this.cfg.voice.name}'s score exceeds CHIMERA's gesture capacity near ${clock.toFixed(2)} s`);
+    }
+    const batch = this.overflow.slice(this.nextGesture, next);
+    this.schedule(batch, clock);
+    this.scheduledEnds.push(...batch.map(releaseEnd));
+    this.nextGesture = next;
   }
 
   /** Breathiness, roughness and friends: take effect at the render head. */
@@ -131,33 +131,12 @@ export class SingerCore {
     this.x.engine_set_artic(this.h, 2);
   }
 
-  private get timeline(): number {
-    return this.rendered / this.cfg.sampleRate;
-  }
-
-  /** In a long rest, between phrases: the airway has decayed, and rendering its silence costs a lot. */
-  private resting(): boolean {
-    const t = this.timeline;
-    while (this.busyAt < this.busy.length && this.busy[this.busyAt][1] < t) this.busyAt++;
-    const next = this.busy[this.busyAt];
-    return !next || t < next[0];
-  }
-
   /** Render the next chunk (at most one hop) into the stem and record its telemetry. Returns frames rendered. */
   step(): number {
     const { hop, frames } = this.cfg;
     const n = Math.min(hop, frames - this.rendered);
     if (n <= 0) return 0;
-    const resting = this.resting();
-    // gestures are placed relative to the voice clock, and it stands still while the engine rests,
-    // so they are handed over only once it runs again (or the entrance would arrive that much late)
-    if (!resting && this.nextPending < this.pending.length) this.drip();
-    if (this.tele && resting) {
-      // skip the engine: the stem stays exactly silent, and the views hold their last pose, not singing
-      this.rendered += n;
-      this.restRecord(this.rendered / hop - 1);
-      return n;
-    }
+    if (this.nextGesture < this.overflow.length) this.scheduleOverflow(n);
     renderBlock(this.x, this.h, this.stem, this.rendered, n);
     this.rendered += n;
     this.record(this.rendered / hop - 1);
@@ -175,14 +154,6 @@ export class SingerCore {
     }
     if (size !== this.recordSize) throw new Error(`telemetry layout changed: ${size} != ${this.recordSize}`);
     this.tele.set(new Float64Array(x.memory.buffer, p, size), index * size);
-  }
-
-  private restRecord(index: number): void {
-    if (index % 1 || !this.tele) return;
-    const r = this.recordSize, at = index * r;
-    this.tele.copyWithin(at, at - r, at);
-    this.tele[at + TELE.outRms] = 0;
-    this.tele[at + TELE.voicing] = 0;
   }
 
   dispose(): void {
@@ -248,11 +219,6 @@ export class CueCore {
       this.x.engine_set_beat(this.h, 1, c, beat.bpm, beat.swing, 1);
     }
     for (const c of this.calls) if (c.frame >= this.rendered && c.frame < this.rendered + n) this.x.engine_play_call(this.h, c.index, NaN, NaN);
-    // a creature's silent airway decays into denormals: skip the engine between calls
-    if (this.cfg.creature && !this.calls.some((c) => this.rendered + n >= c.frame - hop && this.rendered < c.frame + 6 * sampleRate)) {
-      this.rendered += n;
-      return n;
-    }
     renderBlock(this.x, this.h, this.stem, this.rendered, n);
     this.rendered += n;
     return n;

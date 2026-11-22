@@ -21,7 +21,6 @@ declare class AudioWorkletProcessor {
 declare const sampleRate: number;
 
 export type ToLive =
-  | { type: "dispose" }
   | { type: "voice"; body: { female: number; child: number }; artic: Record<string, number>; source: Record<string, number> }
   | { type: "mouth"; values: Record<string, number> }
   | { type: "source"; values: Record<string, number> }
@@ -48,7 +47,7 @@ class LiveMoppet extends AudioWorkletProcessor {
   private readonly x: X;
   private readonly h: number;
   private quanta = 0;
-  private disposed = false;
+  private body = { female: 0, child: 0 };
   constructor(o: { processorOptions: { module: WebAssembly.Module } }) {
     super();
     this.x = new WebAssembly.Instance(o.processorOptions.module, {}).exports as unknown as X;
@@ -67,13 +66,11 @@ class LiveMoppet extends AudioWorkletProcessor {
   private on(m: ToLive): void {
     const { x, h } = this;
     switch (m.type) {
-      case "dispose":
-        x.engine_free(h);
-        this.disposed = true;
-        this.port.onmessage = null;
-        break;
       case "voice":
-        x.engine_set_body(h, m.body.female, m.body.child);
+        if (m.body.female !== this.body.female || m.body.child !== this.body.child) {
+          x.engine_set_body(h, m.body.female, m.body.child);
+          this.body = m.body;
+        }
         this.patch(ARTIC_KEYS, m.artic);
         x.engine_set_artic(h, 2);
         this.patch(SOURCE_KEYS, { ...m.source, voiced: 1 });
@@ -92,7 +89,7 @@ class LiveMoppet extends AudioWorkletProcessor {
         break;
       case "schedule": {
         const n = writeGestures(x.memory.buffer, x.engine_records(h), m.gestures, 512);
-        x.engine_schedule(h, n, 0, 0);
+        x.engine_schedule(h, n, 0.006, 0);
         break;
       }
       case "release":
@@ -102,7 +99,6 @@ class LiveMoppet extends AudioWorkletProcessor {
   }
 
   process(_in: Float32Array[][], outputs: Float32Array[][]): boolean {
-    if (this.disposed) return false;
     const out = outputs[0]?.[0];
     if (!out) return true;
     const p = this.x.engine_render(this.h, out.length);
