@@ -7,8 +7,6 @@
   "scripts": {
     "dev": "bun run chimera:update && vite --host 127.0.0.1",
     "build": "bun run chimera:update && tsc --noEmit && vite build",
-    "audition:build": "bash tools/build-audition.sh",
-    "audition:preview": "vite preview --config audition/vite.config.ts --host 127.0.0.1 --port 5439 --strictPort",
     "preview": "vite preview --host 127.0.0.1",
     "test": "bun run check",
     "check": "bun tools/playwright-check.ts",
