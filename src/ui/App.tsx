@@ -6,7 +6,11 @@ import { useRef } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { MoppetRight } from "./MoppetPanel.tsx";
 
+import { ScreeningRoom } from "./ScreeningRoom";
+import { useMoppet } from "../choir/store";
+
 function TopBar() {
+  const lesson = useMoppet(s => s.lesson);
   const volume = useAudio((s) => s.volume);
   const setVolume = useAudio((s) => s.setVolume);
   const lastAudible = useRef(1);
@@ -26,6 +30,7 @@ function TopBar() {
         <span className="tagline">CHIMERA Physical Choir · Interactive Worlds</span>
       </div>
       <div className="topbar-right">
+        <a href={'?watch='+encodeURIComponent(lesson)} className="rounded-md border border-[#62ceac] bg-[#204638] px-3 py-2 text-sm font-bold text-white">Watch films</a>
         <div className="topbar-volume" aria-label="Master audio volume">
           <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute master volume" : "Mute master volume"} title={muted ? "Unmute" : "Mute"}>
             {muted ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
@@ -50,6 +55,8 @@ function TopBar() {
 }
 
 export function App() {
+  const watch = new URLSearchParams(window.location.search).get("watch");
+  if (watch !== null) return <ScreeningRoom id={watch}/>;
   return (
     <div className="app text-colors mode-moppet">
       <TopBar />

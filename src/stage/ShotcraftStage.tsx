@@ -1317,7 +1317,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
             const sungNote = soloSet?.art === "zap" && !offstage
               ? piece.tracks.find(track => track.id === v.id)?.events.find(event => beat >= event.beat && beat < event.beat + event.beats)
               : undefined;
-            const actor = !offstage && (cueAndNeon || (soloSet?.art === "cue" && piece.title === "Line?") || neon)
+            const actor = !offstage && (cueAndNeon || (soloSet?.art === "cue" && piece.title === "Line?"))
               && (artKey === "neon" || artKey === "cue") ? artKey : null;
             const scored = duetTake && actor ? duetCel(duetTake, actor) : null;
             const customClip = scored ? <span className="rehearsal-actor" aria-hidden="true" data-action={scored.action} data-frame={scored.frame}

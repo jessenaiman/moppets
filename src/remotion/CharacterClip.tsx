@@ -2,6 +2,7 @@
  * Remotion individual character clip player: mounts real `@remotion/media` `<Video>` alpha WebM loops
  * (`idle`, `sing`, `belt`, `chuckle`) inside frame-accurate `<Sequence>` segments compiled from MIDI & score state.
  */
+import ribbonTake from "../../moppets/tabby/clips/ribbon-and-felt.webm";
 import React, { useMemo } from "react";
 import { Html5Video, Sequence, useCurrentFrame, useRemotionEnvironment, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
@@ -15,6 +16,17 @@ export interface CharacterClipProps {
   stageDurationSec: number;
   resolveAsset: (path: string) => string;
   style?: React.CSSProperties;
+}
+
+/** Tabby's recorded 31-second puppet performance follows the score tempo. */
+export function RibbonPerformance({bpm}: {bpm: number}) {
+  const {isPlayer} = useRemotionEnvironment();
+  const clip = {src:ribbonTake, muted:true, playbackRate:bpm/112, style:{
+    width:"100%", height:"100%", objectFit:"contain" as const,
+  }};
+  return <span className="sprite sc-clip-sprite" data-performance="ribbon-and-felt">
+    {isPlayer ? <Html5Video {...clip} playsInline pauseWhenBuffering={false}/> : <Video {...clip}/>}
+  </span>;
 }
 
 export const CharacterClip: React.FC<CharacterClipProps> = ({

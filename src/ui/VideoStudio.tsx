@@ -64,7 +64,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const [audioError,setAudioError] = useState("");
   const [advancedOpen,setAdvancedOpen]=useState(false);
   const [composition,setComposition]=useState<StudioComposition>("Rehearsal");
-  const [worldLens, setWorldLens] = useState<WorldLens>("diorama");
+  const [worldLens, setWorldLens] = useState<WorldLens>("archive");
   const lesson = useMoppet((s) => s.lesson);
   const piece = useMoppet((s) => s.piece);
   const voices = useMoppet((s) => s.voices);
@@ -152,7 +152,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     transport.reset();
     setSelection({ kind: "stage" });
     if (lesson === "cardboard-horse") setWorldLens("caravan");
-    if (lesson === "right-on-cue" || piece.kind === "skit") setWorldLens("archive");
+    if (lesson === "take-two" || lesson === "tabby-solo" || lesson === "right-on-cue" || piece.kind === "skit") setWorldLens("archive");
     void refreshAssets(next.slug);
   }, [piece, voices, studio404, refreshAssets, lesson]);
 

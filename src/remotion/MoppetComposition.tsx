@@ -48,7 +48,7 @@ async function loadAuditions() {
 const Audition = React.lazy(() => loadAuditions().then(m => ({default: m.Audition})));
 import { MoonbeamSolo } from "../rehearsal/MoonbeamSolo";
 import { ShotcraftStage } from "../stage/ShotcraftStage.tsx";
-import { CharacterClip } from "./CharacterClip.tsx";
+import { CharacterClip, RibbonPerformance } from "./CharacterClip.tsx";
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -313,6 +313,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
 
   const renderCharacterOverride = React.useCallback(
     (voiceId: string, _artKey: string, spriteStyle: React.CSSProperties) => {
+      if (props.studio404 && voiceId === "tabby" && piece.title === "Ribbon and Felt") return <RibbonPerformance bpm={piece.bpm}/>;
       const manifest = manifestForCharacter(voiceId, props.studio404);
       if (!manifest) return null;
       return (

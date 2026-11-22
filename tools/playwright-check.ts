@@ -35,7 +35,7 @@ try {
 
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForSelector('[data-stage-bar="locked"]', { timeout: 15000 });
-  await page.waitForSelector(".nw-stage", { timeout: 15000 });
+  await page.waitForSelector(".neon-performer", { timeout: 15000 });
 
   // 1. Verify locked Stage World Switcher bar never jumps across ALL 8 worlds
   const stageBar = page.locator('[data-stage-bar="locked"]');
