@@ -19,7 +19,11 @@ export interface FoldedBook3DProps {
   userOrbit: { azimuth: number; elevation: number } | null;
   bellImpulse: number;
   resolveAsset: (path: string) => string;
+  neonMotionSeconds?: number;
 }
+
+// Reviewed Neon step: eight transparent cels in row-major order.
+const NEON_STEP = { atlasUrl: "/rehearsal/performances/neon/step.webp", cols: 4, rows: 2, frames: 8, fps: 8 };
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -513,16 +517,34 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
   userOrbit,
   bellImpulse,
   resolveAsset,
+  neonMotionSeconds,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const handlesRef = useRef<SceneHandles | null>(null);
-  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset });
-  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset };
+  const latestPropsRef = useRef({ state, beat, userOrbit, bellImpulse, resolveAsset, neonMotionSeconds });
+  latestPropsRef.current = { state, beat, userOrbit, bellImpulse, resolveAsset, neonMotionSeconds };
 
   const renderNow = () => {
     const h = handlesRef.current;
     if (!h) return;
     const { state: st, beat: b, userOrbit: orbit, bellImpulse: chime, resolveAsset: resolveUrl } = latestPropsRef.current;
+
+    const { neonMotionSeconds: seconds } = latestPropsRef.current;
+    if (hostRef.current) delete hostRef.current.dataset.neonMotion;
+    const loadAtlas = (url: string) => {
+      let texture = h.atlasTextures.get(url);
+      if (!texture) {
+        texture = h.loader.load(url, () => renderNow(), undefined, () => {});
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        h.atlasTextures.set(url, texture);
+      }
+      return texture;
+    };
 
     // 1. Dynamic open-book spread stamp texture for the current song & plate
     const spreadKey = `${st.plate.stampLeft}|${st.plate.stampRight}`;
@@ -659,27 +681,21 @@ export const FoldedBook3D: React.FC<FoldedBook3DProps> = ({
         leadZ = z + singPopZ;
       }
 
-      // Bind this performer's exact resolved texture & UV slice (FMV atlas, Pin atlas, or WebP sprite)
-      const fullUrl = resolveUrl(performer.cel.atlasUrl);
-      let tex = h.atlasTextures.get(fullUrl);
-      if (!tex) {
-        tex = h.loader.load(fullUrl, () => {
-          renderNow();
-        });
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.wrapS = THREE.ClampToEdgeWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
-        h.atlasTextures.set(fullUrl, tex);
-      }
-
-      // If multiple performers ever share an atlas, clone UV state only when needed; otherwise direct bind
+      // Keep the existing standee while the reviewed atlas decodes.
+      const reviewedTexture = performer.artKey === "neon" && seconds !== undefined
+        ? loadAtlas(resolveUrl(NEON_STEP.atlasUrl))
+        : undefined;
+      const reviewed = reviewedTexture?.image ? NEON_STEP : undefined;
+      const tex = reviewedTexture?.image ? reviewedTexture : loadAtlas(resolveUrl(performer.cel.atlasUrl));
       if (slot.mat.map !== tex) {
         slot.mat.map = tex;
         slot.mat.needsUpdate = true;
       }
-      const { cols, rows, frame } = performer.cel;
+      const { cols, rows } = reviewed ?? performer.cel;
+      const frame = reviewed
+        ? Math.floor(Math.max(0, seconds ?? 0) * reviewed.fps) % reviewed.frames
+        : performer.cel.frame;
+      if (reviewed && hostRef.current) hostRef.current.dataset.neonMotion = `step:${frame}`;
       const col = frame % cols;
       const row = Math.floor(frame / cols);
       tex.repeat.set(1 / cols, 1 / rows);

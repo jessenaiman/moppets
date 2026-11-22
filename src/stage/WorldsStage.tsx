@@ -37,6 +37,7 @@ export interface WorldsStageProps {
   interactive?: boolean;
   resolveAsset: (path: string) => string;
   fmvManifests?: Record<string, CharacterFmvManifest | null>;
+  neonDioramaMotion?: boolean;
 }
 
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
@@ -303,6 +304,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
   interactive = false,
   resolveAsset,
   fmvManifests = {},
+  neonDioramaMotion = false,
 }) => {
   const [plateOverride, setPlateOverride] = useState<number | null>(null);
   const [userOrbit, setUserOrbit] = useState<{ azimuth: number; elevation: number } | null>(null);
@@ -440,6 +442,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
             userOrbit={interactive ? userOrbit : null}
             bellImpulse={bellImpulse}
             resolveAsset={resolveAsset}
+            neonMotionSeconds={neonDioramaMotion ? (performing && !still ? timeSec : 0) : undefined}
           />
         </div>
 

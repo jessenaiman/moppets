@@ -155,6 +155,8 @@ export interface ShotcraftStageProps {
   timeSec: number;
   /** Playing or paused on a score */
   performing: boolean;
+  /** Enable the reviewed Neon atlas on the public diorama. */
+  neonDioramaMotion?: boolean;
   /** Actively advancing frames on the score */
   dancing: boolean;
   /** Reduced motion preference */
@@ -549,6 +551,8 @@ const ShotcraftSpeechCapsule: React.FC<{
 
 // ───────────────────── Main Unified ShotcraftStage Component ─────────────────────
 
+const localAssetPath = (path: string) => path;
+
 export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   piece,
   voices,
@@ -557,6 +561,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   timeSec,
   performing,
   dancing,
+  neonDioramaMotion = false,
   still = false,
   selectedIndex = 0,
   cameraFollow = true,
@@ -569,7 +574,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   renderPropFx,
   padGesture,
   puppetRef,
-  resolveAsset = (p) => p,
+  resolveAsset = localAssetPath,
   interactive,
   neonLens: controlledNeonLens,
   onNeonLensChange,
@@ -901,6 +906,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
         interactive={isInteractive}
         resolveAsset={resolveAsset}
         fmvManifests={castFmvManifests}
+        neonDioramaMotion={neonDioramaMotion}
       />
     );
   }
