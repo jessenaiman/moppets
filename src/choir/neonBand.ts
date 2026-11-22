@@ -1,76 +1,32 @@
 import type { BandNote, BandPart } from "./band.ts";
 import type { Piece } from "./music.ts";
 
-/** A walking duet with a glassy answer. The bridge clears out underneath the voice. */
+/** A syncopated bass riff and offbeat keys around Neon's native beatbox. */
 export function neonBand(piece: Piece): BandPart[] {
-  const bass: BandNote[] = [],
-    keys: BandNote[] = [],
-    drums: BandNote[] = [];
-  const bassPitch = (pc: number) => 34 + ((pc - 34 + 48) % 12);
-  const part = piece.tracks.find((t) => t.id === "vee");
-  for (const [i, chord] of piece.chords.entries()) {
-    const section = piece.sections
-      ?.filter((s) => s.beat <= chord.beat)
-      .at(-1)?.name;
-    const hush = section === "the dark",
-      end = section === "Finale";
-    const [root, third, fifth] = chord.tones;
-    const low = bassPitch(root),
-      next = piece.chords[i + 1];
-    if (
-      !hush ||
-      chord.beat === piece.sections?.find((s) => s.name === "the dark")?.beat
-    )
-      bass.push({
-        beat: chord.beat,
-        midi: low,
-        beats: end ? 3.8 : hush ? 2 : 0.82,
-        vel: 77,
-      });
-    if (hush) continue;
-    if (end) {
-      const sung = part?.events.at(-1)?.midi;
-      if (sung !== undefined)
-        keys.push({ beat: chord.beat, midi: sung + 4, beats: 3.8, vel: 85 });
+  const bass: BandNote[] = [];
+  const keys: BandNote[] = [];
+  const near = (pitchClass: number, floor: number) => floor + (pitchClass - floor + 120) % 12;
+  const bassRiff = [[0, 0.65, 0, 100], [0.75, 0.4, 0, 72], [1.5, 0.45, 2, 86], [2, 0.7, 0, 96], [3.5, 0.33, 2, 82]];
+  for (const chord of piece.chords) {
+    const finale = piece.sections?.at(-1)?.name === "Finale" && chord.beat === piece.sections.at(-1)?.beat;
+    if (finale) {
+      bass.push({ beat: chord.beat, beats: chord.beats, midi: near(chord.tones[0], 38), vel: 98 });
+      for (const tone of chord.tones) keys.push({ beat: chord.beat, beats: chord.beats, midi: near(tone, 60), vel: 76 });
       continue;
     }
-    if (chord.beats >= 3) {
-      bass.push(
-        { beat: chord.beat + 1, midi: bassPitch(third), beats: 0.78, vel: 62 },
-        { beat: chord.beat + 2, midi: bassPitch(fifth), beats: 0.84, vel: 71 },
-      );
-      if (chord.beats >= 4 && next)
-        bass.push({
-          beat: chord.beat + 3,
-          midi: bassPitch(next.tones[0]) - 1,
-          beats: 0.7,
-          vel: 62,
-        });
+    for (const [offset, duration, tone, vel] of bassRiff) {
+      if (offset >= chord.beats) break;
+      bass.push({ beat: chord.beat + offset, beats: Math.min(duration, chord.beats - offset), midi: near(chord.tones[tone], 38), vel });
     }
-    // In the verse, let the vocal give way to a short piano answer.
-    // The opening bar is the band's first chance to state that figure.
-    if (section === "after hours" || chord.beat === 0) {
-      for (const offset of [0, 0.5]) {
-        const beat = chord.beat + offset;
-        if (offset >= chord.beats || part?.events.some(note => note.beat <= beat && beat < note.beat + note.beats)) continue;
-        const pitch = offset ? third : fifth;
-        keys.push({ beat, midi: 67 + ((pitch - 67 + 24) % 12), beats: Math.min(0.42, chord.beats - offset), vel: 95 });
+    for (const offset of [1.25, 2.75, 3.5]) {
+      if (offset >= chord.beats) break;
+      for (const tone of chord.tones.slice(1)) {
+        keys.push({ beat: chord.beat + offset, beats: Math.min(0.23, chord.beats - offset), midi: near(tone, 60), vel: offset === 2.75 ? 89 : 75 });
       }
-    } else {
-      for (const pc of [third, fifth])
-        keys.push({ beat: chord.beat + 0.67, midi: 60 + pc, beats: 0.27, vel: 68 });
-    }
-    // Keep the kit on the bar grid, including across short chord changes.
-    // Chord gaps and the quiet bridge retain their written rests.
-    for (let beat = Math.ceil(chord.beat); beat < chord.beat + chord.beats; beat++) {
-      if (beat % 4 === 0) drums.push({ beat, beats: 0.25, midi: 36, vel: 84 });
-      if (beat % 4 === 2) drums.push({ beat, beats: 0.2, midi: 38, vel: 76 });
-      if (beat % 2 === 1) drums.push({ beat, beats: 0.15, midi: 42, vel: 57 });
     }
   }
   return [
     { id: "bass", channel: 10, program: 33, notes: bass },
     { id: "keys", channel: 11, program: 4, notes: keys },
-    { id: "drums", channel: 9, program: 0, notes: drums },
   ];
 }

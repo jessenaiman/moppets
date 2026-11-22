@@ -127,7 +127,7 @@ function arrangeSolo(piece: Piece, backing: SoloBacking): BandPart[] {
 export function arrange(piece: Piece): BandPart[] {
   if (piece.title === "Borrowed Light" && piece.stage?.includes("vee")) return moonbeamBand(piece);
   if ((piece.title === "Line?" || piece.title === "Right on Cue") && piece.stage?.includes("scribe")) return promptBand(piece);
-  if (piece.title === "Take Two" && piece.stage?.includes("vee")) return neonBand(piece);
+  if (piece.title === "Lights Wake Up" && piece.stage?.includes("vee")) return neonBand(piece);
   if (piece.title === "Every Button" && piece.stage?.includes("zap") && piece.chords.length) return zapBand(piece);
   const chords = piece.chords;
   if (!chords.length) return [];

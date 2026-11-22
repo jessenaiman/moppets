@@ -254,11 +254,11 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
         urls.add(resolveAsset(`/rehearsal/sets/${workshop}.webp`));
       }
       const pair = piece.title === "Right on Cue";
-      const players = pair ? ["cue", "neon"] : piece.title === "Take Two" ? ["neon"] : piece.title === "Line?" ? ["cue"] : [];
+      const players = pair ? ["cue", "neon"] : piece.title === "Lights Wake Up" ? ["neon"] : piece.title === "Line?" ? ["cue"] : [];
       for (const player of players) {
         for (const action of puppetActions[player as keyof typeof puppetActions]) urls.add(resolveAsset(`/rehearsal/pins/${player}/${action}.webp`));
       }
-      if (piece.title === "Take Two") {
+      if (piece.title === "Lights Wake Up") {
         for (const state of ["roll-closed", "roll-open", "sing-closed", "sing-open"]) {
           urls.add(resolveAsset(`/rehearsal/rigs/neon/solo/${state}.webp`));
         }

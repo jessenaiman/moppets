@@ -583,7 +583,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   );
   const isSoloStage = onstageVoiceIds.length === 1;
   const soloVoiceId = isSoloStage ? onstageVoiceIds[0] : null;
-  const isNeonTakeTwo = soloVoiceId === "vee" && piece.title === "Take Two";
+  const isNeonTakeTwo = soloVoiceId === "vee" && piece.title === "Lights Wake Up";
   const [userWorldChoice, setUserWorldChoice] = useState<{ title: string; lens: WorldLens } | null>(null);
   const defaultLens: WorldLens = isNeonTakeTwo ? "diorama" : "archive";
   const activeLens = controlledNeonLens ?? (userWorldChoice?.title === piece.title ? userWorldChoice.lens : defaultLens);
@@ -613,7 +613,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   const workshop = workshopArt ? workshopTake(workshopArt, piece.tracks.find(t=>t.id===soloVoiceId),performing ? beat : 0,still) : null;
   const cueAndNeon = studio404 && piece.title === "Right on Cue";
   const onCart = soloSet?.art === "zap";
-  const inRepairBay = soloSet?.art === "neon" && piece.title === "Take Two";
+  const inRepairBay = soloSet?.art === "neon" && piece.title === "Lights Wake Up";
   const neonCues = useMemo(()=>inRepairBay ? neonScore(piece) : null,[inRepairBay,piece]);
   const neon = neonCues ? neonTake(neonCues,beat,performing,still) : null;
   const onValveBench = soloSet?.art === "gruff";
