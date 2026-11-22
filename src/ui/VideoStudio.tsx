@@ -127,8 +127,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const outroSec = outroFrames / fps;
   const showingRehearsal = composition === "Rehearsal" && !livePreview;
   // Always play live CHIMERA audio directly so edits, voice sliders, and master volume apply immediately.
-  const recorded = false;
-  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames, recorded, lesson);
+  const playbackError = useAudio(s => s.error);
+  const transport = useRehearsalTransport(playerRef, showingRehearsal, fps, introFrames, stageEnd, totalFrames, lesson);
   const ensembleMessage = useEnsemble(s => s.message);
   const vocalTiming = useEnsemble(s => s.vocalTiming);
   const previewProject = useMemo(() => ({
@@ -469,9 +469,9 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
           <div className="vs-stage-col">
             <div className={`vs-player-frame${livePreview ? " live-preview" : ""}${project.aspect === "9:16" ? " portrait" : ""}`} data-layout="overlay" ref={stageRef}>
               {livePreview ?? (composition==="Rehearsal" ? <Player
-                key={recorded ? `performance-${lesson}` : "rehearsal"} controls={recorded} ref={playerRef} component={MoppetComposition} inputProps={previewProject}
+                key="rehearsal" controls={false} ref={playerRef} component={MoppetComposition} inputProps={previewProject}
                 durationInFrames={totalFrames} compositionWidth={dims.width} compositionHeight={dims.height}
-                fps={fps} numberOfSharedAudioTags={recorded ? 1 : 0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
+                fps={fps} numberOfSharedAudioTags={0} moveToBeginningWhenEnded={false} style={{width:"100%",height:"100%"}}/>
                 : composition==="Cue-Bench-Pack" ? <Player key="cue" ref={playerRef} component={BenchPack}
                   durationInFrames={cycleLength*2} compositionWidth={1280} compositionHeight={720} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>
@@ -479,7 +479,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                 : <Player key="neon" ref={playerRef} lazyComponent={loadActionStrip} inputProps={{review:true}}
                   durationInFrames={720} compositionWidth={820} compositionHeight={680} fps={24}
                   controls loop style={{width:"100%",height:"100%"}}/>)}
-              {showingRehearsal && !recorded && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
+              {showingRehearsal && <div className="vs-rehearsal-controls" data-layout="overlay" aria-label="Rehearsal transport">
                 <button type="button" disabled={synthBusy && !transport.playing}
                   aria-label={transport.playing || transport.busy ? "Pause video" : "Play video"} onClick={transport.toggle}>
                   <span aria-hidden="true">{transport.playing || transport.busy ? "Ⅱ" : "▶"}</span>
@@ -494,7 +494,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
                 }}><span aria-hidden="true">⛶</span></button>
               </div>}
             </div>
-            {showingRehearsal && (transport.busy || ensembleMessage.startsWith("Could not") || ensembleMessage.startsWith("No sound"))
+            {showingRehearsal && playbackError && <p role="alert" className="vs-meta">{playbackError}</p>}
+            {showingRehearsal && !playbackError && (transport.busy || ensembleMessage.startsWith("Could not") || ensembleMessage.startsWith("No sound"))
               && <p role="status" className="vs-meta">{ensembleMessage}</p>}
           </div>
 

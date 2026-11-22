@@ -1,5 +1,4 @@
 /** Mix-bus arithmetic shared by the live mixer worklet and WAV export, so a download is what was heard. */
-import { VocalBus, vocalPans } from "./vocalBus.ts";
 import type { Piece } from "./music.ts";
 import { bandFor } from "./band.ts";
 
@@ -9,59 +8,36 @@ export const hasAccompaniment = (piece: Piece) => hasBand(piece) || !!piece.pluc
 /** The band sits cleanly under the voices so CHIMERA lyrics stay clear and upfront. */
 export const BAND_LEVEL = 0.42;
 
-/** Direct healthy bus gain (no artificial -9 dB cut); the VocalBus peak limiter catches chorus peaks. */
-export const BUS_GAIN = 0.85;
+const VOCAL_HEADROOM = 0.5;
 /** Stems beyond the singers and accompaniment: the beatbox, then each cameo creature, in spawn order. */
 export function extraStems(piece: Piece): string[] {
   return [...(piece.beat ? ["beat"] : []), ...[...new Set((piece.cameos ?? []).map((c) => c.creature))]];
 }
 
-/** Each stem's level for a piece (voices by id, then the accompaniment), and where the introduction's chorus sits back. */
-export function pieceGains(piece: Piece, sampleRate: number, chorusAtSeconds: number, levels: Record<string, number>): { gains: number[]; section?: GainSection } {
-  const solo = piece.kind === "intro" || piece.kind === "solo";
-  const level = (id: string) => (solo ? 1.15 : 0.95) * (levels[id] ?? 1);
-  const gains = piece.tracks.map((t) => level(t.id));
-  const pluckGain = (hasBand(piece) ? BAND_LEVEL : 0.72) / BUS_GAIN;
-  if (hasAccompaniment(piece)) gains.push(piece.title === "Found Things" ? pluckGain * 0.85 : pluckGain);
-  const extras = extraStems(piece);
-  for (const e of extras) gains.push(e === "beat" ? 0.85 : 0.4);
-  const singers = piece.stage?.filter(id => id !== "band");
-  if (piece.kind === "motesong" && singers && singers.length >= 1 && singers.length <= 2 &&
-      singers.length === piece.tracks.length && piece.tracks.every(track => singers.includes(track.id))) {
-    for (let i = 0; i < piece.tracks.length; i++) gains[i] *= 1.15;
-  }
-  let section: GainSection | undefined;
-  if (piece.kind === "intro") section = { frame: Math.floor((chorusAtSeconds - 0.25) * sampleRate), gains: [...piece.tracks.map((t) => 0.45 * (levels[t.id] ?? 1)), ...(hasAccompaniment(piece) ? [pluckGain] : []), ...extras.map((e) => (e === "beat" ? 0.85 : 0.4))] };
-  return { gains, section };
+/** Each stem's fixed level in spawn order. */
+export function pieceGains(piece: Piece, levels: Record<string, number>): number[] {
+  const gains = piece.tracks.map(track => VOCAL_HEADROOM * (levels[track.id] ?? 1));
+  const band = hasBand(piece);
+  if (band || piece.pluck) gains.push(band ? BAND_LEVEL : 0.72);
+  for (const extra of extraStems(piece)) gains.push(extra === "beat" ? 0.72 : 0.34);
+  return gains;
 }
 
-/** A planned level change (the introduction's solo verses are louder than its massed chorus). */
-export interface GainSection {
-  frame: number;
-  gains: number[];
-}
-/** Voices enter the stereo vocal strip. Instrumental, beat and cameo stems join at the limiter. */
 export function mixStems(stems: readonly Float32Array[], gains: readonly number[], frames: number,
-  voiceCount: number, rate: number, section?: GainSection, voiceLevels: readonly number[] = []) {
-  const left = new Float32Array(frames), right = new Float32Array(frames), backing = new Float32Array(frames);
-  const pans = vocalPans(voiceCount);
+  voiceLevels: readonly number[] = []) {
+  const samples = new Float32Array(frames);
   let nonFinite = 0;
   stems.forEach((stem, v) => {
-    const pan = pans[v];
+    const gain = gains[v] * (voiceLevels[v] ?? 1);
     const n = Math.min(frames, stem.length);
     for (let i = 0; i < n; i++) {
       if (!Number.isFinite(stem[i])) { nonFinite++; continue; }
-      const gain = section && i >= section.frame ? section.gains[v] : gains[v];
-      const value = stem[i] * gain * BUS_GAIN * (voiceLevels[v] ?? 1);
-      if (pan) {
-        left[i] += value * pan.left;
-        right[i] += value * pan.right;
-      } else backing[i] += value;
+      samples[i] += stem[i] * gain;
     }
   });
-  const bus = new VocalBus(rate);
-  bus.process(left,right,backing,frames);
-  return {left, right, limited: bus.limited, peak: bus.peak, nonFinite};
+  let peak = 0;
+  for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+  return { samples, peak, nonFinite };
 }
 
 export function wavBytes(samples: Float32Array, sampleRate: number, right?: Float32Array): ArrayBuffer {

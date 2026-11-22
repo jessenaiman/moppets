@@ -1,18 +1,17 @@
 /**
- * Entry: load the engine first (our wasm: CHIMERA's C ABI plus the Moppet voices, built from
- * crates/moppet-wasm), since CHIMERA's TypeScript calls it as its modules load; then import and
+ * Entry: load the pinned CHIMERA engine first, since its TypeScript calls it as its modules load.
+ * Then import and
  * render the app. A failed load can be retried.
  */
 import "@chimera/ui/styles.css";
 import "./ui/tailwind.css";
 import { initChimera } from "@chimera/wasm/chimera.ts";
-import moppetWasm from "./audio/moppet.wasm?url";
 
 const root = document.getElementById("root")!;
 
 async function boot(): Promise<void> {
   try {
-    await initChimera(moppetWasm);
+    await initChimera();
   } catch (err) {
     root.replaceChildren();
     const box = document.createElement("div");

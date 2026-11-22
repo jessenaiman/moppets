@@ -148,24 +148,27 @@ export function buildSong(s: Song, options: IntroductionOptions = {}): Piece {
       const who = l.who ?? s.lead;
       const unison = intro && section.name === "chorus";
       const words = intro && !unison ? verses.find(v => v.id === who)?.lyrics?.[li] ?? l.words : l.words;
-      for (const singer of unison ? verses.map(v => v.id) : [who]) {
+      const busy = new Set(unison ? verses.map(v => v.id) : [who]);
+      for (const singer of busy) {
         sing(singer, {...l, words}, at, [si, li, -1]);
       }
       if (s.double && who === s.lead) {
-        sing(s.double.id, {...l, degrees: l.degrees.map(d => d + s.double!.steps)}, at);
+        const { id, steps } = s.double;
+        sing(id, {...l, degrees: l.degrees.map(d => d + steps)}, at);
+        busy.add(id);
       }
       const length = sum(l.rhythm) + (s.breath ?? 0);
-      const busy = new Set([l.who ?? s.lead]);
       for (const [ai, w] of (l.with ?? []).entries()) {
         busy.add(w.who ?? s.lead);
         if ((w.offset ?? 0) + sum(w.rhythm) > length + 1e-9) throw new Error(`${s.title}: "${w.words}" runs past its line`);
         sing(w.who ?? s.lead, w, at + (w.offset ?? 0), [si, li, ai]);
       }
       if (Math.abs(sum(l.chords.map((c) => c[1])) - length) > 1e-9) throw new Error(`${s.title}: the chords under "${l.words}" last ${sum(l.chords.map((c) => c[1]))} beats, the line ${length}`);
+      const bassHasFigure = section.choir && s.figures?.[bass] && s.seats.some(([id]) => id === bass);
       let t = at;
       for (const [deg, beats] of l.chords) {
         chords.push({ ...chordInfo(((deg % 7) + 7) % 7, key, mode), beat: t, beats });
-        if (bass !== "none" && !busy.has(bass)) pad(bass, t, deg, beats);
+        if (bass !== "none" && !busy.has(bass) && !bassHasFigure) pad(bass, t, deg, beats);
         if (section.choir) for (const [id, offset] of s.seats) {
           if (busy.has(id)) continue;
           const figure = s.figures?.[id];

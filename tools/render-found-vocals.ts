@@ -39,7 +39,7 @@ for (const track of piece.tracks) {
   if (existsSync(file)) continue;
   const plan = planTrack(track, piece, voice);
   const core = new SingerCore(new WebAssembly.Instance(wasmModule).exports as never, {
-    voice, frames, sampleRate, hop: hopFor(sampleRate), nasal:plan.nasal,
+    voice, frames, sampleRate, hop: hopFor(sampleRate),
     gestures:plan.gestures, firstF0:midiToHz(plan.firstMidi),
   });
   try {

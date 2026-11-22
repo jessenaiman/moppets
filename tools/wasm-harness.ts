@@ -8,8 +8,8 @@ import { initChimera } from "@chimera/wasm/chimera.ts";
 import { writeGestures, fromUtf8 } from "@chimera/wasm/wire.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
 
-/** our engine build (`bun run wasm`): CHIMERA's C ABI plus the Moppet voices */
-export const WASM_PATH = fileURLToPath(new URL("../src/audio/moppet.wasm", import.meta.url));
+/** the pinned upstream CHIMERA build (`bun run wasm`) */
+export const WASM_PATH = fileURLToPath(new URL("../chimera/src/wasm/chimera.wasm", import.meta.url));
 const bytes = readFileSync(WASM_PATH);
 export const wasmModule = new WebAssembly.Module(bytes);
 

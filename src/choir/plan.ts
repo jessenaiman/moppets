@@ -1,6 +1,6 @@
 /**
  * Score → gestures, through the engine's own lyric and singing planners (main thread: they
- * allocate). Melody and timing come from the score; how a Moppet colours them is character.ts.
+ * allocate). Melody and timing come from the score; CHIMERA plans their articulation.
  */
 import { EnglishG2P, lyricsToSyllables, planPhrases, planSong } from "@chimera/wasm/engine.ts";
 import { midiToHz } from "./singerCore.ts";
@@ -17,8 +17,6 @@ export interface TrackPlan {
   firstMidi: number;
   /** when this singer's last gesture has finished (s, on the timeline) */
   end: number;
-  /** this piece lets the voice's velum recipe colour its vowels */
-  nasal: boolean;
 }
 
 /**
@@ -79,7 +77,7 @@ const g2p = new EnglishG2P();
 
 /**
  * A skit's lines, spoken: each line through the speech planner at the Moppet's speaking pitch,
- * starting on its beat and sped up only if the planner's natural pace would run past its slot.
+ * starting on its written beat and using the native speaking rate.
  */
 function planSpeech(track: Track, piece: Piece, v: MoppetVoice): TrackPlan {
   const gestures: Gesture[] = [];
@@ -88,21 +86,19 @@ function planSpeech(track: Track, piece: Piece, v: MoppetVoice): TrackPlan {
   for (const e of track.events) {
     const phrases = g2p.toPhrases(e.text);
     if (!phrases.length) continue;
-    const t0 = LEAD_IN + e.beat * beat, slot = e.beats * beat;
+    const t0 = LEAD_IN + e.beat * beat;
     const opts = { body: v.body, t0, f0: midiToHz(e.midi) };
-    let plan = planPhrases(phrases, opts);
-    if (plan.end - t0 > slot) plan = planPhrases(phrases, { ...opts, rate: Math.min(1.6, (plan.end - t0) / slot) });
+    const plan = planPhrases(phrases, opts);
     gestures.push(...plan.gestures);
     end = Math.max(end, plan.end + 0.3);
   }
-  return { id: track.id, gestures, firstMidi: track.events[0].midi, end, nasal: true };
+  return { id: track.id, gestures, firstMidi: track.events[0].midi, end };
 }
 
 export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan {
   if (piece.kind === "skit") return planSpeech(track, piece, v);
   const gestures: Gesture[] = [];
   const beat = beatSeconds(piece);
-  const nasal = piece.kind === "intro" || piece.kind === "solo";
   let group: ScoreEvent[] = [];
   let end = LEAD_IN;
   const flush = () => {
@@ -110,16 +106,7 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     const syllables = phraseSyllables(track, group);
     const notes = group.map((e, i) => ({ midi: e.midi, beats: e.beats, syl: syllables[i] }));
     const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: v.vibrato });
-    // Time the swell from the written note and end it before any coda consonants.
-    gestures.push(...plan.gestures.filter(g => g.targets.vibrato === undefined));
-    for (const note of group) {
-      if (note.beats * beat < .35) continue;
-      const start = LEAD_IN + note.beat * beat;
-      const pitch = plan.gestures.find(g => g.label === "pitch" && Math.abs(g.t0 - start) < 1e-5);
-      if (!pitch || pitch.t1 <= start + .19) continue;
-      gestures.push({t0: start + .19, t1: pitch.t1, rampIn: .10, rampOut: .04,
-        strength: pitch.strength, targets: {vibrato: v.vibrato}, label: "vibrato"});
-    }
+    gestures.push(...plan.gestures);
     end = Math.max(end, plan.end + 0.3);
     group = [];
   };
@@ -129,5 +116,5 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
     group.push(e);
   }
   flush();
-  return { id: track.id, gestures, firstMidi: track.events[0].midi, end, nasal };
+  return { id: track.id, gestures, firstMidi: track.events[0].midi, end };
 }

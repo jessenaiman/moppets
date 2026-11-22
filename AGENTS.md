@@ -17,7 +17,6 @@ the README.
 - `chimera/`: CHIMERA, a pinned git submodule. `bun run dev` and `bun run build`
   check out the recorded revision (`bun run chimera:update`). **Never edit it**; its own AGENTS.md governs it, not
   this repo.
-- `crates/moppet-wasm/`: the app's wasm: CHIMERA's C ABI plus the sized Moppet voices (`moppet_*`).
 - `src/choir/`: the Moppets (cast, scores, songs, skits, band, gestures, the ensemble of singer
   workers). `src/audio/`: the AudioContext and the dictionary. `src/ui/`: the app (React, Tailwind CSS v4, the stage).
   `src/worklet/`: the choir mixer and live CHIMERA voice worklet.
@@ -27,10 +26,10 @@ the README.
 
 ## Rules
 
-- **CHIMERA's TypeScript is imported as `@chimera/…`**, never copied. When the Moppets need what
-  CHIMERA doesn't do, it goes in `crates/moppet-wasm` or `src/`, on CHIMERA's public API.
-- **`src/audio/moppet.wasm` is a gitignored build product.** After a Rust change (or a newer
-  CHIMERA), run `bun run wasm` before checking the affected behavior.
+- **CHIMERA's TypeScript is imported as `@chimera/…`**, never copied. The app uses CHIMERA's
+  public API from `src/`.
+- **`chimera/src/wasm/chimera.wasm` is a gitignored build product.** Run `bun run wasm` after
+  changing the pinned CHIMERA revision.
 - **The wasm loads before the UI.** CHIMERA's `engine.ts` calls the engine as it loads, so it
   must not be reachable from `src/main.tsx`'s static imports.
 - **Worker and worklet modules stay engine-free** (`music.ts`, `band.ts`, `bandSynth.ts`,

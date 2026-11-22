@@ -1350,7 +1350,7 @@ function Workbench() {
         </div>
         <div className="knobs">
           {CONTROLS.map(([key, label, min, max, step, unit, group]) => {
-            const value = group === "size" ? (v.size ?? 1) : group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
+            const value = group === "artic" ? v.artic[key as keyof MoppetVoice["artic"]] : group === "body" ? v.body[key as keyof MoppetVoice["body"]] : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
             const cc = ccFor(ccMap, key);
             return <div className="knob" key={key}>
               <div className="knob-head">

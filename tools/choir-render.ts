@@ -4,10 +4,7 @@
  * quality: the WAVs are for ears. Usage: bun tools/choir-render.ts [outDir]   (after `bun run wasm`)
  */
 import { gunzipSync } from "node:zlib";
-import { execFileSync } from "node:child_process";
-import { bouncePart } from "./plugin-host.ts";
-import { instrumentPart, scoredBeatPath, scoredStemPath, partKey } from "../src/choir/pluginScore.ts";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { writeWav } from "../chimera/tools/lib/wav.ts";
 import { initEngine, wasmModule } from "./wasm-harness.ts";
 await initEngine();
@@ -33,25 +30,33 @@ for (const [name, piece] of Object.entries(pieces)) {
   const frames = Math.ceil(pieceSeconds(piece) * FS);
   const stems: Float32Array[] = [];
   const rows: string[] = [];
-  for (const t of piece.tracks) {
-    const v = voices.find((x) => x.id === t.id)!;
-    const part=instrumentPart(piece,t,v),key=await partKey(part);
-    const cached=piece.title === "Found Things" ? "public" + await scoredStemPath(piece,t,v) : `public/plugin-vocals/${key}.ogg`;
-    if (piece.title === "Found Things" && !existsSync(cached)) throw Error("Run bun tools/render-found-vocals.ts first");
-    const file=existsSync(cached)?cached:`${out}/${key}.wav`;
-    if(!existsSync(file))await bouncePart(part,file);
-    const raw=execFileSync("ffmpeg",["-v","error","-i",file,"-af","pan=mono|c0=c0","-ar",String(FS),"-f","f32le","-"],{maxBuffer:frames*4+65536});
-    const stem=new Float32Array(frames);
-    stem.set(new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)).subarray(0,frames));
+  for (const track of piece.tracks) {
+    if (!track.events.length) {
+      stems.push(new Float32Array(frames));
+      rows.push(`${track.id} 0.00`);
+      continue;
+    }
+    const voice = voices.find((v) => v.id === track.id)!;
+    const plan = planTrack(track, piece, voice);
+    const core = new SingerCore(new WebAssembly.Instance(wasmModule).exports as never, {
+      sampleRate: FS, frames, hop: hopFor(FS), voice,
+      gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi),
+    });
+    try {
+      while (core.rendered < frames) core.step();
+    } finally {
+      core.dispose();
+    }
+    const stem = core.stem;
     let peak = 0, bad = 0;
     for (const s of stem) { if (!Number.isFinite(s)) bad++; peak = Math.max(peak, Math.abs(s)); }
-    if (bad) throw new Error(`${name}/${t.id}: ${bad} invalid samples`);
-    if (peak < 1e-3) throw new Error(`${name}/${t.id}: silent stem`);
-    rows.push(`${t.id} ${peak.toFixed(2)}`);
+    if (bad) throw new Error(`${name}/${track.id}: ${bad} invalid samples`);
+    if (peak < 1e-3) throw new Error(`${name}/${track.id}: silent stem`);
+    rows.push(`${track.id} ${peak.toFixed(2)}`);
     stems.push(stem);
   }
   if (piece.title === "Found Things") {
-    // Keep sample zero aligned with the published mix, including the instrumental intro.
+    // Align cue sample zero with the WAV, including the instrumental intro.
     const fps = 30, window = FS / fps;
     const envelopes = Object.fromEntries(piece.tracks.map((track, index) => {
       const samples = stems[index];
@@ -68,22 +73,13 @@ for (const [name, piece] of Object.entries(pieces)) {
   const backing = renderAccompaniment(piece, FS, frames);
   if (backing) stems.push(backing);
   for (const e of extraStems(piece)) {
-    const path = e === "beat" && await scoredBeatPath(piece);
-    if (path && existsSync("public" + path)) {
-      const raw = execFileSync("ffmpeg", ["-v","error","-i","public" + path,"-ac","1","-ar",String(FS),"-f","f32le","-"], {maxBuffer:frames*4+65536});
-      const pcm = new Float32Array(frames);
-      pcm.set(new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)).subarray(0,frames));
-      stems.push(pcm);
-      continue;
-    }
     const x = new WebAssembly.Instance(wasmModule, {}).exports as never;
     const core = e === "beat" ? new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), beat: { steps: parseBeat(piece.beat!.text), bpm: piece.bpm, swing: piece.beat!.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } }) : new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), creature: { id: e, calls: piece.cameos!.filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) })) } });
     while (core.rendered < frames) core.step();
     stems.push(core.stem);
     core.dispose();
   }
-  const plan = pieceGains(piece, FS, LEAD_IN + piece.tracks.length * 20 * beatSeconds(piece), MIX_LEVEL);
-  const m = mixStems(stems, plan.gains, frames, piece.tracks.length, FS, plan.section);
-  writeWav(`${out}/${outputName}.wav`, [m.left, m.right], FS);
-  console.log(`${outputName}: ${(frames / FS).toFixed(1)} s audio in ${((performance.now() - t0) / 1000).toFixed(1)} s · mix peak ${m.peak.toFixed(3)} · limited ${m.limited} · invalid ${m.nonFinite} · stems peak: ${rows.join(", ")}`);
+  const m = mixStems(stems, pieceGains(piece, MIX_LEVEL), frames);
+  writeWav(`${out}/${outputName}.wav`, [m.samples, m.samples], FS);
+  console.log(`${outputName}: ${(frames / FS).toFixed(1)} s audio in ${((performance.now() - t0) / 1000).toFixed(1)} s · mix peak ${m.peak.toFixed(3)} · invalid ${m.nonFinite} · stems peak: ${rows.join(", ")}`);
 }

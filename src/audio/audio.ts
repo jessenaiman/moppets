@@ -3,6 +3,7 @@
  * wired through it. Starting it also fetches the pronouncing dictionary. (The engine itself is
  * loaded by main.tsx before any of the app is imported.)
  */
+import { preferPlaybackSession } from "@chimera/audio/session.ts";
 import { create } from "zustand";
 import { g2p } from "./g2p.ts";
 
@@ -32,6 +33,7 @@ export const useAudio = create<AppAudio>((set, get) => ({
         // the voices run in AudioWorklets, which browsers allow only on localhost or HTTPS
         if (!window.isSecureContext || typeof AudioWorkletNode === "undefined")
           throw new Error(`No sound here: browsers only allow the voices on localhost or HTTPS, and this page is ${location.origin}. Open it as http://localhost:${location.port || "80"}/ on this computer, or over HTTPS (for example \`tailscale serve\`) from another device.`);
+        preferPlaybackSession();
         if (!ctx) {
           ctx = new AudioContext({ latencyHint: "interactive", sampleRate: 48000 });
           master = ctx.createGain();

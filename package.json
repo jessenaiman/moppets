@@ -11,7 +11,7 @@
     "test": "bun run check",
     "check": "bun tools/playwright-check.ts",
     "typecheck": "tsc --noEmit",
-    "wasm": "cargo build -p moppet-wasm --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/moppet_wasm.wasm src/audio/moppet.wasm",
+    "wasm": "cd chimera && bun run wasm",
     "chimera:update": "git submodule update --init --recursive -- chimera && git -C chimera log --oneline -1 && bun run wasm"
   },
   "dependencies": {

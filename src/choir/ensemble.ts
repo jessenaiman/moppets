@@ -1,4 +1,3 @@
-import { foundThingsStems } from "./pluginPlayback.ts";
 import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
 /**
  * The choir on one audio timeline: one singer Worker per voice (the engine is too heavy for six
@@ -18,7 +17,7 @@ import type { Backing, FromSinger, ToSinger } from "./singer.worker.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, planTrack } from "./plan.ts";
 import { midiToHz, hopFor, TELE, TELE_HEADER, type CueConfig, type SingerConfig } from "./singerCore.ts";
 import { beatReady, parseBeat } from "@chimera/wasm/engine.ts";
-import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes, type GainSection } from "./mix.ts";
+import { extraStems, hasAccompaniment, mixStems, pieceGains, wavBytes } from "./mix.ts";
 import { bandFor } from "./band.ts";
 import { poseFromRecord, SILENT_POSE, type Pose } from "./pose.ts";
 import { MIX_LEVEL, type MoppetArtic, type MoppetSource, type MoppetVoice } from "./voices.ts";
@@ -39,7 +38,6 @@ export interface EnsembleState {
   /** worst worker's seconds of CPU per second of audio */
   rtf: number;
   peak: number;
-  limited: number;
   soloMix: boolean;
   loopRange: { startSec: number; endSec: number; label: string } | null;
   vocalTiming?: VocalTiming;
@@ -51,7 +49,7 @@ export interface EnsembleState {
  */
 export const useTelemetry = create<{ id: string; tele: TelemetryMessage | null }>(() => ({ id: "", tele: null }));
 
-export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0, soloMix: false, loopRange: null }));
+export const useEnsemble = create<EnsembleState>(() => ({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, soloMix: false, loopRange: null }));
 
 /** How far ahead of the playhead live mode renders: the delay before a control is heard. */
 const LOOKAHEAD = 0.3;
@@ -91,15 +89,11 @@ async function ensureMixer(ctx: AudioContext): Promise<void> {
   await mixerLoading;
 }
 
-export function setPerformanceVolume(_value: number): void {
-  // Master volume lives in src/audio/audio.ts (single clean GainNode).
-}
-
 function onMixer(m: MixerOut): void {
   if (m.generation !== generation) return;
   if (m.type === "pos") {
     pos = m;
-    set({ underruns: m.underruns, peak: m.peak, limited: m.limited });
+    set({ underruns: m.underruns, peak: m.peak });
     if (get().status === "buffering" && !m.buffering && m.playing) set({ status: "playing", message: "CHIMERA vocals · live mix." });
     else if (get().status === "playing" && m.buffering) set({ status: "buffering", message: "Waiting for the singers…" });
   } else if (m.type === "ended" && session) {
@@ -114,10 +108,9 @@ class Session {
   readonly vocalTiming: VocalTiming;
   readonly singers: Singer[] = [];
   readonly gains: number[];
-  section: GainSection | undefined;
   planError: string | null = null;
 
-  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean, stems?: Awaited<ReturnType<typeof foundThingsStems>>) {
+  constructor(readonly piece: Piece, readonly voices: MoppetVoice[], ctx: AudioContext, paced: boolean) {
     sessionsMade++;
     this.sampleRate = ctx.sampleRate;
     this.frames = Math.ceil(pieceSeconds(piece) * this.sampleRate);
@@ -139,31 +132,20 @@ class Session {
       this.singers.push(s);
       ends.push(this.frames);
     };
-    const plans = piece.tracks.map((track, i) => stems?.vocals[i] || !track.events.length ? null : planTrack(track, piece, voices.find(v => v.id === track.id)!));
-    piece.tracks.forEach((track,i)=>{
-      const voice=voices.find(v=>v.id===track.id)!;
-      const samples = stems?.vocals[i];
-      if (!samples) {
-        const plan = plans[i];
-        if (!plan) {
-          spawn(i, null, voice, new Float32Array(this.frames));
-          return;
-        }
-        spawn(i, {sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
-          gestures: plan.gestures, nasal: plan.nasal, speech: piece.kind === "skit", firstF0: midiToHz(plan.firstMidi)}, voice);
-        const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
-        this.singers[i].nativeEnvelope = envelope;
-        this.vocalTiming.envelopes[track.id] = envelope;
+    const plans = piece.tracks.map(track => {
+      const voice = voices.find(v => v.id === track.id)!;
+      return { voice, plan: track.events.length ? planTrack(track, piece, voice) : null };
+    });
+    plans.forEach(({ voice, plan }, i) => {
+      if (!plan) {
+        spawn(i, null, voice, new Float32Array(this.frames));
         return;
       }
-      const envelope = new Array<number>(Math.ceil(samples.length / this.hop));
-      for(let j=0;j<envelope.length;j++){
-        let energy=0;const start=j*this.hop,end=Math.min(samples.length,start+this.hop);
-        for(let k=start;k<end;k++)energy+=samples[k]*samples[k];
-        envelope[j] = Math.round(10000 * Math.sqrt(energy / Math.max(1, end - start))) / 10000;
-      }
-      spawn(i,null,voice,samples);
-      this.vocalTiming.envelopes[track.id] = envelope;
+      spawn(i, { sampleRate: this.sampleRate, frames: this.frames, hop: this.hop, voice,
+        gestures: plan.gestures, firstF0: midiToHz(plan.firstMidi) }, voice);
+      const envelope = new Array<number>(Math.ceil(this.frames / this.hop)).fill(0);
+      this.singers[i].nativeEnvelope = envelope;
+      this.vocalTiming.envelopes[voice.id] = envelope;
     });
     // the backing renders in its own worker; the band is resolved here, where the band switch lives
     if (hasAccompaniment(piece)) spawn(piece.tracks.length, null, null, undefined, undefined, { piece: { ...piece, band: bandFor(piece) }, sampleRate: this.sampleRate, frames: this.frames });
@@ -172,10 +154,6 @@ class Session {
       let index = this.singers.length;
       for (const e of extraStems(piece)) {
         if (e === "beat") {
-          if (stems?.beat) {
-            spawn(index++, null, null, stems.beat);
-            continue;
-          }
           const b = piece.beat!;
           spawn(index++, null, null, undefined, { sampleRate, frames, hop, beat: { steps: parseBeat(b.text), bpm: piece.bpm, swing: b.swing, startSeconds: start, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } });
         } else {
@@ -184,11 +162,8 @@ class Session {
         }
       }
     }
-    const mixPlan = pieceGains(piece, this.sampleRate, LEAD_IN + piece.tracks.length * 20 * beatSeconds(piece), MIX_LEVEL);
-    this.gains = mixPlan.gains;
-    this.section = mixPlan.section;
-    const gains = this.gains;
-    post({ type: "setup", voiceCount: piece.tracks.length, ends, gains, ports, section: this.section }, ports);
+    this.gains = pieceGains(piece, MIX_LEVEL);
+    post({ type: "setup", ends, gains: this.gains, ports }, ports);
     post({ type: "voiceLevels", values: this.levels() });
   }
 
@@ -353,7 +328,6 @@ function beginPlaying(frame: number): void {
   playFromFrame = frame;
   pos = null;
   generation++;
-  post({ type: "gains", gains: session.gains });
   post({ type: "solo", voice: Math.max(0, session.indexOf(soloId)) });
   post({ type: "soloMix", voice: soloMixIndex() });
   post({ type: "play", generation, frame });
@@ -388,7 +362,7 @@ export function loadPiece(next: Piece): void {
   playToken++;
   disposeSession();
   piece = next;
-  set({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, limited: 0, loopRange: null });
+  set({ status: "idle", time: 0, duration: 0, progress: 0, message: "", howPlaying: null, underruns: 0, rtf: 0, peak: 0, loopRange: null });
 }
 
 let piece: Piece | null = null;
@@ -455,10 +429,7 @@ export async function play(start: () => Promise<void>, startSec = 0): Promise<vo
   if (!sessionFresh() || session!.sampleRate !== audio.ctx.sampleRate) {
     disposeSession();
     try {
-      const requested = piece, voices = voicesProvider(), ctx = audio.ctx;
-      const stems = requested.title === "Found Things" ? await foundThingsStems(requested, voices, ctx) : undefined;
-      if (token !== playToken || piece !== requested) return;
-      session = new Session(requested, voices, ctx, true, stems);
+      session = new Session(piece, voicesProvider(), audio.ctx, true);
     } catch (error) {
       if (token !== playToken) return;
       session = null;
@@ -598,10 +569,7 @@ export async function exportWav(start: () => Promise<void>, only?: number) {
     await ensureMixer(audio.ctx);
     if (!piece) throw new Error("no piece");
     disposeSession();
-    const requested=piece,voices=voicesProvider(),ctx=audio.ctx,token=playToken;
-    const stems = requested.title === "Found Things" ? await foundThingsStems(requested, voices, ctx) : undefined;
-    if(piece!==requested || token!==playToken)throw new Error("Performance changed during vocal export");
-    session = new Session(requested, voices, ctx, false, stems);
+    session = new Session(piece, voicesProvider(), audio.ctx, false);
     set({ duration: session.frames / session.sampleRate, progress: 0, status: "rendering", vocalTiming: session.vocalTiming });
   } else {
     for (const s of session.singers) s.worker.postMessage({ type: "pace", paced: false } satisfies ToSinger);
@@ -632,18 +600,12 @@ export async function exportWav(start: () => Promise<void>, only?: number) {
     for (const v of s.singers) v.worker.postMessage({ type: "stem" } satisfies ToSinger);
   });
   if (get().status === "rendering") set({ status: "idle", message: "" });
-  if (only !== undefined) {
-    const stem = stems[only];
-    let peak = 0;
-    for (let i = 0; i < stem.length; i++) peak = Math.max(peak, Math.abs(stem[i]));
-    const level = s.levels()[only] ?? 1;
-    const g = peak > 0 ? level * 0.75 / peak : 1;
-    const samples = new Float32Array(stem.length);
-    for (let i = 0; i < stem.length; i++) samples[i] = stem[i] * g;
-    return { bytes: wavBytes(samples, s.sampleRate), peak, limited: 0, nonFinite: 0, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
-  }
-  const { left, right, limited, peak, nonFinite } = mixStems(stems, s.gains, s.frames, s.piece.tracks.length, s.sampleRate, s.section, s.levels());
-  return { bytes: wavBytes(left, s.sampleRate, right), peak, limited, nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
+  const levels = s.levels();
+  const mix = only === undefined
+    ? mixStems(stems, s.gains, s.frames, levels)
+    : mixStems([stems[only]], [s.gains[only]], stems[only].length, [levels[only] ?? 1]);
+  const bytes = wavBytes(mix.samples, s.sampleRate, only === undefined ? mix.samples : undefined);
+  return { bytes, peak: mix.peak, nonFinite: mix.nonFinite, durationSec: s.frames / s.sampleRate, vocalTiming: s.vocalTiming };
 }
 let exportToken = 0;
 

@@ -9,14 +9,13 @@ import { useVoiceLevels, voiceLevel } from "./voiceLevels.ts";
  *    song on stage, at the pitch you play (CHIMERA's live singing planner, as its Sing mode's keys).
  *    Hold one key into the next for legato. The words start over when they run out.
  *
- * The voice is the selected Moppet's own (body, airway size, posture, folds), in the live worklet.
+ * The voice is the selected Moppet's own (body, posture, folds), in the live worklet.
  */
 import { create } from "zustand";
 import { ARTIC_SPECS, NEUTRAL, planNoteOn, VOWEL_TARGETS } from "@chimera/wasm/engine.ts";
 import type { Syllable } from "@chimera/wasm/types.ts";
 import liveUrl from "../worklet/live.ts?worker&url";
 import { chimeraModule } from "@chimera/wasm/chimera.ts";
-import { singingSource, shapeGesture } from "./character.ts";
 import type { ToLive, FromLive } from "../worklet/live.ts";
 import { audio, useAudio } from "../audio/audio.ts";
 import { g2p } from "../audio/g2p.ts";
@@ -140,9 +139,7 @@ export const useLive = create<LiveState>((set, get) => ({
 }));
 
 /**
- * The selected Moppet becomes the live voice, and its recipe edits follow. Only another body or
- * size rebuilds the voice (that allocates on the audio thread and cuts off what is sounding); the
- * rest is a patch at the render head.
+ * The selected Moppet and its current recipe are used for live notes.
  */
 export function setLiveVoice(v: MoppetVoice): void {
   if(voice && voice.id!==v.id)allOff();
@@ -205,8 +202,7 @@ async function soundNote(v: MoppetVoice, midi: number, word: string, seconds: nu
     await nativeModule;
     if (seq !== sequence || signal?.aborted) return;
     const syl = sungSyllables(word)[0] ?? sungSyllables("la")[0];
-    const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: v.vibrato, tag: 1 }).map(g =>
-      shapeGesture(g.targets.vibrato === undefined ? g : { ...g, t0: Math.max(0.45, g.t0), rampIn: 0.10 }, v, false));
+    const gestures = planNoteOn(syl, midi, { body: v.body, vibrato: v.vibrato, tag: 1 });
     const node = new AudioWorkletNode(ctx, "live-moppet", {
       numberOfInputs: 0,
       outputChannelCount: [1],
@@ -216,7 +212,7 @@ async function soundNote(v: MoppetVoice, midi: number, word: string, seconds: nu
     gain.gain.value = Math.min(1.5, Math.max(0.15, (velocity / 100) * 1.25));
     node.connect(gain).connect(analyser!);
     const send = (m: ToLive) => node.port.postMessage(m);
-    send({ type: "voice", body: v.body, size: v.size ?? 1, artic: { ...v.artic }, source: { ...singingSource(v.source) } });
+    send({ type: "voice", body: v.body, artic: { ...v.artic }, source: { ...v.source } });
     if (useLive.getState().mode === "puppet") send({ type: "mouth", values: useLive.getState().mouth });
     send({ type: "schedule", gestures });
     activeNode = node;

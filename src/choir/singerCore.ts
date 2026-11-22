@@ -6,7 +6,8 @@
 import { CONTROL_KEYS, writeGestures, writeSteps, fromUtf8, utf8 } from "@chimera/wasm/wire.ts";
 import type { BeatStep } from "@chimera/wasm/types.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
-import { CHARACTER_TAG, characterGesture, shapeGesture, singingSource } from "./character.ts";
+import { TELE_HEADER, telemetryLength } from "@chimera/worklet/telemetry.ts";
+export { TELE_HEADER } from "@chimera/worklet/telemetry.ts";
 import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 
 type Fn = (...a: number[]) => number;
@@ -14,7 +15,6 @@ export type EngineExports = { memory: WebAssembly.Memory } & Record<string, Fn>;
 
 export const ARTIC_KEYS: readonly string[] = CONTROL_KEYS.slice(0, 17);
 export const SOURCE_KEYS = ["f0", "glide", "pressure", "breathiness", "tension", "fry", "roughness", "vibratoDepth", "vibratoRate", "drift", "voiced", "brightness"];
-export const TELE_HEADER = 16;
 /** indices into a telemetry record */
 export const TELE = { f0: 3, voicing: 4, pLung: 5, outRms: 6, gate: 9, clock: 10, nArtic: 11, nPh: 12, nOr: 13, nScope: 14 } as const;
 /** engine state update rate for the views: every hop frames at ~60 Hz */
@@ -31,23 +31,18 @@ export interface SingerConfig {
   frames: number;
   hop: number;
   voice: MoppetVoice;
-  /** the score's gestures, before this voice colours them */
   gestures: Gesture[];
   firstF0: number;
-  /** let the velum recipe colour the vowels (solo-voiced pieces) */
-  nasal?: boolean;
-  speech?: boolean;
 }
 
 /** Ring-out after a singer's last gesture before the engine may be parked (and how soon before an onset it wakes). */
 const REST_TAIL = 0.8, REST_LEAD = 0.25;
 const REST_MIN = 1.5;
 
-/** Merged spans when a singer sounds, not counting the held character posture. Rests shorter than REST_MIN stay rendered. */
+/** Merged spans when a singer sounds. Rests shorter than REST_MIN stay rendered. */
 function busyIntervals(gestures: Gesture[]): [number, number][] {
   const spans: [number, number][] = [];
   for (const g of gestures) {
-    if (g.label === "character") continue;
     const a = g.t0 - g.rampIn - REST_LEAD, b = g.t1 + g.rampOut + (g.releaseHold ?? 0) + REST_TAIL;
     const last = spans[spans.length - 1];
     if (last && a <= last[1] + REST_MIN) last[1] = Math.max(last[1], b);
@@ -60,6 +55,15 @@ export function midiToHz(m: number): number {
   return 440 * 2 ** ((m - 69) / 12);
 }
 
+/** Render in the same quanta as the upstream worklet. A telemetry hop can span several quanta. */
+function renderBlock(x: EngineExports, handle: number, out: Float32Array, offset: number, frames: number): void {
+  for (let i = 0; i < frames; i += 128) {
+    const n = Math.min(128, frames - i);
+    const p = x.engine_render(handle, n);
+    out.set(new Float32Array(x.memory.buffer, p, n), offset + i);
+  }
+}
+
 export class SingerCore {
   private readonly h: number;
   readonly stem: Float32Array;
@@ -68,8 +72,6 @@ export class SingerCore {
   tele: Float32Array | null = null;
   recordSize = 0;
   telePosted = 0;
-  private charTag = CHARACTER_TAG;
-  private voice: MoppetVoice;
   /** gestures not yet given to the engine, soonest first */
   private pending: Gesture[];
   private nextPending = 0;
@@ -78,22 +80,20 @@ export class SingerCore {
   private busyAt = 0;
 
   constructor(private readonly x: EngineExports, private readonly cfg: SingerConfig) {
-    const h = (this.h = x.moppet_new(cfg.sampleRate));
-    this.voice = cfg.voice;
+    const h = (this.h = x.engine_new(cfg.sampleRate));
     this.stem = new Float32Array(cfg.frames);
-    x.moppet_set_body(h, cfg.voice.body.female, cfg.voice.body.child, cfg.voice.size ?? 1);
-    this.patch(ARTIC_KEYS, { ...cfg.voice.artic } as Record<string, number>);
-    x.moppet_set_artic(h, 2);
+    x.engine_set_body(h, cfg.voice.body.female, cfg.voice.body.child);
+    this.setCharacter(cfg.voice.artic);
     this.setSource(cfg.voice.source);
     // the pitch and breath the planner's gestures start from; every sung note sets its own f0
     this.patch(SOURCE_KEYS, { f0: cfg.firstF0, voiced: 1 });
-    x.moppet_set_source(h);
-    this.pending = [characterGesture(cfg.voice, 0, cfg.frames / cfg.sampleRate, CHARACTER_TAG), ...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
+    x.engine_set_source(h);
+    this.pending = [...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
     this.busy = busyIntervals(this.pending);
   }
 
   private values(): Float64Array {
-    return new Float64Array(this.x.memory.buffer, this.x.moppet_values(this.h), 32).fill(NaN);
+    return new Float64Array(this.x.memory.buffer, this.x.engine_values(this.h), 32).fill(NaN);
   }
 
   private patch(keys: readonly string[], values: Partial<Record<string, number>>): void {
@@ -111,33 +111,24 @@ export class SingerCore {
     while (this.nextPending < this.pending.length && this.pending[this.nextPending].t0 - this.pending[this.nextPending].rampIn < clock + SCHEDULE_AHEAD && this.nextPending - from < MAX_RECORDS) this.nextPending++;
     const n = this.nextPending - from;
     if (n === 0) return;
-    // moppet_schedule places times relative to the voice clock
-    const part = this.pending.slice(from, this.nextPending).map((raw) => {
-      // the character posture is a live gesture of its own (setCharacter)
-      const g = raw.label === "character" ? raw : shapeGesture(raw, this.voice, !!this.cfg.nasal, this.cfg.speech);
-      return { ...g, t0: g.t0 - clock, t1: g.t1 - clock };
-    });
-    const written = writeGestures(this.x.memory.buffer, this.x.moppet_records(this.h), part, MAX_RECORDS);
-    this.x.moppet_schedule(this.h, written, 0, from === 0 ? 1 : 0);
+    // engine_schedule places times relative to the voice clock
+    const part = this.pending.slice(from, this.nextPending).map((g) => ({
+      ...g, t0: g.t0 - clock, t1: g.t1 - clock,
+    }));
+    const written = writeGestures(this.x.memory.buffer, this.x.engine_records(this.h), part, MAX_RECORDS);
+    this.x.engine_schedule(this.h, written, 0, from === 0 ? 1 : 0);
   }
 
   /** Breathiness, roughness and friends: take effect at the render head. */
   setSource(s: Partial<MoppetSource>): void {
-    this.patch(SOURCE_KEYS, (this.cfg.speech ? s : singingSource(s)) as Record<string, number>);
-    this.x.moppet_set_source(this.h);
+    this.patch(SOURCE_KEYS, { ...s });
+    this.x.engine_set_source(this.h);
   }
 
-  /** Swap the held larynx/epilarynx/false-fold posture at the render head (the old one ramps out). */
+  /** Update the character's base articulators at the render head. */
   setCharacter(artic: MoppetArtic): void {
-    const now = this.x.moppet_clock(this.h);
-    const old = this.charTag;
-    this.charTag = old + 1;
-    this.voice = { ...this.voice, artic };
-    // relative to the voice clock, which moppet_schedule adds
-    const g = characterGesture(this.voice, 0, this.cfg.frames / this.cfg.sampleRate - now, this.charTag);
-    const n = writeGestures(this.x.memory.buffer, this.x.moppet_records(this.h), [g], 1);
-    this.x.moppet_schedule(this.h, n, 0, 0);
-    this.x.moppet_release(this.h, old);
+    this.patch(ARTIC_KEYS, { ...artic });
+    this.x.engine_set_artic(this.h, 2);
   }
 
   private get timeline(): number {
@@ -167,8 +158,7 @@ export class SingerCore {
       this.restRecord(this.rendered / hop - 1);
       return n;
     }
-    const p = this.x.moppet_render(this.h, n);
-    this.stem.set(new Float32Array(this.x.memory.buffer, p, n), this.rendered);
+    renderBlock(this.x, this.h, this.stem, this.rendered, n);
     this.rendered += n;
     this.record(this.rendered / hop - 1);
     return n;
@@ -176,10 +166,9 @@ export class SingerCore {
 
   private record(index: number): void {
     if (index % 1) return; // the short final chunk carries no telemetry slot of its own
-    const x = this.x, p = x.moppet_telemetry(this.h);
+    const x = this.x, p = x.engine_telemetry(this.h);
     const head = new Float64Array(x.memory.buffer, p, TELE_HEADER);
-    const nArtic = head[TELE.nArtic], nPh = head[TELE.nPh], nOr = head[TELE.nOr], nScope = head[TELE.nScope];
-    const size = TELE_HEADER + nArtic + 3 * (nPh + nOr) + 2 * nScope;
+    const size = telemetryLength(head);
     if (!this.tele) {
       this.recordSize = size;
       this.tele = new Float32Array(size * Math.ceil(this.cfg.frames / this.cfg.hop));
@@ -197,7 +186,7 @@ export class SingerCore {
   }
 
   dispose(): void {
-    this.x.moppet_free(this.h);
+    this.x.engine_free(this.h);
   }
 }
 
@@ -264,8 +253,7 @@ export class CueCore {
       this.rendered += n;
       return n;
     }
-    const p = this.x.engine_render(this.h, n);
-    this.stem.set(new Float32Array(this.x.memory.buffer, p, n), this.rendered);
+    renderBlock(this.x, this.h, this.stem, this.rendered, n);
     this.rendered += n;
     return n;
   }

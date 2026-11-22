@@ -5,8 +5,6 @@
  * as an underrun) instead of letting voices drift apart.
  * Output 0: the mix. Output 1: the inspected Moppet alone, for the analysers.
  */
-import { BUS_GAIN, type GainSection } from "../choir/mix.ts";
-import { VocalBus, vocalPans } from "../choir/vocalBus.ts";
 import type { MixerIn, MixerOut } from "./mixerProtocol.ts";
 
 declare const sampleRate: number;
@@ -31,7 +29,6 @@ class MixerProcessor extends AudioWorkletProcessor {
   private queues: Chunk[][] = [];
   private ends: number[] = [];
   private gains: number[] = [];
-  private section: GainSection | undefined;
   private ports: MessagePort[] = [];
   private playing = false;
   private frame = 0;
@@ -46,9 +43,7 @@ class MixerProcessor extends AudioWorkletProcessor {
   private missing = -1;
   private quanta = 0;
   private load = 0;
-  private bus = new VocalBus(sampleRate);
-  private pans = vocalPans(0);
-  private backing = new Float32Array(128);
+  private peak = 0;
   private soloBuf = new Float32Array(128);
 
   constructor() {
@@ -64,13 +59,11 @@ class MixerProcessor extends AudioWorkletProcessor {
         this.voiceLevels = [];
         this.previousVoiceLevels = [];
         this.gains = m.gains;
-        this.section = m.section;
         for (const p of this.ports) p.close();
         this.ports = m.ports;
         m.ports.forEach((p) => {
           p.onmessage = (ev: MessageEvent<MixerIn>) => this.handle(ev.data);
         });
-        this.pans = vocalPans(m.voiceCount);
         this.early.length = 0;
         this.playing = false;
         this.frame = 0;
@@ -83,7 +76,7 @@ class MixerProcessor extends AudioWorkletProcessor {
         else this.queues[m.voice].push({ frame: m.frame, pcm: m.pcm });
         break;
       case "play":
-        this.bus = new VocalBus(sampleRate);
+        this.peak = 0;
         this.generation = m.generation;
         this.frame = m.frame;
         this.queues.forEach((q) => (q.length = 0));
@@ -103,9 +96,6 @@ class MixerProcessor extends AudioWorkletProcessor {
         this.early.length = 0;
         this.queues.forEach((q) => (q.length = 0));
         break;
-      case "gains":
-        this.gains = m.gains;
-        break;
       case "voiceLevels":
         this.voiceLevels = m.values;
         if (!this.playing) this.previousVoiceLevels = m.values.slice();
@@ -124,7 +114,7 @@ class MixerProcessor extends AudioWorkletProcessor {
   }
 
   private post(contextFrame = currentFrame): void {
-    const m: MixerOut = { type: "pos", generation: this.generation, frame: this.frame, contextFrame, playing: this.playing, underruns: this.underruns, underrunFrames: this.underrunFrames, load: this.load, limited: this.bus.limited, peak: this.bus.peak, buffering: this.buffering, missing: this.missing };
+    const m: MixerOut = { type: "pos", generation: this.generation, frame: this.frame, contextFrame, playing: this.playing, underruns: this.underruns, underrunFrames: this.underrunFrames, load: this.load, peak: this.peak, buffering: this.buffering, missing: this.missing };
     this.port.postMessage(m);
   }
 
@@ -171,16 +161,11 @@ class MixerProcessor extends AudioWorkletProcessor {
     const n = out[0].length;
     const [left, right] = out, solo = this.soloBuf;
     left.fill(0);
-    right.fill(0);
-    this.backing.fill(0);
     solo.fill(0);
     const soloActive = this.soloMix >= 0 && this.soloMix < this.queues.length;
     for (let v = 0; v < this.queues.length; v++) {
       if (this.frame >= this.ends[v]) continue;
-      const g = soloActive
-        ? (v === this.soloMix ? 1 : 0) * BUS_GAIN
-        : (this.section && this.frame >= this.section.frame ? this.section.gains[v] : this.gains[v]) * BUS_GAIN;
-      const pan = this.pans[v];
+      const gain = soloActive && v !== this.soloMix ? 0 : this.gains[v];
       const level = this.voiceLevels[v] ?? 1;
       const previousLevel = this.previousVoiceLevels[v] ?? 1;
       const step = (level - previousLevel) / n;
@@ -196,14 +181,8 @@ class MixerProcessor extends AudioWorkletProcessor {
         for (let k = 0; k < take; k++) {
           const s = pcm[off + k];
           if (Number.isFinite(s)) {
-            const idx = i+k;
-            const gain = !soloActive && this.section && this.frame < this.section.frame && this.frame+idx >= this.section.frame
-              ? this.section.gains[v]*BUS_GAIN : g;
-            const value = s * gain * (previousLevel + step * (idx + 1));
-            if (pan) {
-              left[idx] += value*pan.left;
-              right[idx] += value*pan.right;
-            } else this.backing[idx] += value;
+            const idx = i + k;
+            left[idx] += s * gain * (previousLevel + step * (idx + 1));
             if (isSolo) solo[i + k] = s;
           }
         }
@@ -212,7 +191,8 @@ class MixerProcessor extends AudioWorkletProcessor {
       }
       while (q.length && q[0].frame + q[0].pcm.length <= this.frame + n) q.shift();
     }
-    this.bus.process(left, right, this.backing, n);
+    right.set(left);
+    for (const sample of left) this.peak = Math.max(this.peak, Math.abs(sample));
     if (soloOut) for (const ch of soloOut) ch.set(solo);
     this.frame += n;
     const dt = Date.now() - t0;

@@ -12,9 +12,8 @@ The browser engine and the desktop instrument are published on different branche
 SoundCraft runs the Linux CLAP instrument for local authoring and offline bounces.
 The public Vite app loads the CHIMERA WebAssembly build over HTTPS. One worker per
 voice sends sample-aligned audio to the 48 kHz AudioWorklet mixer. The rehearsal
-picture follows that mixer's audible position. Found Things uses its authored
-vocal and beatbox stems. The other songs and skits synthesize from their scores in
-the browser, independent of the desktop plug-in cache.
+picture follows that mixer's audible position. Songs and skits synthesize their written parts
+from the score in the browser, including the vocals and beatbox in Found Things.
 
 To inspect the native instrument in a fresh SoundCraft process from this folder, run `CLAP_PATH="$PWD/out/chimera-plugin" soundcraft out/right-on-cue/neon-chimera.scraft`. Inspect the instrument slot and the MIDI region. The stage never requests a pitch-bend event from that host.
 
@@ -22,4 +21,4 @@ In the local app, select a solo, open **Stage tools**, then **Open vocal instrum
 
 The app's former chord-fitting rule altered 1,041 of 3,005 authored note events in this scorebook. The score compiler now preserves the written scale degrees. Whole-part octave placement still assigns the cast's score registers. Incoming keyboard notes use their original MIDI numbers. The regression check is in `tests/songs.test.ts`.
 
-Found Things uses the scored CHIMERA singer for phrase-level consonant timing and the complete cast voice recipes, including tract size. Run `bun tools/render-found-vocals.ts` to build its stock vocal and beatbox stems, then `ONLY=14-found bun tools/choir-render.ts out/listen` for the mix. Edited parts use the scored singer workers when their pre-rendered stem is absent.
+Found Things uses the scored CHIMERA singer for phrase-level consonant timing and the complete cast voice recipes, including tract size. Run `ONLY=13-found bun tools/choir-render.ts out/listen` to synthesize a fresh WAV and its vocal timing from the current score.

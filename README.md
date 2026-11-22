@@ -5,7 +5,7 @@ gravelly monster, a patchwork soprano and a floppy-disk bird, each with a real, 
 voice. An animated stage, songs written as lead sheets, a round, talking skits, a MIDI band, and
 a Launchkey Mini to play with.
 
-The stage sings the score through the CHIMERA singer workers. Found Things uses its recorded vocal and beatbox stems against the same score. SoundCraft hosts the upstream CHIMERA CLAP instrument for plug-in recording. For the upstream documentation, build instructions, MIDI routing, and an inspectable host session, see [CHIMERA plug-in vocals](docs/chimera-plugin-vocals.md).
+The stage sings the score through the CHIMERA singer workers, including the vocals and beatbox in Found Things. SoundCraft hosts the upstream CHIMERA CLAP instrument for local authoring and plug-in recording. For the upstream documentation, build instructions, MIDI routing, and an inspectable host session, see [CHIMERA plug-in vocals](docs/chimera-plugin-vocals.md).
 
 ## What's here
 
@@ -61,9 +61,8 @@ before building the app against its pinned engine.
   Vercel use `bun run chimera:update` to initialize that checkout before rebuilding the engine.
   To upgrade CHIMERA deliberately, run `git submodule update --remote -- chimera`, stage the
   new pin with `git add chimera`, then test and commit the change.
-- **`crates/moppet-wasm/`** builds the one wasm the app loads: CHIMERA's whole C ABI, unchanged,
-  plus the Moppet voices (`moppet_*`): CHIMERA's engine with the airway at any size, which CHIMERA
-  itself doesn't offer (Gruff and Clank are giants).
+- **`bun run wasm`** uses the pinned submodule's build script. Browser workers and live
+  worklets use its native voice engine, with each character's body, articulation and source preset.
 - **TypeScript** imports CHIMERA's engine wrapper, types and look as `@chimera/…`
   (`chimera/src/…`). The dictionary and fonts are served from `chimera/public`.
 

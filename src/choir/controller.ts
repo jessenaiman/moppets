@@ -9,9 +9,8 @@ import { useMoppet } from "./store.ts";
 import { editVoice } from "./ensemble.ts";
 import { liveNoteOff, liveNoteOn, MOUTH, moveMouth, offerStaffMidi, auditionNote, useLive } from "./live.ts";
 
-/** The voice recipe, grouped the way CHIMERA builds a voice: size and body, airway posture, then the folds. */
+/** The voice recipe, grouped the way CHIMERA builds a voice: body, airway posture, then the folds. */
 export const CONTROLS = [
-  ["size", "Airway size: tiny → giant", 0.6, 1.6, 0.01, "×", "size"],
   ["child", "Body: grown → child", 0, 1, 0.01, "", "body"],
   ["female", "Body shape: male → female", 0, 1, 0.01, "", "body"],
   ["larynx", "Larynx height", -1.6, 1.6, 0.05, "cm", "artic"],
@@ -29,14 +28,14 @@ export type ControlGroup = (typeof CONTROLS)[number][6];
 const byKey = new Map(CONTROLS.map((c) => [c[0] as ControlKey, c]));
 
 /**
- * Set one voice control on the selected Moppet. A body or size rebuilds the voice's airway, so a
+ * Set one voice control on the selected Moppet. A body change rebuilds the voice's airway, so a
  * knob sweeping one is applied at most every 120 ms (its last value always lands).
  */
 export function applyControl(key: ControlKey, n: number): void {
   const c = byKey.get(key);
   if (!c) return;
   const group = c[6];
-  if (group === "body" || group === "size") return rebuildLater(key, n);
+  if (group === "body") return rebuildLater(key, n);
   const m = useMoppet.getState();
   const id = m.voices[m.selected].id;
   if (group === "artic") {
@@ -69,8 +68,7 @@ function rebuildLater(key: ControlKey, n: number): void {
     for (const [index, values] of changes) {
     m.edit((v) => {
       for (const [k, x] of values) {
-        if (k === "size") v.size = x;
-        else v.body = { ...v.body, [k]: x };
+        v.body = { ...v.body, [k]: x };
       }
     },index);
     editVoice(m.voices[index].id, { rerender: true });
@@ -79,7 +77,7 @@ function rebuildLater(key: ControlKey, n: number): void {
 }
 
 /** Launchkey Mini's eight knobs send controllers 21..28 in its default mode. */
-export const DEFAULT_MAP: Record<number, ControlKey> = { 21: "size", 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "ventricular" };
+export const DEFAULT_MAP: Record<number, ControlKey> = { 22: "larynx", 23: "velum", 24: "tension", 25: "brightness", 26: "roughness", 27: "breathiness", 28: "ventricular" };
 /** Initial pad mapping before the user teaches a custom layout. */
 export const ACTIONS = ["nod", "tilt", "laugh", "shrug", "gasp", "bow", "cheer", "double nod"] as const;
 // The action slot still dispatches the same animation from hardware or screen.
@@ -108,8 +106,9 @@ const MAP_STORAGE = "moppet-midi-map-v2"; // v2: knob 8 is rasp, not fry
 function loadMap(): Record<number, ControlKey> {
   try {
     const saved = JSON.parse(localStorage.getItem(MAP_STORAGE) ?? "null");
-    if (saved && typeof saved === "object" && Object.values(saved).every((k) => byKey.has(k as ControlKey))) {
-      return { ...DEFAULT_MAP, ...saved };
+    if (saved && typeof saved === "object") {
+      const supported = Object.entries(saved).filter(([, key]) => byKey.has(key as ControlKey));
+      return { ...DEFAULT_MAP, ...Object.fromEntries(supported) };
     }
   } catch {
     // private window

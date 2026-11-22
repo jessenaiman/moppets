@@ -37,7 +37,7 @@ import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { useMoppet } from "../choir/store.ts";
 import type { MoppetVoice } from "../choir/voices.ts";
 
-/** "Airway size: tiny → giant" → "Airway size" */
+/** Use the control label without its range hint. */
 const short = (label: string) => label.split(/[:(]/)[0].trim();
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const LIT = 700;
@@ -69,13 +69,11 @@ function controlValue(v: MoppetVoice, key: ControlKey): { norm: number; text: st
   if (!spec) return { norm: 0.5, text: "—", setNorm: () => {} };
   const [, label, min, max, step, unit, group] = spec;
   const raw =
-    group === "size"
-      ? (v.size ?? 1)
-      : group === "artic"
-        ? v.artic[key as keyof MoppetVoice["artic"]]
-        : group === "body"
-          ? v.body[key as keyof MoppetVoice["body"]]
-          : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
+    group === "artic"
+      ? v.artic[key as keyof MoppetVoice["artic"]]
+      : group === "body"
+        ? v.body[key as keyof MoppetVoice["body"]]
+        : (v.source[key as keyof MoppetVoice["source"]] ?? 0);
   const norm = clamp((Number(raw) - min) / Math.max(1e-6, max - min), 0, 1);
   return {
     norm,
