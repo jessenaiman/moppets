@@ -55,8 +55,13 @@ export function neonBand(piece: Piece): BandPart[] {
         beats: 0.27,
         vel: 56,
       });
-    for (let b = 1; b < chord.beats; b += 2)
-      drums.push({ beat: chord.beat + b, beats: 0.15, midi: 42, vel: 46 });
+    // Keep the kit on the bar grid, including across short chord changes.
+    // Chord gaps and the quiet bridge retain their written rests.
+    for (let beat = Math.ceil(chord.beat); beat < chord.beat + chord.beats; beat++) {
+      if (beat % 4 === 0) drums.push({ beat, beats: 0.25, midi: 36, vel: 84 });
+      if (beat % 4 === 2) drums.push({ beat, beats: 0.2, midi: 38, vel: 76 });
+      if (beat % 2 === 1) drums.push({ beat, beats: 0.15, midi: 42, vel: 57 });
+    }
   }
   return [
     { id: "bass", channel: 10, program: 33, notes: bass },

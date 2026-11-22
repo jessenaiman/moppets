@@ -5,8 +5,8 @@ import { bandFor } from "./band.ts";
 /** Is there an accompaniment stem: the band (band.ts), or the original pluck when a piece has no band. */
 const hasBand = (piece: Piece) => bandFor(piece).some((p) => p.notes.length > 0);
 export const hasAccompaniment = (piece: Piece) => hasBand(piece) || !!piece.pluck;
-/** The band sits cleanly under the voices so CHIMERA lyrics stay clear and upfront. */
-export const BAND_LEVEL = 0.42;
+/** Instrument patches already set their own levels and respond to the written velocity. */
+export const BAND_LEVEL = 1;
 
 const VOCAL_HEADROOM = 0.5;
 /** Stems beyond the singers and accompaniment: the beatbox, then each cameo creature, in spawn order. */
