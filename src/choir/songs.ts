@@ -15,6 +15,8 @@ import askme from "../../songs/askme.song";
 import pip from "../../songs/pip.song";
 import found from "../../songs/found.song";
 import bandNight from "../../songs/band-night.song";
+import twoTaps from "../../songs/two-taps-for-a-stamp.song";
+import allRise from "../../songs/skit-all-rise.song";
 import quietBar from "../../songs/quiet-bar.song";
 import neonDuet from "../../songs/neon-duet.song";
 import neonCanon from "../../songs/neon-canon.song";
@@ -65,6 +67,8 @@ const FILES: [string, string][] = [
   ["found.song", found],
   ["band-night.song", bandNight],
   ["quiet-bar.song", quietBar],
+  ["two-taps-for-a-stamp.song", twoTaps],
+  ["skit-all-rise.song", allRise],
   ["neon-duet.song", neonDuet],
   ["neon-canon.song", neonCanon],
   ["neon-playbook.song", neonPlaybook],

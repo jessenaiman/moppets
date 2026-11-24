@@ -1,0 +1,24 @@
+kind: skit
+id: all-rise
+title: All Rise, Lightly Browned
+about: Cue conducts a courtroom rehearsal in the junk drawer. The toaster is the only one who knows when to stand.
+
+[scene 1]
+scribe: "Court is in session. All rise."
+gruff: "I am standing."
+tabby: "So am I."
+scribe: "Then who just went up?"
+
+# Hold through the scene change. Cue follows the toast with his eyes.
+[scene 2]
+tabby: "One slice. Very straight back."
+scribe: "Will the witness please take the stand?"
+gruff: "It's on the stand. You're reading the recipe."
+scribe: "I see. Both sides may now be heard."
+
+# The turn belongs to Tabby. Gruff waits for the second side.
+[scene 3]
+tabby: "This side says crunch."
+gruff: "Turn it over."
+tabby: "Crunch."
+scribe: "First time both sides have agreed."
