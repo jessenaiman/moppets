@@ -260,3 +260,23 @@
   color: #0e1a17 !important;
   box-shadow: 0 0 14px rgba(80, 207, 173, 0.35);
 }
+
+.vs-score-desk .choir-score {
+  border-color: #91aba0;
+  background: #f0f6f2;
+  min-height: min(420px, 68vh);
+}
+.choir-score header button, .choir-score footer button {
+  background: transparent;
+  border: 1px solid #9cb5aa;
+  color: inherit;
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+.choir-score header button:hover { background: #35554d; }
+.choir-score footer button[aria-pressed=true] { background: #d3e8df; color: #204e3e; }
+.choir-score [data-refs] { cursor: pointer; }
+.choir-score [aria-label="Singer colors"] { font-size: 12px; }
+.choir-score .choir-note-sounding {
+  filter: drop-shadow(0 0 1.4px currentColor);
+}

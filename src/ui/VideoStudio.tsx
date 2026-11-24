@@ -1,5 +1,5 @@
 import {CastExposure,exposureCatalog} from '../rehearsal/CastExposure';
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
 import {beatSeconds, LEAD_IN} from "../choir/timeline";
 import {MusicRack} from "./MusicRack";
@@ -75,7 +75,13 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const midiFileRef = useRef<HTMLInputElement | null>(null);
   const playerRef = useRef<PlayerRef>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const [project, setProject] = useState<MoppetVideoProps>(() => buildVideoProject(piece, voices, studio404));
+  const rehearsalProject = useMemo(() => {
+    const next = buildVideoProject(piece, voices, studio404);
+    next.intro.enabled = false;
+    next.outro.enabled = false;
+    return next;
+  }, [piece, voices, studio404]);
+  const [project, setProject] = useState<MoppetVideoProps>(rehearsalProject);
   const [selection, setSelection] = useState<Selection>({ kind: "stage" });
   const [zoom, setZoom] = useState<1 | 2>(1);
   const [bridgeOn, setBridgeOn] = useState(false);
@@ -142,10 +148,8 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
   const curStageSec = Math.max(0, Math.min(project.stageDurationSec, curSec - introFrames / fps));
   const seekToSec = (sec: number) => transport.seekTo(Math.round(sec * fps));
 
-  useEffect(() => {
-    const next = buildVideoProject(piece, voices, studio404);
-    next.intro.enabled = false;
-    next.outro.enabled = false;
+  useLayoutEffect(() => {
+    const next = rehearsalProject;
     setAudioError("");
     setProject(next);
     setComposition("Rehearsal");
@@ -154,7 +158,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
     if (lesson === "cardboard-horse") setWorldLens("caravan");
     if (lesson === "take-two" || lesson === "tabby-solo" || lesson === "right-on-cue" || piece.kind === "skit") setWorldLens("archive");
     void refreshAssets(next.slug);
-  }, [piece, voices, studio404, refreshAssets, lesson]);
+  }, [rehearsalProject, piece.kind, refreshAssets, lesson]);
 
   const selectComposition = (id: StudioComposition) => {
     if (showingRehearsal) {
@@ -523,7 +527,7 @@ export function VideoStudio({livePreview, controller}:{liveEditing?: boolean;liv
               && <p role="status" className="vs-meta">{ensembleMessage}</p>}
           </div>
 
-          <MusicRack timeSec={showingRehearsal ? curStageSec : undefined} playing={showingRehearsal ? transport.playing : undefined}
+          <MusicRack timeSec={showingRehearsal && recorded ? curStageSec : undefined} playing={showingRehearsal && recorded ? transport.playing : undefined}
             onSeek={showingRehearsal ? seconds => seekToSec(introFrames / fps + seconds) : undefined}/>
         </div>
         <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>

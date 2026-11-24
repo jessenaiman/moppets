@@ -62,7 +62,8 @@ export function trackSyllables(track: Track): (string | null)[] {
     }
     const k = seen.get(e.line) ?? 0;
     seen.set(e.line, k + 1);
-    return byLine.get(e.line)![k] ?? null;
+    const syllables = byLine.get(e.line)!;
+    return syllables[k % syllables.length] ?? null;
   });
 }
 

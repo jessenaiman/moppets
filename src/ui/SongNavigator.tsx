@@ -3,7 +3,7 @@
  * Replaces the boring `<select>` Song/Skit dropdown with tactile visual cards showing
  * each performance's real cast portraits, accent palette, BPM/key, and category filters.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { play, useEnsemble } from "../choir/ensemble.ts";
 import { useAudio } from "../audio/audio.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
@@ -132,13 +132,6 @@ export function SongNavigator() {
   const crateRef = useRef<HTMLDivElement>(null);
 
   const catalog = useMemo(() => buildCatalog(studio404, freshSkit?.title), [studio404, freshSkit?.title]);
-  const linkedAct = useRef(new URLSearchParams(window.location.search).get("act"));
-  useEffect(() => {
-    const act = linkedAct.current;
-    linkedAct.current = null;
-    if (act && act !== lesson && catalog.some(item => item.id === act)) setLesson(act);
-  }, [catalog, lesson, setLesson]);
-
   const selectAct = (id: Lesson) => {
     if (id === lesson) return;
     const status = useEnsemble.getState().status;

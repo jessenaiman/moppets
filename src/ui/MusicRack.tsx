@@ -1,3 +1,5 @@
+import { ChoirScore, type RackProps } from "./ChoirScore";
+import { revealStaff } from "./scoreScroll";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Accidental,
@@ -170,7 +172,13 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
   }
   return positions;
 }
-export function MusicRack({timeSec, playing, onSeek = seek}: {timeSec?:number; playing?:boolean; onSeek?:(seconds:number)=>void} = {}) {
+export function MusicRack(props: RackProps) {
+  const [part, setPart] = useState(false);
+  return part ? <PartRack {...props} onChoir={() => setPart(false)}/>
+    : <ChoirScore {...props} onPart={() => setPart(true)}/>;
+}
+
+function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onChoir:()=>void}) {
   const piece = useMoppet((s) => s.piece),
     voice = useMoppet((s) => s.voices[s.selected]);
   const studio = useMoppet((s) => s.studio404),
@@ -230,9 +238,7 @@ export function MusicRack({timeSec, playing, onSeek = seek}: {timeSec?:number; p
       row.classList.toggle("current", line === i && sounding),
     );
     const row = root.children[line];
-    if (follow && row)
-      root.scrollTop +=
-        row.getBoundingClientRect().top - root.getBoundingClientRect().top;
+    if (follow && row) revealStaff(root,row);
   }, [line, follow, lines, sounding]);
   const [pick, setPick] = useState<{ track: Track; index: number } | null>(
     null,
@@ -275,6 +281,7 @@ export function MusicRack({timeSec, playing, onSeek = seek}: {timeSec?:number; p
           </small>
           <h2>{piece.title}</h2>
         </div>
+        <button type="button" onClick={onChoir}>All voices</button>
         <button aria-pressed={fullPage} onClick={() => setFullPage(!fullPage)}>{fullPage ? "Close full score" : "Full score"}</button>
         <button onClick={() => setFollow(!follow)} aria-pressed={follow}>
           {follow ? "Following" : "Follow score"}
