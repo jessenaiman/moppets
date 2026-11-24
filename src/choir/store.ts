@@ -12,6 +12,7 @@ import { checkSung, songProblems } from "./songCheck.ts";
 import { shownWords } from "./captions.ts";
 import { sungSyllables } from "./plan.ts";
 import { midiToScaleDegree, shiftMidiByScaleSteps } from "./staffMath.ts";
+import { withSongMidi } from "./songMidi.ts";
 import { parseMidi, scoreFromMidi } from "./midi.ts";
 import { setBandEnabled } from "./band.ts";
 import { makeSkit, SKITS, skitProblems, type Skit, type SkitId } from "./skits.ts";
@@ -133,16 +134,24 @@ function scoreFor(s: Pick<MoppetState, "lesson" | "key" | "mode" | "bpm" | "repe
   // an edited song or skit (words editor) plays as edited, once every line can be sung
   const edited = editedFile(s.lesson);
   if (edited?.kind === "skit") return makeSkit(edited.skit, useMoppet.getState?.().voices ?? defaults);
-  if (edited?.kind === "song" && !songProblems(edited.song).length) return buildSong(edited.song);
+  if (edited?.kind === "song" && !songProblems(edited.song).length) {
+    const id=s.lesson==="intro" && s.studio404 ? "intro-studio404" : s.lesson;
+    const source=SONG_FILES.find(f=>f.id===id && f.kind==="song");
+    return withSongMidi(id,buildSong(edited.song),source?.kind==="song"?buildSong(source.song):undefined);
+  }
   const skit = s.lesson === "newskit" ? s.freshSkit : SKITS.find((x) => x.id === s.lesson);
   if (skit) return makeSkit(skit, useMoppet.getState?.().voices ?? defaults);
   if (s.lesson === "intro") {
     const id = s.studio404 ? "intro-studio404" : "intro";
-    return buildSong(catalogSong(id));
+    return withSongMidi(id, buildSong(catalogSong(id)));
   }
   const original = SONGBOOK.find((x) => x.id === s.lesson);
   if (original) return original.make();
-  if (s.lesson === "round") return makeRound({ sets: edited?.kind === "round" && !fileProblems(edited).length ? edited.sets : undefined, key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
+  if (s.lesson === "round") {
+    const round = makeRound({ sets: edited?.kind === "round" && !fileProblems(edited).length ? edited.sets : undefined, key: s.key, bpm: s.bpm, repeats: s.repeats, lyrics: s.roundLyrics === "fresh" ? (s.freshRound ?? "jam") : s.roundLyrics });
+    return s.key === "D" && s.bpm === ROUND_BPM && s.repeats === 2 && s.roundLyrics === "jam" && !edited
+      ? withSongMidi("round",round) : round;
+  }
   return invent({ seed: s.seed, key: s.key, mode: s.mode, progression: s.progression, groove: s.groove, palette: s.palette, soul: s.soul });
 }
 
@@ -488,7 +497,14 @@ export const useMoppet = create<MoppetState>((set, get) => {
     loadPiece(piece);
   },
   singMidi: (bytes) => {
-    const { piece: raw, changed, kept } = scoreFromMidi(get().piece, parseMidi(bytes));
+    let imported: ReturnType<typeof scoreFromMidi>;
+    try {
+      imported = scoreFromMidi({...get().piece,bpm:get().baseBpm}, parseMidi(bytes));
+    } catch (error) {
+      set({status: error instanceof Error ? error.message : String(error)});
+      return;
+    }
+    const {piece:raw,changed,kept}=imported;
     const { piece, baseBpm } = applyTempo(raw, get().tempoScale);
     const name = (id: string) => get().voices.find((v) => v.id === id)?.name ?? id;
     const msg = [changed.length ? `Singing your notes for ${changed.map(name).join(", ")}.` : "No notes moved.", kept.length ? `Kept the old notes for ${kept.map((k) => k.replace(/^\w+/, name)).join("; ")}: each syllable needs one note.` : ""];
@@ -501,7 +517,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
     const ev = cur.tracks[ti]?.events[eventIndex];
     if (ti < 0 || !ev) return;
     const file = currentFile(get().lesson);
-    if (ev.src && file?.parsed.kind === "song") {
+    if (!cur.midiFile && ev.src && file?.parsed.kind === "song") {
       const [si, li, ai, ni] = ev.src;
       const lineObj = [...new Set(file.parsed.song.sections)][si]?.lines[li];
       const sung = lineObj && !("rest" in lineObj) ? (ai < 0 ? lineObj : lineObj.with?.[ai]) : null;
@@ -540,7 +556,7 @@ export const useMoppet = create<MoppetState>((set, get) => {
     if (ti < 0 || !ev) return null;
     if (!steps) return ev.midi;
     const file = currentFile(get().lesson);
-    if (ev.src && file?.parsed.kind === "song") {
+    if (!cur.midiFile && ev.src && file?.parsed.kind === "song") {
       const [si, li, ai, ni] = ev.src;
       const lineObj = [...new Set(file.parsed.song.sections)][si]?.lines[li];
       const sung = lineObj && !("rest" in lineObj) ? (ai < 0 ? lineObj : lineObj.with?.[ai]) : null;

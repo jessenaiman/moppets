@@ -1,5 +1,14 @@
 # Writing Moppet songs
 
+## Edit the rehearsal MIDI
+
+Each fixed song has a standard multitrack MIDI file beside its lyric sheet. For example, open [Rock Royalty 404](../songs/rock-royalty-404.mid) in a DAW, edit it, save it under the same filename and reopen the rehearsal. The shared staff, MIDI lanes and CHIMERA performance read the same notes. The stock Jam Round also has a MIDI file. Variations generated with different round settings use the round generator.
+
+Keep vocal track names such as `tabby` and `gruff` and keep one note per written syllable. You can move or shorten notes, insert rests between them, transpose parts, change the conductor tempo, and add time-signature changes. A named `band …` track carries an instrument part. A `beatbox …` track carries timed hits for that CHIMERA sound. The lyric sheet supplies the words, stage directions and song sections. Rehearsal currently supports a single tempo per file.
+
+The rehearsal toolbar’s **More → Import .mid** auditions an edit in the current session. **Export .mid** downloads the current arrangement, including changes made on the score. Replace the matching file in `songs/` to keep a DAW or rehearsal edit for subsequent sessions.
+
+
 Every song, skit and set of round words is a lead sheet in `songs/`: a small text file you can edit
 in any editor. The app, the tests and the video tools read these files; no code changes.
 

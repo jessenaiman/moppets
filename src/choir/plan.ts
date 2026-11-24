@@ -59,19 +59,27 @@ export function sungSyllables(text: string): Syllable[] {
   return out;
 }
 
-/** The syllables of one phrase of contiguous notes (each word's stress and syllable breaks come from the planner). */
-function phraseSyllables(track: Track, group: ScoreEvent[]): Syllable[] {
-  const fromLine = group[0].line !== undefined && track.phrases !== undefined && group.every((e) => e.line === group[0].line);
-  if (fromLine) {
-    const syl = sungSyllables(track.phrases![group[0].line!]);
-    if (syl.length !== group.length) throw new Error(`${track.id}: expected ${group.length} syllables, got ${syl.length}: ${syl.map((s) => s.text).join(" ")}`);
-    return syl;
+/** Attach the line's syllables before splitting the performance at MIDI rests. */
+function trackArticulation(track: Track): Map<ScoreEvent, Syllable> {
+  const result = new Map<ScoreEvent, Syllable>();
+  const lines = new Map<number, { syllables: Syllable[]; used: number }>();
+  for (const event of track.events) {
+    if (event.line !== undefined && track.phrases) {
+      const line = lines.get(event.line) ?? { syllables: sungSyllables(track.phrases[event.line]), used: 0 };
+      if (!line.syllables.length) throw new Error(`${track.id}: empty lyric line`);
+      result.set(event, line.syllables[line.used % line.syllables.length]);
+      line.used++;
+      lines.set(event.line, line);
+    } else {
+      const syllables = lyricsToSyllables(event.text);
+      if (syllables.length !== 1) throw new Error(`${track.id}: expected one syllable for "${event.text}", found ${syllables.length}`);
+      result.set(event, syllables[0]);
+    }
   }
-  return group.map((e) => {
-    const list = lyricsToSyllables(e.text);
-    if (list.length !== 1) throw new Error(`${track.id}: expected one syllable for "${e.text}", found ${list.length}`);
-    return list[0];
-  });
+  for (const [index, line] of lines) {
+    if (line.used % line.syllables.length) throw new Error(`${track.id}: lyric line ${index+1} has ${line.syllables.length} syllables for ${line.used} notes`);
+  }
+  return result;
 }
 
 /** The dictionary lives in the engine, one per page: any instance reads it (load it before planning). */
@@ -103,12 +111,12 @@ export function planTrack(track: Track, piece: Piece, v: MoppetVoice): TrackPlan
   const gestures: Gesture[] = [];
   const beat = beatSeconds(piece);
   const nasal = piece.kind === "intro" || piece.kind === "solo";
+  const syllables = trackArticulation(track);
   let group: ScoreEvent[] = [];
   let end = LEAD_IN;
   const flush = () => {
     if (!group.length) return;
-    const syllables = phraseSyllables(track, group);
-    const notes = group.map((e, i) => ({ midi: e.midi, beats: e.beats, syl: syllables[i] }));
+    const notes = group.map(e => ({ midi: e.midi, beats: e.beats, syl: syllables.get(e)! }));
     const plan = planSong(notes, { body: v.body, bpm: piece.bpm, t0: LEAD_IN + group[0].beat * beat, vibrato: v.vibrato });
     // Time the swell from the written note and end it before any coda consonants.
     gestures.push(...plan.gestures.filter(g => g.targets.vibrato === undefined));

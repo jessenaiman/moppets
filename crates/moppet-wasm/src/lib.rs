@@ -78,6 +78,24 @@ macro_rules! handle {
     };
 }
 
+/// Lead time CHIMERA inserts between starting its beat sequencer and beat zero.
+#[unsafe(no_mangle)]
+pub extern "C" fn moppet_beat_preroll_seconds() -> f64 {
+    chimera::control::beat_player::BeatPlayer::HORIZON
+}
+
+/// Schedule the step in the first beat-record slot on the absolute performance clock.
+///
+/// # Safety
+/// `h` must be a live Moppet handle with a step written into its record buffer.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn moppet_beat_hit_at(h: *mut MoppetHandle, seconds: f64, length: f64) {
+    let h = handle!(h);
+    if let Some(step) = chimera_wasm::read_step(&h.records[..chimera_wasm::STEP_RECORD]) {
+        h.engine.beat_hit_at(&step, seconds, length, None);
+    }
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn moppet_new(sample_rate: f64) -> *mut MoppetHandle {
     let mut h = Box::new(MoppetHandle {

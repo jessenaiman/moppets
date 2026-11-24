@@ -77,7 +77,7 @@ for (const [name, piece] of Object.entries(pieces)) {
       continue;
     }
     const x = new WebAssembly.Instance(wasmModule, {}).exports as never;
-    const core = e === "beat" ? new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), beat: { steps: parseBeat(piece.beat!.text), bpm: piece.bpm, swing: piece.beat!.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } }) : new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), creature: { id: e, calls: piece.cameos!.filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) })) } });
+    const core = e === "beat" ? new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), beat: { steps: parseBeat(piece.beat!.text), notes:piece.beat!.notes, bpm: piece.bpm, swing: piece.beat!.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } as Record<string, number> } }) : new CueCore(x, { sampleRate: FS, frames, hop: hopFor(FS), creature: { id: e, calls: piece.cameos!.filter((c) => c.creature === e).map((c) => ({ id: c.call, seconds: LEAD_IN + c.beat * beatSeconds(piece) })) } });
     while (core.rendered < frames) core.step();
     stems.push(core.stem);
     core.dispose();

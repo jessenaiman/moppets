@@ -25,7 +25,7 @@ const beatPath = await scoredBeatPath(piece);
 if ((!process.argv[2] || process.argv[2] === "beat") && piece.beat && beatPath && !existsSync("public" + beatPath)) {
   const beat = new CueCore(new WebAssembly.Instance(wasmModule).exports as never, {
     sampleRate, frames, hop: hopFor(sampleRate),
-    beat: { steps: parseBeat(piece.beat.text), bpm: piece.bpm, swing: piece.beat.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } },
+    beat: { steps: parseBeat(piece.beat.text), notes:piece.beat.notes, bpm: piece.bpm, swing: piece.beat.swing, startSeconds: LEAD_IN, ready: { ...beatReady({ female: 0, child: 0 }) } },
   });
   try {
     while (beat.rendered < frames) beat.step();

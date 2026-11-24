@@ -5,6 +5,7 @@
  */
 import { ROUND_GROUPS, voices as defaultVoices } from "./voices.ts";
 import { buildSong } from "./songbook.ts";
+import { withSongMidi } from "./songMidi.ts";
 import { catalogSong, SONG_FILES } from "./songs.ts";
 import { findGroove, findMode, findPalette, findProgression, CREATURE_CALLS } from "./theory.ts";
 
@@ -38,6 +39,7 @@ export interface ScoreEvent {
   midi: number;
   text: string;
   strong?: boolean;
+  vel?: number;
   /** lyric line this note belongs to (a key into the track's `phrases`) */
   line?: number;
   /**
@@ -48,6 +50,8 @@ export interface ScoreEvent {
   src?: [number, number, number, number];
 }
 export interface Track {
+  channel?: number;
+  program?: number;
   id: string;
   /** beat of this singer's first note in a round */
   entrance?: number;
@@ -66,7 +70,11 @@ export interface Chord {
   beats: number;
 }
 export type PieceKind = "intro" | "school" | "round" | "solo" | "motesong" | "skit";
+export interface BeatNote { id:string; beat:number; beats:number; midi:number; vel:number }
 export interface Piece {
+  /** Source SMF for this rehearsal; lyric alignment issues are shown on the score. */
+  midiFile?: string;
+  midiNotice?: string;
   meter?: string;
   meterChanges?: import("./meter").MeterChange[];
   kind: PieceKind;
@@ -86,7 +94,7 @@ export interface Piece {
   /** the backing band's own parts (otherwise band.ts arranges one from the chords) */
   band?: import("./band.ts").BandPart[];
   /** CHIMERA's beatbox stem for this piece */
-  beat?: { text: string; swing: number };
+  beat?: { text: string; swing: number; notes?: BeatNote[] };
   /** gestures on the stage (AniCraft clips, see gestures.ts): who does what, from which beat */
   cues?: { beat: number; who: string; gesture: import("./gestures.ts").GestureName }[];
   /** who is on the stage for this piece ("band": the band members too); none: the whole cast */
@@ -366,6 +374,6 @@ export function invent(options: Partial<InventOptions> = {}): Piece {
 }
 
 // Public score factories also used by the offline render tools.
-export const makeChipSong = () => buildSong(catalogSong("chip"));
-export const makeTabbySong = () => buildSong(catalogSong("tabby"));
-export const makeGruffShanty = () => buildSong(catalogSong("gruff"));
+export const makeChipSong = () => withSongMidi("chip", buildSong(catalogSong("chip")));
+export const makeTabbySong = () => withSongMidi("tabby", buildSong(catalogSong("tabby")));
+export const makeGruffShanty = () => withSongMidi("gruff", buildSong(catalogSong("gruff")));

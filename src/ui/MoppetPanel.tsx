@@ -13,7 +13,7 @@ import { g2p } from "../audio/g2p.ts";
 import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, play, pose, seek, stop, useEnsemble } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
-import { midiBytes } from "../choir/midi.ts";
+import { midiBytes } from "../choir/performanceMidi.ts";
 import { beatSeconds, LEAD_IN, pieceSeconds, sungSyllables } from "../choir/plan.ts";
 import { CAST, introIds, type MoppetVoice } from "../choir/voices.ts";
 import { makeIntroduction } from "../choir/music.ts";

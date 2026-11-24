@@ -15,7 +15,7 @@ import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
 import { RemotionDock, type StudioComposition } from "./RemotionDock";
 import { useMoppet } from "../choir/store.ts";
 import { useController } from "../choir/controller.ts";
-import { midiBytes } from "../choir/midi.ts";
+import { midiBytes } from "../choir/performanceMidi.ts";
 import { midiSupported } from "./midi.ts";
 import { STUDIO_404_CAST } from "../choir/studio404.ts";
 import {

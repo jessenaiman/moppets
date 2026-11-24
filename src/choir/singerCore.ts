@@ -6,6 +6,7 @@
 import { CONTROL_KEYS, writeGestures, writeSteps, fromUtf8, utf8 } from "@chimera/wasm/wire.ts";
 import type { BeatStep } from "@chimera/wasm/types.ts";
 import type { Gesture } from "@chimera/wasm/types.ts";
+import type { BeatNote } from "./music.ts";
 import { CHARACTER_TAG, characterGesture, shapeGesture, singingSource } from "./character.ts";
 import type { MoppetArtic, MoppetSource, MoppetVoice } from "./voices.ts";
 
@@ -73,6 +74,7 @@ export class SingerCore {
   /** gestures not yet given to the engine, soonest first */
   private pending: Gesture[];
   private nextPending = 0;
+  private readonly firstGestureFrame: number;
   /** intervals when this singer is making sound (gesture onsets to ring-out), for skipping long rests */
   private busy: [number, number][];
   private busyAt = 0;
@@ -90,6 +92,10 @@ export class SingerCore {
     x.moppet_set_source(h);
     this.pending = [characterGesture(cfg.voice, 0, cfg.frames / cfg.sampleRate, CHARACTER_TAG), ...cfg.gestures].sort((a, b) => a.t0 - a.rampIn - (b.t0 - b.rampIn));
     this.busy = busyIntervals(this.pending);
+    const first = this.pending.find(g => g.label !== "character");
+    this.firstGestureFrame = first ? Math.max(0, Math.floor((first.t0-first.rampIn)*cfg.sampleRate)) : cfg.frames;
+    // Read the initial pose without sounding a block during a written rest.
+    this.record(0);
   }
 
   private values(): Float64Array {
@@ -168,9 +174,17 @@ export class SingerCore {
       return n;
     }
     const p = this.x.moppet_render(this.h, n);
-    this.stem.set(new Float32Array(this.x.memory.buffer, p, n), this.rendered);
+    // The airway warms up before the first scored gesture. Keep that preroll
+    // out of both the audio and the visual envelope, including partial hops.
+    const skip = Math.min(n,Math.max(0,this.firstGestureFrame-this.rendered));
+    if(skip<n) this.stem.set(new Float32Array(this.x.memory.buffer,p+skip*4,n-skip),this.rendered+skip);
     this.rendered += n;
-    this.record(this.rendered / hop - 1);
+    const index=this.rendered / hop - 1;
+    this.record(index);
+    if (this.rendered <= this.firstGestureFrame && Number.isInteger(index) && this.tele) {
+      this.tele[index*this.recordSize+TELE.outRms]=0;
+      this.tele[index*this.recordSize+TELE.voicing]=0;
+    }
     return n;
   }
 
@@ -206,7 +220,7 @@ export interface CueConfig {
   frames: number;
   hop: number;
   /** a beatbox stem */
-  beat?: { steps: (BeatStep | null)[]; bpm: number; swing: number; startSeconds: number; ready: Record<string, number> };
+  beat?: { steps: (BeatStep | null)[]; notes?: BeatNote[]; bpm: number; swing: number; startSeconds: number; ready: Record<string, number> };
   /** a creature stem: `calls` fire on the timeline */
   creature?: { id: string; calls: { id: string; seconds: number }[] };
 }
@@ -220,18 +234,24 @@ export class CueCore {
   recordSize = 0;
   telePosted = 0;
   private started = false;
+  private readonly beatStartFrame: number;
+  private nextHit = 0;
+  private readonly horizon: number;
   private readonly calls: { index: number; frame: number }[] = [];
 
   constructor(private readonly x: EngineExports, private readonly cfg: CueConfig) {
-    const h = (this.h = x.engine_new(cfg.sampleRate));
+    const h = (this.h = cfg.beat?.notes ? x.moppet_new(cfg.sampleRate) : x.engine_new(cfg.sampleRate));
+    this.horizon = x.moppet_beat_preroll_seconds();
     this.stem = new Float32Array(cfg.frames);
+    this.beatStartFrame = cfg.beat ? Math.round((cfg.beat.startSeconds - this.horizon) * cfg.sampleRate) : 0;
     if (cfg.beat) {
-      const v = new Float64Array(x.memory.buffer, x.engine_values(h), 32).fill(NaN);
+      const v = new Float64Array(x.memory.buffer, cfg.beat.notes ? x.moppet_values(h) : x.engine_values(h), 32).fill(NaN);
       for (const [k, val] of Object.entries(cfg.beat.ready)) {
         const i = ARTIC_KEYS.indexOf(k);
         if (i >= 0) v[i] = val;
       }
-      x.engine_set_artic(h, 2);
+      if (cfg.beat.notes) x.moppet_set_artic(h, 2);
+      else x.engine_set_artic(h, 2);
     }
     if (cfg.creature) {
       const bytes = utf8(JSON.stringify({ id: cfg.creature.id, params: {} }));
@@ -251,9 +271,22 @@ export class CueCore {
 
   step(): number {
     const { hop, frames, sampleRate, beat } = this.cfg;
-    const n = Math.min(hop, frames - this.rendered);
+    let n = Math.min(hop, frames - this.rendered);
     if (n <= 0) return 0;
-    if (beat && !this.started && this.rendered >= beat.startSeconds * sampleRate) {
+    if (beat?.notes) {
+      const spb = 60 / beat.bpm;
+      const until = (this.rendered+n)/sampleRate + this.horizon;
+      while (this.nextHit < beat.notes.length) {
+        const event = beat.notes[this.nextHit];
+        const hit = beat.startSeconds + event.beat*spb;
+        if (hit > until) break;
+        writeSteps(this.x.memory.buffer,this.x.moppet_records(this.h),[{id:event.id,note:event.midi,accent:event.vel/96}]);
+        this.x.moppet_beat_hit_at(this.h,hit,event.beats*spb);
+        this.nextHit++;
+      }
+    } else if (beat && !this.started && this.rendered < this.beatStartFrame) {
+      n = Math.min(n, this.beatStartFrame - this.rendered);
+    } else if (beat && !this.started) {
       this.started = true;
       const c = writeSteps(this.x.memory.buffer, this.x.engine_records(this.h), beat.steps);
       this.x.engine_set_beat(this.h, 1, c, beat.bpm, beat.swing, 1);
@@ -264,13 +297,14 @@ export class CueCore {
       this.rendered += n;
       return n;
     }
-    const p = this.x.engine_render(this.h, n);
+    const p = beat?.notes ? this.x.moppet_render(this.h,n) : this.x.engine_render(this.h, n);
     this.stem.set(new Float32Array(this.x.memory.buffer, p, n), this.rendered);
     this.rendered += n;
     return n;
   }
 
   dispose(): void {
-    this.x.engine_free(this.h);
+    if (this.cfg.beat?.notes) this.x.moppet_free(this.h);
+    else this.x.engine_free(this.h);
   }
 }

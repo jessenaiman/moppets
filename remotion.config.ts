@@ -14,6 +14,7 @@ Config.overrideWebpackConfig((currentConfiguration) => ({
     ...currentConfiguration.module,
     rules: [
       { test: /\.song$/, type: "asset/source" },
+      { test: /\.mid$/, type: "asset/inline" },
       ...(currentConfiguration.module?.rules ?? []),
     ],
   },
