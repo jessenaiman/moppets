@@ -8,6 +8,8 @@
   "clips": {
     "idle": "/clips/hertz/idle.webm",
     "sing": "/clips/hertz/sing.webm",
+    "belt": "/clips/hertz/belt.webm",
+    "chuckle": "/clips/hertz/chuckle.webm",
     "duet": "/clips/hertz/duet.webm",
     "react": "/clips/hertz/react.webm"
   }

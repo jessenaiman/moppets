@@ -8,6 +8,8 @@
   "clips": {
     "idle": "/clips/tracking/idle.webm",
     "sing": "/clips/tracking/sing.webm",
+    "belt": "/clips/tracking/belt.webm",
+    "chuckle": "/clips/tracking/chuckle.webm",
     "duet": "/clips/tracking/duet.webm",
     "react": "/clips/tracking/react.webm"
   }
