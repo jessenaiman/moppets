@@ -37,7 +37,7 @@ import { resetSelectedVocal, applyControl, ccFor, CONTROLS, handleControl, touch
 import { midiSupported } from "./midi.ts";
 import { instrumentPart, partKey } from "../choir/pluginScore.ts";
 import { EnsemblePuppet } from "./EnsemblePuppet.tsx";
-import { manifestForCharacter } from "../choir/clipTimeline.ts";
+import { manifestForCharacter } from "../choir/characterClips.ts";
 import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
 
@@ -289,7 +289,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
 
       setFrameState({
         beat,
-        timeSec: now,
+        timeSec: performing ? songTime : now,
         performing,
         dancing,
         still,
@@ -356,7 +356,7 @@ function Stage({ cameraFollow }: { cameraFollow: boolean }) {
             if (!studio404 || frameState.still || failedClips.has(art)) return null;
             if (piece.stage && !piece.stage.includes(id)) return null;
             if (art !== "tabby" && !(art === "gruff" && lesson === "close-up")) {
-              const manifest = manifestForCharacter(id,studio404);
+              const manifest = manifestForCharacter(art, studio404);
               if (!manifest || frameState.liveMidiSpeech?.voiceId === id) return null;
               return <EnsemblePuppet piece={piece} voice={id} manifest={manifest}
                 onError={()=>setFailedClips(previous=>new Set(previous).add(art))}/>;

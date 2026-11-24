@@ -122,6 +122,39 @@ export function resolvePerformerIdentity(
   };
 }
 
+/** Select an authored action. Where a singing take is missing the mouth rig supplies the performance. */
+export function fmvCel(
+  manifest: CharacterFmvManifest | null | undefined,
+  pose: PerformerPoseInput,
+  timeSec: number,
+  plateIndex: number,
+  mouthOpen: boolean,
+  still: boolean,
+): PerformerAvatarCel | null {
+  if (!manifest) return null;
+  const actionKey = pose.singing
+    ? plateIndex >= 3
+      ? "reprise"
+      : mouthOpen
+        ? "sing-left"
+        : "sing-right"
+    : "idle";
+
+  const actions = manifest.actions;
+  const fallback = pose.singing ? "sing" : "idle";
+  const action = actions[actionKey] ? actionKey : fallback;
+  const clip = actions[action];
+  if (!clip) return null;
+  return {
+    atlasUrl: clip.atlasUrl,
+    cols: clip.cols,
+    rows: clip.rows,
+    frame: still ? 0 : Math.floor(Math.max(0, timeSec) * clip.fps) % clip.frames,
+    action,
+    source: "fmv-manifest",
+  };
+}
+
 /**
  * Polymorphic avatar frame resolution for ANY performer:
  *   1. Sliced Google Flow FMV manifest (`/rehearsal/fmv/<artKey>/manifest.json`) when available
@@ -132,38 +165,14 @@ export function resolvePerformerCel(
   artKey: string,
   pose: PerformerPoseInput,
   beat: number,
+  timeSec: number,
   plateIndex: number,
   mouthOpen: boolean,
   manifest?: CharacterFmvManifest | null,
   still = false,
 ): PerformerAvatarCel {
-  const actionKey = pose.singing
-    ? plateIndex >= 3
-      ? "reprise"
-      : mouthOpen
-        ? "sing-left"
-        : "sing-right"
-    : "idle";
-
-  // 1. Auto-upgrade to Flow FMV atlas when manifest exists
-  const fmvClip =
-    manifest?.actions[actionKey] ??
-    manifest?.actions.sing ??
-    manifest?.actions.bow ??
-    manifest?.actions.idle ??
-    Object.values(manifest?.actions ?? {}).find(Boolean);
-  if (fmvClip && fmvClip.frames > 0) {
-    const rate = pose.singing ? 2.4 : 1.2;
-    const frame = Math.floor(Math.max(0, beat * rate)) % fmvClip.frames;
-    return {
-      atlasUrl: fmvClip.atlasUrl,
-      cols: fmvClip.cols,
-      rows: fmvClip.rows,
-      frame,
-      action: actionKey,
-      source: "fmv-manifest",
-    };
-  }
+  const fmv = fmvCel(manifest, pose, timeSec, plateIndex, mouthOpen, still);
+  if (fmv) return fmv;
 
   // 2. 48-frame pin atlas (Neon, Cue, or Tabby finale bow)
   const pins = PIN_ATLAS_ACTIONS[artKey];

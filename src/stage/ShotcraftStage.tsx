@@ -21,6 +21,7 @@
  * Pure and engine-free (no `@chimera/wasm/engine.ts` runtime imports).
  */
 import React, { useMemo, useState } from "react";
+import { Img } from "remotion";
 import "./shotcraft-stage.css";
 import { zapCues, zapTake } from "./zapDirection.ts";
 import { atlasStyle, WorkshopSolo, workshopTake, workshopSongs, type WorkshopSinger } from "./WorkshopSolo.tsx";
@@ -31,7 +32,7 @@ import { CuePromptStand } from "./CueSolo.tsx";
 import { NeonSolo, neonScore, neonTake, RepairBayLights } from "./NeonSolo.tsx";
 import { WorldsStage } from "./WorldsStage.tsx";
 import { WORLD_LENSES, type WorldLens } from "./worlds.ts";
-import { resolvePerformerIdentity, type CharacterFmvManifest } from "../choir/performer.ts";
+import { fmvCel, resolvePerformerIdentity, type CharacterFmvManifest } from "../choir/performer.ts";
 import { useCastFmvManifests } from "./fmvManifest.ts";
 import { ZapSolo, ZapTelevision, zapFrame } from "./ZapSolo.tsx";
 import soloSets from "./soloSets.json";
@@ -148,6 +149,8 @@ export interface LiveMidiSpeech {
 
 export type StagePose = Pick<Pose, "singing" | "level" | "open" | "viseme">;
 
+const publicAsset = (path: string) => path;
+
 export interface ShotcraftStageProps {
   piece: Piece;
   voices: readonly StageVoiceInfo[];
@@ -196,6 +199,7 @@ export interface ShotcraftStageProps {
   /** Optional S-27 keyed Flow FMV-cel manifest override */
   neonFmvManifest?: CharacterFmvManifest | null;
   /** Optional custom React element replacing the default puppet sprite (e.g. Remotion `<CharacterClip />`) */
+  preferMouthRig?: boolean;
   renderCharacterOverride?: (
     voiceId: string,
     artKey: string,
@@ -572,12 +576,13 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
   renderPropFx,
   padGesture,
   puppetRef,
-  resolveAsset = (p) => p,
+  resolveAsset = publicAsset,
   interactive,
   neonLens: controlledNeonLens,
   onNeonLensChange,
   showInternalLensBar = true,
   neonFmvManifest = null,
+  preferMouthRig = false,
   renderCharacterOverride,
 }) => {
   const onstageVoiceIds = useMemo(
@@ -595,7 +600,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
     onNeonLensChange?.(next);
   };
   const isInteractive = interactive ?? Boolean(onSelectActor);
-  const poses = livePoses ?? deterministicPoses(piece, voices, beat, performing);
+  const poses = livePoses ?? deterministicPoses(piece, voices, beat, performing && timeSec >= LEAD_IN);
 
   const onstageArtKeys = useMemo(
     () =>
@@ -608,7 +613,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
     () => (neonFmvManifest ? { neon: neonFmvManifest } : undefined),
     [neonFmvManifest],
   );
-  const castFmvManifests = useCastFmvManifests(onstageArtKeys, resolveAsset, fmvOverrides);
+  const { manifests: castFmvManifests, onAtlasError } = useCastFmvManifests(onstageArtKeys, resolveAsset, fmvOverrides);
 
   const soloArt = studio404 && soloVoiceId ? STUDIO_404_CAST[soloVoiceId]?.artKey : undefined;
   const soloSet = soloArt ? soloSets.find(set => set.art === soloArt) : undefined;
@@ -906,6 +911,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
         interactive={isInteractive}
         resolveAsset={resolveAsset}
         fmvManifests={castFmvManifests}
+        onAtlasError={onAtlasError}
       />
     );
   }
@@ -1232,8 +1238,7 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
             const offstage = Boolean(piece.stage && !piece.stage.includes(v.id));
             if (cueAndNeon && offstage) return null;
             const s404 = STUDIO_404_CAST[v.id];
-            const artKey = studio404 && s404 ? s404.artKey : v.id;
-            const displayName = studio404 ? studio404Name(v.id, v.name) : v.name;
+            const { artKey, name: displayName } = resolvePerformerIdentity(v, studio404, piece.title);
             const closedUrl = resolveAsset(studio404 && s404 ? `/rehearsal/rigs/${s404.artKey}/closed.webp` : `/moppets/${v.id}/closed.webp`);
             const singClosedUrl = studio404 && s404 ? resolveAsset(`/rehearsal/rigs/${s404.artKey}/sing-closed.webp`) : null;
             const openUrl = resolveAsset(studio404 && s404 ? `/rehearsal/rigs/${s404.artKey}/open.webp` : `/moppets/${v.id}/open.webp`);
@@ -1333,7 +1338,10 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
               ? <RehearsalActor actor={actor} piece={piece} beat={performing ? beat : 0} still={still || !performing} rollingFrame={neon?.rolling ? neon.frame : undefined} resolveAsset={resolveAsset} />
               : neon && !offstage ? <NeonSolo take={neon} open={mouthOpen} resolveAsset={resolveAsset} /> : soloSet?.art === "zap" && !offstage
               ? <ZapSolo take={take} still={still} beat={performing && !still ? beat : 0} level={p.singing ? p.level : 0} midi={liveMidiSpeech?.voiceId === v.id ? (liveMidiSpeech.midi ?? 60) : (sungNote?.midi ?? 60)} open={mouthOpen} resolveAsset={resolveAsset} />
-              : renderCharacterOverride?.(v.id, artKey, spriteVars) ?? null;
+              : !offstage && !preferMouthRig ? renderCharacterOverride?.(v.id, artKey, spriteVars) : null;
+            const atlas = !customClip && studio404 && !offstage && !preferMouthRig && liveMidiSpeech?.voiceId !== v.id
+              ? fmvCel(castFmvManifests[artKey], p, timeSec, 0, mouthOpen, still || !performing)
+              : null;
 
             const puppetBody = (
               <>
@@ -1345,7 +1353,17 @@ export const ShotcraftStage: React.FC<ShotcraftStageProps> = ({
                     transform: `translateX(-50%) scale(${shadowTight.toFixed(2)})`,
                   }}
                 />
-                {customClip ?? (isSoloWorkshop ? (
+                {customClip ?? (atlas ? (
+                  <span className="sprite" style={{ ...spriteVars, overflow: "hidden" }} aria-hidden="true"
+                    data-source={atlas.source} data-action={atlas.action} data-cel={atlas.frame}>
+                    <Img src={resolveAsset(atlas.atlasUrl)} alt="" maxRetries={0}
+                      onError={() => onAtlasError(resolveAsset(atlas.atlasUrl))}
+                      style={{
+                        position: "absolute", maxWidth: "none", width: `${atlas.cols * 100}%`, height: `${atlas.rows * 100}%`,
+                        left: `${-(atlas.frame % atlas.cols) * 100}%`, top: `${-Math.floor(atlas.frame / atlas.cols) * 100}%`,
+                      }} />
+                  </span>
+                ) : isSoloWorkshop ? (
                   <span
                     className="sprite solo"
                     style={

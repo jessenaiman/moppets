@@ -17,6 +17,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import type { Piece } from "../choir/music.ts";
 import type { KaraokeWordSpan } from "../choir/bubbles.ts";
 import type { CharacterFmvManifest, PerformerFrame, PerformerPoseInput } from "../choir/performer.ts";
+import { Img } from "remotion";
 import { FoldedBook3D } from "./FoldedBook3D.tsx";
 import { CaravanWorld3D } from "./CaravanWorld3D.tsx";
 import { computeWorldState, WORLD_LENSES, type WorldLens } from "./worlds.ts";
@@ -37,6 +38,7 @@ export interface WorldsStageProps {
   interactive?: boolean;
   resolveAsset: (path: string) => string;
   fmvManifests?: Record<string, CharacterFmvManifest | null>;
+  onAtlasError: (url: string) => void;
 }
 
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
@@ -303,6 +305,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
   interactive = false,
   resolveAsset,
   fmvManifests = {},
+  onAtlasError,
 }) => {
   const [plateOverride, setPlateOverride] = useState<number | null>(null);
   const [userOrbit, setUserOrbit] = useState<{ azimuth: number; elevation: number } | null>(null);
@@ -400,6 +403,12 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
 
   const castArtKeys = state.cast.map((c) => c.artKey).join(",");
 
+  // CSS backgrounds and Three textures need a decoded image before Remotion captures the frame.
+  const atlasUrls = new Set(state.cast.filter(p => p.cel.source === "fmv-manifest").map(p => resolveAsset(p.cel.atlasUrl)));
+  const atlasImages = [...atlasUrls].map(url =>
+    <Img key={url} src={url} hidden alt="" maxRetries={0} onError={() => onAtlasError(url)} />,
+  );
+
   const lensBar = onSelectLens && (
     <div className="nw-lens-dock" role="tablist" aria-label="Performance world lens" data-layout="overlay">
       {WORLD_LENSES.map((item) => (
@@ -474,6 +483,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
           </div>
 
           <div className="nw-top-controls">
+            {atlasImages}
             {lensBar}
             {interactive && (
               <button
@@ -581,6 +591,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
           </div>
 
           <div className="nw-top-controls">
+            {atlasImages}
             {lensBar}
             {interactive && (
               <button
@@ -668,6 +679,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
             <span className="nw-film-stock">KODAK 5219 · 35MM FLATBED</span>
             <span className="nw-film-tc">TC {tcMin}:{tcSec}:{tcFrm} · FR #{String(frameNo + 1).padStart(4, "0")}</span>
           </div>
+          {atlasImages}
           {lensBar}
         </div>
 
@@ -730,6 +742,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
               {state.castSummary} — <em>{state.songTitle}</em>
             </span>
           </div>
+          {atlasImages}
           {lensBar}
         </div>
 
@@ -788,6 +801,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
               {state.castSummary} — <em>{state.songTitle}</em>
             </span>
           </div>
+          {atlasImages}
           {lensBar}
         </div>
 
@@ -880,6 +894,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
         data-plate={state.plateIndex + 1}
       >
         <div className="nw-zine-bar" data-layout="overlay">
+          {atlasImages}
           {lensBar}
           <span className="nw-zine-strap">{state.castSummary.toUpperCase()} · {state.songTitle.toUpperCase()} · {piece.key.toUpperCase()} · {piece.bpm} BPM</span>
         </div>
@@ -944,6 +959,7 @@ export const WorldsStage: React.FC<WorldsStageProps> = ({
           <span className="nw-vinyl-cat">SIDE A · 45 RPM</span>
           <span className="nw-vinyl-album">{state.castSummary.toUpperCase()} — <em>{state.songTitle}</em></span>
         </div>
+        {atlasImages}
         {lensBar}
       </div>
 

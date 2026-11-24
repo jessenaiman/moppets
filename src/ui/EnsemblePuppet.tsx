@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { buildCharacterClipSegments, type CharacterClipManifest } from "../choir/clipTimeline.ts";
+import { buildCharacterClipSegments, characterClipUrl, type CharacterClipManifest } from "../choir/clipTimeline.ts";
 import { useEnsemble } from "../choir/ensemble.ts";
 import type { Piece } from "../choir/music.ts";
 import { pieceSeconds } from "../choir/timeline.ts";
@@ -31,5 +31,5 @@ export function EnsemblePuppet({piece, voice, manifest, onError}: {
     return ()=>{unsubscribe();el.removeEventListener("loadeddata",sync);};
   },[segment,manifest]);
   return <video ref={video} className="ensemble-puppet" data-take={segment.kind}
-    src={manifest.clips[segment.kind]} muted loop playsInline preload="auto" onError={onError} aria-hidden="true"/>;
+    src={characterClipUrl(manifest, segment.kind)} muted loop playsInline preload="auto" onError={onError} aria-hidden="true"/>;
 }

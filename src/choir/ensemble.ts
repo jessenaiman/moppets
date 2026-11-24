@@ -266,15 +266,15 @@ class Session {
 
   pose(index: number, hop: number): Pose {
     const s = this.singers[index];
-    const level = s?.voice && vocalLevelAt(this.vocalTiming, s.voice.id, hop * this.hop / this.sampleRate);
-    if (typeof level === "number") {
-      if (level === 0) return SILENT_POSE;
-      return {...SILENT_POSE,singing:true,open:level,jaw:level,level,voicing:1,pressure:level,viseme:level>.35?4:1};
+    if (s?.tele && s.recordSize) {
+      const at = hop * s.recordSize;
+      if (at < 0 || at + s.recordSize > s.tele.length) return SILENT_POSE;
+      return poseFromRecord(s.tele, at);
     }
-    if (!s?.tele || !s.recordSize) return SILENT_POSE;
-    const at = hop * s.recordSize;
-    if (hop < 0 || at + s.recordSize > s.tele.length) return SILENT_POSE;
-    return poseFromRecord(s.tele, at);
+    // Recorded stems have an RMS envelope but no jaw or lip telemetry.
+    const level = s?.voice && vocalLevelAt(this.vocalTiming, s.voice.id, hop * this.hop / this.sampleRate);
+    if (!level) return SILENT_POSE;
+    return { ...SILENT_POSE, singing: true, open: level, jaw: level, level, voicing: 1, pressure: level, viseme: level > 0.35 ? 4 : 1 };
   }
 
   dispose(): void {

@@ -4,20 +4,13 @@
  */
 import type { Piece } from "./music.ts";
 import { gestureSeconds } from "./gestures.ts";
-import { isPadOnlyText } from "./bubbles.ts";
-import { STUDIO_404_CAST } from "./studio404.ts";
 import { beatSeconds, LEAD_IN } from "./timeline.ts";
 
 export type CharacterClipKind = "idle" | "sing" | "belt" | "chuckle";
 
 export interface CharacterClipManifest {
   artKey: string;
-  name: string;
-  width: number;
-  height: number;
-  fps: number;
-  durationSec: number;
-  clips: Record<CharacterClipKind, string>;
+  clips: { idle: string; sing: string; [action: string]: string | undefined };
 }
 
 export interface ClipSegment {
@@ -27,112 +20,10 @@ export interface ClipSegment {
   playbackRate: number;
 }
 
-/** Cast members whose individual EffectCraft VP9 alpha clips exist under `public/clips/<artKey>/`. */
-export const AVAILABLE_CLIP_MANIFESTS: Readonly<Record<string, CharacterClipManifest>> = {
-  neon: {
-    artKey: "neon",
-    name: "Neon",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/neon/idle.webm",
-      sing: "/clips/neon/sing.webm",
-      belt: "/clips/neon/belt.webm",
-      chuckle: "/clips/neon/chuckle.webm",
-    },
-  },
-  cue: {
-    artKey: "cue",
-    name: "Cue",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/cue/idle.webm",
-      sing: "/clips/cue/sing.webm",
-      belt: "/clips/cue/belt.webm",
-      chuckle: "/clips/cue/chuckle.webm",
-    },
-  },
-  watt: {
-    artKey: "watt",
-    name: "Watt",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/watt/idle.webm",
-      sing: "/clips/watt/sing.webm",
-      belt: "/clips/watt/belt.webm",
-      chuckle: "/clips/watt/chuckle.webm",
-    },
-  },
-  gruff: {
-    artKey: "gruff",
-    name: "Gruff",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/gruff/idle.webm",
-      sing: "/clips/gruff/sing.webm",
-      belt: "/clips/gruff/belt.webm",
-      chuckle: "/clips/gruff/chuckle.webm",
-    },
-  },
-  clank: {
-    artKey: "clank",
-    name: "Clank",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/clank/idle.webm",
-      sing: "/clips/clank/sing.webm",
-      belt: "/clips/clank/belt.webm",
-      chuckle: "/clips/clank/chuckle.webm",
-    },
-  },
-  tabby: {
-    artKey: "tabby",
-    name: "Tabby",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/tabby/idle.webm",
-      sing: "/clips/tabby/sing.webm",
-      belt: "/clips/tabby/belt.webm",
-      chuckle: "/clips/tabby/chuckle.webm",
-    },
-  },
-  chip: {
-    artKey: "chip",
-    name: "Chip",
-    width: 384,
-    height: 512,
-    fps: 24,
-    durationSec: 2.0,
-    clips: {
-      idle: "/clips/chip/idle.webm",
-      sing: "/clips/chip/sing.webm",
-      belt: "/clips/chip/belt.webm",
-      chuckle: "/clips/chip/chuckle.webm",
-    },
-  },
-};
-
-export function manifestForCharacter(voiceId: string, studio404 = true): CharacterClipManifest | null {
-  if (!studio404) return null;
-  const artKey = STUDIO_404_CAST[voiceId]?.artKey ?? voiceId;
-  return AVAILABLE_CLIP_MANIFESTS[artKey] ?? null;
+export function characterClipUrl({ clips }: CharacterClipManifest, kind: CharacterClipKind): string {
+  if (kind === "belt") return clips.belt ?? clips.sing;
+  if (kind === "chuckle") return clips.chuckle ?? clips.react ?? clips.idle;
+  return clips[kind];
 }
 
 /**
@@ -155,8 +46,7 @@ export function buildCharacterClipSegments(
     return [{ kind: "idle", startFrame: 0, durationInFrames: totalFrames, playbackRate }];
   }
 
-  const vocalEvents = track.events.filter((e) => !(e.line === undefined && isPadOnlyText(e.text)));
-  const midis = vocalEvents.map((e) => e.midi);
+  const midis = track.events.map((e) => e.midi);
   const minMidi = midis.length ? Math.min(...midis) : 60;
   const maxMidi = midis.length ? Math.max(...midis) : 72;
   const beltThreshold = maxMidi > minMidi + 2 ? minMidi + (maxMidi - minMidi) * 0.72 : 999;
@@ -167,7 +57,7 @@ export function buildCharacterClipSegments(
 
   // Classify every frame cleanly and coalesce runs into Sequence spans
   const frameKinds: CharacterClipKind[] = new Array(totalFrames).fill("idle");
-  for (const ev of vocalEvents) {
+  for (const ev of track.events) {
     const t0 = LEAD_IN + ev.beat * bs;
     const t1 = LEAD_IN + (ev.beat + ev.beats) * bs;
     const f0 = Math.max(0, Math.floor(t0 * safeFps));

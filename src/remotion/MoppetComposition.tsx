@@ -26,7 +26,8 @@ import { vocalLevelAt } from "../choir/vocalTiming.ts";
 import { CAST } from "../choir/voices.ts";
 import { moppet } from "../choir/cast/index.ts";
 import { STUDIO_404_CAST, STUDIO_404_CREW } from "../choir/studio404.ts";
-import { manifestForCharacter } from "../choir/clipTimeline.ts";
+import { resolvePerformerIdentity } from "../choir/performer.ts";
+import { manifestForCharacter } from "../choir/characterClips.ts";
 import {
   DEFAULT_VIDEO_PROPS,
   stageVoicesForPiece,
@@ -274,7 +275,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
       }
     }
     for (const v of voices) {
-      if (!useMeasuredMouths && manifestForCharacter(v.id, props.studio404)) continue;
+      if (!useMeasuredMouths && manifestForCharacter(resolvePerformerIdentity(v, props.studio404, piece.title).artKey, props.studio404)) continue;
       const s404 = props.studio404 ? STUDIO_404_CAST[v.id] : undefined;
       if (s404) {
         urls.add(resolveAsset(`/rehearsal/rigs/${s404.artKey}/closed.webp`));
@@ -314,13 +315,17 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
     </div>
   );
 
+  const [failedVideos, setFailedVideos] = React.useState<ReadonlySet<string>>(new Set());
   const renderCharacterOverride = React.useCallback(
-    (voiceId: string, _artKey: string, spriteStyle: React.CSSProperties) => {
-      if (props.studio404 && voiceId === "tabby" && piece.title === "Ribbon and Felt") return <RibbonPerformance bpm={piece.bpm}/>;
-      const manifest = manifestForCharacter(voiceId, props.studio404);
+    (voiceId: string, artKey: string, spriteStyle: React.CSSProperties) => {
+      if (failedVideos.has(artKey)) return null;
+      const onError = () => setFailedVideos(prev => prev.has(artKey) ? prev : new Set(prev).add(artKey));
+      if (props.studio404 && voiceId === "tabby" && piece.title === "Ribbon and Felt") return <RibbonPerformance bpm={piece.bpm} onError={onError}/>;
+      const manifest = manifestForCharacter(artKey, props.studio404);
       if (!manifest) return null;
       return (
         <CharacterClip
+          onError={onError}
           manifest={manifest}
           piece={piece}
           voiceId={voiceId}
@@ -330,7 +335,7 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
         />
       );
     },
-    [piece, props.stageDurationSec, props.studio404, resolveAsset],
+    [piece, props.stageDurationSec, props.studio404, resolveAsset, failedVideos],
   );
 
   const stageElement = (
@@ -349,7 +354,8 @@ const MoppetStageScene: React.FC<{ props: MoppetVideoProps; interactive?: boolea
       interactive={interactive}
       neonLens={props.worldLens}
       showInternalLensBar={false}
-      renderCharacterOverride={useMeasuredMouths ? undefined : renderCharacterOverride}
+      preferMouthRig={useMeasuredMouths}
+      renderCharacterOverride={renderCharacterOverride}
     />
   );
 

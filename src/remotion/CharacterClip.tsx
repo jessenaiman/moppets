@@ -7,7 +7,7 @@ import React, { useMemo } from "react";
 import { Html5Video, Sequence, useCurrentFrame, useRemotionEnvironment, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import type { Piece } from "../choir/music.ts";
-import { buildCharacterClipSegments, type CharacterClipManifest } from "../choir/clipTimeline.ts";
+import { buildCharacterClipSegments, characterClipUrl, type CharacterClipManifest } from "../choir/clipTimeline.ts";
 
 export interface CharacterClipProps {
   manifest: CharacterClipManifest;
@@ -16,16 +16,17 @@ export interface CharacterClipProps {
   stageDurationSec: number;
   resolveAsset: (path: string) => string;
   style?: React.CSSProperties;
+  onError: () => void;
 }
 
 /** Tabby's recorded 31-second puppet performance follows the score tempo. */
-export function RibbonPerformance({bpm}: {bpm: number}) {
+export function RibbonPerformance({bpm, onError}: {bpm: number; onError: () => void}) {
   const {isPlayer} = useRemotionEnvironment();
   const clip = {src:ribbonTake, muted:true, playbackRate:bpm/112, style:{
     width:"100%", height:"100%", objectFit:"contain" as const,
   }};
   return <span className="sprite sc-clip-sprite" data-performance="ribbon-and-felt">
-    {isPlayer ? <Html5Video {...clip} playsInline pauseWhenBuffering={false}/> : <Video {...clip}/>}
+    {isPlayer ? <Html5Video onError={onError} {...clip} playsInline pauseWhenBuffering={false}/> : <Video {...clip}/>}
   </span>;
 }
 
@@ -36,6 +37,7 @@ export const CharacterClip: React.FC<CharacterClipProps> = ({
   stageDurationSec,
   resolveAsset,
   style,
+  onError,
 }) => {
   const { fps } = useVideoConfig();
 
@@ -48,11 +50,11 @@ export const CharacterClip: React.FC<CharacterClipProps> = ({
   const { isPlayer } = useRemotionEnvironment();
   const seg = segments.find(s => frame >= s.startFrame && frame < s.startFrame + s.durationInFrames);
   if (!seg) return null;
-  const clip = { src: resolveAsset(manifest.clips[seg.kind]), loop: true, muted: true, playbackRate: seg.playbackRate, style: { width: "100%", height: "100%", display: "block", pointerEvents: "none", objectFit: "contain" } as React.CSSProperties };
+  const clip = { src: resolveAsset(characterClipUrl(manifest, seg.kind)), loop: true, muted: true, playbackRate: seg.playbackRate, style: { width: "100%", height: "100%", display: "block", pointerEvents: "none", objectFit: "contain" } as React.CSSProperties };
   return (
     <span className="sprite sc-clip-sprite" style={{ ...style, backgroundImage: "none" }} aria-hidden="true">
       <Sequence key={seg.startFrame} from={seg.startFrame} durationInFrames={seg.durationInFrames} layout="none">
-        {isPlayer ? <Html5Video {...clip} pauseWhenBuffering={false}/> : <Video {...clip} objectFit="contain"/>}
+        {isPlayer ? <Html5Video onError={onError} {...clip} pauseWhenBuffering={false}/> : <Video {...clip} objectFit="contain"/>}
       </Sequence>
     </span>
   );
