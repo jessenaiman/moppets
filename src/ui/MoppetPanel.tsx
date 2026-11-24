@@ -10,7 +10,7 @@ import { checkSung, holdAt, holdFix, lineStarts, splitFix, splitNote, unholdAt }
 import type { Line, Section, Sung } from "../choir/songbook.ts";
 import { sheetWords, type SongFile } from "../choir/songFile.ts";
 import { g2p } from "../audio/g2p.ts";
-import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, loadPiece, play, pose, seek, stop, useEnsemble } from "../choir/ensemble.ts";
+import { cancel, scopeOf, useTelemetry, ensembleDebug, exportWav, play, pose, seek, stop, useEnsemble } from "../choir/ensemble.ts";
 import { GROOVES, MODES, PALETTES, PROGRESSIONS } from "../choir/theory.ts";
 import { KEYS, noteName, ROUND_LYRICS, type KeyName, type Piece, type ScaleMode, type ScoreEvent, type Track } from "../choir/music.ts";
 import { midiBytes } from "../choir/performanceMidi.ts";
@@ -1402,11 +1402,6 @@ function RehearsalDesk() {
     return {...project,fps:24,intro:{...project.intro,enabled:false},outro:{...project.outro,enabled:false}};
   },[showLive,piece,voices,studio404]);
   useEffect(() => {
-    // load the score on first arrival
-    if (useMoppet.getState().piece === piece) {
-      loadPiece(piece);
-      useMoppet.getState().select(useMoppet.getState().selected);
-    }
     (window as unknown as { __choir: unknown }).__choir = { seek, play: () => play(useAudio.getState().start), stop, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

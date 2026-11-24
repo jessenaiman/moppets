@@ -120,6 +120,31 @@ try {
   await page.waitForTimeout(250);
   if (pluginCalls.length > 0) throw new Error(`Unexpected external plugin calls: ${pluginCalls.join(", ")}`);
 
+  // Follow reads down the visible staves. It must not repaginate a tall score on every row.
+  await page.setViewportSize({width:1250,height:1300});
+  const horseUrl = new URL(url);
+  horseUrl.searchParams.set("act","cardboard-horse");
+  await page.goto(horseUrl.href, {waitUntil:"networkidle"});
+  const score=page.getByRole("region",{name:"Combined choir score"});
+  const paper=score.getByLabel("Entire choir score");
+  await paper.locator("[data-refs]").first().waitFor();
+  const rows=paper.locator("[data-system]");
+  const secondStart=Number(await rows.nth(1).getAttribute("data-system"));
+  const firstScroll=await paper.evaluate(el=>el.scrollTop);
+  await page.getByRole("button",{name:"Play video"}).click();
+  await rows.nth(1).and(paper.locator('[aria-current="step"]')).waitFor({timeout:20000});
+  const down=await rows.nth(1).evaluate(el=>el.getBoundingClientRect().top-el.parentElement!.getBoundingClientRect().top);
+  if(down<10 || (await paper.evaluate(el=>el.scrollTop))!==firstScroll) {
+    throw new Error(`Score scrolled to the top at bar ${secondStart+1} while the next staff was visible`);
+  }
+  await page.getByRole("button",{name:"Pause video"}).click();
+  await score.getByRole("button",{name:"Following",exact:true}).click();
+  const picker=score.getByRole("combobox",{name:"Go to score system"});
+  const last=(await picker.locator("option").count())-1;
+  await picker.selectOption(String(last-1));
+  await score.getByRole("button",{name:"Next score row"}).click();
+  if((await picker.inputValue())!==String(last))throw new Error("Could not browse the final score row");
+
   if (errors.length > 0) {
     throw new Error(`Browser console/page errors:\n${errors.join("\n")}`);
   }
