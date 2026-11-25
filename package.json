@@ -18,16 +18,19 @@
   "dependencies": {
     "@radix-ui/react-slider": "^1.6.1",
     "@radix-ui/react-switch": "^1.4.1",
-    "@remotion/player": "^4.0.545",
+    "@react-three/fiber": "^9.8.2",
+    "@remotion/media": "4.0.545",
+    "@remotion/player": "4.0.545",
+    "@remotion/three": "4.0.545",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "remotion": "^4.0.545",
+    "remotion": "4.0.545",
     "three": "0.186.1",
     "vexflow": "^5.3.0",
     "zustand": "5.0.16"
   },
   "devDependencies": {
-    "@remotion/cli": "^4.0.545",
+    "@remotion/cli": "4.0.545",
     "@tailwindcss/vite": "^4.3.5",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",

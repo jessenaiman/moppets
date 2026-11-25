@@ -8,7 +8,7 @@ export function rehearsalStudio():Plugin{
   function start(){
     if(starting)return starting;
     starting=new Promise<number>((ok,fail)=>{
-      const proc=spawn(resolve('node_modules/.bin/remotion'),['studio','src/rehearsal/StudioEntry.tsx','--port=3470','--force-new','--no-open'],{stdio:['ignore','pipe','pipe']});
+      const proc=spawn(resolve('node_modules/.bin/remotion'),['studio','src/remotion/index.ts','--no-open'],{stdio:['ignore','pipe','pipe']});
       child=proc;
       const timeout=setTimeout(()=>{proc.kill();fail(new Error('Studio startup timed out'))},30000);
       let log='';

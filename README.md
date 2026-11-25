@@ -48,12 +48,9 @@ Changing notes, voices, or the mix uses live rehearsal audio. The standalone scr
 [`watch/index.html`](watch/index.html) also plays exported videos and full-length songs. To view it locally,
 run `python3 -m http.server 8000 --directory watch` and open [the screening page](http://localhost:8000/).
 
-Git LFS stores finished MP3 recordings in `watch/rehearsal/audio/` and `public/rehearsal/audio/`,
-and Ogg stems in `public/plugin-vocals/` and `public/scored-vocals/`. The app serves the catalog at
-`/recordings/` through the `public/recordings` symlink. After a re-render, stage and commit the audio
-at its existing path. Git records a pointer, and the LFS pre-push hook uploads the audio. Run
-`git lfs pull` in an existing checkout to download it. The Vercel build hydrates recordings
-before building the app against its pinned engine.
+Git stores the app's five performance masters in `public/rehearsal/audio/` and all active web-app stage
+WebP/PNG atlases directly (no Git LFS required during Vercel builds). Ogg stems in `public/plugin-vocals/`
+and `public/scored-vocals/` and offline video clips remain in Git LFS.
 
 ## How it uses CHIMERA
 

@@ -195,6 +195,17 @@ export function resolvePerformerCel(
     };
   }
 
+  if (artKey === "amplifier" || artKey === "latch") {
+    const ext = artKey === "latch" ? "png" : "webp";
+    return {
+      atlasUrl: `/rehearsal/cast/${artKey}/staged-front.${ext}`,
+      cols: 1,
+      rows: 1,
+      frame: 0,
+      action: pose.singing ? "sing" : "idle",
+      source: "sprite-pair",
+    };
+  }
   const exposure = castExposureCel(artKey, pose, beat, mouthOpen, still);
   if (exposure) return exposure;
   if (artKey === "vee" || artKey === "scribe" || artKey === "pip") {
@@ -214,6 +225,32 @@ export function resolvePerformerCel(
     action: stateName,
     source: "sprite-pair",
   };
+}
+
+/** Collect every atlas URL a performer can reference across idle, singing, pin actions, and curtain call. */
+export function performerAtlasUrls(artKey: string, hasCurtainCall = false): string[] {
+  const urls = new Set<string>();
+  const samplePoses: { pose: PerformerPoseInput; open: boolean; plate: number }[] = [
+    { pose: { singing: false, level: 0, open: 0, viseme: 0 }, open: false, plate: 0 },
+    { pose: { singing: true, level: 0.2, open: 0.2, viseme: 1 }, open: false, plate: 0 },
+    { pose: { singing: true, level: 0.9, open: 0.9, viseme: 4 }, open: true, plate: 0 },
+    { pose: { singing: true, level: 0.9, open: 0.9, viseme: 4 }, open: true, plate: 3 },
+  ];
+  for (const s of samplePoses) {
+    urls.add(resolvePerformerCel(artKey, s.pose, 1, 1, s.plate, s.open).atlasUrl);
+  }
+  const pins = PIN_ATLAS_ACTIONS[artKey];
+  if (pins) {
+    for (const action of Object.values(pins)) {
+      urls.add(`/rehearsal/pins/${artKey}/${action}.webp`);
+    }
+    if (artKey === "cue") urls.add("/rehearsal/pins/cue/recover.webp");
+    if (artKey === "neon") urls.add("/rehearsal/pins/neon/snag.webp");
+  }
+  if (artKey === "tabby" && hasCurtainCall) {
+    urls.add("/rehearsal/pins/tabby/bow.webp");
+  }
+  return [...urls];
 }
 
 /**

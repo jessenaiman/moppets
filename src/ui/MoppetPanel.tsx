@@ -1,7 +1,7 @@
+import { SongNavigator } from "./SongNavigator";
 import { measures } from "../choir/meter.ts";
 import { NewRehearsal } from "./NewRehearsal";
 import { CastReferences } from "./CastReferences";
-import {buildVideoProject} from "../choir/videoProject";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useAudio } from "../audio/audio.ts";
 import { Screen } from "@chimera/ui/components/Screen.tsx";
@@ -42,7 +42,6 @@ import { SoloPuppet } from "./SoloPuppet.tsx";
 import "./moppet.css";
 
 const VideoStudio = lazy(() => import("./VideoStudio"));
-const PortableStage = lazy(() => import("./PortableStage").then(m => ({default: m.PortableStage})));
 const RehearsalStaffPanel = lazy(() => import("./StaffEditor").then(m => ({default: m.RehearsalStaffPanel})));
 const VexStaffLine = lazy(() => import("./StaffEditor").then(m => ({default: m.VexStaffLine})));
 
@@ -992,7 +991,7 @@ function ScoreSvg({ piece, edit }: { piece: Piece; edit?: NoteEdit | null }) {
   );
 }
 
-function PianoRoll() {
+function PianoRoll({live}: {live: boolean}) {
   const piece = useMoppet((s) => s.piece),
     lesson = useMoppet((s) => s.lesson);
   const selected = useMoppet((s) => s.voices[s.selected]);
@@ -1037,7 +1036,7 @@ function PianoRoll() {
         <small>
           {measures(piece).length} bars · {piece.bpm} BPM
         </small>
-        <Transport />
+        {live && <Transport />}
         <BandToggle />
         {editable && (
           <button onClick={() => setEditing(!editing)} aria-pressed={editing}>
@@ -1396,11 +1395,6 @@ function RehearsalDesk() {
   const v = voices[selected];
   const name = studio404 ? studio404Name(v.id, v.name) : v.name;
   const piece = useMoppet((s) => s.piece);
-  const guestPreview = useMemo(()=>{
-    if(!showLive || piece.title!=="Borrowed Light") return null;
-    const project=buildVideoProject(piece,voices,studio404);
-    return {...project,fps:24,intro:{...project.intro,enabled:false},outro:{...project.outro,enabled:false}};
-  },[showLive,piece,voices,studio404]);
   useEffect(() => {
     (window as unknown as { __choir: unknown }).__choir = { seek, play: () => play(useAudio.getState().start), stop, debug: ensembleDebug, ensemble: useEnsemble, moppet: useMoppet, audio: useAudio, telemetry: useTelemetry, live: useLive, controller: useController, midi: handleControl, makeIntroduction, bench: () => import("../choir/bench.ts").then((m) => m.benchChoir()) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1434,13 +1428,14 @@ function RehearsalDesk() {
   return (
     <div className={`right right-moppet right-stage${showLive ? " warm" : ""}`}>
       {showLive ? <>
-        {guestPreview ? <PortableStage project={guestPreview}/> : <Stage cameraFollow={cameraFollow}/>}
+        <SongNavigator live />
+        <Stage cameraFollow={cameraFollow}/>
         <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
       </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller}/>}
 
       {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">
         {(desk || liveDesk) && <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)}/>}
-        {desk && piece.kind!=="skit" ? <PianoRoll/> : liveDesk || desk ? <Transport/> : null}
+        {desk && piece.kind!=="skit" ? <PianoRoll live={liveDesk}/> : liveDesk ? <Transport/> : null}
       </Screen>}
       {references && <CastReferences/>}
       {writing && <NewRehearsal/>}

@@ -623,11 +623,10 @@
 .zap-solo i {
   position: absolute; border-radius: 30%; background: currentColor;
   box-shadow: 0 0 0.5em currentColor; mix-blend-mode: screen; pointer-events: none;
-  transition: opacity 80ms ease-out;
 }
 .zap-solo .zap-transmit { left: 28%; top: 8%; width: 22%; height: 3.3%; color: #ff4837; transform: rotate(-6deg); }
 
-.zap-solo .zap-cue-arm { position: absolute; inset: 0; transform-origin: 58% 41%; transition: transform 120ms ease-out; }
+.zap-solo .zap-cue-arm { position: absolute; inset: 0; transform-origin: 58% 41%; }
 .zap-solo .zap-body { position: relative; }
 .sc-stage[data-solo-set] .sc-capsule-words { font-size: clamp(12px, 1.8cqw, 32px); }
 @container (max-width: 540px) {

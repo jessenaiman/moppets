@@ -57,6 +57,7 @@ neon: "I light the room with two bright tubes" = hello
 neon: "My twin notes hum above the stage" = reply
 turnaround V 4
 
+# Folio retains the original scroll voice key.
 [cue]
 cue: "I read the words that cross my screen" = hello
 cue: "My old scroll turns to start the scene" = reply

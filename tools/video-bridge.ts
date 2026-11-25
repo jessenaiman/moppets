@@ -197,7 +197,6 @@ export function videoBridge(): Plugin {
               outPath,
               `--props=${propsPath}`,
               "--public-dir=public",
-              "--browser-executable=/usr/bin/chromium",
               "--codec=h264",
               "--overwrite",
             ],

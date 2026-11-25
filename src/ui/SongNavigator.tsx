@@ -121,7 +121,7 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
   return entries;
 }
 
-export function SongNavigator() {
+export function SongNavigator({ live = false }: { live?: boolean } = {}) {
   const lesson = useMoppet((s) => s.lesson);
   const setLesson = useMoppet((s) => s.setLesson);
   const studio404 = useMoppet((s) => s.studio404);
@@ -136,7 +136,7 @@ export function SongNavigator() {
     if (id === lesson) return;
     const status = useEnsemble.getState().status;
     setLesson(id);
-    if (status === "playing" || status === "buffering" || status === "preparing") {
+    if (live && (status === "playing" || status === "buffering" || status === "preparing")) {
       void play(useAudio.getState().start);
     }
     const url = new URL(window.location.href);

@@ -59,6 +59,6 @@ vee: "I counted down to zero" = low ; do nod                       # Click on ca
 clank: "Zero means there's nothing there" = low ; do tilt
 "Quiet is a kind of song" = low
 chip: "So let's count down again from ten" = lift ; do nod
-  + cue @7: "Places" = 4/.5 4/.5                                   # Biscuit on camera; Cue calls places
+  + cue @7: "Places" = 4/.5 4/.5                                   # Biscuit on camera; Folio calls places
 
 [repeat chorus]
