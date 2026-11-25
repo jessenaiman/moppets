@@ -6,7 +6,7 @@ import { Screen } from "@chimera/ui/components/Screen.tsx";
 import { useAudio } from "../audio/audio.ts";
 import { exportWav } from "../choir/ensemble.ts";
 import { PlayerShell, publishedMaster } from "./PlayerShell";
-import { PlayerPosition, TransportAndStaff } from "./TransportAndStaff";
+import { PlayerPosition, PlayerTransport, StaffFollower } from "./TransportAndStaff";
 import { SongNavigator } from "./SongNavigator.tsx";
 import { BenchPack, cycleLength } from "../rehearsal/BenchPack";
 import { RemotionDock, type StudioComposition } from "./RemotionDock";
@@ -60,10 +60,12 @@ const fmtSec = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${
 export function VideoStudio({
   livePreview,
   controller,
+  onOpenLive,
 }: {
   liveEditing?: boolean;
   livePreview?: React.ReactNode;
   controller: React.ReactNode;
+  onOpenLive?: () => void;
 }) {
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [audioError, setAudioError] = useState("");
@@ -79,6 +81,7 @@ export function VideoStudio({
   const setMidi = useController((s) => s.setMidi);
   const midiFileRef = useRef<HTMLInputElement | null>(null);
   const playerRef = useRef<PlayerRef>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const [project, setProject] = useState<MoppetVideoProps>(() => {
     const initial = buildVideoProject(piece, voices, studio404);
@@ -477,6 +480,7 @@ export function VideoStudio({
         <div className="vs-main vs-score-desk">
           <div className="vs-stage-col">
             <div
+              ref={stageRef}
               className={`vs-player-frame${livePreview ? " live-preview" : ""}${project.aspect === "9:16" ? " portrait" : ""}`}
               data-layout="overlay"
             >
@@ -526,15 +530,20 @@ export function VideoStudio({
                   />
                 ))}
             </div>
+            {showingRehearsal && (
+              <PlayerTransport
+                key={lesson}
+                project={previewProject}
+                playerRef={playerRef}
+                stageRef={stageRef}
+                prepare={() => void prepareMix()}
+                busy={synthBusy}
+                onOpenLive={onOpenLive}
+              />
+            )}
           </div>
           {showingRehearsal ? (
-            <TransportAndStaff
-              key={lesson}
-              project={previewProject}
-              playerRef={playerRef}
-              prepare={() => void prepareMix()}
-              busy={synthBusy}
-            />
+            <StaffFollower key={lesson} project={previewProject} playerRef={playerRef} />
           ) : (
             <MusicRack />
           )}

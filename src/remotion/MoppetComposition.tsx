@@ -49,9 +49,9 @@ const VELVET_CURTAIN_BG =
 const WORKSHOP_MOPPETS = new Set(["vee", "scribe", "pip", "clank", "gruff", "tabby", "chip", "zap"]);
 const STAGE_SETS = new Set(["chip", "clank", "cue", "gruff", "neon", "tabby", "watt", "zap"]);
 
-/** Resolve public/ paths via staticFile() while preserving absolute http(s)/blob/data URLs. */
+/** Resolve public/ paths via staticFile() while preserving absolute, blob, data, and dev-bridge URLs. */
 function resolveMediaUrl(url: string): string {
-  if (/^(?:https?:|blob:|data:)/.test(url)) return url;
+  if (/^(?:https?:|blob:|data:|\/__video\/)/.test(url)) return url;
   return staticFile(url.replace(/^\/+/, ""));
 }
 

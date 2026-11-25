@@ -1431,7 +1431,7 @@ function RehearsalDesk() {
         <SongNavigator live />
         <Stage cameraFollow={cameraFollow}/>
         <section className="vs-midi s-stage" aria-label="MIDI controller">{controller}</section>
-      </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller}/>}
+      </> : <VideoStudio liveEditing={desk || editor || writing} controller={controller} onOpenLive={toggleLiveDesk}/>}
 
       {(desk || liveDesk) && <Screen className="s-stage warm" label="Rehearsal tools">
         {(desk || liveDesk) && <PerformanceMenu cameraFollow={cameraFollow} toggleCamera={()=>setCameraFollow(!cameraFollow)}/>}

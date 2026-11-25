@@ -78,6 +78,13 @@ export const STUDIO_404_CAST: Record<string, Studio404Persona> = {
     artKey: "zap",
     color: "#7fd36b",
   },
+  cue: {
+    voiceId: "cue",
+    name: "Folio",
+    role: "Scroll teleprompter",
+    artKey: "cue",
+    color: "#d4b483",
+  },
 };
 
 export const STUDIO_404_CREW = {
@@ -118,5 +125,5 @@ export function studio404Name(voiceId: string, fallback: string): string {
 
 export function voicesForMode<T extends { id: string; lyrics: readonly string[] }>(voices: readonly T[], studio404: boolean): T[] {
   if (!studio404) return voices as T[];
-  return voices.map((v) => (STUDIO_404_INTRO_LYRICS[v.id] ? { ...v, lyrics: STUDIO_404_INTRO_LYRICS[v.id] } : v));
+  return voices.map((v) => (STUDIO_404_INTRO_LYRICS[v.id]?.length ? { ...v, lyrics: STUDIO_404_INTRO_LYRICS[v.id] } : v));
 }

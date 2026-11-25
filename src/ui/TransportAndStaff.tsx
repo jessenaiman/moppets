@@ -1,29 +1,13 @@
 import type { PlayerRef } from "@remotion/player";
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { beatSeconds, LEAD_IN } from "../choir/timeline";
 import { totalDurationFrames, videoFrameLayout, type MoppetVideoProps } from "../choir/videoProject";
 import { MusicRack } from "./MusicRack";
 
-/**
- * Sibling playback controls + authored MIDI/ChoirScore staff follower.
- * Subscribes to <Player> frameupdate events here so PlayerShell never re-renders during playback.
- */
-export function TransportAndStaff({
-  project,
-  playerRef,
-  prepare,
-  busy,
-}: {
-  project: MoppetVideoProps;
-  playerRef: RefObject<PlayerRef | null>;
-  prepare?: () => void;
-  busy?: boolean;
-}) {
+/** Hook shared by sibling playhead controls so PlayerShell never holds frame state or re-renders. */
+function usePlayerClock(playerRef: RefObject<PlayerRef | null>) {
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const { fps, introFrames } = videoFrameLayout(project);
-  const duration = totalDurationFrames(project);
-  const seconds = Math.max(0, (frame - introFrames) / fps);
 
   useEffect(() => {
     const player = playerRef.current;
@@ -46,6 +30,44 @@ export function TransportAndStaff({
     };
   }, [playerRef]);
 
+  return { frame, playing };
+}
+
+/**
+ * Sibling playback transport & scene jump bar rendered directly below the 16:9 stage.
+ * Auto-plays once Prepare audio resolves, and offers instant Live CHIMERA switching.
+ */
+export function PlayerTransport({
+  project,
+  playerRef,
+  stageRef,
+  prepare,
+  busy,
+  onOpenLive,
+}: {
+  project: MoppetVideoProps;
+  playerRef: RefObject<PlayerRef | null>;
+  stageRef?: RefObject<HTMLDivElement | null>;
+  prepare?: () => void;
+  busy?: boolean;
+  onOpenLive?: () => void;
+}) {
+  const { frame, playing } = usePlayerClock(playerRef);
+  const autoPlayAfterPrepare = useRef(false);
+  const { fps, introFrames } = videoFrameLayout(project);
+  const duration = totalDurationFrames(project);
+  const stageSec = Math.max(0, (frame - introFrames) / fps);
+
+  useEffect(() => {
+    if (!autoPlayAfterPrepare.current || !project.audioUrl) return;
+    autoPlayAfterPrepare.current = false;
+    const raf = requestAnimationFrame(() => {
+      const player = playerRef.current;
+      if (player && !player.isPlaying()) player.play();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [project.audioUrl, playerRef]);
+
   // Explicit user-initiated scrub / section jump only (never called from a playback loop).
   const userJumpToFrame = (target: number) => {
     const player = playerRef.current;
@@ -54,52 +76,135 @@ export function TransportAndStaff({
     player.seekTo(Math.max(0, Math.min(duration - 1, target)));
   };
 
+  const handlePrimaryClick = () => {
+    if (project.audioUrl || !prepare) {
+      playerRef.current?.toggle();
+      return;
+    }
+    autoPlayAfterPrepare.current = true;
+    prepare();
+  };
+
+  const toggleFullscreen = () => {
+    if (!stageRef?.current) return;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void stageRef.current.requestFullscreen();
+  };
+
   const sections = project.piece?.sections;
   const secondsPerBeat = project.piece ? beatSeconds(project.piece) : 0;
 
   return (
-    <div className="min-w-0">
-      <div className="flex items-center gap-3 bg-black px-3 py-2">
+    <div className="vs-transport-wrap">
+      <div className="vs-transport-bar" role="group" aria-label="Rehearsal transport">
         <button
           type="button"
-          className="rounded border px-3 py-1"
+          className="vs-play-btn"
           disabled={busy}
-          onClick={() => (project.audioUrl || !prepare ? playerRef.current?.toggle() : prepare())}
+          onClick={handlePrimaryClick}
         >
-          {playing ? "Pause" : project.audioUrl || !prepare ? "Play" : "Prepare audio"}
+          {busy ? "Preparing…" : playing ? "Pause" : project.audioUrl || !prepare ? "Play" : "Prepare & Play"}
         </button>
+        {onOpenLive && (
+          <button
+            type="button"
+            className="vs-live-btn"
+            title="Play this score immediately with real-time MIDI-driven CHIMERA voices"
+            onClick={onOpenLive}
+          >
+            Live CHIMERA
+          </button>
+        )}
         <input
           type="range"
-          className="min-w-0 flex-1"
+          className="vs-scrubber"
           min={0}
-          max={duration - 1}
-          value={frame}
+          max={Math.max(1, duration - 1)}
+          value={Math.min(frame, Math.max(0, duration - 1))}
           aria-label="Seek performance"
           onChange={(e) => userJumpToFrame(Number(e.target.value))}
         />
-        <output>
+        <output className="vs-time-readout">
           {(frame / fps).toFixed(1)} / {(duration / fps).toFixed(1)} s
         </output>
+        {stageRef && (
+          <button
+            type="button"
+            className="vs-fs-btn"
+            aria-label="Toggle fullscreen"
+            onClick={toggleFullscreen}
+          >
+            <span aria-hidden="true">⛶</span>
+          </button>
+        )}
       </div>
       {sections && sections.length > 1 && (
-        <nav aria-label="Rehearsal scenes" className="flex flex-wrap gap-1 py-2">
-          {sections.map((section, i) => (
-            <button
-              key={`${section.beat}-${i}`}
-              type="button"
-              className="rounded px-2 py-1 text-xs capitalize"
-              onClick={() => userJumpToFrame(introFrames + Math.ceil((LEAD_IN + section.beat * secondsPerBeat) * fps))}
-            >
-              {section.name}
-            </button>
-          ))}
+        <nav aria-label="Rehearsal scenes" className="vs-scene-pills">
+          {sections.map((section, i) => {
+            const startSec = LEAD_IN + section.beat * secondsPerBeat;
+            const next = sections[i + 1];
+            const nextSec = next ? LEAD_IN + next.beat * secondsPerBeat : Infinity;
+            const active = stageSec >= startSec - 0.05 && stageSec < nextSec - 0.05;
+            return (
+              <button
+                key={`${section.beat}-${i}`}
+                type="button"
+                aria-current={active ? "step" : undefined}
+                className="vs-scene-pill"
+                onClick={() => userJumpToFrame(introFrames + Math.ceil(startSec * fps))}
+              >
+                {section.name}
+              </button>
+            );
+          })}
         </nav>
       )}
-      <MusicRack
-        timeSec={seconds}
-        playing={playing}
-        onSeek={(time) => userJumpToFrame(introFrames + Math.round(time * fps))}
-      />
+    </div>
+  );
+}
+
+/**
+ * Dedicated sibling authored-MIDI sheet music follower for the right column of Video Studio.
+ * Owns 100% of its grid column so ChoirScore aligns flush with the top of the video without clipping.
+ */
+export function StaffFollower({
+  project,
+  playerRef,
+}: {
+  project: MoppetVideoProps;
+  playerRef: RefObject<PlayerRef | null>;
+}) {
+  const { frame, playing } = usePlayerClock(playerRef);
+  const { fps, introFrames } = videoFrameLayout(project);
+  const duration = totalDurationFrames(project);
+  const seconds = Math.max(0, (frame - introFrames) / fps);
+
+  const userJumpToTime = (time: number) => {
+    const player = playerRef.current;
+    if (!player) return;
+    player.pause();
+    player.seekTo(Math.max(0, Math.min(duration - 1, introFrames + Math.round(time * fps))));
+  };
+
+  return <MusicRack timeSec={seconds} playing={playing} onSeek={userJumpToTime} />;
+}
+
+/** Combined single-column transport + staff stack used by ScreeningRoom (?watch=). */
+export function TransportAndStaff({
+  project,
+  playerRef,
+  prepare,
+  busy,
+}: {
+  project: MoppetVideoProps;
+  playerRef: RefObject<PlayerRef | null>;
+  prepare?: () => void;
+  busy?: boolean;
+}) {
+  return (
+    <div className="min-w-0 space-y-3">
+      <PlayerTransport project={project} playerRef={playerRef} prepare={prepare} busy={busy} />
+      <StaffFollower project={project} playerRef={playerRef} />
     </div>
   );
 }
@@ -114,18 +219,6 @@ export function PlayerPosition({
   fps: number;
   children: (seconds: number) => React.ReactNode;
 }) {
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    const player = playerRef.current;
-    if (!player) return;
-    const update = () => setFrame(player.getCurrentFrame());
-    update();
-    player.addEventListener("frameupdate", update);
-    player.addEventListener("seeked", update);
-    return () => {
-      player.removeEventListener("frameupdate", update);
-      player.removeEventListener("seeked", update);
-    };
-  }, [playerRef]);
+  const { frame } = usePlayerClock(playerRef);
   return children(frame / fps);
 }

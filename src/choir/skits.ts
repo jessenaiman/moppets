@@ -71,7 +71,7 @@ export function makeSkit(skit: Skit, voices: readonly MoppetVoice[] = CAST): Pie
   // the final bow happens on stage, so the skit runs until it is done
   const end = Math.max(t, ...cues.map((c) => c.beat + 1.4));
   scenes[scenes.length - 1].beats = end - scenes[scenes.length - 1].beat;
-  return { kind: "skit", title: skit.title, key: "D", mode: "major", bpm: 60, beats: Math.ceil(end), chords: [], tracks, scenes, cues, description: skit.description };
+  return { kind: "skit", title: skit.title, key: "D", mode: "major", bpm: 60, beats: Math.ceil(end), chords: [], tracks, stage: tracks.map((tr) => tr.id), scenes, cues, description: skit.description };
 }
 
 /** The written skits, from their lead sheets in songs/ (`kind: skit`). */

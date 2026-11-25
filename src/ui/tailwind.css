@@ -16,15 +16,15 @@
   --color-studio-ember: #e06a4f;
 }
 
-/* Responsive two-column desk: generous 16:9 stage + full-width legible sheet music */
+/* Responsive two-column desk: balanced 16:9 stage + flush full-height sheet music to the right */
 .vs-main.vs-score-desk {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 960px) {
   .vs-main.vs-score-desk {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -33,7 +33,110 @@
 .vs-score-desk .vs-stage-col {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0.6rem;
   min-width: 0;
+}
+
+.vs-transport-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.vs-transport-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: #17100b;
+  color: #f8efe2;
+}
+
+.vs-transport-bar .vs-play-btn {
+  padding: 0.42rem 0.9rem;
+  border-radius: 7px;
+  border: 1px solid rgba(80, 207, 173, 0.7);
+  background: rgba(80, 207, 173, 0.22);
+  color: #f8efe2;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-play-btn:hover {
+  background: rgba(80, 207, 173, 0.36);
+  color: #ffffff;
+}
+
+.vs-transport-bar .vs-live-btn {
+  padding: 0.42rem 0.75rem;
+  border-radius: 7px;
+  border: 1px solid rgba(227, 189, 127, 0.55);
+  background: rgba(227, 189, 127, 0.14);
+  color: #f4dfba;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-live-btn:hover {
+  background: rgba(227, 189, 127, 0.28);
+  color: #ffffff;
+}
+
+.vs-transport-bar .vs-scrubber {
+  flex: 1 1 160px;
+  min-width: 0;
+  accent-color: #50cfad;
+  height: 6px;
+  cursor: pointer;
+}
+
+.vs-transport-bar .vs-time-readout {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e7d8c1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-fs-btn {
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: rgba(46, 33, 22, 0.85);
+  color: #f8efe2;
+  line-height: 1;
+}
+
+.vs-scene-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.vs-scene-pill {
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: rgba(42, 29, 19, 0.9);
+  color: #ebd9be;
+  font-size: 0.76rem;
+  text-transform: capitalize;
+}
+
+.vs-scene-pill[aria-current="step"] {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.24);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .vs-score-desk .vs-player-frame {
@@ -113,9 +216,9 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
-  height: auto;
-  min-height: 320px;
-  max-height: 62vh;
+  height: 100%;
+  min-height: 440px;
+  max-height: clamp(500px, 72vh, 720px);
   background: #fbf6e9;
   color: #2b1e17;
   border: 1px solid #946738;
