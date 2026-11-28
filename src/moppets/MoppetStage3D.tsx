@@ -1,17 +1,29 @@
 /**
- * 60 fps Three.js 2.5D Studio 404 Stage for Tabby (Mop #1).
+ * 60 fps Lit Three.js 2.5D Studio 404 Stage for Canon v2 Tabby (Mop #1).
  *
- * Samples pre-verified RGBA WebP atlases (`idle`, `sing`, `belt`, `chuckle`, `walk`, `bow`)
- * with 0.4% UV cell inset (`0 ms` seek latency), applies CHIMERA `Expression` physics
- * (`nod`, `tilt`, `puff`, real `beatStep`), smooth damped camera shots, lateral walk blocking,
- * and a live 60 fps CHIMERA Acoustic Lip & Formant Scope painted onto Tabby's riser monitor.
+ * Streams audited 24 fps `#00FF00` Canon v2 MP4 clips via `THREE.VideoTexture`, applies a custom
+ * cyan-protected GLSL chroma key + green despill + 2.5D normal-wrapped stage lighting shader,
+ * mounts Tabby atop her weathered steamer-trunk riser beside a vintage brass mic & XLR cable
+ * matching `Tabby_StageRiser_MagicTrick_CANON.jpg`, and layers CHIMERA Expression physics.
  */
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Expression } from "../ui/render/expression.ts";
-import type { MopClipManifest, MopClipSpec } from "../../tools/pack-mop-fmv.ts";
+import type { MopFmvClipSpec, MopFmvManifest } from "../../tools/prepare-mop-fmv.ts";
 import type { CameraPreset, MopAction } from "./midiSong.ts";
 import type { MopFrameState } from "./player.ts";
+
+export interface StageDebugInfo {
+  activeAction: MopAction;
+  videoCurrentTime: number;
+  videoDuration: number;
+  frameIndex: number;
+  totalFrames: number;
+  readyState: number;
+  videoWidth: number;
+  videoHeight: number;
+  usingVideoTexture: boolean;
+}
 
 export interface MoppetStageProps {
   getFrame: () => MopFrameState;
@@ -19,80 +31,101 @@ export interface MoppetStageProps {
   actionOverride: MopAction | null;
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
   onCaptionFrame?: (text: string) => void;
+  onStageDebug?: (dbg: StageDebugInfo) => void;
 }
 
 const LOGICAL_W = 1280;
 const LOGICAL_H = 720;
 
 const CAMERA_TARGETS: Record<CameraPreset, { pos: [number, number, number]; look: [number, number, number] }> = {
-  wide: { pos: [0, 1.55, 5.4], look: [0, 1.32, 0] },
-  closeup: { pos: [0, 1.85, 2.75], look: [0, 1.72, 0] },
-  reaction: { pos: [0.45, 1.72, 3.3], look: [0, 1.55, 0] },
-  "low-angle": { pos: [-0.25, 0.92, 3.65], look: [0, 1.58, 0] },
+  wide: { pos: [0, 1.52, 5.25], look: [0, 1.28, 0] },
+  closeup: { pos: [0, 1.72, 2.7], look: [0, 1.56, 0] },
+  reaction: { pos: [0.42, 1.62, 3.25], look: [0, 1.44, 0] },
+  "low-angle": { pos: [-0.22, 0.88, 3.55], look: [0, 1.46, 0] },
 };
 
-function drawScopeScreen(
-  ctx: CanvasRenderingContext2D,
-  frame: MopFrameState,
-  expr: Expression,
-): void {
-  const w = ctx.canvas.width;
-  const h = ctx.canvas.height;
-  ctx.fillStyle = "#0b0e12";
-  ctx.fillRect(0, 0, w, h);
+const VERTEX_SHADER = /* glsl */ `
+  varying vec2 vUv;
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
 
-  ctx.strokeStyle = "rgba(47, 191, 160, 0.28)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(4, 4, w - 8, h - 8);
-
-  const artic = frame.artic;
-  const lipAp = Math.max(0.05, Math.min(2.4, artic?.lipAp ?? (frame.rms > 0.01 ? frame.rms * 7 : 0.08)));
-  const lipW = Math.max(0.4, Math.min(2.2, artic?.lipWidth ?? 0.95));
-  const f0 = frame.f0 > 40 ? `${Math.round(frame.f0)} Hz` : "REST";
-  const syllable = frame.wordText || (frame.playing ? "…" : "CHIMERA");
-
-  // Left: live physical lip aperture oval driven directly by CHIMERA HumanArtic
-  const mx = 74;
-  const my = h / 2;
-  const rx = 18 + lipW * 12;
-  const ry = 4 + lipAp * 13;
-
-  ctx.save();
-  ctx.strokeStyle = "#2fbfa0";
-  ctx.lineWidth = 3;
-  ctx.fillStyle = frame.rms > 0.01 ? "rgba(47, 191, 160, 0.25)" : "rgba(47, 191, 160, 0.08)";
-  ctx.beginPath();
-  ctx.ellipse(mx, my, rx, Math.min(34, ry), 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Cheek puff indicator dots
-  const puff = Math.max(0, expr.puff);
-  if (puff > 0.05) {
-    ctx.fillStyle = `rgba(230, 162, 76, ${Math.min(0.9, puff)})`;
-    ctx.beginPath();
-    ctx.arc(mx - rx - 10, my, 4 + puff * 4, 0, Math.PI * 2);
-    ctx.arc(mx + rx + 10, my, 4 + puff * 4, 0, Math.PI * 2);
-    ctx.fill();
+  void main() {
+    vUv = uv;
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vWorldPos = wp.xyz;
+    vWorldNormal = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp;
   }
-  ctx.restore();
+`;
 
-  // Right: live syllable + F0 + RMS bar
-  ctx.fillStyle = "#f2efe9";
-  ctx.font = '700 26px "JetBrains Mono", monospace';
-  ctx.textBaseline = "middle";
-  ctx.fillText(syllable.toUpperCase(), 148, 36);
+const FRAGMENT_SHADER = /* glsl */ `
+  uniform sampler2D uTex;
+  uniform float uIsRgbaFallback;
+  uniform float uFlipX;
+  uniform vec3 uKeyPos;
+  uniform vec3 uKeyColor;
+  uniform float uKeyIntensity;
+  uniform vec3 uRimPos;
+  uniform vec3 uRimColor;
+  uniform float uRimIntensity;
+  uniform vec3 uAmbientColor;
+  uniform float uEyeGlow;
 
-  ctx.fillStyle = "#2fbfa0";
-  ctx.font = '600 18px "JetBrains Mono", monospace';
-  ctx.fillText(`F0 ${f0}  ·  JAW ${(artic?.jaw ?? 0).toFixed(2)}`, 148, 70);
+  varying vec2 vUv;
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
 
-  const barW = Math.max(4, Math.min(200, frame.rms * 950));
-  ctx.fillStyle = "#1d262c";
-  ctx.fillRect(148, 90, 200, 10);
-  ctx.fillStyle = "#e6a24c";
-  ctx.fillRect(148, 90, barW, 10);
-}
+  void main() {
+    vec2 suv = vec2(uFlipX < 0.0 ? 1.0 - vUv.x : vUv.x, vUv.y);
+    vec4 raw = texture2D(uTex, suv);
+
+    float alpha = raw.a;
+    if (uIsRgbaFallback < 0.5) {
+      // Discriminate green screen against cyan pixel eyes (high G AND high B)
+      float maxRB = max(raw.r, raw.b * 1.08);
+      float greenExcess = raw.g - maxRB;
+      alpha = 1.0 - smoothstep(0.13, 0.30, greenExcess);
+      if (alpha < 0.04) discard;
+
+      // Soft edge feather + cyan-safe despill
+      float isCyan = smoothstep(0.30, 0.56, raw.b) * (1.0 - smoothstep(0.28, 0.54, raw.r));
+      float despillCeiling = mix(max(raw.r, raw.b) * 1.04, raw.g, isCyan);
+      raw.g = min(raw.g, mix(raw.g, despillCeiling, 0.90));
+    } else {
+      if (alpha < 0.04) discard;
+    }
+
+    // Identify glowing cyan pixel eyes (#2FD4A6) so stage darkness never crushes them
+    float cyanMask =
+      smoothstep(0.40, 0.78, raw.g) *
+      smoothstep(0.35, 0.70, raw.b) *
+      (1.0 - smoothstep(0.24, 0.52, raw.r));
+
+    // Convert sRGB texel to linear space for physically consistent lighting
+    vec3 albedo = pow(max(raw.rgb, vec3(0.0)), vec3(2.2));
+
+    // Rounded 2.5D plush relief normal across puppet plane
+    vec3 bend = vec3((vUv.x - 0.5) * 0.65, (vUv.y - 0.5) * 0.32, 0.0);
+    vec3 N = normalize(vWorldNormal + bend);
+
+    vec3 Lkey = normalize(uKeyPos - vWorldPos);
+    float ndlKey = max(0.0, dot(N, Lkey)) * 0.78 + 0.22;
+
+    vec3 Lrim = normalize(uRimPos - vWorldPos);
+    float edgeMask = smoothstep(0.15, 0.48, abs(vUv.x - 0.5) * 1.8);
+    float ndlRim = max(0.0, dot(N, Lrim)) * (0.45 + 0.55 * edgeMask);
+
+    vec3 floorBounce = vec3(0.16, 0.11, 0.08) * (1.0 - smoothstep(0.0, 0.65, vUv.y));
+    vec3 lightSum = uAmbientColor + uKeyColor * (ndlKey * uKeyIntensity) + uRimColor * (ndlRim * uRimIntensity) + floorBounce;
+
+    // Gentle highlight compression + cyan eye self-emissive vocal pulse
+    vec3 lit = albedo * lightSum + albedo * cyanMask * (0.24 + uEyeGlow * 0.35);
+    lit = lit / (vec3(1.0) + lit * 0.14);
+
+    vec3 srgbOut = pow(max(lit, vec3(0.0)), vec3(1.0 / 2.2));
+    gl_FragColor = vec4(srgbOut, alpha);
+  }
+`;
 
 export function MoppetStage3D({
   getFrame,
@@ -100,6 +133,7 @@ export function MoppetStage3D({
   actionOverride,
   onCanvasReady,
   onCaptionFrame,
+  onStageDebug,
 }: MoppetStageProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const getFrameRef = useRef(getFrame);
@@ -112,6 +146,8 @@ export function MoppetStage3D({
   onCanvasReadyRef.current = onCanvasReady;
   const captionCbRef = useRef(onCaptionFrame);
   captionCbRef.current = onCaptionFrame;
+  const stageDebugRef = useRef(onStageDebug);
+  stageDebugRef.current = onStageDebug;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -126,188 +162,257 @@ export function MoppetStage3D({
     renderer.setSize(LOGICAL_W, LOGICAL_H, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.className = "moppet-stage-canvas";
     renderer.domElement.setAttribute("data-testid", "moppet-stage-canvas");
     host.replaceChildren(renderer.domElement);
     onCanvasReadyRef.current?.(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#111014");
-    scene.fog = new THREE.Fog("#111014", 6.5, 13.5);
+    scene.background = new THREE.Color("#110f12");
+    scene.fog = new THREE.Fog("#110f12", 6.5, 13.5);
 
     const camera = new THREE.PerspectiveCamera(38, LOGICAL_W / LOGICAL_H, 0.1, 40);
     camera.position.set(...CAMERA_TARGETS.wide.pos);
     camera.lookAt(...CAMERA_TARGETS.wide.look);
 
-    // Lighting
-    const hemi = new THREE.HemisphereLight("#ffe4be", "#1c1824", 1.15);
+    // Stage lighting (2700K tungsten key + amber/teal fill + back rim)
+    const hemi = new THREE.HemisphereLight("#ffe4be", "#1c1824", 1.1);
     scene.add(hemi);
-    const keyLight = new THREE.SpotLight("#ffd8a6", 36, 16, Math.PI / 4, 0.45, 1.5);
-    keyLight.position.set(-2.4, 5.2, 4.2);
+
+    const keyLight = new THREE.SpotLight("#ffd296", 44, 18, Math.PI / 4, 0.45, 1.35);
+    keyLight.position.set(-2.5, 5.1, 3.8);
     keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(1024, 1024);
     scene.add(keyLight);
 
-    const rimLight = new THREE.SpotLight("#2fbfa0", 22, 14, Math.PI / 4, 0.5, 1.5);
-    rimLight.position.set(2.8, 4.3, 2.8);
+    const rimLight = new THREE.SpotLight("#ffbc78", 24, 15, Math.PI / 4, 0.5, 1.4);
+    rimLight.position.set(2.7, 4.4, 2.3);
     scene.add(rimLight);
 
-    // Stage floor
+    // Stage rug/timber floor receiving shadows
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(16, 10),
-      new THREE.MeshStandardMaterial({ color: "#1d171c", roughness: 0.85, metalness: 0.08 }),
+      new THREE.MeshStandardMaterial({ color: "#1d1514", roughness: 0.88, metalness: 0.05 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Studio 404 backdrop plane
+    // Studio 404 empty stage backdrop plate
     const loader = new THREE.TextureLoader();
     const bgTex = loader.load("/moppets/tabby/studio-404-stage.webp");
     bgTex.colorSpace = THREE.SRGBColorSpace;
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(11.4, 6.4),
-      new THREE.MeshBasicMaterial({ map: bgTex, color: "#d8cfc7" }),
+      new THREE.MeshBasicMaterial({ map: bgTex, color: "#dfd3c8" }),
     );
-    backdrop.position.set(0, 2.7, -3.2);
+    backdrop.position.set(0, 2.75, -3.25);
     scene.add(backdrop);
 
-    // Volumetric spotlight beams (subtle additive cones)
+    // Subtle atmospheric spotlight cones (warm tungsten Fresnel behind performer)
     const beamMatL = new THREE.MeshBasicMaterial({
-      color: "#ffcf8c",
+      color: "#ffd194",
       transparent: true,
-      opacity: 0.075,
+      opacity: 0.042,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
     });
-    const beamL = new THREE.Mesh(new THREE.ConeGeometry(1.75, 5.8, 24, 1, true), beamMatL);
-    beamL.position.set(-1.35, 2.55, 0.1);
+    const beamL = new THREE.Mesh(new THREE.ConeGeometry(1.85, 5.8, 24, 1, true), beamMatL);
+    beamL.position.set(-1.35, 2.55, -0.75);
     beamL.rotation.z = -0.34;
     scene.add(beamL);
 
     const beamMatR = beamMatL.clone();
-    beamMatR.color.set("#2fbfa0");
-    beamMatR.opacity = 0.055;
-    const beamR = new THREE.Mesh(new THREE.ConeGeometry(1.65, 5.6, 24, 1, true), beamMatR);
-    beamR.position.set(1.45, 2.55, 0.1);
+    beamMatR.color.set("#ffbf78");
+    beamMatR.opacity = 0.03;
+    const beamR = new THREE.Mesh(new THREE.ConeGeometry(1.75, 5.6, 24, 1, true), beamMatR);
+    beamR.position.set(1.45, 2.55, -0.75);
     beamR.rotation.z = 0.34;
     scene.add(beamR);
 
-    // Tabby's Wooden Stage Riser Crate (raises her to frontline mic height per character_constraints.json)
+    // 70 drifting golden dust motes in spotlight beams
+    const moteCount = 70;
+    const motePos = new Float32Array(moteCount * 3);
+    const moteSeed = new Float32Array(moteCount);
+    for (let i = 0; i < moteCount; i++) {
+      motePos[i * 3] = (Math.random() - 0.5) * 4.4;
+      motePos[i * 3 + 1] = 0.3 + Math.random() * 2.8;
+      motePos[i * 3 + 2] = -0.6 + Math.random() * 1.4;
+      moteSeed[i] = Math.random() * Math.PI * 2;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute("position", new THREE.BufferAttribute(motePos, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: "#ffe1ad",
+      size: 0.028,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const motes = new THREE.Points(moteGeo, moteMat);
+    scene.add(motes);
+
+    // Vintage Weathered Steamer-Trunk Stage Riser (matches Tabby_StageRiser_MagicTrick_CANON.jpg)
     const riserGroup = new THREE.Group();
-    const riserMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1.38, 0.34, 0.84),
-      new THREE.MeshStandardMaterial({ color: "#5f3e26", roughness: 0.78, metalness: 0.06 }),
-    );
-    riserMesh.position.y = 0.17;
-    riserMesh.castShadow = true;
-    riserMesh.receiveShadow = true;
-    riserGroup.add(riserMesh);
+    const woodMat = new THREE.MeshStandardMaterial({ color: "#4d2f1c", roughness: 0.82, metalness: 0.06 });
+    const trimWoodMat = new THREE.MeshStandardMaterial({ color: "#361f12", roughness: 0.74, metalness: 0.08 });
+    const brassMat = new THREE.MeshStandardMaterial({ color: "#c4944e", roughness: 0.36, metalness: 0.82 });
+    const leatherMat = new THREE.MeshStandardMaterial({ color: "#2b1a10", roughness: 0.68, metalness: 0.05 });
 
-    const trimMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1.42, 0.04, 0.88),
-      new THREE.MeshStandardMaterial({ color: "#8b5f3c", roughness: 0.65 }),
-    );
-    trimMesh.position.y = 0.34;
-    riserGroup.add(trimMesh);
+    const trunkBody = new THREE.Mesh(new THREE.BoxGeometry(1.48, 0.30, 0.88), woodMat);
+    trunkBody.position.y = 0.15;
+    trunkBody.castShadow = true;
+    trunkBody.receiveShadow = true;
+    riserGroup.add(trunkBody);
 
-    // Live 60 fps CHIMERA Acoustic Lip & Formant Scope mounted on front of riser
-    const scopeCanvas = document.createElement("canvas");
-    scopeCanvas.width = 384;
-    scopeCanvas.height = 116;
-    const scopeCtx = scopeCanvas.getContext("2d")!;
-    const scopeTex = new THREE.CanvasTexture(scopeCanvas);
-    scopeTex.colorSpace = THREE.SRGBColorSpace;
-    const scopeMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.96, 0.26),
-      new THREE.MeshBasicMaterial({ map: scopeTex }),
-    );
-    scopeMesh.position.set(0, 0.17, 0.425);
-    riserGroup.add(scopeMesh);
+    const trunkLid = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.05, 0.94), trimWoodMat);
+    trunkLid.position.y = 0.315;
+    trunkLid.castShadow = true;
+    trunkLid.receiveShadow = true;
+    riserGroup.add(trunkLid);
+
+    // Leather belt straps + aged brass corner brackets + clasp
+    for (const sx of [-0.46, 0.46]) {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.345, 0.90), leatherMat);
+      strap.position.set(sx, 0.172, 0.0);
+      riserGroup.add(strap);
+      const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.065, 0.02), brassMat);
+      buckle.position.set(sx, 0.24, 0.455);
+      riserGroup.add(buckle);
+    }
+    const centerClasp = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.10, 0.025), brassMat);
+    centerClasp.position.set(0, 0.275, 0.462);
+    riserGroup.add(centerClasp);
+    for (const cx of [-0.73, 0.73]) {
+      for (const cy of [0.03, 0.315]) {
+        const corner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.95), brassMat);
+        corner.position.set(cx, cy, 0);
+        riserGroup.add(corner);
+      }
+    }
     scene.add(riserGroup);
 
-    // Chrome Frontline Stand Mic positioned respectfully beside Tabby (NON-CONTACT)
+    // Vintage Brass Frontline Stand Mic & XLR Cable (NON-CONTACT beside Tabby per character_constraints.json)
     const micGroup = new THREE.Group();
-    micGroup.position.set(0.76, 0, 0.34);
-    const micMat = new THREE.MeshStandardMaterial({ color: "#b6bec8", metalness: 0.82, roughness: 0.26 });
-    const micBase = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.04, 24), micMat);
-    micBase.position.y = 0.02;
-    const micPole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 1.56, 16), micMat);
-    micPole.position.y = 0.78;
-    const micBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.42, 12), micMat);
-    micBoom.position.set(-0.14, 1.58, -0.06);
-    micBoom.rotation.z = 1.15;
+    micGroup.position.set(0.84, 0, 0.24);
+    const ironBaseMat = new THREE.MeshStandardMaterial({ color: "#2b241d", metalness: 0.72, roughness: 0.42 });
+    const micBase = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.19, 0.038, 24), ironBaseMat);
+    micBase.position.y = 0.019;
+    micBase.castShadow = true;
+    const micPole = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.021, 1.50, 16), brassMat);
+    micPole.position.y = 0.75;
+    micPole.castShadow = true;
+    const micClutch = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.06, 16), ironBaseMat);
+    micClutch.position.y = 1.02;
+    const micBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.013, 0.36, 12), brassMat);
+    micBoom.position.set(-0.12, 1.52, -0.04);
+    micBoom.rotation.z = 1.18;
     const micHead = new THREE.Mesh(
-      new THREE.SphereGeometry(0.052, 16, 16),
-      new THREE.MeshStandardMaterial({ color: "#d6dce2", metalness: 0.9, roughness: 0.22 }),
+      new THREE.SphereGeometry(0.048, 16, 16),
+      new THREE.MeshStandardMaterial({ color: "#c8cbd0", metalness: 0.88, roughness: 0.28 }),
     );
-    micHead.position.set(-0.33, 1.66, -0.1);
-    micGroup.add(micBase, micPole, micBoom, micHead);
+    micHead.position.set(-0.28, 1.59, -0.07);
+    micGroup.add(micBase, micPole, micClutch, micBoom, micHead);
+
+    // Coiled black XLR cable trailing across the stage rug
+    const cableCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.28, 1.55, -0.07),
+      new THREE.Vector3(-0.04, 1.10, -0.02),
+      new THREE.Vector3(0.04, 0.35, 0.02),
+      new THREE.Vector3(0.18, 0.02, 0.14),
+      new THREE.Vector3(0.68, 0.016, 0.32),
+      new THREE.Vector3(1.65, 0.016, 0.12),
+    ]);
+    const cableMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(cableCurve, 32, 0.009, 8, false),
+      new THREE.MeshStandardMaterial({ color: "#151418", roughness: 0.85, metalness: 0.1 }),
+    );
+    micGroup.add(cableMesh);
     scene.add(micGroup);
 
-    // Grounded contact shadow & #2fbfa0 vocal halo on riser top
+    // Grounded paw contact shadow atop trunk lid (no neon ring)
     const contactShadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.46, 32),
-      new THREE.MeshBasicMaterial({ color: "#050408", transparent: true, opacity: 0.52, depthWrite: false }),
+      new THREE.CircleGeometry(0.42, 32),
+      new THREE.MeshBasicMaterial({ color: "#080504", transparent: true, opacity: 0.54, depthWrite: false }),
     );
     contactShadow.rotation.x = -Math.PI / 2;
     contactShadow.scale.set(1, 0.42, 1);
-    contactShadow.position.set(0, 0.365, 0.02);
+    contactShadow.position.set(0, 0.343, 0.02);
     scene.add(contactShadow);
 
-    const haloMat = new THREE.MeshBasicMaterial({
-      color: "#2fbfa0",
-      transparent: true,
-      opacity: 0.25,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const haloRing = new THREE.Mesh(new THREE.RingGeometry(0.44, 0.5, 40), haloMat);
-    haloRing.rotation.x = -Math.PI / 2;
-    haloRing.scale.set(1, 0.44, 1);
-    haloRing.position.set(0, 0.366, 0.02);
-    scene.add(haloRing);
+    // Tabby 2.5D Lit FMV Plane
+    // Manifest normalizes standing height = 516/720 (0.7167) inside 576x720 with foot baseline anchorY = 0.9306.
+    // Target standing height on riser = 1.62 world units -> total plane height = 2.26w * (576/720) = 1.808 x 2.26.
+    const STAND_WORLD_H = 1.62;
+    const planeGeo = new THREE.PlaneGeometry(1, 1);
+    const fallbackTex = loader.load("/moppets/tabby/canon-front.webp");
+    fallbackTex.colorSpace = THREE.NoColorSpace;
 
-    // Tabby 2.5D Puppet Plane (448:560 aspect -> 1.62w x 2.025h world units, bottom origin)
-    const puppetW = 1.62;
-    const puppetH = puppetW * (560 / 448);
-    const puppetGeo = new THREE.PlaneGeometry(puppetW, puppetH);
-    puppetGeo.translate(0, puppetH / 2, 0);
-
-    const fallbackTex = loader.load("/moppets/tabby/bible-hero.webp");
-    fallbackTex.colorSpace = THREE.SRGBColorSpace;
-    const puppetMat = new THREE.MeshBasicMaterial({
-      map: fallbackTex,
+    const puppetMat = new THREE.ShaderMaterial({
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: FRAGMENT_SHADER,
       transparent: true,
-      alphaTest: 0.03,
+      depthWrite: true,
       side: THREE.DoubleSide,
+      uniforms: {
+        uTex: { value: fallbackTex },
+        uIsRgbaFallback: { value: 1.0 },
+        uFlipX: { value: 1.0 },
+        uKeyPos: { value: keyLight.position.clone() },
+        uKeyColor: { value: new THREE.Color("#ffd9a8") },
+        uKeyIntensity: { value: 1.02 },
+        uRimPos: { value: rimLight.position.clone() },
+        uRimColor: { value: new THREE.Color("#ffc682") },
+        uRimIntensity: { value: 0.42 },
+        uAmbientColor: { value: new THREE.Color("#2b2321") },
+        uEyeGlow: { value: 1.0 },
+      },
     });
-    const puppetMesh = new THREE.Mesh(puppetGeo, puppetMat);
-    puppetMesh.position.set(0, 0.36, 0.04);
+    const puppetMesh = new THREE.Mesh(planeGeo, puppetMat);
+    puppetMesh.position.set(0, 0.34, 0.04);
     scene.add(puppetMesh);
 
-    // Load verified manifest + preload every action RGBA WebP atlas
-    let manifest: MopClipManifest | null = null;
-    const atlasTextures = new Map<string, THREE.Texture>();
+    const setPlaneFootMetrics = (aspect: number, bodyHeightNorm: number, anchorY: number) => {
+      const h = STAND_WORLD_H / Math.max(0.3, bodyHeightNorm);
+      const w = h * aspect;
+      puppetMesh.scale.set(w, h, 1);
+      // Center of plane shifted so normalized top-down anchorY touches y=0 in parent space (0.34 on trunk lid)
+      return h * (anchorY - 0.5);
+    };
+    let footOffsetY = setPlaneFootMetrics(478 / 960, 0.96, 0.985);
+
+    // Load Canon v2 FMV manifest & preload hidden HTMLVideoElement + THREE.VideoTexture pool
+    const videos = new Map<string, { video: HTMLVideoElement; tex: THREE.VideoTexture; spec: MopFmvClipSpec }>();
     let disposed = false;
 
     void fetch("/moppets/tabby/manifest.json")
-      .then((r) => r.json() as Promise<MopClipManifest>)
+      .then((r) => r.json() as Promise<MopFmvManifest>)
       .then((mf) => {
         if (disposed) return;
-        manifest = mf;
         for (const [action, spec] of Object.entries(mf.actions)) {
-          const tex = loader.load(spec.atlasUrl);
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.wrapS = THREE.ClampToEdgeWrapping;
-          tex.wrapT = THREE.ClampToEdgeWrapping;
+          const video = document.createElement("video");
+          video.src = spec.videoUrl;
+          video.muted = true;
+          video.playsInline = true;
+          video.loop = spec.loop;
+          video.preload = "auto";
+          video.crossOrigin = "anonymous";
+          video.load();
+          if (action === "idle") {
+            void video.play().catch(() => {});
+          }
+          const tex = new THREE.VideoTexture(video);
+          tex.colorSpace = THREE.NoColorSpace;
           tex.minFilter = THREE.LinearFilter;
           tex.magFilter = THREE.LinearFilter;
           tex.generateMipmaps = false;
-          atlasTextures.set(action, tex);
+          videos.set(action, { video, tex, spec });
         }
       })
-      .catch((err) => console.error("Failed to load Tabby manifest:", err));
+      .catch((err) => console.error("Failed to load Tabby FMV manifest:", err));
 
     const expr = new Expression();
     const camPos = new THREE.Vector3(...CAMERA_TARGETS.wide.pos);
@@ -315,7 +420,6 @@ export function MoppetStage3D({
     let actorX = 0;
     let facing = 1;
     let activeAction: MopAction = "idle";
-    let actionElapsed = 0;
     let lastNow = performance.now() / 1000;
     let raf = 0;
 
@@ -329,21 +433,53 @@ export function MoppetStage3D({
       expr.update(frame.tele, dt);
       captionCbRef.current?.(frame.phraseText);
 
-      // Select action (manual trigger pad overrides song cue while active)
       const desiredAction: MopAction = actOverrideRef.current ?? frame.cueAction;
       if (desiredAction !== activeAction) {
+        const prevEntry = videos.get(activeAction);
+        if (prevEntry && prevEntry.video !== videos.get(desiredAction)?.video) {
+          prevEntry.video.pause();
+        }
         activeAction = desiredAction;
-        actionElapsed = 0;
-      } else {
-        actionElapsed += dt;
+        const nextEntry = videos.get(activeAction) ?? videos.get("idle");
+        if (nextEntry) {
+          if (!nextEntry.spec.loop || nextEntry.video.ended) {
+            try {
+              nextEntry.video.currentTime = 0;
+            } catch {
+              // ignore seek before metadata
+            }
+          }
+          void nextEntry.video.play().catch(() => {});
+        }
       }
 
-      // Walk blocking & facing
+      // Keep active video advancing cleanly
+      const entry = videos.get(activeAction) ?? videos.get("idle");
+      const usingVideo = Boolean(entry && entry.video.readyState >= 2 && entry.video.videoWidth > 0);
+      if (entry && usingVideo) {
+        if (entry.spec.loop && entry.video.paused) {
+          void entry.video.play().catch(() => {});
+        }
+        if (puppetMat.uniforms.uTex.value !== entry.tex) {
+          puppetMat.uniforms.uTex.value = entry.tex;
+          puppetMat.uniforms.uIsRgbaFallback.value = 0.0;
+          footOffsetY = setPlaneFootMetrics(entry.spec.aspect, entry.spec.bodyHeightNorm, entry.spec.anchorY);
+        }
+        entry.tex.needsUpdate = true;
+      } else {
+        if (puppetMat.uniforms.uTex.value !== fallbackTex) {
+          puppetMat.uniforms.uTex.value = fallbackTex;
+          puppetMat.uniforms.uIsRgbaFallback.value = 1.0;
+          footOffsetY = setPlaneFootMetrics(478 / 960, 0.96, 0.985);
+        }
+      }
+
+      // Lateral walk blocking & flipX
       let targetX = 0;
       if (desiredAction === "walk" || frame.moveTarget) {
         if (frame.moveTarget === "left") targetX = -0.34;
         else if (frame.moveTarget === "right") targetX = 0.34;
-        else if (desiredAction === "walk") targetX = Math.sin(now * 1.4) * 0.28;
+        else if (desiredAction === "walk") targetX = Math.sin(now * 1.35) * 0.28;
       }
       const dx = targetX - actorX;
       if (Math.abs(dx) > 0.015 && desiredAction === "walk") {
@@ -356,63 +492,42 @@ export function MoppetStage3D({
       // Jump arc
       const jumpY =
         frame.jumpProgress > 0 && frame.jumpProgress < 1
-          ? Math.sin(frame.jumpProgress * Math.PI) * 0.32
+          ? Math.sin(frame.jumpProgress * Math.PI) * 0.30
           : 0;
 
-      // Sample verified WebP atlas cell (0.4% inset prevents neighbor-cell bleed)
-      const spec: MopClipSpec | undefined = manifest?.actions[activeAction] ?? manifest?.actions.idle;
-      const tex = spec ? atlasTextures.get(activeAction) ?? atlasTextures.get("idle") : undefined;
-      if (spec && tex && tex.image) {
-        if (puppetMat.map !== tex) {
-          puppetMat.map = tex;
-          puppetMat.needsUpdate = true;
-        }
-        const total = Math.max(1, spec.frames);
-        const rawIdx = Math.floor(actionElapsed * spec.fps);
-        const idx = activeAction === "bow" ? Math.min(total - 1, rawIdx) : rawIdx % total;
-        const col = idx % spec.cols;
-        const row = Math.floor(idx / spec.cols);
-        const cellU = 1 / spec.cols;
-        const cellV = 1 / spec.rows;
-        const insetU = cellU * 0.004;
-        const insetV = cellV * 0.004;
+      // Subtle CHIMERA Expression physics (micro nod + tilt + chest breath, FMV drives the limbs & eyes)
+      const puffStretch = 1 + Math.max(-0.025, Math.min(0.035, expr.puff * 0.02));
+      const nodAngle = Math.max(-0.045, Math.min(0.045, expr.nod * 0.25));
+      const tiltAngle = Math.max(-0.055, Math.min(0.055, expr.tilt * 0.3));
 
-        const u0 = col * cellU + insetU;
-        const uW = cellU - insetU * 2;
-        const v0 = 1 - (row + 1) * cellV + insetV;
-        const vH = cellV - insetV * 2;
-
-        if (facing < 0) {
-          tex.repeat.set(-uW, vH);
-          tex.offset.set(u0 + uW, v0);
-        } else {
-          tex.repeat.set(uW, vH);
-          tex.offset.set(u0, v0);
-        }
+      puppetMesh.position.set(actorX, 0.34 + footOffsetY + jumpY, 0.04);
+      puppetMesh.rotation.set(nodAngle, 0, -tiltAngle);
+      const spec = entry?.spec;
+      if (spec && usingVideo) {
+        const h = STAND_WORLD_H / Math.max(0.3, spec.bodyHeightNorm);
+        const w = h * spec.aspect;
+        puppetMesh.scale.set(w * puffStretch, h / Math.sqrt(puffStretch), 1);
       }
 
-      // Subtle CHIMERA Expression motion (nod + tilt + breath stretch)
-      const puffStretch = 1 + Math.max(-0.04, Math.min(0.06, expr.puff * 0.035));
-      const nodAngle = Math.max(-0.08, Math.min(0.08, expr.nod * 0.45));
-      const tiltAngle = Math.max(-0.09, Math.min(0.09, expr.tilt * 0.55));
-      puppetMesh.position.set(actorX, 0.36 + jumpY, 0.04);
-      puppetMesh.rotation.set(nodAngle, 0, -tiltAngle);
-      puppetMesh.scale.set(puffStretch, 1 / Math.sqrt(puffStretch), 1);
+      puppetMat.uniforms.uFlipX.value = facing;
+      puppetMat.uniforms.uKeyIntensity.value = 0.98 + Math.min(0.28, frame.rms * 1.15);
+      puppetMat.uniforms.uEyeGlow.value = 0.8 + Math.min(1.6, frame.rms * 6.0) + (frame.artic?.lipAp ?? 0) * 0.18;
 
       contactShadow.position.x = actorX;
-      const shadowScale = Math.max(0.5, 1 - jumpY * 1.4);
+      const shadowScale = Math.max(0.55, 1 - jumpY * 1.3);
       contactShadow.scale.set(shadowScale, 0.42 * shadowScale, 1);
 
-      haloRing.position.x = actorX;
-      haloMat.opacity = Math.min(0.75, 0.16 + frame.rms * 3.8);
+      beamMatL.opacity = 0.038 + Math.min(0.045, frame.rms * 0.32);
+      beamMatR.opacity = 0.026 + Math.min(0.038, frame.rms * 0.28);
 
-      // Pulse spotlight cones subtly with voice RMS
-      beamMatL.opacity = 0.055 + Math.min(0.08, frame.rms * 0.5);
-      beamMatR.opacity = 0.04 + Math.min(0.075, frame.rms * 0.45);
-
-      // Update live CHIMERA Acoustic Lip & Formant Scope on riser
-      drawScopeScreen(scopeCtx, frame, expr);
-      scopeTex.needsUpdate = true;
+      // Drift golden dust motes lazily
+      const posArr = moteGeo.attributes.position.array as Float32Array;
+      for (let i = 0; i < moteCount; i++) {
+        posArr[i * 3 + 1] += dt * 0.045;
+        posArr[i * 3] += Math.sin(now * 0.7 + moteSeed[i]) * dt * 0.015;
+        if (posArr[i * 3 + 1] > 3.15) posArr[i * 3 + 1] = 0.35;
+      }
+      moteGeo.attributes.position.needsUpdate = true;
 
       // Damped camera director
       const preset: CameraPreset =
@@ -424,6 +539,23 @@ export function MoppetStage3D({
       camera.position.copy(camPos);
       camera.lookAt(camLook);
 
+      if (stageDebugRef.current) {
+        const curTime = entry?.video.currentTime ?? 0;
+        const fps = entry?.spec.fps ?? 24;
+        const totF = entry?.spec.frames ?? 0;
+        stageDebugRef.current({
+          activeAction,
+          videoCurrentTime: curTime,
+          videoDuration: entry?.video.duration ?? 0,
+          frameIndex: totF ? Math.min(totF - 1, Math.floor(curTime * fps)) : 0,
+          totalFrames: totF,
+          readyState: entry?.video.readyState ?? 0,
+          videoWidth: entry?.video.videoWidth ?? 0,
+          videoHeight: entry?.video.videoHeight ?? 0,
+          usingVideoTexture: usingVideo,
+        });
+      }
+
       renderer.render(scene, camera);
     };
 
@@ -433,11 +565,17 @@ export function MoppetStage3D({
       disposed = true;
       cancelAnimationFrame(raf);
       onCanvasReadyRef.current?.(null);
-      for (const tex of atlasTextures.values()) tex.dispose();
+      for (const item of videos.values()) {
+        item.video.pause();
+        item.video.removeAttribute("src");
+        item.video.load();
+        item.tex.dispose();
+      }
       fallbackTex.dispose();
       bgTex.dispose();
-      scopeTex.dispose();
-      puppetGeo.dispose();
+      moteGeo.dispose();
+      moteMat.dispose();
+      planeGeo.dispose();
       puppetMat.dispose();
       renderer.dispose();
     };

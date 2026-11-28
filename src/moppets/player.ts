@@ -357,9 +357,11 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
     const localBeat = beat - phrase.startBeat;
     if (phrase.doGesture === "bow" || phrase.celebrate) {
       cueAction = "bow";
+    } else if (phrase.take === "toast") {
+      cueAction = "toast";
     } else if (phrase.moveTarget && phrase.moveTarget !== "center") {
       cueAction = "walk";
-    } else if (phrase.doGesture === "laugh" || phrase.doGesture === "cheer" || phrase.take === "toast") {
+    } else if (phrase.doGesture === "laugh" || phrase.doGesture === "cheer") {
       cueAction = "chuckle";
     } else if (phrase.section.includes("Sustained") || (f0 > 330 && rms > 0.015)) {
       cueAction = "belt";

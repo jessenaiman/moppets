@@ -5,7 +5,7 @@
 import { lyricsToSyllables, type Syllable } from "../wasm/engine.ts";
 
 export type CameraPreset = "wide" | "closeup" | "reaction" | "low-angle";
-export type MopAction = "idle" | "sing" | "belt" | "chuckle" | "walk" | "bow";
+export type MopAction = "idle" | "sing" | "belt" | "chuckle" | "walk" | "toast" | "bow";
 
 export interface SongPhrase {
   index: number;

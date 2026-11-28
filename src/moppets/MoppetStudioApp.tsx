@@ -22,7 +22,7 @@ import {
   stopSong,
   subscribePlayer,
 } from "./player.ts";
-import { MoppetStage3D } from "./MoppetStage3D.tsx";
+import { MoppetStage3D, type StageDebugInfo } from "./MoppetStage3D.tsx";
 import { canExportVideo, getMasterRecordStream, StageVideoExporter } from "./exportVideo.ts";
 
 const ACTIONS: { id: MopAction; label: string }[] = [
@@ -31,6 +31,7 @@ const ACTIONS: { id: MopAction; label: string }[] = [
   { id: "belt", label: "Belt" },
   { id: "chuckle", label: "Chuckle" },
   { id: "walk", label: "Walk" },
+  { id: "toast", label: "Toast" },
   { id: "bow", label: "Bow" },
 ];
 
@@ -92,6 +93,8 @@ export function MoppetStudioApp() {
   const exporterRef = useRef<StageVideoExporter | null>(null);
   const exportStartedAtRef = useRef(0);
   const songRef = useRef<ParsedMopSong | null>(null);
+  const stageDebugRef = useRef<StageDebugInfo | null>(null);
+  const [fmvBadge, setFmvBadge] = useState("FMV loading…");
   songRef.current = song;
 
   useEffect(() => {
@@ -116,6 +119,7 @@ export function MoppetStudioApp() {
     (window as unknown as { __moppetStudio?: unknown }).__moppetStudio = {
       getFrame: () => getFrameState(songRef.current),
       isPlaying: () => isPlayingSong(),
+      getStageDebug: () => stageDebugRef.current,
     };
   }, []);
 
@@ -128,6 +132,14 @@ export function MoppetStudioApp() {
       setActivePhrase(f.phraseIndex);
       setRms(f.rms);
       setF0(f.f0);
+      const dbg = stageDebugRef.current;
+      if (dbg) {
+        setFmvBadge(
+          dbg.usingVideoTexture
+            ? `FMV ${dbg.activeAction} ${dbg.frameIndex}/${dbg.totalFrames}f`
+            : `Canon ${dbg.activeAction}`,
+        );
+      }
       if (exporterRef.current) {
         setExportElapsed((performance.now() - exportStartedAtRef.current) / 1000);
       }
@@ -245,6 +257,9 @@ export function MoppetStudioApp() {
   const handleCanvasReady = useCallback((c: HTMLCanvasElement | null) => {
     stageCanvasRef.current = c;
   }, []);
+  const handleStageDebug = useCallback((dbg: StageDebugInfo) => {
+    stageDebugRef.current = dbg;
+  }, []);
   const onCaptionFrame = useCallback((text: string) => {
     if (text !== captionRef.current) {
       captionRef.current = text;
@@ -342,6 +357,7 @@ export function MoppetStudioApp() {
           actionOverride={actionOverride}
           onCanvasReady={handleCanvasReady}
           onCaptionFrame={onCaptionFrame}
+          onStageDebug={handleStageDebug}
         />
 
         <div className="mop-stage-overlay-top">
@@ -376,7 +392,7 @@ export function MoppetStudioApp() {
 
         <div className="mop-stage-overlay-bottom">
           <span className="mop-num" style={{ fontSize: 12, color: "var(--m-muted)", background: "rgba(17,16,20,0.78)", padding: "5px 10px", borderRadius: 8, border: "1px solid var(--m-border)" }}>
-            {f0 > 40 ? `${Math.round(f0)} Hz` : "Ready"} · RMS {rms.toFixed(3)}
+            {f0 > 40 ? `${Math.round(f0)} Hz` : "Ready"} · RMS {rms.toFixed(3)} · {fmvBadge}
           </span>
           {caption && <div className="mop-caption-box">{caption}</div>}
         </div>
@@ -403,8 +419,7 @@ export function MoppetStudioApp() {
           </div>
 
           <div className="mop-cast-next">
-            <strong>Mop #1 verified first:</strong> Female 90 · Child 10%, 6 audited 24 fps Stage Loops &amp; Bible clips.
-            Next migration slot: <strong>Neon</strong>.
+            <strong>Mop #1 Canon v2:</strong> Female 90 · Child 10%, lit 24 fps <code>#00FF00</code> FMV <code>VideoTexture</code> streams atop Studio 404 trunk riser. Next migration slot: <strong>Neon</strong>.
           </div>
 
           {(errorMsg || exportNote) && (
