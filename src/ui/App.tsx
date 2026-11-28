@@ -10,10 +10,12 @@ import { useMoppet, type Lesson } from "../choir/store.ts";
 const MoppetRight = lazy(() => import("./MoppetPanel.tsx").then((m) => ({ default: m.MoppetRight })));
 const ScreeningRoom = lazy(() => import("./ScreeningRoom.tsx").then((m) => ({ default: m.ScreeningRoom })));
 const CastGallery = lazy(() => import("./CastGallery.tsx").then((m) => ({ default: m.CastGallery })));
+const SizeComparisonPage = lazy(() => import("./SizeComparisonPage.tsx"));
+const KidsFarmStagePage = lazy(() => import("../kids-farm/KidsFarmStagePage.tsx"));
 const SongbookPage = lazy(() => import("./SongbookStoryboardView.tsx").then((m) => ({ default: m.SongbookPage })));
 const ChimeraWorkbench = lazy(() => import("@chimera/ui/App.tsx").then((m) => ({ default: m.App })));
 
-type Surface = "cast" | "watch" | "songbook" | "chimera" | "live";
+type Surface = "cast" | "scale" | "kids" | "watch" | "songbook" | "chimera" | "live";
 
 interface RouteState {
   surface: Surface;
@@ -26,6 +28,12 @@ function resolveRoute(): RouteState {
   const params = new URLSearchParams(window.location.search);
   if (params.has("chimera") || params.has("show")) {
     return { surface: "chimera", watch: "", songbook: "", act: null };
+  }
+  if (params.has("kids")) {
+    return { surface: "kids", watch: "", songbook: "", act: null };
+  }
+  if (params.has("scale")) {
+    return { surface: "scale", watch: "", songbook: "", act: null };
   }
   if (params.has("cast")) {
     return { surface: "cast", watch: "", songbook: "", act: null };
@@ -66,6 +74,10 @@ export function App() {
           <ChimeraWorkbench />
         ) : route.surface === "cast" ? (
           <CastGallery />
+        ) : route.surface === "scale" ? (
+          <SizeComparisonPage />
+        ) : route.surface === "kids" ? (
+          <KidsFarmStagePage />
         ) : route.surface === "songbook" ? (
           <SongbookPage id={route.songbook} />
         ) : route.surface === "watch" ? (

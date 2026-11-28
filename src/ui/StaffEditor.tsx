@@ -2,7 +2,9 @@
  * Interactive VexFlow musical staff for rehearsing, auditioning, and step-editing a Moppet's
  * melody notes (with tempo scale, solo, line loop, and MIDI keyboard step-input).
  */
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Play, Repeat, Square } from "lucide-react";
+import { useId } from "react";
 import { Accidental, Annotation, Beam, Dot, Formatter, Renderer, Stave, StaveNote, Voice } from "vexflow";
 import { measures } from "../choir/meter.ts";
 import { useAudio } from "../audio/audio.ts";
@@ -19,6 +21,7 @@ import { currentFile, useMoppet, type TempoScale } from "../choir/store.ts";
 import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
 import { beatSeconds, LEAD_IN } from "../choir/timeline.ts";
 import type { MoppetVoice } from "../choir/voices.ts";
+import { applyScoreInk, type ScoreInkTheme } from "./ChoirScore.tsx";
 import { midiSupported } from "./midi.ts";
 
 export interface StaffNoteItem {
@@ -131,18 +134,31 @@ interface VexStaffLineProps {
   voice: MoppetVoice;
   selectedIndex: number | null;
   compact?: boolean;
+  inkTheme?: ScoreInkTheme;
+  zoom?: number;
   onSelect: (index: number) => void;
   onShift: (index: number, steps: number) => void;
 }
 
-export function VexStaffLine({ events, piece, voice, selectedIndex, compact = false, onSelect, onShift }: VexStaffLineProps) {
+export function VexStaffLine({
+  events,
+  piece,
+  voice,
+  selectedIndex,
+  compact = false,
+  inkTheme = "paper",
+  zoom = 100,
+  onSelect,
+  onShift,
+}: VexStaffLineProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ idx: number; y0: number; moved: boolean; deltaSteps: number } | null>(null);
   const playheadRef = useRef<SVGLineElement | null>(null);
   const noteCoordsRef = useRef<{ beat: number; endBeat: number; x: number }[]>([]);
   const [dragSteps, setDragSteps] = useState<{ idx: number; steps: number } | null>(null);
 
-  const width = Math.max(compact ? 320 : 440, 115 + events.length * (compact ? 48 : 60));
+  const baseWidth = Math.max(compact ? 320 : 440, 115 + events.length * (compact ? 48 : 60));
+  const width = Math.round(baseWidth * (zoom / 100));
   const height = compact ? 148 : 164;
 
   useEffect(() => {
@@ -156,9 +172,9 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
     const clef = clefForVoice(events.map((e) => e.midi), voice.register);
     const keySig = vexKeySignature(piece.key, piece.mode);
     const renderer = new Renderer(el, Renderer.Backends.SVG);
-    renderer.resize(width, height);
+    renderer.resize(baseWidth, height);
     const ctx = renderer.getContext();
-    const stave = new Stave(8, 16, width - 16);
+    const stave = new Stave(8, 16, baseWidth - 16);
     stave.addClef(clef);
     if (keySig && keySig !== "C") stave.addKeySignature(keySig);
     const bars = measures(piece);
@@ -180,12 +196,12 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
       if (dots > 0) Dot.buildAndAttach([note], { all: true });
       if (ev.syllable) {
         const ann = new Annotation(ev.syllable)
-          .setFont("DM Sans", 11, "normal")
+          .setFont("Geist Variable", 12, "normal")
           .setVerticalJustification(Annotation.VerticalJustify.BOTTOM);
         note.addModifier(ann, 0);
       }
       if (selectedIndex === ev.index) {
-        note.setStyle({ fillStyle: "#c9662e", strokeStyle: "#c9662e" });
+        note.setStyle({ fillStyle: "#F5B851", strokeStyle: "#D97706" });
       }
       return note;
     });
@@ -203,14 +219,18 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
     }
 
     const startX = stave.getNoteStartX();
-    const avail = Math.max(100, width - startX - 24);
+    const avail = Math.max(100, baseWidth - startX - 24);
     new Formatter().joinVoices([vfVoice]).format([vfVoice], avail);
     vfVoice.draw(ctx, stave);
     for (const b of beams) b.setContext(ctx).draw();
 
     const svg = el.querySelector("svg");
     if (!svg) return;
+    svg.setAttribute("viewBox", `0 0 ${baseWidth} ${height}`);
+    svg.setAttribute("width", String(width));
+    svg.setAttribute("height", String(Math.round(height * (zoom / 100))));
     svg.setAttribute("pointer-events", "auto");
+    applyScoreInk(el, inkTheme);
     const ns = "http://www.w3.org/2000/svg";
     const hits = document.createElementNS(ns, "g");
     hits.setAttribute("class", "staff-hits");
@@ -223,7 +243,7 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
 
     events.forEach((ev, i) => {
       const left = i === 0 ? Math.max(8, xs[i] - 18) : (xs[i - 1] + xs[i]) / 2 + 4;
-      const right = i === xs.length - 1 ? Math.min(width - 8, xs[i] + 32) : (xs[i] + xs[i + 1]) / 2 + 4;
+      const right = i === xs.length - 1 ? Math.min(baseWidth - 8, xs[i] + 32) : (xs[i] + xs[i + 1]) / 2 + 4;
       const w = Math.max(18, right - left);
       if (selectedIndex === ev.index) {
         const pill = document.createElementNS(ns, "rect");
@@ -260,7 +280,7 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
     hits.appendChild(line);
     playheadRef.current = line;
     svg.appendChild(hits);
-  }, [events, piece, voice.register, selectedIndex, width, height]);
+  }, [events, piece, voice.register, selectedIndex, baseWidth, width, height, inkTheme, zoom]);
 
   useEffect(() => {
     let raf = 0;
@@ -362,7 +382,7 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
   };
 
   return (
-    <div className="staff-scroll">
+    <div className="staff-scroll" data-ink={inkTheme}>
       <div
         ref={canvasRef}
         className="staff-canvas"
@@ -390,7 +410,13 @@ export function VexStaffLine({ events, piece, voice, selectedIndex, compact = fa
 
 const TEMPOS: readonly TempoScale[] = [0.5, 0.75, 1];
 
-export function RehearsalStaffPanel() {
+export function RehearsalStaffPanel({
+  inkTheme = "paper",
+  zoom = 100,
+}: {
+  inkTheme?: ScoreInkTheme;
+  zoom?: number;
+} = {}) {
   const piece = useMoppet((s) => s.piece);
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
@@ -653,6 +679,16 @@ export function RehearsalStaffPanel() {
           ? midi.inputs[0] ? `MIDI: ${midi.inputs[0]}` : "MIDI: No device"
           : "Connect MIDI";
 
+  if (piece.kind === "skit") {
+    return (
+      <div className="staff-panel" aria-label="Spoken skit part editor">
+        <p className="text-xs text-[#A8B8C8]">
+          <strong>{piece.title}</strong> is a spoken skit without pitched vocal melodies. Use <strong>Full Score</strong> or <strong>Lyrics</strong> to inspect and cue lines by scene.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="staff-panel" aria-label={`${displayName}'s rehearsal staff`}>
       <div className="staff-toolbar">
@@ -687,8 +723,8 @@ export function RehearsalStaffPanel() {
           <button type="button" className={soloMix ? "on" : ""} aria-pressed={soloMix} disabled={!track} onClick={() => setSoloMix(!soloMix)} title={`Hear only ${displayName} during playback`}>
             {soloMix ? `Solo: ${displayName}` : `Solo ${displayName}`}
           </button>
-          <button type="button" className={isLooping ? "on" : ""} aria-pressed={isLooping} disabled={!phraseRange || busy} onClick={toggleLoop} title="Loop the selected line on stage">
-            {isLooping ? "■ Stop loop" : "↻ Loop line"}
+          <button type="button" className={`inline-flex items-center gap-1 ${isLooping ? "on" : ""}`} aria-pressed={isLooping} disabled={!phraseRange || busy} onClick={toggleLoop} title="Loop the selected line on stage">
+            {isLooping ? <><Square className="size-3.5 fill-current" /> Stop loop</> : <><Repeat className="size-3.5" /> Loop line</>}
           </button>
           <button type="button" className={midi.status === "on" ? "on" : ""} disabled={!midiSupported()} aria-pressed={midi.status === "on"} onClick={() => setMidi(midi.status !== "on")} title="Connect a MIDI keyboard for step-input on the selected note">
             {midiLabel}
@@ -701,11 +737,15 @@ export function RehearsalStaffPanel() {
       ) : (
         <>
           <div className="staff-phrase-bar">
-            <button type="button" disabled={safePhraseIdx <= 0} onClick={() => { setPhraseIdx(safePhraseIdx - 1); setSelectedNoteIdx(null); }}>← Prev line</button>
+            <button type="button" className="inline-flex items-center gap-1" disabled={safePhraseIdx <= 0} onClick={() => { setPhraseIdx(safePhraseIdx - 1); setSelectedNoteIdx(null); }}>
+              <ChevronLeft className="size-3.5" /> Prev line
+            </button>
             <select aria-label="Select line to rehearse" value={safePhraseIdx} onChange={(e) => { setPhraseIdx(Number(e.target.value)); setSelectedNoteIdx(null); }}>
               {phrases.map((p, i) => <option key={p.id} value={i}>{p.label}</option>)}
             </select>
-            <button type="button" disabled={safePhraseIdx >= phrases.length - 1} onClick={() => { setPhraseIdx(safePhraseIdx + 1); setSelectedNoteIdx(null); }}>Next line →</button>
+            <button type="button" className="inline-flex items-center gap-1" disabled={safePhraseIdx >= phrases.length - 1} onClick={() => { setPhraseIdx(safePhraseIdx + 1); setSelectedNoteIdx(null); }}>
+              Next line <ChevronRight className="size-3.5" />
+            </button>
           </div>
 
           {renderLyricEditor()}
@@ -715,6 +755,8 @@ export function RehearsalStaffPanel() {
             piece={piece}
             voice={voice}
             selectedIndex={selectedNoteIdx}
+            inkTheme={inkTheme}
+            zoom={zoom}
             onSelect={selectNote}
             onShift={shiftNote}
           />
@@ -724,28 +766,38 @@ export function RehearsalStaffPanel() {
               <>
                 <span className="staff-note-info">
                   Note {activePhrase.notes.findIndex((n) => n.index === activeNote.index) + 1}/{activePhrase.notes.length}
-                  {activeNote.syllable ? ` “${activeNote.syllable}”` : ""} · <b>{noteName(activeNote.midi, piece.key, piece.mode)}</b> · {activeNote.beats} beat{activeNote.beats === 1 ? "" : "s"}
+                  {activeNote.syllable ? ` “${activeNote.syllable}”` : ""} · <b className="text-[#F5B851]">{noteName(activeNote.midi, piece.key, piece.mode)}</b> · {activeNote.beats} beat{activeNote.beats === 1 ? "" : "s"}
                 </span>
-                <button type="button" onClick={() => hearItem(activeNote)}>▶ Hear</button>
-                <button type="button" onClick={() => shiftNote(activeNote.index, -1)}>↓ Lower</button>
-                <button type="button" onClick={() => shiftNote(activeNote.index, 1)}>↑ Higher</button>
-                <button type="button" onClick={() => {
+                <button type="button" className="inline-flex items-center gap-1" onClick={() => hearItem(activeNote)}>
+                  <Play className="size-3.5 fill-current" /> Hear
+                </button>
+                <button type="button" className="inline-flex items-center gap-1" onClick={() => shiftNote(activeNote.index, -1)}>
+                  <ArrowDown className="size-3.5" /> Lower
+                </button>
+                <button type="button" className="inline-flex items-center gap-1" onClick={() => shiftNote(activeNote.index, 1)}>
+                  <ArrowUp className="size-3.5" /> Higher
+                </button>
+                <button type="button" className="inline-flex items-center gap-1" onClick={() => {
                   const p = activePhrase.notes.findIndex((n) => n.index === activeNote.index);
                   if (p > 0) selectNote(activePhrase.notes[p - 1].index);
-                }} disabled={activePhrase.notes[0]?.index === activeNote.index}>← Prev</button>
-                <button type="button" onClick={() => {
+                }} disabled={activePhrase.notes[0]?.index === activeNote.index}>
+                  <ChevronLeft className="size-3.5" /> Prev
+                </button>
+                <button type="button" className="inline-flex items-center gap-1" onClick={() => {
                   const p = activePhrase.notes.findIndex((n) => n.index === activeNote.index);
                   if (p >= 0 && p + 1 < activePhrase.notes.length) selectNote(activePhrase.notes[p + 1].index);
-                }} disabled={activePhrase.notes[activePhrase.notes.length - 1]?.index === activeNote.index}>Next →</button>
+                }} disabled={activePhrase.notes[activePhrase.notes.length - 1]?.index === activeNote.index}>
+                  Next <ChevronRight className="size-3.5" />
+                </button>
                 <button type="button" onClick={() => setSelectedNoteIdx(null)}>Done</button>
                 <span className="staff-midi-hint">
                   {midi.status === "on" && midi.inputs.length
                     ? "MIDI step-input armed: press a key to shift & advance."
-                    : "Click Connect MIDI above to step-enter pitches from a keyboard."}
+                    : "Click Connect MIDI or use the bottom keyboard in Step-Edit mode to step-enter pitches."}
                 </span>
               </>
             ) : (
-              <span className="staff-midi-hint">Click any notehead to hear {displayName} sing it; drag up/down, use ↑/↓, or press a MIDI key to change it.</span>
+              <span className="staff-midi-hint">Click any notehead to hear {displayName} sing it; drag up/down, use Up/Down arrows, or press a key to change it.</span>
             )}
           </div>
         </>

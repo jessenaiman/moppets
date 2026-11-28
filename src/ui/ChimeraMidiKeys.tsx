@@ -1,72 +1,48 @@
 /**
- * Clean CHIMERA MIDI, MPE & Computer-Keyboard Instrument (`@chimera/ui/components/Keys.tsx` + `SingPanel.tsx`):
- * Replaces the 759-line fake "Grandfather's Walnut Organ" with real CHIMERA capabilities:
- *  - Computer keyboard (`A W S E D F T G Y H U J K O L P ;`, `Z`/`X` octave shift)
- *  - Web MIDI + MPE Lower Zone toggle (`±48 st` note bend + `CC 74` slide vs `±2 st` wheel)
- *  - Working Pitch Bend (`setLivePitchBend`) & Brightness Slide (`CC 74` `setLiveSlide`) strips
- *  - Clickable syllable cursor strip (shows `-` melismas & `’` breaths + `From start` reset)
- *  - 8 live CHIMERA voice/mouth encoders + 3D character action triggers
+ * Playable 2-Octave Vintage Synth Keyboard (`C3–C5`) wired to CHIMERA WASM & Web MIDI/MPE.
+ * Includes left Pitch & Slide wheels, single-line Syllable Prompt, mode selector, and Oct -/+.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAudio } from "../audio/audio.ts";
-import { MOPPET_STAGE_ACTIONS } from "../choir/cast/moppet.ts";
-import {
-  applyControl,
-  CONTROLS,
-  touchControl,
-  useController,
-  type ControlKey,
-} from "../choir/controller.ts";
+import { touchControl, useController } from "../choir/controller.ts";
+import { useEnsemble } from "../choir/ensemble.ts";
 import {
   auditionNote,
   liveNoteOff,
   liveNoteOn,
-  MOUTH,
-  moveMouth,
   setLivePitchBend,
   setLiveSlide,
   useLive,
   type LiveMode,
 } from "../choir/live.ts";
-import { triggerCharacterAction } from "../choir/stageActionBus.ts";
+import { noteName } from "../choir/music.ts";
 import { useMoppet } from "../choir/store.ts";
 import { studio404Name } from "../choir/studio404.ts";
+import { beatSeconds, LEAD_IN } from "../choir/timeline.ts";
 import type { MoppetVoice } from "../choir/voices.ts";
 import { midiSupported } from "./midi.ts";
 
 const KEYMAP: Record<string, number> = {
   a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12, o: 13, l: 14, p: 15, ";": 16,
 };
+const SEMIS_TO_KEY: Readonly<Record<number, string>> = {
+  0: "A", 1: "W", 2: "S", 3: "E", 4: "D", 5: "F", 6: "T", 7: "G", 8: "Y", 9: "H", 10: "U", 11: "J",
+  12: "K", 13: "O", 14: "L", 15: "P", 16: ";",
+};
 const KEY_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const isBlack = (m: number) => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
 const noteLabel = (m: number) => `${KEY_NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-const SHORT_CONTROL_LABELS: Readonly<Record<string, string>> = {
-  size: "Airway",
-  child: "Child",
-  female: "Shape",
-  larynx: "Larynx",
-  velum: "Nasal",
-  root: "Tongue",
-  ventricular: "Fold",
-  tension: "Tension",
-  brightness: "Bright",
-  roughness: "Gravel",
-  breathiness: "Breath",
-  fry: "Fry",
-};
-
-const SHORT_MOUTH_LABELS: Readonly<Record<string, string>> = {
-  jaw: "Jaw",
-  tbX: "Tongue X",
-  tbY: "Tongue Y",
-  lipAp: "Lips Open",
-  lipProt: "Lip Round",
-  velum: "Nasal",
-  ttY: "Tip Up",
-  labiodental: "Lip-Teeth",
-};
+function isTypingTarget(target: EventTarget | null): boolean {
+  const el = (target as HTMLElement | null) ?? (document.activeElement as HTMLElement | null);
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
 
 export function MidiConnectButton() {
   const midi = useController((s) => s.midi);
@@ -85,26 +61,122 @@ export function MidiConnectButton() {
             ? extraCount > 0
               ? `${primaryPort} (+${extraCount})`
               : primaryPort
-            : "Waiting for MIDI"
-          : "Connect MIDI";
+            : "Connected"
+          : "MIDI";
+
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={() => setMidi(!on)}
       title={on && midi.inputs.length ? `Connected MIDI: ${midi.inputs.join(", ")}` : "Connect Web MIDI / MPE keyboard"}
-      className={`max-w-[185px] truncate rounded-lg border px-2.5 py-1 text-xs font-semibold cursor-pointer ${
+      className={`inline-flex h-9 max-w-[170px] items-center gap-1.5 truncate rounded-lg border px-2.5 text-xs font-semibold cursor-pointer transition-colors ${
         on
-          ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200"
-          : "border-white/15 bg-[#12181c] text-slate-300 hover:text-white"
+          ? "border-[#34D399]/70 bg-[#1F2A24] text-[#F4EFE6]"
+          : "border-[#3B362E] bg-[#121110] text-[#B7AEA0] hover:border-[#D9A75C] hover:text-[#F4EFE6]"
       }`}
     >
-      MIDI: {status}
+      <span className={`size-2 shrink-0 rounded-full ${on ? "bg-[#34D399]" : "bg-[#6A6359]"}`} />
+      <span className="truncate">{on ? `MIDI · ${status}` : "MIDI"}</span>
     </button>
   );
 }
 
-export function ChimeraMidiKeys() {
+function ModWheelStrip({
+  label,
+  ariaLabel,
+  value,
+  bipolar = false,
+  accent = "#D9A75C",
+  onChange,
+  onRelease,
+}: {
+  label: string;
+  ariaLabel: string;
+  value: number;
+  bipolar?: boolean;
+  accent?: string;
+  onChange: (next: number) => void;
+  onRelease?: () => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const pct = clamp(bipolar ? (value + 1) / 2 : value, 0, 1) * 100;
+
+  const updateFromClientY = (clientY: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const ratio = clamp(1 - (clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+    onChange(bipolar ? ratio * 2 - 1 : ratio);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-1 shrink-0">
+      <div
+        ref={trackRef}
+        role="slider"
+        tabIndex={0}
+        aria-label={ariaLabel}
+        aria-valuemin={bipolar ? -100 : 0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(value * 100)}
+        onKeyDown={(e) => {
+          const step = e.shiftKey ? 0.2 : 0.08;
+          if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+            e.preventDefault();
+            onChange(clamp(value + step, bipolar ? -1 : 0, 1));
+          } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            onChange(clamp(value - step, bipolar ? -1 : 0, 1));
+          }
+        }}
+        onPointerDown={(e) => {
+          draggingRef.current = true;
+          e.currentTarget.focus();
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch {
+            /* ignore */
+          }
+          updateFromClientY(e.clientY);
+        }}
+        onPointerMove={(e) => {
+          if (draggingRef.current) updateFromClientY(e.clientY);
+        }}
+        onPointerUp={() => {
+          draggingRef.current = false;
+          onRelease?.();
+        }}
+        onPointerCancel={() => {
+          draggingRef.current = false;
+          onRelease?.();
+        }}
+        className="relative h-24 w-7 cursor-ns-resize touch-none select-none overflow-hidden rounded-md border border-[#3B362E] bg-[#0D0C0A]"
+      >
+        <div className="pointer-events-none absolute inset-x-1.5 inset-y-2 flex flex-col justify-between opacity-35">
+          {Array.from({ length: 7 }, (_, i) => (
+            <span key={i} className="h-px w-full bg-[#B7AEA0]" />
+          ))}
+        </div>
+        {bipolar && <span className="pointer-events-none absolute inset-x-1 top-1/2 h-px bg-[#B7AEA0]/60" />}
+        <span
+          className="pointer-events-none absolute inset-x-1 h-2 -translate-y-1/2 rounded-xs"
+          style={{ bottom: `calc(${pct}% - 4px)`, backgroundColor: accent }}
+        />
+      </div>
+      <span className="text-xs font-medium text-[#B7AEA0] whitespace-nowrap">{label}</span>
+    </div>
+  );
+}
+
+export function ChimeraMidiKeys({
+  onClose,
+}: {
+  nextStepLabel?: string;
+  onNextStep?: () => void;
+  onClose?: () => void;
+} = {}) {
+  const piece = useMoppet((s) => s.piece);
   const voices = useMoppet((s) => s.voices);
   const selected = useMoppet((s) => s.selected);
   const studio404 = useMoppet((s) => s.studio404);
@@ -113,23 +185,18 @@ export function ChimeraMidiKeys() {
 
   const mode = useLive((s) => s.mode);
   const setMode = useLive((s) => s.setMode);
-  const mpe = useLive((s) => s.mpe);
-  const setMpe = useLive((s) => s.setMpe);
   const syllables = useLive((s) => s.syllables);
   const next = useLive((s) => s.next);
-  const setCursor = useLive((s) => s.setCursor);
   const heldNotes = useLive((s) => s.heldNotes);
-  const mouth = useLive((s) => s.mouth);
-
-  const map = useController((s) => s.map);
+  const liveLast = useLive((s) => s.last);
   const bend = useController((s) => s.bend);
   const slide = useController((s) => s.slide);
-  const last = useController((s) => s.last);
+  const stageTime = useEnsemble((s) => s.time);
 
   const octaveRef = useRef(0);
   const [octave, setOctave] = useState(0);
   const byPointer = useRef(new Map<number, number>());
-  const baseMidi = 48 + octave * 12; // C3..C5 at octave 0
+  const baseMidi = 48 + octave * 12;
 
   const startNote = (midi: number, velocity = 96) => {
     void useAudio.getState().start();
@@ -141,14 +208,11 @@ export function ChimeraMidiKeys() {
     }
   };
 
-  // CHIMERA computer keyboard listener (`A`..`;`, `Z`/`X` octave shift)
   useEffect(() => {
     const down = new Map<string, number>();
     const onDown = (e: KeyboardEvent) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "SELECT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
-      if (target?.tagName === "INPUT" && (target as HTMLInputElement).type !== "range") return;
+      if (isTypingTarget(e.target) || isTypingTarget(document.activeElement)) return;
       const k = e.key.toLowerCase();
       if (k === "z" || k === "x") {
         octaveRef.current = clamp(octaveRef.current + (k === "z" ? -1 : 1), -2, 2);
@@ -195,312 +259,232 @@ export function ChimeraMidiKeys() {
   const notes = Array.from({ length: 25 }, (_, i) => baseMidi + i);
   const whites = notes.filter((m) => !isBlack(m));
 
-  const encoders =
-    mode === "puppet"
-      ? MOUTH.map(([key, lo, hi, label], i) => {
-          const val = mouth[key] ?? lo;
-          return {
-            key,
-            label: SHORT_MOUTH_LABELS[key] ?? label,
-            fullLabel: label,
-            norm: clamp((val - lo) / Math.max(1e-6, hi - lo), 0, 1),
-            text: val.toFixed(2),
-            onChange: (n: number) => {
-              moveMouth(key, n);
-              touchControl("knob", i);
-            },
-          };
-        })
-      : Array.from({ length: 8 }, (_, i) => {
-          const key = map[21 + i] as ControlKey | undefined;
-          const spec = CONTROLS.find((x) => x[0] === key);
-          if (!key || !spec) {
-            return { key: `cc-${i}`, label: "Unassigned", fullLabel: "Unassigned", norm: 0.5, text: "—", onChange: () => {} };
-          }
-          const [, fullLabel, min, max, step, unit, group] = spec;
-          const raw =
-            group === "size"
-              ? (curVoice.size ?? 1)
-              : group === "artic"
-                ? curVoice.artic[key as keyof MoppetVoice["artic"]]
-                : group === "body"
-                  ? curVoice.body[key as keyof MoppetVoice["body"]]
-                  : (curVoice.source[key as keyof MoppetVoice["source"]] ?? 0);
-          return {
-            key,
-            label: SHORT_CONTROL_LABELS[key] ?? fullLabel.split(/[:(]/)[0].trim(),
-            fullLabel,
-            norm: clamp((Number(raw) - min) / Math.max(1e-6, max - min), 0, 1),
-            text: `${Number(raw).toFixed(2)}${unit}`,
-            onChange: (n: number) => {
-              const v = +(Math.round((min + clamp(n, 0, 1) * (max - min)) / step) * step).toFixed(4);
-              applyControl(key, v);
-              touchControl("knob", i);
-            },
-          };
-        });
+  const syllablePrompt = useMemo(() => {
+    const track = piece.tracks.find((t) => t.id === curVoice.id) ?? piece.tracks[0];
+    const bs = beatSeconds(piece);
+    const beat = Math.max(0, (stageTime - LEAD_IN) / bs);
+    const nextEv = track?.events.find((ev) => ev.beat + ev.beats > beat) ?? track?.events[0];
+    const nextSyl = syllables[next];
+    if (mode === "words" && nextSyl) {
+      const sylLabel = nextSyl.melisma ? "– (hold)" : `"${nextSyl.text}"`;
+      const pitchLabel = nextEv ? `${noteName(nextEv.midi, piece.key, piece.mode)} · ` : "";
+      return `Next: ${pitchLabel}${sylLabel}`;
+    }
+    if (mode === "puppet") return `${name} · Mouth (${liveLast || "hold keys"})`;
+    if (nextEv && piece.kind !== "skit") {
+      return `Next: ${noteName(nextEv.midi, piece.key, piece.mode)}${nextEv.text ? ` · "${nextEv.text}"` : ""}`;
+    }
+    return `${name} · ${noteLabel(baseMidi)}–${noteLabel(baseMidi + 24)}`;
+  }, [piece, curVoice.id, stageTime, syllables, next, mode, name, liveLast, baseMidi]);
+
+  const uiMode = mode === "edit" ? "words" : mode;
 
   return (
-    <section className="rounded-xl border border-white/15 bg-[#0b1014] p-3 text-slate-100 space-y-3" aria-label="CHIMERA MIDI and keyboard controller">
+    <section
+      className="flex flex-col gap-2.5 rounded-xl border border-[#34302A] bg-[#181614] p-3 text-[#F4EFE6]"
+      aria-label="CHIMERA MIDI and keyboard controller"
+    >
+      {/* Single Concise Keyboard Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-            {name} · CHIMERA Live MIDI
+        <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border border-[#322E28] bg-[#11100E] px-3 py-1.5">
+          <span className="size-2 shrink-0 rounded-full bg-[#D9A75C]" />
+          <span className="truncate text-xs font-semibold text-[#F4EFE6]" data-testid="midi-teleprompter">
+            {syllablePrompt}
           </span>
-          <MidiConnectButton />
-          <button
-            type="button"
-            aria-pressed={mpe}
-            onClick={() => setMpe(!mpe)}
-            title="MPE Lower Zone: Ch 1 master ±2 st, Ch 2–16 per-note ±48 st + CC 74 slide"
-            className={`rounded-lg border px-2 py-1 font-mono text-[11px] font-semibold cursor-pointer ${
-              mpe ? "border-cyan-400/60 bg-cyan-500/15 text-cyan-200" : "border-white/15 bg-[#12181c] text-slate-400"
-            }`}
-          >
-            MPE {mpe ? "ON" : "OFF"}
-          </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="MIDI key mode">
-          {(
-            [
-              ["words", "Sing Lyrics"],
-              ["puppet", "Puppeteer Mouth"],
-              ["edit", "Step-Edit"],
-              ["off", "Audition"],
-            ] as [LiveMode, string][]
-          ).map(([m, label]) => (
-            <button
-              key={m}
-              type="button"
-              role="radio"
-              aria-checked={mode === m}
-              onClick={() => void setMode(m)}
-              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold cursor-pointer ${
-                mode === m
-                  ? "border-emerald-400 bg-emerald-500/20 text-emerald-200"
-                  : "border-white/10 bg-[#12181c] text-slate-400 hover:text-white"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Syllable Cursor Strip (CHIMERA Sing mode parity) */}
-      {mode === "words" && syllables.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1 rounded-lg border border-white/10 bg-[#070b0e] p-2">
-          {syllables.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setCursor(i)}
-              aria-current={i === next ? "step" : undefined}
-              style={{ color: i === next ? "#04140e" : undefined }}
-              className={`rounded px-1.5 py-0.5 font-mono text-xs cursor-pointer ${
-                i === next
-                  ? "bg-emerald-500 text-[#04140e] font-bold"
-                  : i < next
-                    ? "text-slate-500 hover:text-slate-200"
-                    : "text-slate-200 hover:bg-white/10"
-              }`}
-            >
-              {s.melisma ? "–" : s.text}
-              {s.phraseEnd ? "’" : ""}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setCursor(0)}
-            className="ml-auto rounded border border-white/15 px-2 py-0.5 text-[11px] text-slate-300 hover:text-white cursor-pointer"
-          >
-            From start
-          </button>
-        </div>
-      )}
-
-      {/* Pitch Bend (±2 st), CC 74 Brightness Slide, Octave & 3D Actions */}
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-[auto_1fr_auto] items-center">
-        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#10161b] px-3 py-1.5">
-          <label className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300">
-            <span>Bend</span>
-            <input
-              aria-label="Pitch bend"
-              type="range"
-              min={-1}
-              max={1}
-              step={0.02}
-              value={bend}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setLivePitchBend(v, 0);
-                useController.setState({ bend: v });
-              }}
-              onPointerUp={() => {
-                setLivePitchBend(0, 0);
-                useController.setState({ bend: 0 });
-              }}
-              className="w-20 accent-emerald-400"
-            />
-          </label>
-          <label className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300">
-            <span>CC74</span>
-            <input
-              aria-label="CC 74 brightness slide"
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={slide}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setLiveSlide(v, 0);
-                useController.setState({ slide: v });
-              }}
-              className="w-20 accent-cyan-400"
-            />
-          </label>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="3D character actions">
-          {MOPPET_STAGE_ACTIONS.map((act) => (
-            <button
-              key={act}
-              type="button"
-              onClick={() => triggerCharacterAction(curVoice.id, act, { voiceId: curVoice.id })}
-              className="rounded-md border border-white/15 bg-[#12181c] px-2.5 py-1 text-xs font-semibold capitalize text-slate-200 hover:border-emerald-400 hover:text-emerald-200 cursor-pointer"
-            >
-              {act}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-1 font-mono text-xs">
-          <button
-            type="button"
-            aria-label="Octave down"
-            onClick={() => {
-              octaveRef.current = clamp(octave - 1, -2, 2);
-              setOctave(octaveRef.current);
+        <div className="flex flex-wrap items-center gap-2">
+          <ToggleGroup
+            type="single"
+            value={uiMode}
+            onValueChange={(val) => {
+              if (val) void setMode(val as LiveMode);
             }}
-            className="rounded border border-white/15 bg-[#12181c] px-2 py-1 hover:text-white cursor-pointer"
+            size="sm"
+            aria-label="MIDI key mode"
+            className="rounded-lg border border-[#322E28] bg-[#11100E] p-0.5"
           >
-            Oct −
-          </button>
-          <span className="px-1.5 text-slate-300">{noteLabel(baseMidi)}–{noteLabel(baseMidi + 24)}</span>
-          <button
-            type="button"
-            aria-label="Octave up"
-            onClick={() => {
-              octaveRef.current = clamp(octave + 1, -2, 2);
-              setOctave(octaveRef.current);
-            }}
-            className="rounded border border-white/15 bg-[#12181c] px-2 py-1 hover:text-white cursor-pointer"
-          >
-            Oct +
-          </button>
-        </div>
-      </div>
+            <ToggleGroupItem
+              value="words"
+              className="h-7 px-2.5 text-xs text-[#B7AEA0] data-[state=on]:bg-[#D9A75C] data-[state=on]:text-[#14110D]"
+            >
+              Sing Lyrics
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="puppet"
+              className="h-7 px-2.5 text-xs text-[#B7AEA0] data-[state=on]:bg-[#D9A75C] data-[state=on]:text-[#14110D]"
+            >
+              Mouth
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="off"
+              className="h-7 px-2.5 text-xs text-[#B7AEA0] data-[state=on]:bg-[#D9A75C] data-[state=on]:text-[#14110D]"
+            >
+              La
+            </ToggleGroupItem>
+          </ToggleGroup>
 
-      {/* 8 CHIMERA Encoders (CC 21–28) */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {encoders.map((enc) => (
-          <label
-            key={enc.key}
-            title={enc.fullLabel}
-            className="flex flex-col gap-1.5 rounded-lg border border-white/10 bg-[#10161b] px-2.5 py-2 text-[11px]"
-          >
-            <span className="flex items-baseline justify-between gap-2 font-semibold text-slate-200">
-              <span className="whitespace-nowrap text-[11px] font-semibold text-slate-100">{enc.label}</span>
-              <output className="shrink-0 font-mono text-[11px] text-emerald-300">{enc.text}</output>
+          <div className="flex items-center gap-1 rounded-lg border border-[#322E28] bg-[#11100E] px-1.5 py-0.5 text-xs tabular-nums">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              aria-label="Octave down"
+              onClick={() => {
+                octaveRef.current = clamp(octave - 1, -2, 2);
+                setOctave(octaveRef.current);
+              }}
+              className="h-6 px-1.5 text-[#F4EFE6] hover:bg-[#28241E] hover:text-[#F4EFE6]"
+            >
+              Oct −
+            </Button>
+            <span className="px-1 text-[#B7AEA0]">
+              {noteLabel(baseMidi)}–{noteLabel(baseMidi + 24)}
             </span>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={enc.norm}
-              aria-label={`${enc.label} encoder`}
-              onChange={(e) => enc.onChange(Number(e.target.value))}
-              className="w-full accent-emerald-400"
-            />
-          </label>
-        ))}
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              aria-label="Octave up"
+              onClick={() => {
+                octaveRef.current = clamp(octave + 1, -2, 2);
+                setOctave(octaveRef.current);
+              }}
+              className="h-6 px-1.5 text-[#F4EFE6] hover:bg-[#28241E] hover:text-[#F4EFE6]"
+            >
+              Oct +
+            </Button>
+          </div>
+
+          {onClose && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label="Hide MIDI keyboard dock"
+              onClick={onClose}
+              className="size-8 border-[#3B362E] bg-[#121110] text-[#B7AEA0] hover:text-[#F4EFE6]"
+            >
+              <X />
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* 25-Key Piano Manual (Computer keys A..; + pointer capture) */}
-      <div
-        className="relative h-24 w-full select-none overflow-hidden rounded-lg border border-white/15 bg-[#050709]"
-        data-layout="layered"
-        role="group"
-        aria-label="25-key MIDI manual (computer keys A to semicolon, Z and X shift octave)"
-      >
-        <div className="flex h-full w-full">
-          {whites.map((m) => {
-            const label = noteLabel(m);
-            const active = heldNotes.includes(m);
+      {/* Pitch & Slide Wheels + 2-Octave Ivory & Ebony Manual */}
+      <div className="flex items-stretch gap-3">
+        <div className="flex items-center gap-2.5 rounded-lg border border-[#322E28] bg-[#121110] px-3 py-2">
+          <ModWheelStrip
+            label="Pitch"
+            ariaLabel="Pitch bend"
+            value={bend}
+            bipolar
+            accent="#D9A75C"
+            onChange={(v) => {
+              setLivePitchBend(v, 0);
+              useController.setState({ bend: v });
+            }}
+            onRelease={() => {
+              setLivePitchBend(0, 0);
+              useController.setState({ bend: 0 });
+            }}
+          />
+          <ModWheelStrip
+            label="Slide"
+            ariaLabel="CC 74 brightness slide"
+            value={slide}
+            accent="#34D399"
+            onChange={(v) => {
+              setLiveSlide(v, 0);
+              useController.setState({ slide: v });
+            }}
+          />
+        </div>
+
+        <div
+          className="relative min-h-[104px] flex-1 select-none touch-none overflow-hidden rounded-lg border border-[#3B362E] bg-[#0D0C0A]"
+          style={{ touchAction: "none" }}
+          data-layout="layered"
+          role="group"
+          aria-label="25-key MIDI manual"
+        >
+          <div className="flex h-full w-full touch-none">
+            {whites.map((m) => {
+              const label = noteLabel(m);
+              const semi = m - baseMidi;
+              const keyCap = SEMIS_TO_KEY[semi];
+              const active = heldNotes.includes(m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  aria-label={`Key ${label}${keyCap ? ` (${keyCap})` : ""}`}
+                  style={{ touchAction: "none" }}
+                  onPointerDown={(e) => {
+                    try {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                    } catch {
+                      /* ignore */
+                    }
+                    byPointer.current.set(e.pointerId, m);
+                    startNote(m, 96);
+                  }}
+                  className={`relative flex flex-1 flex-col items-center justify-end border-r border-[#C9BEA8] pb-1.5 text-xs font-bold cursor-pointer transition-colors ${
+                    active
+                      ? "bg-[#D9A75C] text-[#1A140B]"
+                      : "bg-[#FAF5E8] text-[#2A241D] hover:bg-white"
+                  }`}
+                >
+                  {keyCap && (
+                    <span className="pointer-events-none mb-0.5 text-xs font-semibold opacity-75">
+                      {keyCap}
+                    </span>
+                  )}
+                  {m % 12 === 0 && (
+                    <span className="pointer-events-none text-xs font-semibold opacity-70">{label}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {whites.map((m, i) => {
+            const b = m + 1;
+            if (!isBlack(b) || i >= whites.length - 1) return null;
+            const label = noteLabel(b);
+            const semi = b - baseMidi;
+            const keyCap = SEMIS_TO_KEY[semi];
+            const active = heldNotes.includes(b);
             return (
               <button
-                key={m}
+                key={b}
                 type="button"
-                aria-label={`Key ${label}`}
-                style={{ color: active ? "#052e16" : "#1c1917" }}
+                aria-label={`Key ${label}${keyCap ? ` (${keyCap})` : ""}`}
                 onPointerDown={(e) => {
                   try {
                     e.currentTarget.setPointerCapture(e.pointerId);
                   } catch {
                     /* ignore */
                   }
-                  byPointer.current.set(e.pointerId, m);
-                  startNote(m, 96);
+                  byPointer.current.set(e.pointerId, b);
+                  startNote(b, 96);
                 }}
-                className={`relative flex-1 border-r border-slate-300 font-mono text-[11px] font-bold flex items-end justify-center pb-1 cursor-pointer ${
-                  active ? "bg-emerald-300 text-[#052e16]" : "bg-[#f6f1e7] text-[#1c1917] hover:bg-white"
+                style={{
+                  left: `calc(${((i + 1) / whites.length) * 100}% - 1.55%)`,
+                  width: "3.1%",
+                  touchAction: "none",
+                }}
+                className={`absolute top-0 flex h-[60%] items-end justify-center rounded-b-md border border-[#0B0A09] pb-1.5 text-xs font-bold cursor-pointer transition-colors ${
+                  active
+                    ? "bg-[#34D399] text-[#051A12]"
+                    : "bg-[#23201C] text-[#E6DDD0] hover:bg-[#322E28]"
                 }`}
               >
-                {m % 12 === 0 ? (
-                  <span className="pointer-events-none font-mono text-[11px] font-bold leading-none text-[#1c1917]">
-                    {label}
-                  </span>
-                ) : (
-                  ""
-                )}
+                {keyCap && <span className="pointer-events-none leading-none">{keyCap}</span>}
               </button>
             );
           })}
         </div>
-        {whites.map((m, i) => {
-          const b = m + 1;
-          if (!isBlack(b) || i >= whites.length - 1) return null;
-          const label = noteLabel(b);
-          const active = heldNotes.includes(b);
-          return (
-            <button
-              key={b}
-              type="button"
-              aria-label={`Key ${label}`}
-              onPointerDown={(e) => {
-                try {
-                  e.currentTarget.setPointerCapture(e.pointerId);
-                } catch {
-                  /* ignore */
-                }
-                byPointer.current.set(e.pointerId, b);
-                startNote(b, 96);
-              }}
-              style={{ left: `calc(${((i + 1) / whites.length) * 100}% - 1.3%)`, width: "2.6%" }}
-              className={`absolute top-0 h-[60%] rounded-b border border-black cursor-pointer ${
-                active ? "bg-emerald-500" : "bg-[#15181c] hover:bg-slate-700"
-              }`}
-            />
-          );
-        })}
       </div>
-
-      <output className="block font-mono text-[11px] text-slate-400">
-        {last || "Computer keys A–; play CHIMERA notes · Z/X shift octave · Overlap keys for legato"}
-      </output>
     </section>
   );
 }

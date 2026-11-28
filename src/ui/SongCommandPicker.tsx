@@ -92,32 +92,35 @@ export function SongCommandPicker({
     : typeof piece.meter === "string" && piece.meter.trim()
       ? piece.meter.trim()
       : "4/4";
-  const metaLine = `${piece.key} ${piece.mode} · ${meterLabel} · ${piece.bpm > 0 ? `${piece.bpm} BPM` : "Spoken"}`;
+  const metaLine =
+    piece.kind === "skit"
+      ? `Spoken Skit · ${piece.scenes?.length ?? 1} scene${(piece.scenes?.length ?? 1) === 1 ? "" : "s"}`
+      : `${piece.key} ${piece.mode} · ${meterLabel} · ${piece.bpm > 0 ? `${piece.bpm} BPM` : "Spoken"}`;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 min-w-0">
+    <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
             aria-label="Select song or skit (Cmd+K)"
             data-testid="song-command-trigger"
-            className={`group flex items-center gap-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
-              compact ? "px-2.5 py-1.5" : "px-3 py-1.5"
+            className={`group flex min-w-0 max-w-full items-center gap-2 rounded-xl border text-left transition-colors cursor-pointer ${
+              compact ? "px-2.5 py-1" : "px-3 py-1.5"
             } ${
               isConsole
-                ? "border-emerald-500/30 bg-[#10171a] text-[#eef6f4] hover:border-emerald-400/60"
+                ? "border-[#3B362E] bg-[#1E1C19] text-[#F4EFE6] hover:border-[#D9A75C]"
                 : "border-[#8c6438]/65 bg-[#20150e]/95 text-[#f8efe2] hover:border-[#e3bd7f]"
             }`}
           >
             <span
-              className={`flex size-8 shrink-0 items-center justify-center rounded-lg border ${
+              className={`flex size-7 shrink-0 items-center justify-center rounded-lg border ${
                 isConsole
-                  ? "border-emerald-500/35 bg-emerald-950/50 text-emerald-300"
+                  ? "border-[#3B362E] bg-[#121110] text-[#D9A75C]"
                   : "border-[#a87b44]/60 bg-[#2d1e13] text-[#e3bd7f]"
               }`}
             >
-              <Music2 className="size-4" />
+              <Music2 className="size-3.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
@@ -126,32 +129,34 @@ export function SongCommandPicker({
                 </span>
                 {!compact && (
                   <kbd
-                    className={`hidden sm:inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] ${
+                    className={`hidden sm:inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs ${
                       isConsole
-                        ? "border-white/15 bg-black/40 text-emerald-300/80"
+                        ? "border-[#3B362E] bg-[#121110] text-[#B7AEA0]"
                         : "border-[#8c6438]/50 bg-[#140d09] text-[#c7b194]"
                     }`}
                   >
-                    ⌘K
+                    Cmd+K
                   </kbd>
                 )}
               </span>
-              <span className="block truncate text-[11px] text-[#bfa788]">{metaLine}</span>
+              <span className={`block truncate text-xs ${isConsole ? "text-[#B7AEA0]" : "text-[#bfa788]"}`}>
+                {metaLine}
+              </span>
             </span>
-            <ChevronDown className="size-4 shrink-0 opacity-70 group-hover:opacity-100" />
+            <ChevronDown className="size-4 shrink-0 opacity-80 group-hover:opacity-100" />
           </button>
         </PopoverTrigger>
 
         <PopoverContent
           align="start"
-          className={`w-[340px] p-0 ${
+          className={`w-[min(360px,calc(100vw-24px))] p-0 ${
             isConsole
-              ? "border-emerald-500/35 bg-[#10171a] text-[#eef6f4]"
+              ? "border-[#3B362E] bg-[#181614] text-[#F4EFE6]"
               : "border-[#8c6438]/75 bg-[#1c130d] text-[#f8efe2]"
           }`}
         >
           <Command className="bg-transparent">
-            <CommandInput placeholder="Search 40 songs, solos & skits…" />
+            <CommandInput placeholder={`Search ${catalog.length} songs, solos & skits…`} />
             <CommandList className="max-h-80">
               <CommandEmpty>No matching act found.</CommandEmpty>
               <CommandGroup heading={`Catalog (${filtered.length})`}>
@@ -163,22 +168,26 @@ export function SongCommandPicker({
                       value={`${item.title} ${item.category} ${item.cast.map((c) => c.name).join(" ")}`}
                       onSelect={() => selectAct(item.id)}
                       className={`flex items-center gap-2.5 px-2.5 py-2 cursor-pointer ${
-                        active ? "bg-[#e3bd7f]/20 text-white" : ""
+                        active
+                          ? isConsole
+                            ? "bg-[#182028] text-[#F1F5F9]"
+                            : "bg-[#e3bd7f]/20 text-white"
+                          : ""
                       }`}
                     >
                       <img
                         src={portrait(item.cast[0]?.artKey ?? "neon")}
                         alt=""
-                        className="size-8 rounded bg-black/40 object-contain shrink-0"
+                        className="size-8 rounded bg-[#0A0D10] object-contain shrink-0"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-xs font-bold">{item.title}</div>
-                        <div className="truncate text-[10px] opacity-75">
-                          {item.category.toUpperCase()} · {item.bpm > 0 ? `${item.bpm} BPM` : "Skit"} ·{" "}
+                        <div className={`truncate text-xs ${isConsole ? "text-[#A8B8C8]" : "opacity-80"}`}>
+                          {item.category === "skit" ? "SPOKEN SKIT" : `${item.category.toUpperCase()} · ${item.bpm} BPM`} ·{" "}
                           {item.cast.map((c) => c.name).join(", ")}
                         </div>
                       </div>
-                      {active && <span className="size-2 rounded-full bg-[#50cfad]" />}
+                      {active && <span className="size-2 rounded-full bg-[#34D399]" />}
                     </CommandItem>
                   );
                 })}

@@ -1,7 +1,7 @@
 /**
  * Spacious Multi-Track MIDI Piano Roll for Live Console and Theater views.
  *
- * Playhead updates strictly via direct DOM style mutation (`requestAnimationFrame`),
+ * Playhead and aria-valuenow update via direct DOM mutation (`requestAnimationFrame`),
  * guaranteeing ZERO React re-renders during playback.
  */
 import { useEffect, useMemo, useRef } from "react";
@@ -49,11 +49,12 @@ export function MidiPianoRoll({
   studio404,
   theme,
   loopRange,
-  heightPx = 156,
+  heightPx = 220,
   onSeekStageSec,
   ariaLabel = "Multi-track MIDI piano roll",
 }: MidiPianoRollProps) {
   const playheadRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
   const totalSec = Math.max(1, pieceSeconds(piece));
   const bars = useMemo(() => measures(piece), [piece]);
   const bs = beatSeconds(piece);
@@ -63,7 +64,7 @@ export function MidiPianoRoll({
     return activeTracks.map((track) => {
       const voice = voices.find((v) => v.id === track.id);
       const ch = getCastCharacter(track.id);
-      const color = (studio404 ? ch?.color : undefined) ?? voice?.color ?? "#50cfad";
+      const color = (studio404 ? ch?.color : undefined) ?? voice?.color ?? "#34D399";
       const displayName = studio404
         ? (ch?.displayName ?? studio404Name(track.id, voice?.name ?? track.id))
         : (voice?.name ?? track.id);
@@ -94,12 +95,16 @@ export function MidiPianoRoll({
     });
   }, [piece, voices, studio404, bs, totalSec]);
 
-  // Direct DOM playhead movement (zero parent React re-renders)
+  // Direct DOM playhead & aria-valuenow movement (zero parent React re-renders)
   useEffect(() => {
     const updateEl = (stageSec: number) => {
-      if (!playheadRef.current) return;
       const pct = Math.max(0, Math.min(100, (stageSec / totalSec) * 100));
-      playheadRef.current.style.left = `${pct.toFixed(3)}%`;
+      if (playheadRef.current) {
+        playheadRef.current.style.left = `${pct.toFixed(3)}%`;
+      }
+      if (sliderRef.current) {
+        sliderRef.current.setAttribute("aria-valuenow", String(Math.round(stageSec)));
+      }
     };
 
     let raf = 0;
@@ -123,22 +128,22 @@ export function MidiPianoRoll({
       className={`flex flex-col overflow-hidden rounded-xl border ${
         isTheater
           ? "border-[#8c6438]/60 bg-[#120b07] text-[#f8efe2]"
-          : "border-white/15 bg-[#070a0d] text-[#edf6f3]"
+          : "border-[#283542] bg-[#0A0D10] text-[#F1F5F9]"
       }`}
       style={{ height: heightPx }}
       data-testid={`midi-piano-roll-${theme}`}
     >
       {/* Top Bar Ruler */}
       <div
-        className={`flex h-6 shrink-0 items-center border-b text-[10px] font-mono ${
+        className={`flex h-7 shrink-0 items-center border-b text-xs font-mono ${
           isTheater
             ? "border-[#745438]/45 bg-[#1b120b] text-[#c7b194]"
-            : "border-white/10 bg-[#0d1216] text-slate-400"
+            : "border-[#283542] bg-[#11161C] text-[#A8B8C8]"
         }`}
       >
         <div
-          className={`w-[82px] shrink-0 border-r px-2 font-sans text-[10px] font-bold tracking-wider uppercase ${
-            isTheater ? "border-[#745438]/40 text-[#e3bd7f]" : "border-white/10 text-emerald-300"
+          className={`w-[96px] shrink-0 border-r px-2 font-sans text-xs font-bold ${
+            isTheater ? "border-[#745438]/40 text-[#e3bd7f]" : "border-[#283542] text-[#34D399]"
           }`}
         >
           Voices ({lanes.length})
@@ -150,7 +155,9 @@ export function MidiPianoRoll({
             return (
               <span
                 key={`ruler-${m.start}`}
-                className="pointer-events-none absolute top-0 bottom-0 flex items-center border-l border-white/10 pl-1"
+                className={`pointer-events-none absolute top-0 bottom-0 flex items-center border-l pl-1 ${
+                  isTheater ? "border-white/10" : "border-[#283542]"
+                }`}
                 style={{ left: `${leftPct.toFixed(2)}%` }}
               >
                 {idx + 1}
@@ -164,20 +171,20 @@ export function MidiPianoRoll({
       <div className="flex flex-1 min-h-0 overflow-y-auto">
         {/* Left Voice Names Column */}
         <div
-          className={`flex w-[82px] shrink-0 flex-col border-r ${
-            isTheater ? "border-[#745438]/40 bg-[#170f0a]" : "border-white/10 bg-[#0b0f13]"
+          className={`flex w-[96px] shrink-0 flex-col border-r ${
+            isTheater ? "border-[#745438]/40 bg-[#170f0a]" : "border-[#283542] bg-[#11161C]"
           }`}
         >
           {lanes.map((lane) => (
             <div
               key={`lbl-${lane.id}`}
-              className={`flex flex-1 min-h-[24px] items-center gap-1.5 border-b px-2 text-[11px] font-semibold ${
-                isTheater ? "border-[#745438]/25 text-[#f4dfba]" : "border-white/5 text-slate-200"
+              className={`flex flex-1 min-h-[28px] items-center gap-1.5 border-b px-2 text-xs font-semibold ${
+                isTheater ? "border-[#745438]/25 text-[#f4dfba]" : "border-[#283542]/60 text-[#F1F5F9]"
               }`}
             >
               <span
                 className="size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: lane.color, boxShadow: `0 0 6px ${lane.color}` }}
+                style={{ backgroundColor: lane.color }}
               />
               <span className="truncate">{lane.name}</span>
             </div>
@@ -186,12 +193,29 @@ export function MidiPianoRoll({
 
         {/* Right Interactive Note Grid */}
         <div
+          ref={sliderRef}
           role="slider"
           tabIndex={0}
           aria-label={ariaLabel}
           aria-valuemin={0}
           aria-valuemax={Math.round(totalSec)}
-          aria-valuenow={0}
+          aria-valuenow={Math.round(useEnsemble.getState().time)}
+          onKeyDown={(e) => {
+            const cur = useEnsemble.getState().time;
+            if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              onSeekStageSec(Math.max(0, cur - 2));
+            } else if (e.key === "ArrowRight") {
+              e.preventDefault();
+              onSeekStageSec(Math.min(totalSec, cur + 2));
+            } else if (e.key === "Home") {
+              e.preventDefault();
+              onSeekStageSec(0);
+            } else if (e.key === "End") {
+              e.preventDefault();
+              onSeekStageSec(totalSec);
+            }
+          }}
           onPointerDown={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / Math.max(1, rect.width)));
@@ -210,8 +234,8 @@ export function MidiPianoRoll({
                   major
                     ? isTheater
                       ? "border-[#e3bd7f]/22"
-                      : "border-emerald-400/20"
-                    : "border-white/[0.06]"
+                      : "border-[#34D399]/25"
+                    : "border-[#283542]/60"
                 }`}
                 style={{ left: `${leftPct.toFixed(2)}%` }}
               />
@@ -221,7 +245,7 @@ export function MidiPianoRoll({
           {/* Optional Loop Range Highlight */}
           {loopRange && loopWidthPct > 0 && (
             <div
-              className="pointer-events-none absolute inset-y-0 border-x border-emerald-400/55 bg-emerald-400/12"
+              className="pointer-events-none absolute inset-y-0 border-x border-[#34D399]/60 bg-[#34D399]/10"
               style={{ left: `${loopLeftPct.toFixed(2)}%`, width: `${loopWidthPct.toFixed(2)}%` }}
             />
           )}
@@ -230,8 +254,8 @@ export function MidiPianoRoll({
           {lanes.map((lane) => (
             <div
               key={`row-${lane.id}`}
-              className={`relative flex-1 min-h-[24px] border-b ${
-                isTheater ? "border-[#745438]/25" : "border-white/5"
+              className={`relative flex-1 min-h-[28px] border-b ${
+                isTheater ? "border-[#745438]/25" : "border-[#283542]/50"
               }`}
             >
               {lane.notes.map((n) => (
@@ -239,6 +263,7 @@ export function MidiPianoRoll({
                   key={n.key}
                   type="button"
                   title={n.label}
+                  aria-label={n.label}
                   onClick={(ev) => {
                     ev.stopPropagation();
                     onSeekStageSec(n.startSec);
@@ -249,9 +274,8 @@ export function MidiPianoRoll({
                     width: `${n.widthPct.toFixed(2)}%`,
                     top: `${(14 + n.pitchNorm * 62).toFixed(1)}%`,
                     backgroundColor: lane.color,
-                    boxShadow: `0 0 6px ${lane.color}88`,
                   }}
-                  className="absolute h-[5px] rounded-full opacity-95 transition-transform hover:scale-y-150 cursor-pointer"
+                  className="absolute h-[6px] rounded-full opacity-95 transition-transform hover:scale-y-150 cursor-pointer"
                 />
               ))}
             </div>
@@ -261,15 +285,13 @@ export function MidiPianoRoll({
           <div
             ref={playheadRef}
             className={`pointer-events-none absolute inset-y-0 z-10 w-[2px] ${
-              isTheater
-                ? "bg-[#f3c978] shadow-[0_0_10px_rgba(243,201,120,0.9)]"
-                : "bg-[#22d3ee] shadow-[0_0_10px_#22d3ee]"
+              isTheater ? "bg-[#f3c978]" : "bg-[#34D399]"
             }`}
             style={{ left: "0%" }}
           >
             <span
               className={`absolute -top-0.5 -left-[4px] size-2.5 rotate-45 ${
-                isTheater ? "bg-[#f3c978]" : "bg-[#22d3ee]"
+                isTheater ? "bg-[#f3c978]" : "bg-[#34D399]"
               }`}
             />
           </div>

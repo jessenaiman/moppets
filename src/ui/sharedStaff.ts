@@ -43,7 +43,15 @@ const lengths = [
 ] as const;
 const ns = "http://www.w3.org/2000/svg";
 
-function letter(svg: SVGSVGElement, x: number, y: number, value: string, size: number, color: string) {
+function letter(
+  svg: SVGSVGElement,
+  x: number,
+  y: number,
+  value: string,
+  size: number,
+  color: string,
+  extraAttrs?: Record<string, string>,
+): SVGTextElement {
   const text = document.createElementNS(ns, "text");
   text.setAttribute("x", String(x));
   text.setAttribute("y", String(y));
@@ -51,8 +59,12 @@ function letter(svg: SVGSVGElement, x: number, y: number, value: string, size: n
   text.setAttribute("fill", color);
   text.setAttribute("stroke", "none");
   text.setAttribute("text-anchor", "middle");
+  if (extraAttrs) {
+    for (const [k, v] of Object.entries(extraAttrs)) text.setAttribute(k, v);
+  }
   text.textContent = value;
   svg.append(text);
+  return text;
 }
 
 function headPaint(svg: SVGSVGElement, id: string, colors: string[]) {
@@ -122,6 +134,18 @@ export function beatX(axis: BeatAxis[], beat: number): number {
   return bar.from + Math.max(0, Math.min(1, (beat - bar.start) / (bar.end - bar.start))) * (bar.to - bar.from);
 }
 
+export interface EngravedSystem {
+  axis: BeatAxis[];
+  cursor: SVGLineElement;
+  cursorCap: SVGPolygonElement;
+  noteFocusBox: SVGRectElement;
+  barHighlights: { rect: SVGRectElement; start: number; end: number }[];
+  soundingHeads: { group: SVGElement; from: number; to: number; cx: number; cy: number }[];
+  lyricItems: { el: SVGTextElement; from: number; to: number }[];
+  topY: number;
+  bottomY: number;
+}
+
 export function engraveSystem(
   root: HTMLDivElement,
   piece: Piece,
@@ -131,27 +155,55 @@ export function engraveSystem(
   first: number,
   systemId: string,
   width: number,
-) {
+): EngravedSystem {
   root.replaceChildren();
   const renderer = new Renderer(root, Renderer.Backends.SVG);
-  renderer.resize(width, 140);
+  renderer.resize(width, 148);
   const svg = root.querySelector("svg")!;
-  svg.prepend(document.createElementNS(ns, "defs"));
+  const defs = document.createElementNS(ns, "defs");
+  svg.prepend(defs);
+  const bgGroup = document.createElementNS(ns, "g");
+  bgGroup.setAttribute("data-layer", "bar-highlights");
+  svg.insertBefore(bgGroup, defs.nextSibling);
+
   const ctx = renderer.getContext();
   const clef = clefForVoice(events.map((e) => e.pitch));
   const signature = vexKeySignature(piece.key, piece.mode);
   const barWidth = width / bars.length;
   const axis: BeatAxis[] = [];
-  const soundingHeads: { group: SVGElement; from: number; to: number }[] = [];
-  const lyrics = new Map<number, { x: number; word: string; color: string; rank: number }>();
+  const barHighlights: { rect: SVGRectElement; start: number; end: number }[] = [];
+  const soundingHeads: { group: SVGElement; from: number; to: number; cx: number; cy: number }[] = [];
+  const lyricItems: { el: SVGTextElement; from: number; to: number }[] = [];
+  const lyrics = new Map<
+    number,
+    { x: number; word: string; color: string; rank: number; from: number; to: number }
+  >();
   const previous = new Map<EventRef, { note: StaveNote; head: number }>();
-  let highest = 8,
+  const hasChords = piece.chords.some(
+    (ch) => bars.length > 0 && ch.beat >= bars[0]!.start - 0.01 && ch.beat < bars.at(-1)!.end - 0.01,
+  );
+  let highest = hasChords ? -10 : 6,
     lowest = 89;
+
   for (const [b, bar] of bars.entries()) {
     const left = b * barWidth,
       start = Math.round(bar.start * PPQ),
       end = Math.round(bar.end * PPQ);
-    const stave = new Stave(left, 4, barWidth);
+
+    // Pre-create warm active-measure highlight rectangle in background layer
+    const barRect = document.createElementNS(ns, "rect");
+    barRect.setAttribute("x", String(left + 2));
+    barRect.setAttribute("width", String(Math.max(8, barWidth - 4)));
+    barRect.setAttribute("rx", "7");
+    barRect.setAttribute("fill", "rgba(217, 167, 92, 0.14)");
+    barRect.setAttribute("stroke", "rgba(217, 167, 92, 0.42)");
+    barRect.setAttribute("stroke-width", "1");
+    barRect.style.pointerEvents = "none";
+    barRect.style.display = "none";
+    bgGroup.append(barRect);
+    barHighlights.push({ rect: barRect, start: bar.start, end: bar.end });
+
+    const stave = new Stave(left, 8, barWidth);
     if (!b) stave.addClef(clef, "small").addKeySignature(signature);
     if (bar.printMeter) stave.addTimeSignature(bar.signature);
     stave.setContext(ctx).draw();
@@ -213,7 +265,6 @@ export function engraveSystem(
       }
       fill(tick, end, []);
       const voice = new Voice({ numBeats, beatValue }).setMode(Voice.Mode.SOFT).addTickables(notes);
-      // Beam runs stop at hidden rests, which have no staff positions of their own.
       let run: StaveNote[] = [];
       const flush = () => {
         if (run.length > 1)
@@ -232,7 +283,7 @@ export function engraveSystem(
       flush();
       return voice;
     });
-    // Accidentals belong to the shared stave, across all rhythmic voices.
+
     const accidentalState = new Map<number, Record<string, number>>();
     written.sort((a, b) => a.tick - b.tick);
     for (const { note, heads } of written)
@@ -254,6 +305,18 @@ export function engraveSystem(
     }
     voices.forEach((v) => v.draw(ctx, stave));
     beams.forEach((beam) => beam.setContext(ctx).draw());
+
+    // Chord symbols cleanly above the bar & measure number
+    for (const ch of piece.chords) {
+      if (ch.beat >= bar.start - 0.01 && ch.beat < bar.end - 0.01 && ch.name) {
+        const cx = Math.max(left + 26, beatX([barAxis], ch.beat));
+        letter(svg, cx, 1, ch.name, 11.5, "#8C4A1C", {
+          "font-weight": "700",
+          "data-chord": "true",
+        });
+      }
+    }
+
     for (const w of written) {
       const x = w.note.getAbsoluteX() + 5;
       const ys = w.note.getYs();
@@ -267,7 +330,13 @@ export function engraveSystem(
       w.heads.forEach((head, i) => {
         const group = w.note.noteHeads[i].getSVGElement();
         if (!group) return;
-        soundingHeads.push({ group, from: w.tick / PPQ, to: w.stop / PPQ });
+        soundingHeads.push({
+          group,
+          from: w.tick / PPQ,
+          to: w.stop / PPQ,
+          cx: x,
+          cy: ys[i] ?? ys[0] ?? 48,
+        });
         group.setAttribute("data-refs", head.refs.map((e) => e.part + ":" + e.index).join(","));
         group.setAttribute("data-midi", String(head.pitch));
         const title = document.createElementNS(ns, "title");
@@ -293,35 +362,98 @@ export function engraveSystem(
             word = part.words[e.index];
           const rank = e.part + (part.events[e.index].line === undefined ? parts.length : 0);
           if (e.start === w.tick && word && rank < (lyrics.get(w.tick)?.rank ?? Infinity))
-            lyrics.set(w.tick, { x, word: word.split(/\s+/).slice(0, 2).join(" "), color: part.color, rank });
+            lyrics.set(w.tick, {
+              x,
+              word: word.split(/\s+/).slice(0, 2).join(" "),
+              color: part.color,
+              rank,
+              from: e.start / PPQ,
+              to: e.end / PPQ,
+            });
         }
       });
     }
-    letter(svg, left + 9, 13, String(first + b + 1), 10, "#536c60");
+    letter(svg, left + 10, 17, String(first + b + 1), 11, "#786146", {
+      "font-weight": "600",
+      "data-barnum": "true",
+    });
   }
-  const top = Math.min(0, highest - 10),
-    baseline = lowest + 16;
-  let lastRight = -Infinity;
+
+  const top = Math.min(-2, highest - 10),
+    baseline = lowest + 18;
+  const rowEnds = [-Infinity, -Infinity];
+  let usedSecondRow = false;
   for (const [, l] of [...lyrics].sort(([a], [b]) => a - b)) {
-    const labelWidth = Math.max(8, l.word.length * 6.4);
-    if (l.x - labelWidth / 2 < lastRight + 4) continue;
-    letter(svg, l.x, baseline, l.word, 10, l.color);
-    lastRight = l.x + labelWidth / 2;
+    const labelWidth = Math.max(10, l.word.length * 6.8);
+    const half = labelWidth / 2;
+    let rowIdx = 0;
+    if (l.x - half < rowEnds[0] + 4) {
+      rowIdx = l.x - half >= rowEnds[1] + 4 ? 1 : rowEnds[0] <= rowEnds[1] ? 0 : 1;
+    }
+    if (rowIdx === 1) usedSecondRow = true;
+    const textEl = letter(svg, l.x, baseline + rowIdx * 13.5, l.word, 11.8, l.color, {
+      "font-weight": "500",
+      class: "choir-lyric-word",
+    });
+    lyricItems.push({ el: textEl, from: l.from, to: l.to });
+    rowEnds[rowIdx] = l.x + half;
   }
-  const height = baseline + 8 - top;
+
+  const height = baseline + (usedSecondRow ? 24 : 12) - top;
+  const bottomY = top + height - 3;
+
+  // Size all bar highlight rects to span the full system height cleanly
+  for (const bh of barHighlights) {
+    bh.rect.setAttribute("y", String(top + 2));
+    bh.rect.setAttribute("height", String(Math.max(24, height - 4)));
+  }
+
   svg.setAttribute("viewBox", `0 ${top} ${width} ${height}`);
   svg.setAttribute("width", "100%");
   svg.setAttribute("height", String(height));
   svg.style.height = "auto";
   svg.style.display = "block";
   svg.style.overflow = "visible";
+
+  // Rounded Amber Conductor Note-Focus Frame (matches approved Broadcast Conductor Desk design)
+  const noteFocusBox = document.createElementNS(ns, "rect");
+  noteFocusBox.setAttribute("rx", "7");
+  noteFocusBox.setAttribute("ry", "7");
+  noteFocusBox.setAttribute("fill", "rgba(245, 184, 81, 0.20)");
+  noteFocusBox.setAttribute("stroke", "#D99B38");
+  noteFocusBox.setAttribute("stroke-width", "2");
+  noteFocusBox.setAttribute("data-focus-box", "true");
+  noteFocusBox.style.pointerEvents = "none";
+  noteFocusBox.style.display = "none";
+  svg.append(noteFocusBox);
+
+  // Smooth Playhead Cursor Line + Diamond Cap
   const cursor = document.createElementNS(ns, "line");
-  cursor.setAttribute("y1", String(top + 3));
-  cursor.setAttribute("y2", String(baseline + 3));
-  cursor.setAttribute("stroke", "#187c67");
-  cursor.setAttribute("stroke-width", "1.4");
+  cursor.setAttribute("y1", String(top + 4));
+  cursor.setAttribute("y2", String(baseline + (usedSecondRow ? 18 : 6)));
+  cursor.setAttribute("stroke", "#0D9488");
+  cursor.setAttribute("stroke-width", "2");
+  cursor.setAttribute("data-cursor", "true");
   cursor.style.pointerEvents = "none";
   cursor.style.display = "none";
   svg.append(cursor);
-  return { axis, cursor, soundingHeads };
+
+  const cursorCap = document.createElementNS(ns, "polygon");
+  cursorCap.setAttribute("fill", "#D99B38");
+  cursorCap.setAttribute("data-cursor-cap", "true");
+  cursorCap.style.pointerEvents = "none";
+  cursorCap.style.display = "none";
+  svg.append(cursorCap);
+
+  return {
+    axis,
+    cursor,
+    cursorCap,
+    noteFocusBox,
+    barHighlights,
+    soundingHeads,
+    lyricItems,
+    topY: top + 4,
+    bottomY,
+  };
 }

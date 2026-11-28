@@ -1,6 +1,7 @@
-import { ChoirScore, type RackProps } from "./ChoirScore";
+import { applyScoreInk, ChoirScore, type RackProps } from "./ChoirScore";
 import { revealStaff } from "./scoreScroll";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import {
   Accidental,
   Annotation,
@@ -23,9 +24,9 @@ import {
   midiToVexNote,
   vexKeySignature,
 } from "../choir/staffMath.ts";
-import {measures} from "../choir/meter";
+import { measures } from "../choir/meter";
 import { LEAD_IN, beatSeconds } from "../choir/timeline.ts";
-import { STUDIO_404_CAST, studio404Name } from "../choir/studio404.ts";
+import { studio404Name } from "../choir/studio404.ts";
 import { useMoppet } from "../choir/store.ts";
 import { trackSyllables } from "./StaffEditor.tsx";
 
@@ -42,22 +43,36 @@ const durations = [
   [0.125, "32"],
   [0.0625, "64"],
 ] as const;
-function systems(bars:ReturnType<typeof measures>) {
-  return Array.from({length:Math.ceil(bars.length/4)},(_,i)=>({
-    first:i*4,count:Math.min(4,bars.length-i*4),bars:bars.slice(i*4,i*4+4),
+
+function systems(bars: ReturnType<typeof measures>) {
+  return Array.from({ length: Math.ceil(bars.length / 4) }, (_, i) => ({
+    first: i * 4,
+    count: Math.min(4, bars.length - i * 4),
+    bars: bars.slice(i * 4, i * 4 + 4),
   }));
 }
-function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: ReturnType<typeof systems>) {
+
+function engrave(
+  root: HTMLDivElement,
+  piece: Piece,
+  track: Track,
+  lines: ReturnType<typeof systems>,
+  inkTheme: "paper" | "dark",
+  zoom: number,
+) {
   const clef = clefForVoice(track.events.map((e) => e.midi)),
     sig = vexKeySignature(piece.key, piece.mode);
   const words = trackSyllables(track);
   const positions: { beat: number; x: number; row: HTMLDivElement }[] = [];
   root.replaceChildren();
-  const systemWidth = Math.max(...lines.map(l=>l.count),1) * 195;
+  const systemWidth = Math.max(...lines.map((l) => l.count), 1) * 195;
+  const scaledWidth = Math.round(systemWidth * (zoom / 100));
   for (const { first, count, bars } of lines) {
     const row = document.createElement("div");
-    row.dataset.firstBar=String(first+1);
-    row.dataset.barCount=String(count);
+    row.dataset.firstBar = String(first + 1);
+    row.dataset.barCount = String(count);
+    row.style.width = `${scaledWidth}px`;
+    row.style.minWidth = `${scaledWidth}px`;
     root.append(row);
     const width = count * 195,
       height = 130;
@@ -73,9 +88,9 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
           .addClef(clef)
           .addKeySignature(sig)
           .setMeasure(bar + 1);
-      const measure=bars[bar-first];
-      const [numBeats,beatValue]=measure.signature.split("/").map(Number);
-      if(measure.printMeter) stave.addTimeSignature(measure.signature);
+      const measure = bars[bar - first];
+      const [numBeats, beatValue] = measure.signature.split("/").map(Number);
+      if (measure.printMeter) stave.addTimeSignature(measure.signature);
       stave.setContext(ctx).draw();
       const notes: StaveNote[] = [],
         ties: [StaveNote | null, StaveNote | null][] = [];
@@ -103,7 +118,7 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
             if (cursor > e.beat + 0.001) ties.push([prior, note]);
             else if (words[index])
               note.addModifier(
-                new Annotation(words[index]!).setFont("Georgia", 12).setVerticalJustification(Annotation.VerticalJustify.BOTTOM),
+                new Annotation(words[index]!).setFont("Geist Variable", 12).setVerticalJustification(Annotation.VerticalJustify.BOTTOM),
               );
             note.setAttribute("id", "rack-note-" + bar + "-" + notes.length);
             note.setAttribute("data-index", String(index));
@@ -121,8 +136,8 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
         emit(Math.min(end, e.beat + e.beats), i);
       });
       emit(end);
-      const voice = new Voice({numBeats,beatValue}).setMode(Voice.Mode.SOFT).addTickables(notes);
-      const beams = Beam.generateBeams(notes,{groups:[new Fraction(numBeats>=6 && numBeats%3===0 && beatValue===8 ? 3 : 1,beatValue)]});
+      const voice = new Voice({ numBeats, beatValue }).setMode(Voice.Mode.SOFT).addTickables(notes);
+      const beams = Beam.generateBeams(notes, { groups: [new Fraction(numBeats >= 6 && numBeats % 3 === 0 && beatValue === 8 ? 3 : 1, beatValue)] });
       new Formatter().joinVoices([voice]).format([voice], width / count - (stave.getNoteStartX() - x) - 12);
       voice.draw(ctx, stave);
       const anchors = starts.map((beat, i) => ({ beat, x: notes[i].getAbsoluteX(), row }));
@@ -138,6 +153,7 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
         text.setAttribute("x", String(at));
         text.setAttribute("y", "16");
         text.setAttribute("class", "rack-chord");
+        if (inkTheme === "dark") text.setAttribute("fill", "#F5B851");
         text.textContent = chord.name;
         row.querySelector("svg")!.append(text);
       }
@@ -164,44 +180,45 @@ function engrave(root: HTMLDivElement, piece: Piece, track: Track, lines: Return
     svg.removeAttribute("width");
     svg.removeAttribute("height");
     svg.removeAttribute("style");
-    row.style.removeProperty("width");
-    positions.push({ beat: bars[count-1].end, x: width, row });
+    positions.push({ beat: bars[count - 1].end, x: width, row });
     const cursor = document.createElementNS("http://www.w3.org/2000/svg", "path");
     cursor.setAttribute("class", "rack-cursor");
     svg.append(cursor);
+    applyScoreInk(row, inkTheme);
   }
   return positions;
 }
-export function MusicRack(props: RackProps) {
+
+export function MusicRack(props: RackProps & { onLyrics?: () => void }) {
+  const piece = useMoppet((s) => s.piece);
   const [part, setPart] = useState(false);
-  return part ? <PartRack {...props} onChoir={() => setPart(false)}/>
-    : <ChoirScore {...props} onPart={() => setPart(true)}/>;
+  if (piece.kind === "skit") {
+    return <ChoirScore {...props} onPart={() => {}} />;
+  }
+  return part ? <PartRack {...props} onChoir={() => setPart(false)} /> : <ChoirScore {...props} onPart={() => setPart(true)} />;
 }
 
-function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onChoir:()=>void}) {
+function PartRack({
+  timeSec,
+  playing,
+  onSeek = seek,
+  onChoir,
+  inkTheme = "paper",
+  zoom = 100,
+}: RackProps & { onChoir: () => void }) {
   const piece = useMoppet((s) => s.piece),
     voice = useMoppet((s) => s.voices[s.selected]);
-  const studio = useMoppet((s) => s.studio404),
-    track = piece.tracks.find((t) => t.id === voice.id);
-  const [compact, setCompact] = useState(
-    () => matchMedia("(max-width:550px)").matches,
-  );
-  useEffect(() => {
-    const query = matchMedia("(max-width:550px)");
-    const resize = () => setCompact(query.matches);
-    query.addEventListener("change", resize);
-    return () => query.removeEventListener("change", resize);
-  }, []);
-  const bars=useMemo(()=>measures(piece),[piece]);
-  const lines=useMemo(()=>systems(bars),[bars]);
+  const track = piece.tracks.find((t) => t.id === voice.id);
+  const bars = useMemo(() => measures(piece), [piece]);
+  const lines = useMemo(() => systems(bars), [bars]);
   const paper = useRef<HTMLDivElement>(null);
   const [fullPage, setFullPage] = useState(false);
   const [visibleLine, setVisibleLine] = useState(0);
   const [follow, setFollow] = useState(true);
-  const ensembleTime = useEnsemble(s => s.time);
+  const ensembleTime = useEnsemble((s) => s.time);
   const beat = ((timeSec ?? ensembleTime) - LEAD_IN) / beatSeconds(piece);
-  const currentBar = bars.findIndex(b=>beat<b.end);
-  const bar = currentBar < 0 ? Math.max(0,bars.length-1) : currentBar;
+  const currentBar = bars.findIndex((b) => beat < b.end);
+  const bar = currentBar < 0 ? Math.max(0, bars.length - 1) : currentBar;
   const line = Math.max(
     0,
     lines.findIndex((l) => bar >= l.first && bar < l.first + l.count),
@@ -209,28 +226,26 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
   const event = track?.events.find(
     (e) => e.beat <= beat && e.beat + e.beats > beat,
   );
-  const ensemblePlaying = useEnsemble(s => s.status === "playing");
+  const ensemblePlaying = useEnsemble((s) => s.status === "playing");
   const sounding = playing ?? ensemblePlaying;
-  const anchors=useRef<ReturnType<typeof engrave>>([]);
+  const anchors = useRef<ReturnType<typeof engrave>>([]);
   useEffect(() => {
-    anchors.current = paper.current && track?.events.length ? engrave(paper.current, piece, track, lines) : [];
-  }, [piece, track, lines]);
+    anchors.current =
+      paper.current && track?.events.length
+        ? engrave(paper.current, piece, track, lines, inkTheme, zoom)
+        : [];
+  }, [piece, track, lines, inkTheme, zoom]);
   useEffect(() => {
-    const root = paper.current;
-    if (!root) return;
-    // Always fill the rack width so staves & lyrics stay crisp and legible instead of shrinking to a narrow column.
-    root.style.setProperty("--system-width", "100%");
-  }, [lines, compact, fullPage, track]);
-  useEffect(()=>{
-    const points=anchors.current;
-    const i=points.findIndex(p=>p.beat>beat);
-    const a=points[i-1],b=points[i];
-    if(!a || !b || a.row!==b.row)return;
-    const path=a.row.querySelector(".rack-cursor");
-    const x=a.x+(b.x-a.x)*(beat-a.beat)/(b.beat-a.beat);
-    path?.setAttribute("d",`M${x} 24v64`);
-    return ()=>path?.removeAttribute("d");
-  },[beat,piece,track,lines]);
+    const points = anchors.current;
+    const i = points.findIndex((p) => p.beat > beat);
+    const a = points[i - 1],
+      b = points[i];
+    if (!a || !b || a.row !== b.row) return;
+    const path = a.row.querySelector(".rack-cursor");
+    const x = a.x + ((b.x - a.x) * (beat - a.beat)) / (b.beat - a.beat);
+    path?.setAttribute("d", `M${x} 24v64`);
+    return () => path?.removeAttribute("d");
+  }, [beat, piece, track, lines]);
   useEffect(() => {
     const root = paper.current;
     if (!root) return;
@@ -238,13 +253,10 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
       row.classList.toggle("current", line === i && sounding),
     );
     const row = root.children[line];
-    if (follow && row) revealStaff(root,row);
+    if (follow && row) revealStaff(root, row);
   }, [line, follow, lines, sounding]);
-  const [pick, setPick] = useState<{ track: Track; index: number } | null>(
-    null,
-  );
-  const chosen =
-    pick?.track === track && pick ? track?.events[pick.index] : undefined;
+  const [pick, setPick] = useState<{ track: Track; index: number } | null>(null);
+  const chosen = pick?.track === track && pick ? track?.events[pick.index] : undefined;
   function adjust(steps: number) {
     if (!pick || !track || !chosen) return;
     const state = useMoppet.getState();
@@ -271,31 +283,39 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
         ?.querySelectorAll('[data-event="' + track.events.indexOf(event) + '"]')
         .forEach((n) => n.classList.add("rack-sounding"));
   }, [sounding, event, track]);
+  const isDark = inkTheme === "dark";
   return (
     <section className="music-rack" data-full-page={fullPage || undefined}>
       <header>
         <div>
+          <h2>{piece.title}</h2>
           <small>
             {studio404Name(voice.id, voice.name)} ·{" "}
             {piece.key} {piece.mode} · {bars[bar]?.signature ?? piece.meter ?? "4/4"} · {piece.bpm} BPM
           </small>
-          <h2>{piece.title}</h2>
         </div>
-        <button type="button" onClick={onChoir}>All voices</button>
-        <button aria-pressed={fullPage} onClick={() => setFullPage(!fullPage)}>{fullPage ? "Close full score" : "Full score"}</button>
-        <button onClick={() => setFollow(!follow)} aria-pressed={follow}>
-          {follow ? "Following" : "Follow score"}
-        </button>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button type="button" onClick={onChoir}>All voices</button>
+          <button type="button" aria-pressed={fullPage} onClick={() => setFullPage(!fullPage)}>
+            {fullPage ? "Close full score" : "Expand"}
+          </button>
+          <button type="button" onClick={() => setFollow(!follow)} aria-pressed={follow}>
+            {follow ? "Following" : "Follow score"}
+          </button>
+        </div>
       </header>
       {track?.events.length ? (
         <div
-          className="rack-paper"
+          className={`rack-paper flex-1 overflow-auto ${
+            isDark ? "bg-[#0E1519] text-[#E8F3EE]" : "bg-[#F4F7F5] text-[#13231E]"
+          }`}
           data-layout="layered"
           ref={paper}
-          onScroll={e=>{
-            const root=e.currentTarget, top=root.getBoundingClientRect().top;
-            const index=Array.from(root.children).findIndex(row=>row.getBoundingClientRect().bottom>top+1);
-            if(index>=0)setVisibleLine(index);
+          onScroll={(e) => {
+            const root = e.currentTarget,
+              top = root.getBoundingClientRect().top;
+            const index = Array.from(root.children).findIndex((row) => row.getBoundingClientRect().bottom > top + 1);
+            if (index >= 0) setVisibleLine(index);
           }}
           onClick={(e) => {
             const index = (e.target as Element)
@@ -317,7 +337,7 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
           aria-label="Full selected part"
         />
       ) : (
-        <p className="rack-tacet">Tacet · {voice.name} rests throughout.</p>
+        <p className="rack-tacet text-xs text-[#A8B8C8]">Tacet · {studio404Name(voice.id, voice.name)} rests throughout.</p>
       )}
       <footer>
         {piece.sections && (
@@ -342,15 +362,16 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
             ))}
           </select>
         )}
-        <label>
+        <label className="inline-flex items-center gap-1.5 text-xs">
           Bar{" "}
           <select
             aria-label="Go to score system"
-            value={follow ? line : Math.min(visibleLine,lines.length-1)}
+            value={follow ? line : Math.min(visibleLine, lines.length - 1)}
             onChange={(e) => {
               if (!follow) {
-                const root=paper.current,row=root?.children[+e.target.value];
-                if (root && row) root.scrollTop += row.getBoundingClientRect().top-root.getBoundingClientRect().top;
+                const root = paper.current,
+                  row = root?.children[+e.target.value];
+                if (root && row) root.scrollTop += row.getBoundingClientRect().top - root.getBoundingClientRect().top;
                 return;
               }
               onSeek(
@@ -366,18 +387,18 @@ function PartRack({timeSec, playing, onSeek = seek, onChoir}: RackProps & {onCho
           </select>
         </label>
         {chosen && (
-          <span>
-            {noteName(chosen.midi, piece.key, piece.mode)}{" "}
-            <button aria-label="Lower selected note" onClick={() => adjust(-1)}>
-              −
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <b className="text-[#F5B851]">{noteName(chosen.midi, piece.key, piece.mode)}</b>
+            <button type="button" aria-label="Lower selected note" onClick={() => adjust(-1)}>
+              <Minus className="size-3.5" />
             </button>
-            <button aria-label="Raise selected note" onClick={() => adjust(1)}>
-              +
+            <button type="button" aria-label="Raise selected note" onClick={() => adjust(1)}>
+              <Plus className="size-3.5" />
             </button>
           </span>
         )}
-        <output>
-          {!follow && sounding && `Playing bar ${bar+1} · `}
+        <output className="text-xs">
+          {!follow && sounding && `Playing bar ${bar + 1} · `}
           {sounding && event
             ? noteName(event.midi, piece.key, piece.mode) +
               " · MIDI " +

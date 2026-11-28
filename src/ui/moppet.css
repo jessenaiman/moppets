@@ -1224,4 +1224,212 @@
 .rocker-switch span {display:block;width:9px;height:9px;background:#e1ccaa;border-radius:1px}
 .rocker-switch[data-state=checked] span{transform:translateX(9px);background:#65c6b7}
 .vs-advanced>summary {cursor:pointer;padding:.5rem;color:var(--muted)}
+.vs-midi .rocker-switch {display:inline-flex}
 .vs-midi .organ-stop .pad-led {background:var(--pad-color);box-shadow:0 0 4px var(--pad-color)}
+
+/* Vintage Studio 404 Console Theme & abcjs Sheet Stand */
+.live-console-theme {
+  color-scheme: dark;
+  background-color: #121316;
+  color: #F4EFE6;
+  font-family: "Geist Variable", "Instrument Sans", system-ui, sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #38332C #121316;
+}
+.live-console-theme ::selection {
+  background: rgba(217, 167, 92, 0.28);
+  color: #F4EFE6;
+}
+.live-console-theme *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.live-console-theme *::-webkit-scrollbar-track {
+  background: #121316;
+}
+.live-console-theme *::-webkit-scrollbar-thumb {
+  background: #38332C;
+  border-radius: 999px;
+  border: 2px solid #121316;
+}
+.live-console-theme *::-webkit-scrollbar-thumb:hover {
+  background: #D9A75C;
+}
+.live-console-theme :is(button, a, input, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid #D9A75C;
+  outline-offset: 2px;
+}
+.live-console-theme .moppet-stage-wrap,
+.live-console-theme .stage {
+  width: 100%;
+  height: 100%;
+  background: #0B0A09;
+}
+.live-console-theme .stage {
+  aspect-ratio: 16 / 9;
+}
+
+/* abcjs Responsive Sheet Music Stand */
+.studio-abc-stand svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+.studio-abc-stand .abcjs-note {
+  cursor: pointer;
+}
+.studio-abc-stand .abcjs-lyric {
+  font-family: "Geist Variable", "Instrument Sans", system-ui, sans-serif;
+  font-weight: 500;
+}
+.studio-abc-stand .abcjs-chord {
+  font-family: "Geist Variable", "Instrument Sans", system-ui, sans-serif;
+  font-weight: 700;
+}
+.studio-abc-stand[data-surface="paper"] .abcjs-chord {
+  fill: #8C4A1C;
+}
+.studio-abc-stand[data-surface="dark"] .abcjs-chord {
+  fill: #D9A75C;
+}
+.studio-abc-stand .studio-abc-active,
+.studio-abc-stand .studio-abc-active path,
+.studio-abc-stand .studio-abc-active ellipse,
+.studio-abc-stand .studio-abc-active text {
+  fill: #C27816 !important;
+  stroke: #C27816 !important;
+}
+.studio-abc-stand[data-surface="dark"] .studio-abc-active,
+.studio-abc-stand[data-surface="dark"] .studio-abc-active path,
+.studio-abc-stand[data-surface="dark"] .studio-abc-active ellipse,
+.studio-abc-stand[data-surface="dark"] .studio-abc-active text {
+  fill: #F5B851 !important;
+  stroke: #F5B851 !important;
+}
+.studio-abc-stand .studio-abc-bar-active {
+  fill: #D9A75C;
+}
+.studio-midi-nav-note[data-sounding="true"] {
+  opacity: 1 !important;
+  transform: scaleY(1.65);
+  box-shadow: 0 0 8px #F5B851, 0 0 0 1px #FFF7E6;
+  z-index: 4;
+}
+
+/* Conductor Desk Sheet Music & Staff Overrides */
+.live-console-theme .music-rack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+.live-console-theme .choir-system-row[data-active-system="true"] {
+  border-left: 3px solid #D99B38;
+}
+.live-console-theme .choir-score .choir-note-sounding,
+.live-console-theme .choir-score .choir-note-sounding path {
+  filter: drop-shadow(0 0 3px rgba(217, 155, 56, 0.75));
+}
+.live-console-theme .choir-score .choir-lyric-sounding {
+  font-weight: 800 !important;
+  text-decoration: underline;
+  text-decoration-color: #D99B38;
+  text-underline-offset: 3px;
+}
+
+/* StaffEditor inside Dark Phosphor Studio */
+.live-console-theme .staff-panel {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #283542;
+  border-radius: 10px;
+  background: #11161C;
+  color: #F1F5F9;
+}
+.live-console-theme .staff-title b {
+  font-size: 14px;
+  color: #F1F5F9;
+}
+.live-console-theme .staff-title small {
+  font-size: 12px;
+  color: #A8B8C8;
+}
+.live-console-theme .staff-panel button,
+.live-console-theme .staff-panel select,
+.live-console-theme .staff-panel input {
+  background: #182028;
+  border: 1px solid #283542;
+  color: #F1F5F9;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.live-console-theme .staff-panel button:hover:not(:disabled) {
+  border-color: #34D399;
+}
+.live-console-theme .staff-panel button.on,
+.live-console-theme .staff-controls button.on {
+  background: #34D399;
+  border-color: #34D399;
+  color: #041A12;
+  font-weight: 700;
+}
+.live-console-theme .staff-singers button {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.live-console-theme .staff-singers button.on {
+  background: #182028;
+  color: #F1F5F9;
+  border-color: var(--singer, #34D399);
+  box-shadow: inset 0 0 0 1px var(--singer, #34D399);
+}
+.live-console-theme .staff-scroll {
+  border: 1px solid #283542;
+  border-radius: 8px;
+  background: #F4F7F5;
+}
+.live-console-theme .staff-scroll[data-ink="dark"] {
+  background: #0E1519;
+  border-color: #283542;
+}
+.live-console-theme .staff-canvas {
+  color: #13231E;
+}
+.live-console-theme .staff-scroll[data-ink="dark"] .staff-canvas {
+  color: #E8F3EE;
+}
+.live-console-theme .staff-hit:hover {
+  fill: rgba(245, 184, 81, 0.14);
+}
+.live-console-theme .staff-sel-pill {
+  fill: rgba(245, 184, 81, 0.2);
+  stroke: #F5B851;
+  stroke-width: 1.5;
+}
+.live-console-theme .staff-playhead {
+  stroke: #34D399;
+  stroke-width: 2;
+}
+.live-console-theme .staff-drag-hint {
+  color: #F5B851;
+  font-size: 12px;
+}
+.live-console-theme .staff-note-info,
+.live-console-theme .staff-midi-hint,
+.live-console-theme .staff-lyric-bar label,
+.live-console-theme .staff-lyric-status {
+  font-size: 12px;
+  color: #A8B8C8;
+}
+.live-console-theme .staff-lyric-status.ok {
+  color: #34D399;
+}
+.live-console-theme .staff-lyric-status.bad {
+  color: #F87171;
+}

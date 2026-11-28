@@ -1,9 +1,9 @@
 /**
  * Interactive Vinyl Crates Coverflow + Expandable Poster Deck (`S-30` · `D-65`).
- * Replaces the boring `<select>` Song/Skit dropdown with tactile visual cards showing
- * each performance's real cast portraits, accent palette, BPM/key, and category filters.
+ * Styled in Dark Phosphor Studio (`#11161C`, `#182028`, `#283542`, `#34D399`, `#F5B851`).
  */
 import { useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Disc3, LayoutGrid, Plus, X } from "lucide-react";
 import { play, useEnsemble } from "../choir/ensemble.ts";
 import { useAudio } from "../audio/audio.ts";
 import { SONGBOOK } from "../choir/songbook.ts";
@@ -12,6 +12,7 @@ import { CAST } from "../choir/voices.ts";
 import { resolvePerformerIdentity } from "../choir/performer.ts";
 import { getCastCharacter } from "../choir/castManifest.ts";
 import { useMoppet, type Lesson } from "../choir/store.ts";
+import { NewRehearsal } from "./NewRehearsal.tsx";
 
 type CategoryFilter = "all" | "solo" | "choir" | "skit";
 
@@ -59,8 +60,8 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
       bpm: p.bpm,
       keyLabel: `${p.key} ${p.mode}`,
       cast,
-      leadColor: cast[0]?.color ?? "#57d3e8",
-      accentB: cast[1]?.color ?? cast[0]?.accentB ?? "#e3bd7f",
+      leadColor: cast[0]?.color ?? "#34D399",
+      accentB: cast[1]?.color ?? cast[0]?.accentB ?? "#F5B851",
     });
   }
 
@@ -72,8 +73,8 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
     bpm: 116,
     keyLabel: "D major",
     cast: resolveCastFromIds(["neon", "cue", "tabby", "gruff"], "The First Hello"),
-    leadColor: "#57d3e8",
-    accentB: "#e3bd7f",
+    leadColor: "#34D399",
+    accentB: "#F5B851",
   });
 
   entries.push({
@@ -84,8 +85,8 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
     bpm: 108,
     keyLabel: "D major",
     cast: resolveCastFromIds(["neon", "clank", "cue", "gruff"], "The Jam Round"),
-    leadColor: "#50cfad",
-    accentB: "#e3bd7f",
+    leadColor: "#34D399",
+    accentB: "#F5B851",
   });
 
   for (const skit of SKITS) {
@@ -99,8 +100,8 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
       bpm: 0,
       keyLabel: "Spoken Skit",
       cast,
-      leadColor: cast[0]?.color ?? "#e3bd7f",
-      accentB: cast[1]?.color ?? "#e06a4f",
+      leadColor: cast[0]?.color ?? "#F5B851",
+      accentB: cast[1]?.color ?? "#34D399",
     });
   }
 
@@ -111,10 +112,10 @@ export function buildCatalog(studio404: boolean, freshSkitTitle?: string): Catal
       label: `New · ${freshSkitTitle}`,
       category: "skit",
       bpm: 0,
-      keyLabel: "Fresh Skit",
+      keyLabel: "Spoken Skit",
       cast: resolveCastFromIds(["neon", "cue"], freshSkitTitle),
-      leadColor: "#57d3e8",
-      accentB: "#e06a4f",
+      leadColor: "#34D399",
+      accentB: "#F5B851",
     });
   }
 
@@ -129,6 +130,7 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
 
   const [filter, setFilter] = useState<CategoryFilter>("all");
   const [posterOpen, setPosterOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
   const crateRef = useRef<HTMLDivElement>(null);
 
   const catalog = useMemo(() => buildCatalog(studio404, freshSkit?.title), [studio404, freshSkit?.title]);
@@ -156,11 +158,17 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
   };
 
   return (
-    <section className="mb-3 rounded-xl border border-[#745438]/60 bg-[#1a120d]/92 p-2.5 shadow-lg" aria-label="Interactive song and skit navigator">
-      {/* Top Row: Category Pills + Prev/Next + Poster Wall Toggle */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <section
+      className="rounded-xl border border-[#283542] bg-[#11161C] p-3 text-[#F1F5F9] space-y-2.5"
+      aria-label="Interactive song and skit navigator"
+    >
+      {/* Top Row: Category Pills + Prev/Next + Poster Wall + New Song/Skit */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter songs by category">
-          <span className="mr-1 text-[11px] font-bold tracking-widest uppercase text-[#e3bd7f]">Vinyl Crates</span>
+          <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase text-[#A8B8C8]">
+            <Disc3 className="size-3.5 text-[#34D399]" />
+            Vinyl Crates
+          </span>
           {(
             [
               ["all", `All (${catalog.length})`],
@@ -174,10 +182,10 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
               type="button"
               aria-pressed={filter === key}
               onClick={() => setFilter(key)}
-              className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${
+              className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 filter === key
-                  ? "border-[#50cfad] bg-[#50cfad]/25 text-white"
-                  : "border-[#745438]/60 bg-[#261a12] text-[#d6c2a5] hover:border-[#e3bd7f]"
+                  ? "border-[#34D399] bg-[#34D399]/15 text-[#34D399]"
+                  : "border-[#283542] bg-[#182028] text-[#A8B8C8] hover:border-[#34D399]/50 hover:text-[#F1F5F9]"
               }`}
             >
               {label}
@@ -185,37 +193,55 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             aria-label="Previous song"
             onClick={() => stepSong(-1)}
-            className="rounded-md border border-[#745438]/70 bg-[#261a12] px-2 py-1 text-xs font-bold text-[#f8efe2] hover:border-[#50cfad]"
+            className="inline-flex items-center gap-1 rounded-lg border border-[#283542] bg-[#182028] px-2.5 py-1 text-xs font-semibold text-[#F1F5F9] hover:border-[#34D399] cursor-pointer"
           >
-            ← Prev
+            <ChevronLeft className="size-3.5" />
+            Prev
           </button>
           <button
             type="button"
             aria-label="Next song"
             onClick={() => stepSong(1)}
-            className="rounded-md border border-[#745438]/70 bg-[#261a12] px-2 py-1 text-xs font-bold text-[#f8efe2] hover:border-[#50cfad]"
+            className="inline-flex items-center gap-1 rounded-lg border border-[#283542] bg-[#182028] px-2.5 py-1 text-xs font-semibold text-[#F1F5F9] hover:border-[#34D399] cursor-pointer"
           >
-            Next →
+            Next
+            <ChevronRight className="size-3.5" />
           </button>
           <button
             type="button"
             aria-expanded={posterOpen}
             onClick={() => setPosterOpen((v) => !v)}
-            className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold cursor-pointer ${
               posterOpen
-                ? "border-[#50cfad] bg-[#50cfad]/25 text-white"
-                : "border-[#946738]/70 bg-[#2c1f16] text-[#f8efe2] hover:border-[#50cfad]"
+                ? "border-[#34D399] bg-[#34D399]/15 text-[#34D399]"
+                : "border-[#283542] bg-[#182028] text-[#F1F5F9] hover:border-[#34D399]"
             }`}
           >
-            {posterOpen ? "Close Poster Wall" : "▦ Poster Wall"}
+            <LayoutGrid className="size-3.5" />
+            {posterOpen ? "Close Wall" : "Poster Wall"}
+          </button>
+          <button
+            type="button"
+            aria-expanded={newOpen}
+            onClick={() => setNewOpen((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-semibold cursor-pointer ${
+              newOpen
+                ? "border-[#F5B851] bg-[#F5B851]/15 text-[#F5B851]"
+                : "border-[#283542] bg-[#182028] text-[#F1F5F9] hover:border-[#F5B851]"
+            }`}
+          >
+            {newOpen ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
+            New Song / Skit
           </button>
         </div>
       </div>
+
+      {newOpen && <NewRehearsal />}
 
       {/* Vinyl Crates Horizontal Coverflow Strip */}
       <div
@@ -234,18 +260,13 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
               aria-selected={active}
               data-song-id={item.id}
               onClick={() => selectAct(item.id)}
-              style={{
-                borderColor: active ? "#50cfad" : `${item.leadColor}55`,
-                background: active
-                  ? `linear-gradient(135deg, rgba(24,38,34,0.96), ${item.leadColor}28)`
-                  : `linear-gradient(135deg, rgba(32,22,16,0.94), ${item.leadColor}14)`,
-              }}
-              className={`group relative flex w-[212px] shrink-0 items-center gap-2.5 rounded-lg border p-2 text-left cursor-pointer ${
-                active ? "ring-1 ring-[#50cfad] shadow-md" : "opacity-85 hover:opacity-100"
+              className={`group relative flex w-[224px] shrink-0 items-center gap-2.5 rounded-xl border p-2 text-left transition-colors cursor-pointer ${
+                active
+                  ? "border-[#34D399] bg-[#182028] ring-1 ring-[#34D399]/50"
+                  : "border-[#283542] bg-[#182028]/80 hover:border-[#A8B8C8]/60 hover:bg-[#182028]"
               }`}
             >
-              {/* Overlapping real cast portrait sleeve */}
-              <div className="relative flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-md border border-white/15 bg-[#120c09]">
+              <div className="relative flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-lg border border-[#283542] bg-[#0A0D10]">
                 <img
                   src={portrait(item.cast[0]?.artKey ?? "neon")}
                   alt=""
@@ -253,24 +274,24 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
                   loading="lazy"
                 />
                 {active && (
-                  <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-[#50cfad] shadow-[0_0_8px_#50cfad]" />
+                  <span className="absolute top-1 right-1 size-2 rounded-full bg-[#34D399]" />
                 )}
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                    style={{ background: `${item.leadColor}26`, color: item.leadColor }}
+                    className="rounded border border-[#283542] bg-[#11161C] px-1.5 py-0.5 text-xs font-bold uppercase"
+                    style={{ color: item.leadColor }}
                   >
                     {item.category}
                   </span>
-                  <span className="truncate text-[10px] text-[#c7b194]">
-                    {item.bpm > 0 ? `${item.bpm} BPM` : "Skit"}
+                  <span className="truncate text-xs text-[#A8B8C8]">
+                    {item.bpm > 0 ? `${item.bpm} BPM` : "Spoken"}
                   </span>
                 </div>
-                <div className="mt-0.5 truncate text-xs font-bold text-[#f8efe2]">{item.title}</div>
-                <div className="truncate text-[10px] text-[#c7b194]">
+                <div className="mt-0.5 truncate text-xs font-bold text-[#F1F5F9]">{item.title}</div>
+                <div className="truncate text-xs text-[#A8B8C8]">
                   {item.cast.map((c) => c.name).join(" · ")}
                 </div>
               </div>
@@ -282,7 +303,7 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
       {/* Expandable Poster Wall Drawer */}
       {posterOpen && (
         <div
-          className="mt-2.5 grid grid-cols-2 gap-2.5 border-t border-[#745438]/50 pt-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+          className="grid grid-cols-2 gap-2.5 border-t border-[#283542] pt-2.5 sm:grid-cols-3 lg:grid-cols-4"
           aria-label="Full show poster wall"
         >
           {filtered.map((item) => {
@@ -295,17 +316,17 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
                   selectAct(item.id);
                   setPosterOpen(false);
                 }}
-                style={{
-                  borderColor: active ? "#50cfad" : `${item.leadColor}55`,
-                  background: `linear-gradient(160deg, rgba(26,18,13,0.96) 0%, ${item.leadColor}22 100%)`,
-                }}
-                className="flex flex-col justify-between rounded-xl border p-2.5 text-left cursor-pointer hover:brightness-110"
+                className={`flex flex-col justify-between rounded-xl border p-2.5 text-left cursor-pointer transition-colors ${
+                  active
+                    ? "border-[#34D399] bg-[#182028]"
+                    : "border-[#283542] bg-[#182028]/80 hover:border-[#A8B8C8]"
+                }`}
               >
-                <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase">
                   <span style={{ color: item.leadColor }}>{item.category}</span>
-                  <span className="text-[#c7b194]">{item.keyLabel}</span>
+                  <span className="text-[#A8B8C8]">{item.keyLabel}</span>
                 </div>
-                <div className="mb-2 flex h-20 items-end justify-center gap-1 overflow-hidden rounded-lg bg-black/30 px-2 pt-2">
+                <div className="mb-2 flex h-20 items-end justify-center gap-1 overflow-hidden rounded-lg bg-[#0A0D10] px-2 pt-2">
                   {item.cast.slice(0, 3).map((c) => (
                     <img
                       key={c.id}
@@ -316,8 +337,8 @@ export function SongNavigator({ live = false }: { live?: boolean } = {}) {
                     />
                   ))}
                 </div>
-                <div className="truncate text-sm font-bold text-[#f8efe2]">{item.title}</div>
-                <div className="truncate text-[11px] text-[#c7b194]">
+                <div className="truncate text-sm font-bold text-[#F1F5F9]">{item.title}</div>
+                <div className="truncate text-xs text-[#A8B8C8]">
                   {item.cast.map((c) => c.name).join(", ")}
                 </div>
               </button>

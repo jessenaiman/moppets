@@ -203,6 +203,9 @@ export function ScreeningRoom({ id }: { id: string }) {
             <a className="p-2" href="?cast">
               Cast
             </a>
+            <a className="p-2" href="?scale">
+              Size Chart
+            </a>
             <a className="p-2" href={`?act=${act.id}`}>
               Open in Live Console
             </a>

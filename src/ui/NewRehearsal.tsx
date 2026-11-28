@@ -17,8 +17,43 @@ export function NewRehearsal(){
       m.setLesson(id);setTitle('');setError('');
     }catch(e){setError(String(e))}
   }
-  return <form onSubmit={e=>{e.preventDefault();create()}}>
-    <select aria-label="New rehearsal type" value={kind} onChange={e=>setKind(e.target.value)}><option value="song">Song</option><option value="skit">Skit</option></select>
-    <input aria-label="New rehearsal title" placeholder="Title" value={title} required onChange={e=>setTitle(e.target.value)}/>
-    <button>Create draft</button>{error&&<p role="alert">{error}</p>}</form>;
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        create();
+      }}
+      className="flex flex-wrap items-center gap-2 rounded-lg border border-[#283542] bg-[#182028] p-2.5 text-xs text-[#F1F5F9]"
+    >
+      <select
+        aria-label="New rehearsal type"
+        value={kind}
+        onChange={(e) => setKind(e.target.value)}
+        className="rounded-md border border-[#283542] bg-[#11161C] px-2.5 py-1.5 text-xs font-semibold text-[#F1F5F9]"
+      >
+        <option value="song">Song</option>
+        <option value="skit">Skit</option>
+      </select>
+      <input
+        aria-label="New rehearsal title"
+        placeholder="New title…"
+        value={title}
+        required
+        onChange={(e) => setTitle(e.target.value)}
+        className="min-w-[160px] flex-1 rounded-md border border-[#283542] bg-[#11161C] px-2.5 py-1.5 text-xs text-[#F1F5F9] placeholder:text-[#A8B8C8]"
+      />
+      <button
+        type="submit"
+        style={{ color: "#041A12" }}
+        className="rounded-md bg-[#34D399] px-3 py-1.5 text-xs font-bold text-[#041A12] hover:bg-[#4ade80] cursor-pointer"
+      >
+        Create draft
+      </button>
+      {error && (
+        <p role="alert" className="w-full text-xs text-rose-400">
+          {error}
+        </p>
+      )}
+    </form>
+  );
 }
