@@ -1,0 +1,15 @@
+kind: skit
+id: cast-check-2
+title: Studio Roll Call Two
+about: Watt, Zap, Thrum, Fuzz, Gruff, Ozzi, and Tally run a soundcheck on the oak riser and front floor
+
+[scene 1]
+watt: "Six grounded sockets ready, zero hum on the power strip." ; do nod ; move left 2 ; cam wide
+zap: "Cue the spotlight! As director, I declare this camera angle heroic." ; do cheer ; jump 1.5 ; cam low-angle
+thrum: "Tape echo loop is clear. Hear that clean bounce back off the brick." ; do tilt ; move right 2 ; cam two-shot
+fuzz: "Tweed speaker cone is warm and rattling the hardwood planks." ; do laugh ; dance 2 ; cam closeup
+
+[scene 2]
+gruff: "Wash-tub bass strings are tight. Nobody trip over my chord!" ; do shrug ; move wide-left 2 ; cam reaction
+ozzi: "Oscillator sine wave calibrated! Listen to that pure tone." ; do cheer ; move wide-right 2 ; cam closeup
+tally: "Count checks out: seven voices present, zero missing frames!" ; do bow ; react cheer ; celebrate 2.5 ; cam wide

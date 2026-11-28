@@ -155,7 +155,6 @@ export function evaluateMultiplanePose(
   const steppedTime = still ? 0 : quantizeTwosSec(rawTime);
   const phase = inputs.phaseIndex * 0.25;
   const isTally = rig.id === "tally";
-  const isLatch = rig.id === "latch";
   const isFuzz = rig.id === "fuzz";
   const isHertz = rig.id === "hertz";
   const clip = !still ? (inputs.actionClip ?? "").trim().toLowerCase() : "";
@@ -266,7 +265,7 @@ export function evaluateMultiplanePose(
   // Interactive gestures & Cast Pads (`clap`, `walk`, `step`, `cheer`, `jump`, `bow`, `adjust-specs`, `probe-arc`, `ticker-cue`, `shred`, `overdrive`, etc.)
   const actEl = inputs.actionElapsedSec !== undefined ? Math.max(0, inputs.actionElapsedSec) : rawTime;
   const isProbeArc = clip === "probe-arc";
-  const isSpecsGag = !still && inputs.gagActive && !isProbeArc && !isTally && !isLatch && !isFuzz && !isHertz;
+  const isSpecsGag = !still && inputs.gagActive && !isProbeArc && !isTally && !isFuzz && !isHertz;
   const isHertzCrtAnswer =
     !still && isHertz && (clip === "crt-answer" || clip === "tilt" || clip === "gasp" || Boolean(inputs.gagActive));
   const isTallyTickerCue =
@@ -295,11 +294,6 @@ export function evaluateMultiplanePose(
   let tallyEarSnapRot = 0;
   let tallyClapBeatFlash = false;
   let tallyClapDip = false;
-  let latchSquashX = 1;
-  let latchSquashY = 1;
-  let latchStompShiftY = 0;
-  let latchTiltExtra = 0;
-  let latchClapJawOpen = false;
 
   if (!still && clip) {
     if (clip === "clap") {
@@ -308,9 +302,9 @@ export function evaluateMultiplanePose(
       const dip = u < 0.08 ? easeOutCubic(u / 0.08) : 0;
       const snap = u >= 0.08 && u < 0.64 ? Math.sin(((u - 0.08) / 0.56) * Math.PI) : 0;
       const bounce = Math.abs(Math.sin(cycle * Math.PI));
-      rootHopPx = (isTally ? 36 : isLatch ? 42 : 28) * snap + (isTally || isLatch ? 12 : 10) * bounce;
-      gestureTorsoDrop = (isTally || isLatch ? -16 : -10) * dip + (isTally || isLatch ? 6 : 4) * snap;
-      gestureTorsoLean = Math.sin(cycle * Math.PI) * (isTally ? 0.11 : isLatch ? 0.16 : 0.085);
+      rootHopPx = (isTally ? 36 : 28) * snap + (isTally ? 12 : 10) * bounce;
+      gestureTorsoDrop = (isTally ? -16 : -10) * dip + (isTally ? 6 : 4) * snap;
+      gestureTorsoLean = Math.sin(cycle * Math.PI) * (isTally ? 0.11 : 0.085);
       gestureHeadTilt = (isTally ? -0.14 : -0.07) * snap;
       armSwingL = 0.72 * snap + 0.18 * bounce;
       armSwingR = -(0.72 * snap + 0.18 * bounce);
@@ -324,12 +318,6 @@ export function evaluateMultiplanePose(
         tallyTickerWaveRot = 0.16 * Math.sin(cycle * Math.PI * 2);
         tallyClapBeatFlash = snap > 0.25;
         tallyClapDip = dip > 0.45;
-      } else if (isLatch) {
-        // Coiled-spring stomp crouch -> crisp pedal snap upward + jaw clap
-        latchSquashY = 1 - 0.16 * dip + 0.11 * snap;
-        latchSquashX = 1 + 0.12 * dip - 0.06 * snap;
-        latchStompShiftY = -4 * dip;
-        latchClapJawOpen = snap > 0.25;
       } else if (isFuzz) {
         fuzzArmOverride = true;
         rootHopPx = 34 * snap + 12 * bounce;
@@ -371,9 +359,9 @@ export function evaluateMultiplanePose(
     } else if (clip === "walk" || clip === "step" || clip === "walk-left" || clip === "walk-right") {
       isWalking = true;
       walkCycle = actEl * 7.8;
-      rootHopPx = Math.abs(Math.sin(walkCycle)) * (isLatch ? 36 : isFuzz ? 28 : isTally ? 24 : 18);
-      gestureSwayX = Math.sin(walkCycle) * (isLatch ? 20 : isFuzz ? 14 : isTally ? 13 : 7);
-      gestureTorsoLean = Math.sin(walkCycle) * (isLatch ? 0.19 : isFuzz ? 0.11 : isTally ? 0.085 : 0.06);
+      rootHopPx = Math.abs(Math.sin(walkCycle)) * (isFuzz ? 28 : isTally ? 24 : 18);
+      gestureSwayX = Math.sin(walkCycle) * (isFuzz ? 14 : isTally ? 13 : 7);
+      gestureTorsoLean = Math.sin(walkCycle) * (isFuzz ? 0.11 : isTally ? 0.085 : 0.06);
       gestureHeadTilt = -Math.sin(walkCycle) * (isFuzz ? 0.09 : isTally ? 0.065 : 0.04);
       armSwingL = Math.sin(walkCycle) * (isFuzz ? 0.34 : 0.56);
       armSwingR = -Math.sin(walkCycle) * (isFuzz ? 0.38 : 0.56);
@@ -383,10 +371,6 @@ export function evaluateMultiplanePose(
       if (isTally) {
         tallyEarSnapRot = Math.sin(walkCycle) * 0.16;
         tallyTickerWaveRot = Math.cos(walkCycle) * 0.14;
-      } else if (isLatch) {
-        const hopAbs = Math.abs(Math.sin(walkCycle));
-        latchSquashY = 1 + (hopAbs - 0.35) * 0.14;
-        latchSquashX = 1 - (hopAbs - 0.35) * 0.08;
       } else if (isFuzz) {
         fuzzArmOverride = true;
         gestureGuitarTorque = Math.sin(walkCycle) * 0.13;
@@ -427,16 +411,6 @@ export function evaluateMultiplanePose(
         gestureCordWhip = Math.sin(actEl * 15) * 0.24 * env;
         fuzzBootRock = Math.sin(actEl * 10) * 0.11 * env;
       }
-    } else if (isLatch && (clip === "listening" || clip === "listen")) {
-      // Attentive spring-pedal eavesdrop lean + radar hop
-      const dur = 2.2;
-      const u = clamp(actEl / dur, 0, 1);
-      const env = u < 0.14 ? easeOutCubic(u / 0.14) : u < 0.84 ? 1 : 1 - easeOutCubic((u - 0.84) / 0.16);
-      rootHopPx = 14 * Math.abs(Math.sin(actEl * 6.5)) * env;
-      gestureSwayX = 18 * env;
-      gestureTorsoLean = 0.11 * env;
-      latchSquashY = 1 + (0.08 + 0.03 * Math.sin(actEl * 8)) * env;
-      latchSquashX = 1 - 0.05 * env;
     } else if (clip === "ticker-cue" || (isTally && clip === "gasp")) {
       // Elastic broadcast ticker-feed dispense + proud owl head cock + cloak wing flare
       const dur = 3.2;
@@ -494,17 +468,13 @@ export function evaluateMultiplanePose(
         armSwingL = 0.28 * dip;
         armSwingR = -0.28 * dip;
         if (isTally) tallyCloakScaleDeltaX = -0.14 * dip;
-        if (isLatch) {
-          latchSquashY = 1 - 0.22 * dip;
-          latchSquashX = 1 + 0.16 * dip;
-        }
       } else if (u < 0.84) {
         const air = (u - 0.08) / 0.76;
         const arc = 4 * air * (1 - air);
         const dbl = clip === "cheer" ? Math.abs(Math.sin(air * Math.PI * 2)) : arc;
         const lift = clamp(0.55 * arc + 0.45 * dbl, 0, 1);
-        rootHopPx = (clip === "jump" ? (isLatch ? 78 : 68) : isLatch ? 62 : 54) * lift;
-        gestureTorsoLean = Math.sin(air * Math.PI * 3) * (isLatch ? 0.18 : 0.09) * lift;
+        rootHopPx = (clip === "jump" ? 68 : 54) * lift;
+        gestureTorsoLean = Math.sin(air * Math.PI * 3) * 0.09 * lift;
         gestureHeadTilt = -0.1 * lift;
         armSwingL = -1.04 * lift;
         armSwingR = 1.04 * lift;
@@ -512,10 +482,6 @@ export function evaluateMultiplanePose(
         gestureHoseBendR = 42 * lift;
         gestureAntenna = 0.22 * lift;
         if (isTally) tallyCloakScaleDeltaX = 0.18 * lift;
-        if (isLatch) {
-          latchSquashY = 1 + 0.15 * lift;
-          latchSquashX = 1 - 0.09 * lift;
-        }
         if (isFuzz) {
           fuzzArmOverride = true;
           gestureGuitarTorque = -0.26 * lift;
@@ -523,10 +489,6 @@ export function evaluateMultiplanePose(
       } else {
         const land = Math.sin(((u - 0.84) / 0.16) * Math.PI);
         gestureTorsoDrop = -12 * land;
-        if (isLatch) {
-          latchSquashY = 1 - 0.18 * land;
-          latchSquashX = 1 + 0.15 * land;
-        }
       }
     } else if (clip === "bow") {
       const u = clamp(actEl / 2.5, 0, 1);
@@ -618,28 +580,6 @@ export function evaluateMultiplanePose(
       clip === "jump" ||
       clip === "cheer");
 
-  const isLatchListening =
-    !still &&
-    isLatch &&
-    (clip === "listening" || clip === "listen" || (!inputs.singing && !clip && idleAttention > 0.35));
-  const isLatchSpeaking =
-    !still &&
-    isLatch &&
-    !isLatchListening &&
-    ((inputs.singing && (inputs.mouthOpen || inputs.level > 0.08)) || clip === "sing" || latchClapJawOpen);
-  if (isLatchSpeaking && !clip) {
-    // Expressive spring-pedal jaw stomp emphasis while singing phrases
-    const jawBeat = Math.max(0, actionEnv);
-    latchSquashY *= 0.96 + 0.05 * jawBeat;
-    latchSquashX *= 1.03 - 0.02 * jawBeat;
-    latchTiltExtra = -0.045 * (inputs.mouthOpen ? 1 : 0.4) + 0.065 * jawBeat;
-  } else if (isLatch && clip === "sing") {
-    latchTiltExtra = 0.06 * Math.sin(actEl * 8);
-    latchSquashY *= 0.97 + 0.05 * Math.abs(Math.sin(actEl * 8));
-  } else if (isLatch && (clip === "nod" || clip === "double nod" || clip === "tilt" || clip === "bow" || clip === "shrug" || clip === "gasp" || clip === "laugh")) {
-    latchTiltExtra = gestureHeadTilt * 0.9;
-  }
-
   const gagRamp = isSpecsGag ? clamp(actEl / 0.14, 0.35, 1) : 0;
   const effectivePelvisDrop = pelvisDrop + gestureTorsoDrop;
   const effectivePelvisSway = pelvisSwayX + gestureSwayX;
@@ -697,10 +637,6 @@ export function evaluateMultiplanePose(
       else if (spec.id === 752) visible = tallyIrisClosed;
       else if (spec.id === 729) visible = tallyIrisOpen;
       else visible = !tallyIrisClosed && !tallyIrisOpen;
-    } else if (isLatch && (spec.id === 3 || spec.id === 4 || spec.id === 5)) {
-      if (spec.id === 4) visible = isLatchSpeaking;
-      else if (spec.id === 5) visible = isLatchListening;
-      else visible = !isLatchSpeaking && !isLatchListening;
     } else if (isHertz && (spec.id === 525 || spec.id === 548 || spec.id === 571)) {
       if (spec.id === 525) visible = !isHertzCrtAnswer;
       else if (spec.id === 571) visible = isHertzCrtAnswer && !hertzStaticFlash;
@@ -802,12 +738,6 @@ export function evaluateMultiplanePose(
     } else if (isTally && spec.id === 621 && isTallyTickerCue) {
       scX *= 1.08;
       scY *= 1.08;
-    } else if (isLatch && (spec.id === 3 || spec.id === 4 || spec.id === 5)) {
-      // Latch_Pelvis (`id: 2`) is a Null parent, so visible pedal variants apply grounded squash/tilt around `[480, 451.2]` soles
-      rotZ += effectiveTorsoLean + latchTiltExtra;
-      scX *= latchSquashX;
-      scY *= torsoBreathScaleY * latchSquashY;
-      localShiftY += latchStompShiftY;
     } else if (spec.role === "antenna") {
       rotZ += effectiveAntenna * (isTally ? 1.45 : 1);
     } else if (spec.role === "armL") {

@@ -1,12 +1,12 @@
 /**
- * Canonical 21-entry Studio 404 Character Bible Solo Review registry (`S-46`).
+ * Canonical 20-entry Studio 404 Character Bible Solo Review registry (`S-46`).
  *
  * Each entry pairs one Character Master Bible (`bibles/general/<bibleDir>/`) with its
  * dedicated cleared-stage Solo Review song (`songs/bible-<castId>.song`) and its
  * unambiguous CHIMERA `voiceId` + expected manifest clip keys.
  */
 export interface BibleSoloEntry {
-  readonly index: number; // 1..21
+  readonly index: number; // 1..20
   readonly castId: string;
   readonly bibleDir: string;
   readonly lessonId: string; // e.g. "bible-chip"
@@ -130,17 +130,6 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
   },
   {
     index: 11,
-    castId: "latch",
-    bibleDir: "Latch",
-    lessonId: "bible-latch",
-    songTitle: "Bible · Latch",
-    voiceId: "latch",
-    expectedClips: ["idle", "sing", "walk", "listening"],
-    vocalSyncFocus: "Tactile cast-metal stompbox 8f@12fps idle, walk & hinged-tread sing articulation + amber talk lamp",
-    ikFocus: "Cutout grounding anchorY 0.96 + nod/cheer/shrug/bow foot-pivot IK",
-  },
-  {
-    index: 12,
     castId: "leadsinger",
     bibleDir: "LeadSinger",
     lessonId: "bible-leadsinger",
@@ -151,7 +140,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "BareChassis 102 DU cutout grounding anchorY 0.96 + full-body gesture IK",
   },
   {
-    index: 13,
+    index: 12,
     castId: "moonbell",
     bibleDir: "Moonbell",
     lessonId: "bible-moonbell",
@@ -162,7 +151,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "8f idle/expression sheet sync + gentle sway & bow IK + anchorY 0.95",
   },
   {
-    index: 14,
+    index: 13,
     castId: "neon",
     bibleDir: "Neon",
     lessonId: "bible-neon",
@@ -173,7 +162,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "48f pin-atlas listen/answer/acknowledge + `; take bow` step clip + anchorY 0.95",
   },
   {
-    index: 15,
+    index: 14,
     castId: "ozzi",
     bibleDir: "Ozzi",
     lessonId: "bible-ozzi",
@@ -184,7 +173,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "14-node 2.5D multiplane + purple polarizer `; take adjust-specs` gag + anchorY 0.96",
   },
   {
-    index: 16,
+    index: 15,
     castId: "tabby",
     bibleDir: "Tabby",
     lessonId: "bible-tabby",
@@ -195,7 +184,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "Closed/open cel lip-sync + `; take toast` 48f reversible toast prop + `; do bow`",
   },
   {
-    index: 17,
+    index: 16,
     castId: "tally",
     bibleDir: "Tally",
     lessonId: "bible-tally",
@@ -206,7 +195,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "17-node 2.5D multiplane owl rig + `; take ticker-cue` 48f S-curl ticker + anchorY 0.96",
   },
   {
-    index: 18,
+    index: 17,
     castId: "thrum",
     bibleDir: "Thrum",
     lessonId: "bible-thrum",
@@ -217,7 +206,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "13f band-action loop + tape-echo gesture IK + anchorY 0.95",
   },
   {
-    index: 19,
+    index: 18,
     castId: "tracker",
     bibleDir: "Tracker",
     lessonId: "bible-tracker",
@@ -228,7 +217,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "16-node 2.5D multiplane VHS rig + `; take drawer-lead` 48f tape-door take + anchorY 0.96",
   },
   {
-    index: 20,
+    index: 19,
     castId: "watt",
     bibleDir: "Watt",
     lessonId: "bible-watt",
@@ -239,7 +228,7 @@ export const BIBLE_SOLO_ORDER: readonly BibleSoloEntry[] = [
     ikFocus: "Closed/open cel swap on RMS attack + nod/cheer/shrug/bow + anchorY 0.95",
   },
   {
-    index: 21,
+    index: 20,
     castId: "zap",
     bibleDir: "Zap",
     lessonId: "bible-zap",

@@ -5,7 +5,7 @@
  * Props, VexFlow musical lead sheets, `:5419` Three.js stage captures, and structured Image + I2V Motion Prompts.
  * Pure data module (zero React, Three.js, DOM, or WebAudio imports) so both the live studio and CLI scripts share it.
  */
-import { CAST_MANIFEST, canonicalCastId } from "./castManifest.ts";
+import { CAST_MANIFEST, canonicalCastId, getSetPlateUrl } from "./castManifest.ts";
 import { measures } from "./meter.ts";
 import { makeRound, type CinemaShotPreset, type Piece } from "./music.ts";
 import { resolvePerformerIdentity } from "./performer.ts";
@@ -216,7 +216,7 @@ function buildPieceForFile(f: (typeof SONG_FILES)[number]): { piece: Piece; file
     };
   }
   return {
-    piece: withSongMidi(f.id, makeSkit(f.skit)),
+    piece: withSongMidi(`skit-${f.id}`, makeSkit(f.skit)),
     fileBase: `skit-${f.id}`,
   };
 }
@@ -439,7 +439,7 @@ export function compileIllustratedSongbook(lessonId: string): IllustratedSongboo
   const locationRef: SongbookLocationRef = {
     setId,
     label: setManifest?.label ?? "Studio 404 Stage Floor",
-    plateUrl: setManifest?.url ?? `/cast/sets/${setId}.webp`,
+    plateUrl: getSetPlateUrl(setId) ?? "/cast/sets/studio404-floor.webp",
     locationBiblePath: `${ASSETS_ROOT}/bibles/locations/Studio 404/Studio 404.designcraft`,
     setAssetPath: SET_ASSET_ON_SPEEDY[setId] ?? `${ASSETS_ROOT}/bibles/locations/Studio 404/img/candidates/Loc01_Studio404_StageWide_Empty_CANON.png`,
   };

@@ -3,7 +3,7 @@
  *
  * Every Studio 404 character uses one canonical Character Bible ID (`neon`, `cue`, `folio`, `watt`, `tracker`,
  * `tabby`, `gruff`, `chip`, `clank`, `zap`, `hertz`, `ozzi`, `deck`, `tally`, `clacker`, `click`, `fuzz`,
- * `latch`, `leadsinger`, `moonbell`, `thrum`) across songs, voices, console, and stage.
+ * `leadsinger`, `moonbell`, `thrum`) across songs, voices, console, and stage.
  * `voiceToCast` is used strictly when an ensemble song deliberately casts a synthesis voice into a guest/band role.
  */
 import type { Piece } from "./music.ts";
@@ -100,9 +100,6 @@ export const SONG_CASTING: Readonly<Record<string, SongCastSpec>> = {
     riserBand: ["click", "thrum", "clacker", "fuzz"],
     setId: "rhythm-riser",
   },
-  "After You": {
-    setId: "bench-right",
-  },
   "Borrowed Light": {
     riserBand: ["thrum"],
     setId: "stage-dark",
@@ -123,7 +120,7 @@ export const SONG_CASTING: Readonly<Record<string, SongCastSpec>> = {
   },
   "Deep Hum & Twelve-Inch Fret": {
     riserBand: [],
-    setId: "stage",
+    setId: "rhythm-riser",
   },
   "Bible · Chip": { riserBand: [], setId: "bench-right" },
   "Bible · Clacker": { riserBand: [], setId: "arena-lit" },
@@ -135,7 +132,6 @@ export const SONG_CASTING: Readonly<Record<string, SongCastSpec>> = {
   "Bible · Fuzz": { riserBand: [], setId: "arena-lit" },
   "Bible · Gruff": { riserBand: [], setId: "bench-right" },
   "Bible · Hertz": { riserBand: [], setId: "bench-right" },
-  "Bible · Latch": { riserBand: [], setId: "bench-right" },
   "Bible · LeadSinger": { riserBand: [], setId: "arena-lit" },
   "Bible · Moonbell": { riserBand: [], setId: "arena-lit" },
   "Bible · Neon": { riserBand: [], setId: "arena-lit" },

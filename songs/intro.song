@@ -97,11 +97,6 @@ fuzz: "Twin warm tubes glow bright up on ten" = hello ; do cheer ; take shred ; 
 fuzz: "Yardstick neck rings out loud again" = reply ; do bow ; take bow ; move center 3 ; cam wide
 turnaround V 4
 
-[latch]
-latch: "Press my switch and the mic comes live" = hello ; do nod ; move left 3 ; cam closeup
-latch: "One clean click gives the booth its cue" = reply ; do bow ; move center 3 ; cam wide
-turnaround V 4
-
 [leadsinger]
 leadsinger: "Red deck spins in my open chest" = hello ; do cheer ; take performance ; move right 3 ; cam closeup
 leadsinger: "Four oh four asks for one song more" = reply ; do bow ; move center 3 ; cam wide

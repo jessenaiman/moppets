@@ -1,0 +1,15 @@
+kind: skit
+id: cast-check-1
+title: Studio Roll Call One
+about: Tabby, Neon, Hertz, Tracker, Clank, Chip, and Cue test the hardwood stage floor and morning microphones
+
+[scene 1]
+tabby: "Testing one, two. Hardwood floor is solid under my boots today." ; do nod ; move left 2 ; cam wide
+neon: "All seven neon tubes are warmed up and humming in tune." ; do cheer ; dance 2 ; cam two-shot
+hertz: "Signal needle holds steady at green across every cable." ; do nod ; move right 2 ; cam closeup
+tracker: "Tracking reels are aligned. Zero tape flutter on channel four." ; do tilt ; move wide-right 2 ; cam reaction
+
+[scene 2]
+clank: "My trench coat seams are dry and ready for a loud rehearsal." ; do shrug ; move wide-left 2 ; cam low-angle
+chip: "Floppy drive booted fast! I even kept all my feathers." ; do cheer ; jump 1.5 ; cam closeup
+cue: "Monitors crisp, bubbles live, every foot on the deck. Let's roll!" ; do bow ; react cheer ; celebrate 2.5 ; cam wide

@@ -27,7 +27,6 @@ import neonPlaybook from "../../songs/neon-playbook.song";
 import borrowedLight from "../../songs/borrowed-light.song";
 import takeTwo from "../../songs/take-two.song";
 import rightOnCue from "../../songs/right-on-cue.song";
-import latch from "../../songs/latch.song";
 import line from "../../songs/line.song";
 import lateAnswer from "../../songs/late-answer.song";
 import everySocket from "../../songs/every-socket.song";
@@ -43,6 +42,9 @@ import rerun from "../../songs/skit-rerun.song";
 import toaster from "../../songs/skit-toaster.song";
 import allRise from "../../songs/skit-all-rise.song";
 import letter from "../../songs/skit-letter.song";
+import castCheck1 from "../../songs/skit-cast-check-1.song";
+import castCheck2 from "../../songs/skit-cast-check-2.song";
+import castCheck3 from "../../songs/skit-cast-check-3.song";
 import round from "../../songs/round.song";
 import goodBit from "../../songs/good-bit.song";
 import chip from "../../songs/chip.song";
@@ -59,7 +61,6 @@ import bibleFolio from "../../songs/bible-folio.song";
 import bibleFuzz from "../../songs/bible-fuzz.song";
 import bibleGruff from "../../songs/bible-gruff.song";
 import bibleHertz from "../../songs/bible-hertz.song";
-import bibleLatch from "../../songs/bible-latch.song";
 import bibleLeadSinger from "../../songs/bible-leadsinger.song";
 import bibleMoonbell from "../../songs/bible-moonbell.song";
 import bibleNeon from "../../songs/bible-neon.song";
@@ -92,7 +93,6 @@ const FILES: [string, string][] = [
   ["bible-fuzz.song", bibleFuzz],
   ["bible-gruff.song", bibleGruff],
   ["bible-hertz.song", bibleHertz],
-  ["bible-latch.song", bibleLatch],
   ["bible-leadsinger.song", bibleLeadSinger],
   ["bible-moonbell.song", bibleMoonbell],
   ["bible-neon.song", bibleNeon],
@@ -125,7 +125,6 @@ const FILES: [string, string][] = [
   ["borrowed-light.song", borrowedLight],
   ["line.song", line],
   ["right-on-cue.song", rightOnCue],
-  ["latch.song", latch],
   ["late-answer.song", lateAnswer],
   ["every-socket.song", everySocket],
   ["close-up.song", closeUp],
@@ -139,6 +138,9 @@ const FILES: [string, string][] = [
   ["skit-toaster.song", toaster],
   ["skit-all-rise.song", allRise],
   ["skit-letter.song", letter],
+  ["skit-cast-check-1.song", castCheck1],
+  ["skit-cast-check-2.song", castCheck2],
+  ["skit-cast-check-3.song", castCheck3],
   ["round.song", round],
   ["good-bit.song", goodBit],
 ];

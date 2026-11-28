@@ -1,5 +1,5 @@
 /**
- * The canonical 21 Studio 404 characters, in stage order — 1-to-1 with the 21 Character Master Bibles.
+ * The canonical 20 Studio 404 characters, in stage order — 1-to-1 with the 20 Character Master Bibles.
  */
 import { MoppetCharacter, type Moppet, type MoppetVoice } from "./moppet.ts";
 import { neon } from "./neon.ts";
@@ -19,7 +19,6 @@ import { tally } from "./tally.ts";
 import { clacker } from "./clacker.ts";
 import { click } from "./click.ts";
 import { fuzz } from "./fuzz.ts";
-import { latch } from "./latch.ts";
 import { leadsinger } from "./leadsinger.ts";
 import { moonbell } from "./moonbell.ts";
 import { thrum } from "./thrum.ts";
@@ -42,7 +41,6 @@ export {
   clacker,
   click,
   fuzz,
-  latch,
   leadsinger,
   moonbell,
   thrum,
@@ -77,7 +75,6 @@ export const MOPPETS: readonly MoppetCharacter[] = [
   clacker,
   click,
   fuzz,
-  latch,
   leadsinger,
   moonbell,
   thrum,

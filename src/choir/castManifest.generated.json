@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-11-26T20:01:07.715Z",
   "version": 5,
-  "studio404Count": 21,
+  "studio404Count": 20,
   "aliases": {
     "tracking": "tracker",
     "moonbeam": "moonbell",
@@ -16,8 +16,8 @@
       "role": "Floppy-disk circuit bird",
       "color": "#d9b440",
       "accentB": "#f08c4b",
-      "heightDu": 78,
-      "scaleFactor": 0.752,
+      "heightDu": 84,
+      "scaleFactor": 0.84,
       "portraitUrl": "/cast/chip/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -220,7 +220,7 @@
       "color": "#a0cc88",
       "accentB": "#f2ca91",
       "heightDu": 98,
-      "scaleFactor": 0.927,
+      "scaleFactor": 0.98,
       "portraitUrl": "/cast/clacker/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -293,7 +293,7 @@
         "bibleHeroUrl": "/cast/clacker/bible-hero.webp",
         "stageModelSource": "bibles/general/Clacker/motion/.../{clacker-idle,clacker-play-mp4,clacker-puppet-rig,clacker_performance}.webm",
         "animationTier": "bible-webm-atlas",
-        "notes": "Canon v2 keyboard chassis \u2014 full Bible WebMs verified against Canon Hero."
+        "notes": "Canon v2 keyboard chassis — full Bible WebMs verified against Canon Hero."
       },
       "ikPoints": [
         {
@@ -393,6 +393,12 @@
         "meshJson": "bibles/general/Clacker/rig/mesh.json",
         "lottieJson": "bibles/general/Clacker/rig/clacker.lottie.json",
         "blenderJson": "bibles/general/Clacker/rig/clacker.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/clacker/clacker-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "clank": {
@@ -402,8 +408,8 @@
       "role": "Old PC monitor tenor",
       "color": "#8e9a8c",
       "accentB": "#50cfad",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 108,
+      "scaleFactor": 1.08,
       "portraitUrl": "/cast/clank/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -929,7 +935,7 @@
       "color": "#f4c96b",
       "accentB": "#e06a4f",
       "heightDu": 82,
-      "scaleFactor": 0.787,
+      "scaleFactor": 0.82,
       "portraitUrl": "/cast/click/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1090,6 +1096,12 @@
         "meshJson": "bibles/general/Click/rig/mesh.json",
         "lottieJson": "bibles/general/Click/rig/click.lottie.json",
         "blenderJson": "bibles/general/Click/rig/click.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/click/click-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "cue": {
@@ -1099,8 +1111,8 @@
       "role": "Brass-hood teleprompter & stage director",
       "color": "#c9c2ae",
       "accentB": "#e3bd7f",
-      "heightDu": 98,
-      "scaleFactor": 0.927,
+      "heightDu": 88,
+      "scaleFactor": 0.88,
       "portraitUrl": "/cast/cue/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1301,8 +1313,8 @@
       "role": "Sport Walkman v3 master-tape logger",
       "color": "#8e9a8c",
       "accentB": "#f2c15a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 98,
+      "scaleFactor": 0.98,
       "portraitUrl": "/cast/deck/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1377,7 +1389,7 @@
         "bibleHeroUrl": "/cast/deck/bible-hero.webp",
         "stageModelSource": "animations/effectcraft/deck/{idle,sing,logging-clip}.webm + exports/twos-12fps/tape-jam.webm",
         "animationTier": "effectcraft-webm-atlas",
-        "notes": "Sport Walkman v3 canon \u2014 48f idle, sing & logging-clip + 24f @ 12fps tape-jam from EffectCraft."
+        "notes": "Sport Walkman v3 canon — 48f idle, sing & logging-clip + 24f @ 12fps tape-jam from EffectCraft."
       },
       "ikPoints": [
         {
@@ -1477,6 +1489,12 @@
         "meshJson": "bibles/general/Deck/rig/mesh.json",
         "lottieJson": "bibles/general/Deck/rig/deck.lottie.json",
         "blenderJson": "bibles/general/Deck/rig/deck.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/deck/deck-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "folio": {
@@ -1487,7 +1505,7 @@
       "color": "#d4b483",
       "accentB": "#e3bd7f",
       "heightDu": 96,
-      "scaleFactor": 0.909,
+      "scaleFactor": 0.96,
       "portraitUrl": "/cast/folio/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1561,7 +1579,7 @@
         "bibleHeroUrl": "/cast/folio/bible-hero.webp",
         "stageModelSource": "bibles/general/Folio/motion/folio-{idle,sing,chuckle,belt}.webm",
         "animationTier": "bible-webm-atlas",
-        "notes": "Real Folio Scroll Teleprompter \u2014 idle, sing, chuckle & belt baked straight from Folio/motion/folio-*.webm."
+        "notes": "Real Folio Scroll Teleprompter — idle, sing, chuckle & belt baked straight from Folio/motion/folio-*.webm."
       },
       "ikPoints": [
         {
@@ -1661,6 +1679,12 @@
         "meshJson": "bibles/general/Folio/rig/mesh.json",
         "lottieJson": "bibles/general/Folio/rig/folio.lottie.json",
         "blenderJson": "bibles/general/Folio/rig/folio.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/folio/folio-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "fuzz": {
@@ -1670,13 +1694,13 @@
       "role": "Spare Parts tube-amp lead guitarist",
       "color": "#dfaa75",
       "accentB": "#f28c6a",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 94,
+      "scaleFactor": 0.94,
       "portraitUrl": "/cast/fuzz/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
         "id": "fuzz",
-        "displayName": "Fuzz \u2014 Tube-Amp Shred Guitarist",
+        "displayName": "Fuzz — Tube-Amp Shred Guitarist",
         "compWidth": 1080,
         "compHeight": 1080,
         "centerX": 540,
@@ -2221,6 +2245,12 @@
         "meshJson": "bibles/general/Fuzz/rig/mesh.json",
         "lottieJson": "bibles/general/Fuzz/rig/fuzz.lottie.json",
         "blenderJson": "bibles/general/Fuzz/rig/fuzz.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/fuzz/fuzz-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "gruff": {
@@ -2231,7 +2261,7 @@
       "color": "#d98a4e",
       "accentB": "#e07a5f",
       "heightDu": 200,
-      "scaleFactor": 1.48,
+      "scaleFactor": 2,
       "portraitUrl": "/cast/gruff/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -2392,6 +2422,12 @@
         "meshJson": "bibles/general/Gruff/rig/mesh.json",
         "lottieJson": "bibles/general/Gruff/rig/gruff.lottie.json",
         "blenderJson": "bibles/general/Gruff/rig/gruff.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/gruff/gruff-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "hertz": {
@@ -2402,12 +2438,12 @@
       "color": "#7be86b",
       "accentB": "#e3bd7f",
       "heightDu": 150,
-      "scaleFactor": 1.38,
+      "scaleFactor": 1.5,
       "portraitUrl": "/cast/hertz/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
         "id": "hertz",
-        "displayName": "Hertz \u2014 Retro CRT Broadcast Monitor",
+        "displayName": "Hertz — Retro CRT Broadcast Monitor",
         "compWidth": 1080,
         "compHeight": 1080,
         "centerX": 540,
@@ -2939,377 +2975,22 @@
         "meshJson": "bibles/general/Hertz/rig/mesh.json",
         "lottieJson": "bibles/general/Hertz/rig/hertz.lottie.json",
         "blenderJson": "bibles/general/Hertz/rig/hertz.blender.json"
-      }
-    },
-    "latch": {
-      "id": "latch",
-      "bibleDir": "Latch",
-      "displayName": "Latch",
-      "role": "Talkback pedal",
-      "color": "#f0ac65",
-      "accentB": "#a3bebb",
-      "heightDu": 84,
-      "scaleFactor": 0.805,
-      "portraitUrl": "/cast/latch/portrait.webp",
-      "renderMode": "atlas",
-      "clips": {
-        "idle": {
-          "url": "/cast/latch/idle.webp",
+      },
+      "model3d": {
+        "url": "/cast/hertz/hertz-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/hertz/anicraft-face-4x2.png",
           "cols": 4,
           "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "sing": {
-          "url": "/cast/latch/sing.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "listening": {
-          "url": "/cast/latch/listening.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "walk": {
-          "url": "/cast/latch/walk.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.901,
-          "cellWidth": 344,
-          "cellHeight": 384
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.012
         }
-      },
-      "directedTakes": {
-        "listening": "listening",
-        "listen": "listening",
-        "walk": "walk",
-        "step": "walk"
-      },
-      "bibleAudit": {
-        "status": "verified-bible",
-        "bibleFile": "Latch.designcraft",
-        "bibleHeroSrc": "bibles/general/Latch/img/candidates/latch_tactile_hero_rgba.png",
-        "bibleHeroUrl": "/cast/latch/bible-hero.webp",
-        "stageModelSource": "bibles/general/Latch/img/candidates/latch_sing_idle_4x2_rgba.png",
-        "animationTier": "effectcraft-webm-atlas",
-        "notes": "Upgraded per S-6 / D-12 to tactile Studio 404 cast-metal stompbox with coiled-spring chassis feet & 1/4-inch TRS spring arms (3x candidates, EffectCraft Keylight alpha=0)."
-      },
-      "ikPoints": [
-        {
-          "id": "root-foot",
-          "label": "Spring Chassis Base",
-          "role": "root-foot",
-          "x": 0.5,
-          "y": 0.84
-        },
-        {
-          "id": "pelvis",
-          "label": "Cast-Metal Lower Housing",
-          "role": "pelvis",
-          "x": 0.46,
-          "y": 0.72,
-          "parent": "root-foot"
-        },
-        {
-          "id": "spine",
-          "label": "Slotted Rear Hinge & Felt Washer",
-          "role": "spine",
-          "x": 0.24,
-          "y": 0.56,
-          "parent": "pelvis"
-        },
-        {
-          "id": "neck",
-          "label": "Inner Brass Contact Spring",
-          "role": "neck",
-          "x": 0.52,
-          "y": 0.55,
-          "parent": "spine"
-        },
-        {
-          "id": "head-jaw",
-          "label": "Ribbed Rubber Tread & Talk Lamp",
-          "role": "head-jaw",
-          "x": 0.62,
-          "y": 0.48,
-          "parent": "neck"
-        },
-        {
-          "id": "shoulder-l",
-          "label": "Left Side Mount",
-          "role": "shoulder-l",
-          "x": 0.42,
-          "y": 0.63,
-          "parent": "pelvis"
-        },
-        {
-          "id": "hand-l",
-          "label": "Left 1/4-inch TRS Spring Arm",
-          "role": "hand-l",
-          "x": 0.53,
-          "y": 0.67,
-          "parent": "shoulder-l"
-        },
-        {
-          "id": "shoulder-r",
-          "label": "Right Side Mount",
-          "role": "shoulder-r",
-          "x": 0.74,
-          "y": 0.58,
-          "parent": "pelvis"
-        },
-        {
-          "id": "hand-r",
-          "label": "Right 1/4-inch TRS Spring Arm",
-          "role": "hand-r",
-          "x": 0.83,
-          "y": 0.59,
-          "parent": "shoulder-r"
-        }
-      ],
-      "vocalSyncSpec": {
-        "mode": "sing-vs-idle-loop",
-        "hasDedicatedMouthOpen": true,
-        "mouthPivot": [
-          0.62,
-          0.52
-        ],
-        "note": "Tactile D-12 cast-metal stompbox 8f@12fps hinged rubber tread jaw + glowing #FFB059 amber talk lamp."
-      },
-      "defects": [],
-      "rigArtifacts": {
-        "rigJson": "bibles/general/Latch/rig/rig.json",
-        "meshJson": "bibles/general/Latch/rig/mesh.json",
-        "lottieJson": "bibles/general/Latch/rig/latch.lottie.json",
-        "blenderJson": "bibles/general/Latch/rig/latch.blender.json"
-      },
-      "multiplane": {
-        "id": "latch",
-        "displayName": "Latch",
-        "compWidth": 1080,
-        "compHeight": 1080,
-        "centerX": 540,
-        "floorY": 960,
-        "hasProceduralPhosphorCrt": false,
-        "hasPurplePolarizerGagProp": false,
-        "extraParts": {},
-        "nodes": [
-          {
-            "id": 1,
-            "name": "Foot_Base_Null",
-            "role": "legs",
-            "parent": null,
-            "sourceType": "Null",
-            "publicSrc": null,
-            "width": 0,
-            "height": 0,
-            "anchor": [
-              0,
-              0,
-              0
-            ],
-            "position": [
-              540,
-              948,
-              0
-            ],
-            "scale": [
-              100,
-              100,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": -12
-          },
-          {
-            "id": 2,
-            "name": "Latch_Pelvis",
-            "role": "torso",
-            "parent": null,
-            "sourceType": "Null",
-            "publicSrc": null,
-            "width": 0,
-            "height": 0,
-            "anchor": [
-              0,
-              0,
-              0
-            ],
-            "position": [
-              540,
-              828,
-              0
-            ],
-            "scale": [
-              100,
-              100,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 0
-          },
-          {
-            "id": 3,
-            "name": "Latch_Pedal_Rest",
-            "role": "restVariant",
-            "parent": 2,
-            "sourceType": "Footage",
-            "publicSrc": "/cast/latch/rest.webp",
-            "width": 960,
-            "height": 480,
-            "anchor": [
-              480,
-              451.2,
-              0
-            ],
-            "position": [
-              0,
-              120,
-              0
-            ],
-            "scale": [
-              86,
-              86,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 4
-          },
-          {
-            "id": 4,
-            "name": "Latch_Pedal_Sing",
-            "role": "singVariant",
-            "parent": 2,
-            "sourceType": "Footage",
-            "publicSrc": "/cast/latch/speaking.webp",
-            "width": 960,
-            "height": 480,
-            "anchor": [
-              480,
-              451.2,
-              0
-            ],
-            "position": [
-              0,
-              120,
-              0
-            ],
-            "scale": [
-              86,
-              86,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 6
-          },
-          {
-            "id": 5,
-            "name": "Latch_Pedal_Alt",
-            "role": "altVariant",
-            "parent": 2,
-            "sourceType": "Footage",
-            "publicSrc": "/cast/latch/listening.webp",
-            "width": 960,
-            "height": 480,
-            "anchor": [
-              480,
-              451.2,
-              0
-            ],
-            "position": [
-              0,
-              120,
-              0
-            ],
-            "scale": [
-              86,
-              86,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 5
-          },
-          {
-            "id": 6,
-            "name": "Head_Pedal_Null",
-            "role": "head",
-            "parent": 2,
-            "sourceType": "Null",
-            "publicSrc": null,
-            "width": 0,
-            "height": 0,
-            "anchor": [
-              0,
-              0,
-              0
-            ],
-            "position": [
-              0,
-              -155,
-              0
-            ],
-            "scale": [
-              100,
-              100,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 12
-          },
-          {
-            "id": 7,
-            "name": "Spring_Antenna_Null",
-            "role": "antenna",
-            "parent": 6,
-            "sourceType": "Null",
-            "publicSrc": null,
-            "width": 0,
-            "height": 0,
-            "anchor": [
-              0,
-              0,
-              0
-            ],
-            "position": [
-              0,
-              -82,
-              0
-            ],
-            "scale": [
-              100,
-              100,
-              100
-            ],
-            "rotationDeg": 0,
-            "defaultOpacity": 100,
-            "zPx": 14
-          }
-        ]
       }
     },
     "leadsinger": {
@@ -3320,7 +3001,7 @@
       "color": "#f28c6a",
       "accentB": "#e3bd7f",
       "heightDu": 102,
-      "scaleFactor": 0.962,
+      "scaleFactor": 1.02,
       "portraitUrl": "/cast/leadsinger/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3393,7 +3074,7 @@
         "bibleHeroUrl": "/cast/leadsinger/bible-hero.webp",
         "stageModelSource": "bibles/general/LeadSinger/motion/.../leadsinger-{idle,sing-mp4,puppet-rig,_performance}.webm",
         "animationTier": "bible-webm-atlas",
-        "notes": "BareChassis cassette-chest canon \u2014 idle, 8s sing, puppet-rig & performance baked from Bible WebMs."
+        "notes": "BareChassis cassette-chest canon — idle, 8s sing, puppet-rig & performance baked from Bible WebMs."
       },
       "ikPoints": [
         {
@@ -3493,6 +3174,12 @@
         "meshJson": "bibles/general/LeadSinger/rig/mesh.json",
         "lottieJson": "bibles/general/LeadSinger/rig/leadsinger.lottie.json",
         "blenderJson": "bibles/general/LeadSinger/rig/leadsinger.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/leadsinger/leadsinger-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "moonbell": {
@@ -3502,8 +3189,8 @@
       "role": "Guest phosphor voice",
       "color": "#9be7ff",
       "accentB": "#ffd38a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 70,
+      "scaleFactor": 0.7,
       "portraitUrl": "/cast/moonbell/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3712,6 +3399,12 @@
         "meshJson": "bibles/general/Moonbell/rig/mesh.json",
         "lottieJson": "bibles/general/Moonbell/rig/moonbell.lottie.json",
         "blenderJson": "bibles/general/Moonbell/rig/moonbell.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/moonbell/moonbell-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "neon": {
@@ -3721,8 +3414,8 @@
       "role": "Backstage dual-tube neon sign",
       "color": "#57d3e8",
       "accentB": "#ff5e99",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 112,
+      "scaleFactor": 1.12,
       "portraitUrl": "/cast/neon/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3890,13 +3583,13 @@
       "role": "Goth-rock bare CRT oscilloscope",
       "color": "#8f6bff",
       "accentB": "#5eff98",
-      "heightDu": 100,
-      "scaleFactor": 0.944,
+      "heightDu": 108,
+      "scaleFactor": 1.08,
       "portraitUrl": "/cast/ozzi/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
         "id": "ozzi",
-        "displayName": "Ozzi \u2014 Bare CRT Goth Oscilloscope",
+        "displayName": "Ozzi — Bare CRT Goth Oscilloscope",
         "compWidth": 1080,
         "compHeight": 1080,
         "centerX": 540,
@@ -4509,6 +4202,12 @@
         "meshJson": "bibles/general/Ozzi/rig/mesh.json",
         "lottieJson": "bibles/general/Ozzi/rig/ozzi.lottie.json",
         "blenderJson": "bibles/general/Ozzi/rig/ozzi.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/ozzi/ozzi-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "tabby": {
@@ -4518,8 +4217,8 @@
       "role": "Cracked-tablet cat soprano",
       "color": "#3fbfa0",
       "accentB": "#f2c15a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 100,
+      "scaleFactor": 1,
       "portraitUrl": "/cast/tabby/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -4755,13 +4454,13 @@
       "role": "Stage manager owl & ticker beacon",
       "color": "#e06a4f",
       "accentB": "#f6d55c",
-      "heightDu": 92,
-      "scaleFactor": 0.874,
+      "heightDu": 112,
+      "scaleFactor": 1.12,
       "portraitUrl": "/cast/tally/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
         "id": "tally",
-        "displayName": "Tally \u2014 Booth Camera & Ticker Owl",
+        "displayName": "Tally — Booth Camera & Ticker Owl",
         "compWidth": 1080,
         "compHeight": 1080,
         "centerX": 540,
@@ -5365,6 +5064,12 @@
         "meshJson": "bibles/general/Tally/rig/mesh.json",
         "lottieJson": "bibles/general/Tally/rig/tally.lottie.json",
         "blenderJson": "bibles/general/Tally/rig/tally.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tally/tally-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "thrum": {
@@ -5375,7 +5080,7 @@
       "color": "#83c7c3",
       "accentB": "#e3bd7f",
       "heightDu": 106,
-      "scaleFactor": 0.996,
+      "scaleFactor": 1.06,
       "portraitUrl": "/cast/thrum/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5436,7 +5141,7 @@
         "bibleHeroUrl": "/cast/thrum/bible-hero.webp",
         "stageModelSource": "bibles/general/Thrum/motion/.../{thrum-idle,thrum-play-mp4,thrum_performance}.webm",
         "animationTier": "bible-webm-atlas",
-        "notes": "Canon v2 tape-echo hardware rig \u2014 idle, play & performance baked from Bible WebMs."
+        "notes": "Canon v2 tape-echo hardware rig — idle, play & performance baked from Bible WebMs."
       },
       "ikPoints": [
         {
@@ -5553,7 +5258,7 @@
       "color": "#57d3e8",
       "accentB": "#8ce0a8",
       "heightDu": 75,
-      "scaleFactor": 0.726,
+      "scaleFactor": 0.75,
       "portraitUrl": "/cast/tracker/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5615,7 +5320,7 @@
         "bibleHeroUrl": "/cast/tracker/bible-hero.webp",
         "stageModelSource": "animations/effectcraft/tracker/exports/twos-12fps/{idle,sing,drawer-lead}.webm (walk uses canonical 24f idle stride)",
         "animationTier": "effectcraft-webm-atlas",
-        "notes": "Canon v2 Slim 12:00 90s VHS deck (75 DU) \u2014 24f @ 12fps idle, sing & drawer-lead from EffectCraft (replaces legacy 04:04 double-VFD rig)."
+        "notes": "Canon v2 Slim 12:00 90s VHS deck (75 DU) — 24f @ 12fps idle, sing & drawer-lead from EffectCraft (replaces legacy 04:04 double-VFD rig)."
       },
       "ikPoints": [
         {
@@ -5705,6 +5410,22 @@
         "meshJson": "bibles/general/Tracker/rig/mesh.json",
         "lottieJson": "bibles/general/Tracker/rig/tracker.lottie.json",
         "blenderJson": "bibles/general/Tracker/rig/tracker.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tracker/tracker-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/tracker/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.012
+        }
       }
     },
     "watt": {
@@ -5714,8 +5435,8 @@
       "role": "Six-socket power strip",
       "color": "#e06a4f",
       "accentB": "#f6d55c",
-      "heightDu": 94,
-      "scaleFactor": 0.892,
+      "heightDu": 92,
+      "scaleFactor": 0.92,
       "portraitUrl": "/cast/watt/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5881,8 +5602,8 @@
       "role": "Universal remote, self-appointed director",
       "color": "#7fd36b",
       "accentB": "#57d3e8",
-      "heightDu": 94,
-      "scaleFactor": 0.892,
+      "heightDu": 96,
+      "scaleFactor": 0.96,
       "portraitUrl": "/cast/zap/portrait.webp",
       "renderMode": "atlas",
       "clips": {

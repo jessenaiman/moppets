@@ -1,0 +1,14 @@
+kind: skit
+id: cast-check-3
+title: Studio Roll Call Three
+about: LeadSinger, Click, Clacker, Deck, Folio, and Moonbell close out the full studio roll call
+
+[scene 1]
+leadsinger: "Frontline mic check! Welcome to the late shift at Studio four oh four." ; do cheer ; move center 2 ; cam wide
+click: "Metronome pendulum ticking dead on the beat." ; do nod ; move left 2 ; cam two-shot
+clacker: "Slate boards snapped clean! Scene three take one is in the log." ; do cheer ; jump 1.5 ; cam closeup
+
+[scene 2]
+deck: "Cassette deck heads cleaned and spinning smooth at speed." ; do nod ; move wide-left 2 ; cam low-angle
+folio: "Lead sheets bound in order. Every page fits inside the margin." ; do tilt ; move wide-right 2 ; cam two-shot
+moonbell: "Brass chime glowing softly. All twenty voices are home!" ; do bow ; react cheer ; celebrate 2.5 ; cam wide

@@ -13,3 +13,5 @@ public/shows/
 .agents/
 .hermes/
 .spill.json
+scratch/
+__pycache__/

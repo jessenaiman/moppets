@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-11-26T20:01:07.715Z",
   "version": 5,
-  "studio404Count": 21,
+  "studio404Count": 20,
   "aliases": {
     "tracking": "tracker",
     "moonbeam": "moonbell",
@@ -16,8 +16,8 @@
       "role": "Floppy-disk circuit bird",
       "color": "#d9b440",
       "accentB": "#f08c4b",
-      "heightDu": 78,
-      "scaleFactor": 0.752,
+      "heightDu": 84,
+      "scaleFactor": 0.84,
       "portraitUrl": "/cast/chip/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -193,6 +193,23 @@
         "meshJson": "bibles/general/Chip/rig/mesh.json",
         "lottieJson": "bibles/general/Chip/rig/chip.lottie.json",
         "blenderJson": "bibles/general/Chip/rig/chip.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/chip/chip-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/chip/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.15,
+          "height": 0.095,
+          "offsetY": -0.025,
+          "offsetZ": 0.012,
+          "mouthOnly": true
+        }
       }
     },
     "clacker": {
@@ -203,7 +220,7 @@
       "color": "#a0cc88",
       "accentB": "#f2ca91",
       "heightDu": 98,
-      "scaleFactor": 0.927,
+      "scaleFactor": 0.98,
       "portraitUrl": "/cast/clacker/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -376,6 +393,12 @@
         "meshJson": "bibles/general/Clacker/rig/mesh.json",
         "lottieJson": "bibles/general/Clacker/rig/clacker.lottie.json",
         "blenderJson": "bibles/general/Clacker/rig/clacker.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/clacker/clacker-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "clank": {
@@ -385,8 +408,8 @@
       "role": "Old PC monitor tenor",
       "color": "#8e9a8c",
       "accentB": "#50cfad",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 108,
+      "scaleFactor": 1.08,
       "portraitUrl": "/cast/clank/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -886,6 +909,22 @@
         "meshJson": "bibles/general/Clank/rig/mesh.json",
         "lottieJson": "bibles/general/Clank/rig/clank.lottie.json",
         "blenderJson": "bibles/general/Clank/rig/clank.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/clank/clank-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/clank/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.008
+        }
       }
     },
     "click": {
@@ -896,7 +935,7 @@
       "color": "#f4c96b",
       "accentB": "#e06a4f",
       "heightDu": 82,
-      "scaleFactor": 0.787,
+      "scaleFactor": 0.82,
       "portraitUrl": "/cast/click/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1046,10 +1085,10 @@
         "url": "/cast/click/anicraft-face-4x2.png",
         "cols": 4,
         "rows": 2,
-        "pivotX": 0.5039,
-        "pivotY": 0.2973,
-        "widthFrac": 0.145,
-        "heightFrac": 0.085,
+        "pivotX": 0.492,
+        "pivotY": 0.418,
+        "widthFrac": 0.195,
+        "heightFrac": 0.115,
         "mouthOnly": true
       },
       "rigArtifacts": {
@@ -1057,6 +1096,12 @@
         "meshJson": "bibles/general/Click/rig/mesh.json",
         "lottieJson": "bibles/general/Click/rig/click.lottie.json",
         "blenderJson": "bibles/general/Click/rig/click.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/click/click-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "cue": {
@@ -1066,8 +1111,8 @@
       "role": "Brass-hood teleprompter & stage director",
       "color": "#c9c2ae",
       "accentB": "#e3bd7f",
-      "heightDu": 98,
-      "scaleFactor": 0.927,
+      "heightDu": 88,
+      "scaleFactor": 0.88,
       "portraitUrl": "/cast/cue/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1243,6 +1288,22 @@
         "meshJson": "bibles/general/Cue/rig/mesh.json",
         "lottieJson": "bibles/general/Cue/rig/cue.lottie.json",
         "blenderJson": "bibles/general/Cue/rig/cue.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/cue/cue-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/cue/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.23,
+          "height": 0.175,
+          "offsetY": 0,
+          "offsetZ": 0.01
+        }
       }
     },
     "deck": {
@@ -1252,8 +1313,8 @@
       "role": "Sport Walkman v3 master-tape logger",
       "color": "#8e9a8c",
       "accentB": "#f2c15a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 98,
+      "scaleFactor": 0.98,
       "portraitUrl": "/cast/deck/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1417,10 +1478,10 @@
         "url": "/cast/deck/anicraft-face-4x2.png",
         "cols": 4,
         "rows": 2,
-        "pivotX": 0.4883,
-        "pivotY": 0.2475,
-        "widthFrac": 0.145,
-        "heightFrac": 0.085,
+        "pivotX": 0.49,
+        "pivotY": 0.346,
+        "widthFrac": 0.22,
+        "heightFrac": 0.13,
         "mouthOnly": true
       },
       "rigArtifacts": {
@@ -1428,6 +1489,12 @@
         "meshJson": "bibles/general/Deck/rig/mesh.json",
         "lottieJson": "bibles/general/Deck/rig/deck.lottie.json",
         "blenderJson": "bibles/general/Deck/rig/deck.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/deck/deck-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "folio": {
@@ -1438,7 +1505,7 @@
       "color": "#d4b483",
       "accentB": "#e3bd7f",
       "heightDu": 96,
-      "scaleFactor": 0.909,
+      "scaleFactor": 0.96,
       "portraitUrl": "/cast/folio/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -1601,10 +1668,10 @@
         "url": "/cast/folio/anicraft-face-4x2.png",
         "cols": 4,
         "rows": 2,
-        "pivotX": 0.5021,
-        "pivotY": 0.3453,
-        "widthFrac": 0.145,
-        "heightFrac": 0.085,
+        "pivotX": 0.52,
+        "pivotY": 0.412,
+        "widthFrac": 0.088,
+        "heightFrac": 0.064,
         "mouthOnly": true
       },
       "rigArtifacts": {
@@ -1612,6 +1679,12 @@
         "meshJson": "bibles/general/Folio/rig/mesh.json",
         "lottieJson": "bibles/general/Folio/rig/folio.lottie.json",
         "blenderJson": "bibles/general/Folio/rig/folio.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/folio/folio-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "fuzz": {
@@ -1621,8 +1694,8 @@
       "role": "Spare Parts tube-amp lead guitarist",
       "color": "#dfaa75",
       "accentB": "#f28c6a",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 94,
+      "scaleFactor": 0.94,
       "portraitUrl": "/cast/fuzz/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -2172,6 +2245,12 @@
         "meshJson": "bibles/general/Fuzz/rig/mesh.json",
         "lottieJson": "bibles/general/Fuzz/rig/fuzz.lottie.json",
         "blenderJson": "bibles/general/Fuzz/rig/fuzz.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/fuzz/fuzz-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "gruff": {
@@ -2182,7 +2261,7 @@
       "color": "#d98a4e",
       "accentB": "#e07a5f",
       "heightDu": 200,
-      "scaleFactor": 1.48,
+      "scaleFactor": 2,
       "portraitUrl": "/cast/gruff/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -2343,6 +2422,12 @@
         "meshJson": "bibles/general/Gruff/rig/mesh.json",
         "lottieJson": "bibles/general/Gruff/rig/gruff.lottie.json",
         "blenderJson": "bibles/general/Gruff/rig/gruff.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/gruff/gruff-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "hertz": {
@@ -2353,7 +2438,7 @@
       "color": "#7be86b",
       "accentB": "#e3bd7f",
       "heightDu": 150,
-      "scaleFactor": 1.38,
+      "scaleFactor": 1.5,
       "portraitUrl": "/cast/hertz/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -2362,7 +2447,7 @@
         "compWidth": 1080,
         "compHeight": 1080,
         "centerX": 540,
-        "floorY": 995,
+        "floorY": 1037,
         "hasProceduralPhosphorCrt": false,
         "hasPurplePolarizerGagProp": false,
         "extraParts": {},
@@ -2791,7 +2876,7 @@
         "bibleHeroSrc": "bibles/general/Hertz/img/Hertz_90sCRTTV_Redesign_CANON.png",
         "bibleHeroUrl": "/cast/hertz/bible-hero.webp",
         "stageModelSource": "multiplane-2.5d (13 nodes)",
-        "animationTier": "effectcraft-webm-atlas",
+        "animationTier": "multiplane-2.5d",
         "notes": "Native 13-node 2.5D wood-grain console CRT rig (150 DU) + 24f @ 12fps idle, sing & crt-answer from EffectCraft."
       },
       "ikPoints": [
@@ -2882,7 +2967,7 @@
           0.5,
           0.3843
         ],
-        "note": "Rigged 3D GLB (/cast/hertz/hertz-3d.glb, 6 pose clips) + head-mounted AniCraft cyan CRT CHIMERA viseme sheet (/cast/hertz/hertz-polish.anicraft)."
+        "note": "Canonical 13-node Redesign v2 wood-grain CRT Multiplane rig + live CH 04 / VIDEO 1 phosphor CRT eyes & CHIMERA vowel mouth + SMPTE Screen_Bars / Screen_Static crt-answer gag."
       },
       "defects": [],
       "rigArtifacts": {
@@ -2890,168 +2975,22 @@
         "meshJson": "bibles/general/Hertz/rig/mesh.json",
         "lottieJson": "bibles/general/Hertz/rig/hertz.lottie.json",
         "blenderJson": "bibles/general/Hertz/rig/hertz.blender.json"
-      }
-    },
-    "latch": {
-      "id": "latch",
-      "bibleDir": "Latch",
-      "displayName": "Latch",
-      "role": "Talkback pedal",
-      "color": "#f0ac65",
-      "accentB": "#a3bebb",
-      "heightDu": 84,
-      "scaleFactor": 0.805,
-      "portraitUrl": "/cast/latch/portrait.webp",
-      "renderMode": "atlas",
-      "clips": {
-        "idle": {
-          "url": "/cast/latch/idle.webp",
+      },
+      "model3d": {
+        "url": "/cast/hertz/hertz-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/hertz/anicraft-face-4x2.png",
           "cols": 4,
           "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "sing": {
-          "url": "/cast/latch/sing.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "listening": {
-          "url": "/cast/latch/listening.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.84,
-          "cellWidth": 344,
-          "cellHeight": 384
-        },
-        "walk": {
-          "url": "/cast/latch/walk.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
-          "fps": 12,
-          "loop": true,
-          "anchorY": 0.901,
-          "cellWidth": 344,
-          "cellHeight": 384
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.012
         }
-      },
-      "directedTakes": {
-        "listening": "listening",
-        "listen": "listening",
-        "walk": "walk",
-        "step": "walk"
-      },
-      "bibleAudit": {
-        "status": "verified-bible",
-        "bibleFile": "Latch.designcraft",
-        "bibleHeroSrc": "bibles/general/Latch/img/candidates/latch_tactile_hero_rgba.png",
-        "bibleHeroUrl": "/cast/latch/bible-hero.webp",
-        "stageModelSource": "bibles/general/Latch/img/candidates/latch_sing_idle_4x2_rgba.png",
-        "animationTier": "effectcraft-webm-atlas",
-        "notes": "Upgraded per S-6 / D-12 to tactile Studio 404 cast-metal stompbox with coiled-spring chassis feet & 1/4-inch TRS spring arms (3x candidates, EffectCraft Keylight alpha=0)."
-      },
-      "ikPoints": [
-        {
-          "id": "root-foot",
-          "label": "Spring Chassis Base",
-          "role": "root-foot",
-          "x": 0.5,
-          "y": 0.84
-        },
-        {
-          "id": "pelvis",
-          "label": "Cast-Metal Lower Housing",
-          "role": "pelvis",
-          "x": 0.46,
-          "y": 0.72,
-          "parent": "root-foot"
-        },
-        {
-          "id": "spine",
-          "label": "Slotted Rear Hinge & Felt Washer",
-          "role": "spine",
-          "x": 0.24,
-          "y": 0.56,
-          "parent": "pelvis"
-        },
-        {
-          "id": "neck",
-          "label": "Inner Brass Contact Spring",
-          "role": "neck",
-          "x": 0.52,
-          "y": 0.55,
-          "parent": "spine"
-        },
-        {
-          "id": "head-jaw",
-          "label": "Ribbed Rubber Tread & Talk Lamp",
-          "role": "head-jaw",
-          "x": 0.62,
-          "y": 0.48,
-          "parent": "neck"
-        },
-        {
-          "id": "shoulder-l",
-          "label": "Left Side Mount",
-          "role": "shoulder-l",
-          "x": 0.42,
-          "y": 0.63,
-          "parent": "pelvis"
-        },
-        {
-          "id": "hand-l",
-          "label": "Left 1/4-inch TRS Spring Arm",
-          "role": "hand-l",
-          "x": 0.53,
-          "y": 0.67,
-          "parent": "shoulder-l"
-        },
-        {
-          "id": "shoulder-r",
-          "label": "Right Side Mount",
-          "role": "shoulder-r",
-          "x": 0.74,
-          "y": 0.58,
-          "parent": "pelvis"
-        },
-        {
-          "id": "hand-r",
-          "label": "Right 1/4-inch TRS Spring Arm",
-          "role": "hand-r",
-          "x": 0.83,
-          "y": 0.59,
-          "parent": "shoulder-r"
-        }
-      ],
-      "vocalSyncSpec": {
-        "mode": "sing-vs-idle-loop",
-        "hasDedicatedMouthOpen": true,
-        "mouthPivot": [
-          0.62,
-          0.52
-        ],
-        "note": "Tactile D-12 cast-metal stompbox 8f@12fps hinged rubber tread jaw + glowing #FFB059 amber talk lamp."
-      },
-      "defects": [],
-      "rigArtifacts": {
-        "rigJson": "bibles/general/Latch/rig/rig.json",
-        "meshJson": "bibles/general/Latch/rig/mesh.json",
-        "lottieJson": "bibles/general/Latch/rig/latch.lottie.json",
-        "blenderJson": "bibles/general/Latch/rig/latch.blender.json"
       }
     },
     "leadsinger": {
@@ -3062,7 +3001,7 @@
       "color": "#f28c6a",
       "accentB": "#e3bd7f",
       "heightDu": 102,
-      "scaleFactor": 0.962,
+      "scaleFactor": 1.02,
       "portraitUrl": "/cast/leadsinger/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3224,10 +3163,10 @@
         "url": "/cast/leadsinger/anicraft-face-4x2.png",
         "cols": 4,
         "rows": 2,
-        "pivotX": 0.502,
-        "pivotY": 0.2876,
-        "widthFrac": 0.145,
-        "heightFrac": 0.085,
+        "pivotX": 0.5,
+        "pivotY": 0.274,
+        "widthFrac": 0.175,
+        "heightFrac": 0.105,
         "mouthOnly": true
       },
       "rigArtifacts": {
@@ -3235,6 +3174,12 @@
         "meshJson": "bibles/general/LeadSinger/rig/mesh.json",
         "lottieJson": "bibles/general/LeadSinger/rig/leadsinger.lottie.json",
         "blenderJson": "bibles/general/LeadSinger/rig/leadsinger.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/leadsinger/leadsinger-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "moonbell": {
@@ -3244,8 +3189,8 @@
       "role": "Guest phosphor voice",
       "color": "#9be7ff",
       "accentB": "#ffd38a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 70,
+      "scaleFactor": 0.7,
       "portraitUrl": "/cast/moonbell/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3454,6 +3399,12 @@
         "meshJson": "bibles/general/Moonbell/rig/mesh.json",
         "lottieJson": "bibles/general/Moonbell/rig/moonbell.lottie.json",
         "blenderJson": "bibles/general/Moonbell/rig/moonbell.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/moonbell/moonbell-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "neon": {
@@ -3463,8 +3414,8 @@
       "role": "Backstage dual-tube neon sign",
       "color": "#57d3e8",
       "accentB": "#ff5e99",
-      "heightDu": 104,
-      "scaleFactor": 0.979,
+      "heightDu": 112,
+      "scaleFactor": 1.12,
       "portraitUrl": "/cast/neon/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -3615,6 +3566,14 @@
         "meshJson": "bibles/general/Neon/rig/mesh.json",
         "lottieJson": "bibles/general/Neon/rig/neon.lottie.json",
         "blenderJson": "bibles/general/Neon/rig/neon.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/neon/neon-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "screen-material-slot",
+        "screenStyle": "neon-rings"
       }
     },
     "ozzi": {
@@ -3624,8 +3583,8 @@
       "role": "Goth-rock bare CRT oscilloscope",
       "color": "#8f6bff",
       "accentB": "#5eff98",
-      "heightDu": 100,
-      "scaleFactor": 0.944,
+      "heightDu": 108,
+      "scaleFactor": 1.08,
       "portraitUrl": "/cast/ozzi/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -3849,7 +3808,7 @@
             ],
             "rotationDeg": 0,
             "defaultOpacity": 100,
-            "zPx": 39.172413793103445
+            "zPx": 14
           },
           {
             "id": 123,
@@ -4243,6 +4202,12 @@
         "meshJson": "bibles/general/Ozzi/rig/mesh.json",
         "lottieJson": "bibles/general/Ozzi/rig/ozzi.lottie.json",
         "blenderJson": "bibles/general/Ozzi/rig/ozzi.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/ozzi/ozzi-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "tabby": {
@@ -4252,8 +4217,8 @@
       "role": "Cracked-tablet cat soprano",
       "color": "#3fbfa0",
       "accentB": "#f2c15a",
-      "heightDu": 96,
-      "scaleFactor": 0.909,
+      "heightDu": 100,
+      "scaleFactor": 1,
       "portraitUrl": "/cast/tabby/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -4473,6 +4438,13 @@
         "meshJson": "bibles/general/Tabby/rig/mesh.json",
         "lottieJson": "bibles/general/Tabby/rig/tabby.lottie.json",
         "blenderJson": "bibles/general/Tabby/rig/tabby.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tabby/tabby-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "tabby-led-mouth"
       }
     },
     "tally": {
@@ -4482,8 +4454,8 @@
       "role": "Stage manager owl & ticker beacon",
       "color": "#e06a4f",
       "accentB": "#f6d55c",
-      "heightDu": 92,
-      "scaleFactor": 0.874,
+      "heightDu": 112,
+      "scaleFactor": 1.12,
       "portraitUrl": "/cast/tally/portrait.webp",
       "renderMode": "atlas",
       "multiplane": {
@@ -5092,6 +5064,12 @@
         "meshJson": "bibles/general/Tally/rig/mesh.json",
         "lottieJson": "bibles/general/Tally/rig/tally.lottie.json",
         "blenderJson": "bibles/general/Tally/rig/tally.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tally/tally-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0
       }
     },
     "thrum": {
@@ -5102,7 +5080,7 @@
       "color": "#83c7c3",
       "accentB": "#e3bd7f",
       "heightDu": 106,
-      "scaleFactor": 0.996,
+      "scaleFactor": 1.06,
       "portraitUrl": "/cast/thrum/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5253,6 +5231,23 @@
         "meshJson": "bibles/general/Thrum/rig/mesh.json",
         "lottieJson": "bibles/general/Thrum/rig/thrum.lottie.json",
         "blenderJson": "bibles/general/Thrum/rig/thrum.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/thrum/thrum-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/thrum/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.16,
+          "height": 0.095,
+          "offsetY": -0.025,
+          "offsetZ": 0.012,
+          "mouthOnly": true
+        }
       }
     },
     "tracker": {
@@ -5263,7 +5258,7 @@
       "color": "#57d3e8",
       "accentB": "#8ce0a8",
       "heightDu": 75,
-      "scaleFactor": 0.726,
+      "scaleFactor": 0.75,
       "portraitUrl": "/cast/tracker/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5301,15 +5296,15 @@
           "cellHeight": 256
         },
         "walk": {
-          "url": "/cast/tracker/walk.webp",
-          "cols": 4,
-          "rows": 2,
-          "frames": 8,
+          "url": "/cast/tracker/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
           "fps": 12,
           "loop": true,
-          "anchorY": 0.951,
-          "cellWidth": 344,
-          "cellHeight": 384
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
         }
       },
       "directedTakes": {
@@ -5323,7 +5318,7 @@
         "bibleFile": "Tracker.designcraft",
         "bibleHeroSrc": "bibles/general/Tracker/img/Tracker_90sVHS_Redesign_CANON.png",
         "bibleHeroUrl": "/cast/tracker/bible-hero.webp",
-        "stageModelSource": "animations/effectcraft/tracker/exports/twos-12fps/{idle,sing,drawer-lead}.webm",
+        "stageModelSource": "animations/effectcraft/tracker/exports/twos-12fps/{idle,sing,drawer-lead}.webm (walk uses canonical 24f idle stride)",
         "animationTier": "effectcraft-webm-atlas",
         "notes": "Canon v2 Slim 12:00 90s VHS deck (75 DU) — 24f @ 12fps idle, sing & drawer-lead from EffectCraft (replaces legacy 04:04 double-VFD rig)."
       },
@@ -5407,7 +5402,7 @@
           0.5215,
           0.3289
         ],
-        "note": "Rigged 3D GLB (/cast/tracker/tracker-3d.glb, 6 pose clips) + head-mounted AniCraft amber LCD CHIMERA viseme sheet (/cast/tracker/tracker-polish.anicraft)."
+        "note": "Canon v2 Slim 12:00 90s VHS deck (75 DU) 2.5D EffectCraft rig — CHIMERA vowel openness drives cassette-tray jaw opening across sing.webp frames + glowing 12:00 green VFD + drawer-lead pop."
       },
       "defects": [],
       "rigArtifacts": {
@@ -5415,6 +5410,22 @@
         "meshJson": "bibles/general/Tracker/rig/mesh.json",
         "lottieJson": "bibles/general/Tracker/rig/tracker.lottie.json",
         "blenderJson": "bibles/general/Tracker/rig/tracker.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tracker/tracker-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/tracker/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.012
+        }
       }
     },
     "watt": {
@@ -5424,8 +5435,8 @@
       "role": "Six-socket power strip",
       "color": "#e06a4f",
       "accentB": "#f6d55c",
-      "heightDu": 94,
-      "scaleFactor": 0.892,
+      "heightDu": 92,
+      "scaleFactor": 0.92,
       "portraitUrl": "/cast/watt/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5564,6 +5575,24 @@
         "meshJson": "bibles/general/Watt/rig/mesh.json",
         "lottieJson": "bibles/general/Watt/rig/watt.lottie.json",
         "blenderJson": "bibles/general/Watt/rig/watt.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/watt/watt-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/watt/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.125,
+          "height": 0.078,
+          "offsetY": -0.028,
+          "offsetZ": 0.012,
+          "offsetX": 0,
+          "mouthOnly": true
+        }
       }
     },
     "zap": {
@@ -5573,8 +5602,8 @@
       "role": "Universal remote, self-appointed director",
       "color": "#7fd36b",
       "accentB": "#57d3e8",
-      "heightDu": 94,
-      "scaleFactor": 0.892,
+      "heightDu": 96,
+      "scaleFactor": 0.96,
       "portraitUrl": "/cast/zap/portrait.webp",
       "renderMode": "atlas",
       "clips": {
@@ -5749,6 +5778,23 @@
         "meshJson": "bibles/general/Zap/rig/mesh.json",
         "lottieJson": "bibles/general/Zap/rig/zap.lottie.json",
         "blenderJson": "bibles/general/Zap/rig/zap.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/zap/zap-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/zap/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.2,
+          "height": 0.145,
+          "offsetY": 0.012,
+          "offsetZ": 0.01,
+          "offsetX": -0.012
+        }
       }
     }
   },
