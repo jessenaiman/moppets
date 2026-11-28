@@ -114,15 +114,6 @@ export function MoppetStudioApp() {
     return subscribePlayer(() => setPlaying(isPlayingSong()));
   }, []);
 
-  // Expose live inspection state for headless browser verification
-  useEffect(() => {
-    (window as unknown as { __moppetStudio?: unknown }).__moppetStudio = {
-      getFrame: () => getFrameState(songRef.current),
-      isPlaying: () => isPlayingSong(),
-      getStageDebug: () => stageDebugRef.current,
-    };
-  }, []);
-
   // Poll lightweight UI readouts at ~12 Hz (never throttling the 60 fps Three.js stage)
   useEffect(() => {
     const id = setInterval(() => {
@@ -272,7 +263,7 @@ export function MoppetStudioApp() {
   return (
     <div className="mop-shell">
       {/* Top Transport Bar */}
-      <header className="mop-topbar" data-stitch-id="studio-topbar">
+      <header className="mop-topbar">
         <div className="mop-brand">
           <img className="mop-brand-mark" src="/moppets/tabby/portrait.webp" alt="Tabby" />
           <h1 className="mop-brand-title">CHIMERA Moppets Studio</h1>
@@ -285,7 +276,6 @@ export function MoppetStudioApp() {
           <button
             type="button"
             className="mop-btn primary"
-            data-testid="play-btn"
             disabled={!song}
             onClick={() => void handlePlayToggle()}
           >
@@ -333,7 +323,6 @@ export function MoppetStudioApp() {
           <button
             type="button"
             className={`mop-btn ${exporting ? "export-active" : ""}`}
-            data-testid="export-btn"
             disabled={!song}
             onClick={() => void handleExportToggle()}
           >
@@ -350,7 +339,7 @@ export function MoppetStudioApp() {
       </header>
 
       {/* Center 16:9 Three.js Stage */}
-      <section className="mop-stage-card" data-stitch-id="stage-viewport" aria-label="Studio 404 Three.js Stage">
+      <section className="mop-stage-card" aria-label="Studio 404 Three.js Stage">
         <MoppetStage3D
           getFrame={getFrame}
           cameraOverride={cameraOverride}
@@ -399,7 +388,7 @@ export function MoppetStudioApp() {
       </section>
 
       {/* Bottom 3-Zone Studio Console */}
-      <section className="mop-console" data-stitch-id="studio-console">
+      <section className="mop-console">
         {/* Left: Cast Roster */}
         <div className="mop-panel">
           <div className="mop-panel-head">

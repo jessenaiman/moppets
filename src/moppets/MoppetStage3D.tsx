@@ -164,7 +164,6 @@ export function MoppetStage3D({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.className = "moppet-stage-canvas";
-    renderer.domElement.setAttribute("data-testid", "moppet-stage-canvas");
     host.replaceChildren(renderer.domElement);
     onCanvasReadyRef.current?.(renderer.domElement);
 
