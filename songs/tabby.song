@@ -1,0 +1,45 @@
+title: Tabby Takes the Stage
+id: tabby
+tab: 04 · Tabby’s song
+about: Patchwork soprano Tabby owns the pocket groove and crosses downstage past Neon, Watt, Cue, and Gruff with witty harmonies
+lead: tabby
+key: G major
+bpm: 112
+beat: B . t K | . t B . | t B . K | . B t . (swing 0.05)
+backing: neon +0, watt +2, cue +4, gruff +2
+stage: tabby, neon, cue, gruff, watt, clank
+registers: tabby 0
+breath: .25
+finale: "Shine!" on 7
+
+[verse 1]
+tabby: "Clear the whole stage—it's Tabby Cat!" = 0/0.5 2/0.5 4 7 4 5 4 2/1.75 | I 4, VI 4 ; do nod ; take walk-right ; move right 3 ; cam two-shot
+  + watt @4: "Watch her glow!" = 7 5 4/1.5 ; move left 3
+tabby: "I stitch my songs from scraps of thread" = 4 4/0.5 2/0.5 4 7 7 5 4/1.75 | V 4, I 4 ; do laugh ; move forward 3 ; cam closeup
+  + neon @4: "Scraps of thread!" = 4 2 0/1.5 ; move wide-left 3
+tabby: "My screen shows static when I glow" = 0/0.5 2/0.5 4 7 8 7 5 4/1.75 | I 4, IV 4 ; do tilt ; take toast ; move left 3 ; cam reaction
+  + gruff @4: "Both sides crunch!" = 2 1 0/1.5 ; take toaster-shrug ; move right 3
+tabby: "Still hold the highest note I know!" = 7 5/0.5 4/0.5 7 5 1 1 0/1.75 | II 4, V 2, I 2 ; do cheer ; jump 1.5 ; move center 3 ; cam wide
+  + cue @4: "Hold it right!" = 7 5 4/1.5 ; take acting-sheet
+
+[chorus, choir]
+tabby: "Tabby, Tabby, hear me singing!" = 7/0.5 7/0.5 5 4 5 7 5 7/1.75 | I 4, IV 4 ; do cheer ; dance 6 ; cam wide
+  + neon @4: "Hear her sing!" = 4 2 4/1.5 ; dance 4
+tabby: "Stars and solder keep bells ringing!" = 5/0.5 4/0.5 2 2 1 1 2 4/1.75 | VI 4, V 4 ; do laugh ; move wide-right 3 ; cam two-shot
+  + watt @4: "Keep bells bright!" = 7 5 4/1.5 ; jump 1.5
+tabby: "Every Moppet cross down here!" = 4 5/0.5 7/0.5 7 5 7 5 5/1.75 | I 4, IV 4 ; do nod ; move back 3 ; cam low-angle
+  + cue @4: "Cross down here!" = 7 5 7/1.5 ; take cast
+tabby: "Sing it loud and keep it so clear!" = 8/0.5 7/0.5 5 3 5 1 2 7/1.75 | II 4, V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+  + gruff @4: "Ring out clear!" = 2 1 0/1.5 ; move center 3
+
+[verse 2]
+neon: "Neon glides across the bright floor" = 4/0.5 2/0.5 0 2 4 5 4 2/1.75 | I 4, VI 4 ; do nod ; take walk ; move right 3 ; cam two-shot
+  + tabby @4: "Front row left!" = 7 5 4/1.5 ; move wide-left 3
+watt: "Spotlights hit the whole front row more!" = 2/0.5 4/0.5 5 7 5 4 2 0/1.75 | IV 4, V 4 ; do gasp ; move center 3 ; jump 1.5 ; cam reaction
+  + cue @4: "Mark the floor!" = 5 4 2/1.5 ; take letter ; move left 3
+tabby: "Toast pops crunch—switch side to swap place!" = 7/0.5 5/0.5 4 5 7 5 4 2/1.75 | I 4, IV 4 ; do laugh ; take toast ; move forward 3 ; cam closeup
+  + gruff @4: "Switch the glaze!" = 0 -1 0/1.5 ; move left 3
+tabby: "Patchwork pockets own this bright space!" = 4/0.5 5/0.5 7 8 7 5 4 2/1.75 | II 4, V 2, I 2 ; do bow ; take bow ; move center 3 ; cam wide
+  + neon @4: "Own this space!" = 7 5 4/1.5 ; take alt-idle ; move center 3
+
+[repeat chorus]

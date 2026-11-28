@@ -1,0 +1,31 @@
+title: Bible · Tracker
+id: bible-tracker
+tab: Bible · Tracker
+about: Studio 404 Bible solo showcase for Tracker — slim 12:00 75-DU VHS nimble march, VU bounce & drawer-lead pop
+lead: tracker
+key: D minor
+bpm: 108
+backing:
+bass: none
+stage: tracker
+registers: tracker -24
+breath: .5
+finale: "Play" on 0
+
+[Vocal Sync · Nimble 75 DU March]
+"Slimmer deck blinks twelve oh oh bright" = 0/.5 2/.5 3 5 4 2/.5 3/.5 0/2.5 | I 4, I 4 ; do tilt ; move left 4 ; cam wide
+"Sleek gray chassis marches right" = 4 5 7/1.5 5/.5 4 2/.5 0/2 | V 4, I 4 ; do laugh ; move right 4 ; cam closeup
+"Two green needles bounce in line" = 2 3 5/1.5 4/.5 3 2/.5 1/2 | IV 4, V 4 ; do gasp ; move center 4 ; cam reaction
+"Nimble tape deck keeps crisp time!" = 3/.5 4/.5 5 4 2/.5 1 0/3 | IV 4, I 4 ; do laugh ; cam wide
+
+[Vocal Sync · Sustained Tracking Belt]
+"Twelve oh oh blinks!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Fast rewind snaps back clean!" = 4 5 7/1.5 5/.5 3 0/2.5 | III 4, I 4 ; do tilt ; cam closeup
+
+[Dance Break & Drawer Pop Take]
+"Quick side-step across the bay" = 0 2 3/.5 5/.5 4 2/.5 0/3 | I 4, I 4 ; do laugh ; dance 4 ; cam wide
+"Jump! Fast forward, then hit play!" = 3/1.5 5/.5 7 5/.5 4/.5 1 0/2.5 | IV 4, I 4 ; do cheer ; jump 1.5 ; cam low-angle
+"Oops! My tape tray popped out wide!" = 0 2 3 5/1.5 4/.5 1 0/1.5 | I 4, V 2, I 2 ; do shrug ; take drawer-lead ; cam reaction
+
+[Bible Tidy Bow]
+"Twelve oh oh stays flashing pride!" = 4 5 7 5 2/.5 4/.5 0/2.5 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

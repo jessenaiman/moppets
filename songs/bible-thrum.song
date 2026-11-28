@@ -1,0 +1,30 @@
+title: Bible · Thrum
+id: bible-thrum
+tab: Bible · Thrum
+about: Studio 404 Bible solo showcase for Thrum — low-end tape-spool bass stomp L/R, resonant sway & performance echo
+lead: thrum
+key: G minor
+bpm: 96
+backing:
+bass: none
+stage: thrum
+registers: thrum -24
+breath: .5
+finale: "Echo" = 0/2 0/2
+
+[Vocal Sync · Tape-Spool Bass Stomp]
+"Loop cord feeds back smooth through the reel" = 0 2 3 4 5 3/.5 2/.5 0/1.5 | I 4, I 4 ; do nod ; move wide-left 4 ; cam wide
+"Two gauge eyes glow on brushed steel" = 4 1 4/1.5 6/.5 4 2 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam low-angle
+"Deep low notes shake each stage beam" = 2 3 5/1.5 3/.5 4 2 1/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam closeup
+
+[Vocal Sync · Sustained Echo Rumble]
+"Deep room hum fades!" = 0/1.5 7/2 5/2 4/2 | I 2, IV 4, V 2 ; do cheer ; cam low-angle
+"Echo bounces back in time!" = 5 4 2/1.5 0/.5 3 2 1/1.5 | VI 4, V 4 ; do nod ; cam closeup
+
+[Resonant Sway & Performance Break]
+"Blue knit scarf sways side to side" = 0 2 4 2 3/1.5 2/.5 0/1.5 | I 4, IV 2, I 2 ; do laugh ; dance 4 ; cam wide
+"Heavy stomp! Let tape loops glide!" = 3 5 7/1.5 5/.5 4 2 0/1.5 | IV 4, I 4 ; do cheer ; jump 2 ; cam low-angle
+"Silver tape keeps sound we stored" = 0 2 3 5 4/1.5 1/.5 0/1.5 | I 4, V 2, I 2 ; do shrug ; take performance ; cam closeup
+
+[Bible Bass Celebrate]
+"Hold that low-end tape-loop chord!" = 3 4 5/1.5 7/.5 4 2 0/1.5 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

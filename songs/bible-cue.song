@@ -1,0 +1,28 @@
+title: Bible · Cue
+id: bible-cue
+tab: Bible · Cue
+about: Studio 404 Bible solo showcase for Cue — prompt-card patrol, blank-card panic jump, cast & letter takes
+lead: cue
+key: F major
+bpm: 114
+backing:
+bass: none
+stage: cue
+registers: cue 0
+breath: .5
+finale: "Cue" on 0
+
+[Vocal Sync · Prompt Card Patrol]
+"Read each line clean right off the scroll" = 0 2 4 2 3 5/.5 3/.5 0/1.5 | I 4, IV 4 ; do nod ; move left 4 ; cam wide
+"Brass hood gleams bright, warm gold and whole" = 4 1 4 5 2 4/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Cards stacked tall from left to right" = 3 5 3/1.5 0/.5 1 2 4/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam wide
+"Cue the cast and check the light!" = 3/1.5 5/.5 4/1.5 1/.5 2/1.5 1/.5 0/1.5 | IV 2, V 2, I 4 ; do cheer ; take acting-sheet ; cam low-angle
+
+[Vocal Sync · Sustained Belt & Panic Jump]
+"Long clear cue shines!" = 0/1.5 3/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Wait! My blank card lost its line!" = 5/1.5 4/.5 3 1 4/1.5 2/.5 1/1.5 | II 4, V 4 ; do gasp ; jump 1.5 ; cam reaction
+"Flip the script, I'll still shine fine!" = 3 4/.5 5/1.5 3 4 5 4/1.5 | IV 4, V 4 ; do laugh ; dance 4 ; cam wide
+
+[Bible Takes · Letter & Curtain Bow]
+"Fold this note sealed right with pride!" = 0 2 4/1.5 5/.5 4 1 4/1.5 | I 4, V 4 ; do shrug ; take letter ; cam closeup
+"March front row, stand tall on stride!" = 3 5 4/1.5 1/.5 2 1 0/1.5 | IV 2, V 2, I 4 ; do bow ; celebrate 4 ; cam wide

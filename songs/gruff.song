@@ -1,0 +1,45 @@
+title: Left in the Workshop
+id: gruff
+tab: 05 · Gruff’s song
+about: Gruff stomps steady bass lines while Latch traces his loose cable tag and leads the gentle workshop monster home
+lead: gruff
+key: A aeolian
+bpm: 74
+backing: neon +0, watt +2, tabby +4, latch +2
+stage: gruff, latch, tabby, watt, neon
+registers: gruff -24
+breath: .25
+finale: "Hum" on 7
+bass: neon
+figure neon = 0/1.5 4/.5 0 2
+figure watt = 0 1/.5 0/.5 2 1/.5 2/.5
+figure tabby = 3 2 5/.5 4/.5 4
+figure latch = 0/.5 1/.5 2/.5 3/.5 4/.5 3/.5 2
+
+[verse 1]
+gruff: "Left upon a dusty old shelf" = 0/1.5 2/0.5 4 4 7 5/0.5 4/0.5 2/1.75 | I 4, I 4 ; do nod ; move wide-left 4 ; cam wide
+  + watt @5: "Way up high!" = 4 2 0/0.75
+gruff: "Nobody there but me myself" = 4/1.5 2/0.5 0 2 3 2/0.5 1/0.5 0/1.75 | I 4, IV 4 ; do shrug ; take toaster-shrug ; cam closeup
+  + tabby @5: "Wait for light!" = 4 5 4/0.75 ; move right 3
+gruff: "Found a manual on the floor" = 0/1.5 2/0.5 4 5 7 6/0.5 5/0.5 4/1.75 | I 4, IV 4 ; do tilt ; move left 4 ; cam two-shot
+gruff: "And taught my rusty heart some more" = 7/1.5 5/0.5 4 2 1 -1/0.5 -1/0.5 0/1.75 | I 4, V 2, I 2 ; do laugh ; move center 4 ; cam low-angle
+  + neon @5: "Warm and bright!" = 7 5 4/0.75 ; take walk
+
+[chorus, choir]
+gruff: "We stitched a friend from scraps of thread" = 7/1.5 7/0.5 4 4 5 4/0.5 2/0.5 0/1.75 | I 4, IV 4 ; do cheer ; dance 6 ; cam wide
+  + tabby @5: "Scraps of thread!" = 7 5 4/0.75 ; take toast
+gruff: "And lit a lamp above my head" = 4/1.5 4/0.5 2 0 1 2/0.5 1/0.5 4/1.75 | I 4, V 4 ; do nod ; move left 4 ; cam two-shot
+  + watt @5: "Warm as toast!" = 5 4 2/0.75 ; jump 1.5
+gruff: "Now all the workshop's full of song" = 7/1.5 7/0.5 4 4 7 5/0.5 4/0.5 2/1.75 | I 4, VI 4 ; do laugh ; move center 4 ; cam low-angle
+  + neon @5: "Full of song!" = 7 5 2/0.75 ; take alt-idle
+gruff: "We were alone, though not for long" = 4/1.5 2/0.5 0 2 3 2/0.5 1/0.5 0/1.75 | IV 4, V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+
+[verse 2]
+latch: "Whose loose cable tag drags down here?" = 4/1.5 5/0.5 7 5 4 2/0.5 1/0.5 0/1.75 | I 4, IV 4 ; do gasp ; take listening ; move right 4 ; cam two-shot
+  + tabby @5: "Says: Bass End!" = 7 5 4/0.75 ; take bow
+gruff: "Looks like mine—both plugs wait right near!" = 0/1.5 2/0.5 4 5 7 5/0.5 4/0.5 2/1.75 | I 4, V 4 ; do shrug ; take toaster-shrug ; move wide-left 4 ; cam reaction
+latch: "Grab that copper clip, take your stand!" = 4/1.5 5/0.5 7 7 5 4/0.5 2/0.5 4/1.75 | VI 4, IV 4 ; do nod ; move center 4 ; jump 1.5 ; cam closeup
+  + watt @5: "Hold the band!" = 4 5 7/0.75 ; move right 3
+gruff: "Hand you one red plug—watch me land!" = 7/1.5 5/0.5 4 2 1 2/0.5 1/0.5 0/1.75 | II 4, V 2, I 2 ; do cheer ; move center 4 ; celebrate 4 ; cam low-angle
+
+[repeat chorus]

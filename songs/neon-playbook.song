@@ -1,0 +1,53 @@
+title: The Neon Playbook
+id: neon-playbook
+tab: 17 · ★ The Neon Playbook (Full Show)
+about: 17 · The Neon Playbook: four acts taking the Studio 404 Moppets from one crooked hook through duets, canon & mishaps to a 7-voice finale
+lead: neon
+key: D
+bpm: 112
+beat: B . t K | . Pf B . | t B . K | . B t . (swing .08)
+backing: neon +0, watt +2, tabby +4, gruff +2, cue +4, chip +7
+finale: "Glow" on 7
+
+tune hook = 0 2 4 5 | I 4
+tune lift = 0 2 4 5 7 8 9/2 | IV 4, V 4
+
+[act 1]
+# Act I — One Crooked Tube (Neon & Cue fumble the 4-note starter hook)
+neon: "One tube wakes up" = hook ; do tilt ; take alt-idle ; move left 3 ; cam closeup
+cue: "Wait my page is upside down" = 0 2 4 3 1 0 -1/2 | IV 4, V 4 ; do shrug ; react laugh ; take cast ; move right 3 ; cam reaction
+rest 2
+neon: "One more time with both bright rings" = 0 2 4 5 4 2 4/2 | I 4, VI 4 ; do nod ; take walk ; move left 4 ; cam two-shot
+  + cue @2: "Twin tubes chime" = 4 5 4/2 ; take acting-sheet
+
+[act 2]
+# Act II — Neon & Tabby Counter-Melody Duet + Watt's Plug Slapstick
+neon: "Low ring holds the line with me" = 0 2 4 2 4 5 7/2 | I 4, IV 4 ; do nod ; move wide-left 4 ; cam two-shot
+  + tabby: "High ring climbs in harmony" = 9 7 5 7 5 4 2/2 ; take walk-right ; move wide-right 4
+watt: "Watch my cord it pulled too tight" = 4 5 6 7 8 7 8/2 | IV 4, V 4 ; do gasp ; jump 1.5 ; move center 4 ; cam closeup
+rest 2
+gruff: "Watt unplugged the stage again" = 4 4 3 2 1 0 -1/2 | II 4, V 4 ; do shrug ; react laugh ; take toaster-shrug ; move right 4 ; cam reaction
+
+[act 3]
+# Act III — The Shelf Canon (Gruff, Watt, Chip & Clank) + Clank's Late Beat
+gruff: "Step by step we pass the tune round" = 0 2 4 5 4 2 1 0 | I 4, V 4 ; do tilt ; move left 4 ; cam two-shot
+  + watt @2: "Step by step we pass it" = 2 4 5 4 2 0 ; jump 1.5 ; move right 4
+  + chip @4: "Pass it round the room" = 7/.5 5/.5 4/.5 2/.5 0/2 ; take action ; move wide-right 4
+cue: "Wait my long paper scroll just tore" = 4 4 5 7 5 4 2 1 | IV 4, V 4 ; do gasp ; take letter ; move left 4 ; cam closeup
+rest 2
+clank: "Wait one beat... I found tape" = 0/2 2 4/.5 5/.5 4 2/3 | II 4, V 4 ; do nod ; react laugh ; take clap ; move center 4 ; cam reaction
+
+[act 4, choir]
+# Act IV — Studio 404 Lit Up (All 4 acts braided together simultaneously + Tracker & Hertz booth heckle)
+neon: "One tube wakes up... both tubes agree" = 0 2 4 5 7 5 4 2 | I 4, V 4 ; do nod ; dance 6 ; cam wide
+  + tabby: "High ring climbs in harmony" = 9 7 5 7 5 4 2/2 ; take toast ; dance 6
+  + chip @2: "Wings lift high and shine" = 7 9 8 7 9/2 ; take stamp ; move center 4
+  + watt @4: "Plugged and bright" = 4 5 7/2 ; jump 1.5 ; move left 4
+neon: "Learn the song and twist the band" = lift ; do cheer ; move center 4 ; cam low-angle
+  + tabby: "Trace by trace we hold the hand" = 7 8 9 7 5 4 2/2 ; move center 4
+  + gruff @2: "Walk the bass below" = 0 2 4 5 7/2 ; take toaster-shrug ; move center 4
+  + clank @4: "Right on time at last" = 0/.5 2/.5 4 2 0 ; take bow ; dance 6
+cue: "Hertz says hold the vertical roll" = 4 5 7 5 4 2 4 2 | IV 4, I 4 ; do nod ; move center 4 ; celebrate 6 ; cam wide
+  + neon: "Two bright rings and one big soul" = 0 2 4 5 7 8 9/2 ; take walk ; celebrate 6
+  + tabby @2: "Keep the light!" = 7 8 9/4 ; take bow ; celebrate 4
+  + gruff @4: "Big glow tonight!" = 0 2 4 0 ; celebrate 4

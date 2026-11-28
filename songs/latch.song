@@ -1,0 +1,45 @@
+title: After You
+id: latch
+tab: Latch · After You
+about: Cue calls places while spring talkback pedal Latch politely hijacks the doorway etiquette and Clank deadpans underneath
+lead: latch
+key: F mixolydian
+bpm: 110
+backing:
+bass: none
+stage: latch, cue, clank
+registers: latch -12, cue 0, clank -24
+breath: .5
+finale: "Click" on 0
+
+[places]
+cue: "Places, please!" = 2 4 2/5.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+  + latch @4: "Right behind you!" = 0/.5 2/.5 4/.5 2/2 ; move wide-left 3.5
+latch: "Just one foot on the talkback switch" = 0 2/.5 3/.5 4 2 0/1.5 1/.5 2/1.5 | I 4, IV 4 ; do laugh ; jump 1.5 ; cam low-angle
+cue: "Wait till I finish what I say" = 4 4/.5 5/.5 6 5 4 3 2/1.5 | IV 4, V 4 ; do tilt ; move right 4 ; cam reaction
+latch: "I can wait all day!" = 2 1 2 1 0/3.5 | V 4, I 4 ; do shrug ; move center 3.5 ; cam two-shot
+
+[after you]
+latch: "After you—no, after you!" = 0/.5 2/.5 4/1.5 5/.5 4/.5 3/.5 2/3.5 | I 4, IV 4 ; do laugh ; jump 1.5 ; cam two-shot
+  + cue @5: "No, go ahead!" = 4/.5 2/.5 0 4/.5 ; move right 3.5
+cue: "I have a little song for you" = 2 3 4/.5 5/.5 4 2 3 4/1.5 | IV 4, I 4 ; do nod ; take cast ; cam closeup
+latch: "After you! I mean it too!" = 0/.5 2/.5 4/1.5 5/.5 4/.5 3/.5 2/3.5 | I 4, IV 4 ; do cheer ; dance 6 ; cam reaction
+  + cue @5: "You go first!" = 5/.5 4/.5 2/1.5 ; move center 3.5
+cue: "Then leave a little room for me!" = 4 4 3/.5 2/.5 3 4 2 0/1.5 | V 4, I 4 ; do shrug ; move left 4 ; cam wide
+
+[the cut]
+cue: "And now for a surprise" = 2/.5 3/.5 4/.5 3/.5 5/.5 4 | V 4 ; do gasp ; cam closeup
+latch: "A sur—" = 0/.5 2 | I 2 ; jump 1.2 ; cam reaction
+rest 2
+cue: "You shut the line!" = 4/.5 3/.5 2 0/1.5 | IV 4 ; do gasp ; move left 3.5 ; cam reaction
+latch: "I thought that was my cue!" = 2/.5 2/.5 4/.5 4/.5 2/.5 0 | I 4 ; do shrug ; move wide-right 3.5 ; cam closeup
+rest 4
+cue: "This time wait!" = 2 1 0/1.5 | V 4 ; do tilt ; move center 3.5 ; cam two-shot
+
+[one real turn]
+cue: "The desk came back" = 2 3 4 5/4.5 | IV 4, I 4 ; do nod ; take acting-sheet ; cam wide
+latch: "It went for a walk without me!" = 0 1 2 3 4/.5 5/.5 3 2/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; jump 1.5 ; cam low-angle
+cue: "I saved you a place right here" = 2/.5 4/.5 5/.5 4/.5 3 2 0/3.5 | IV 4, I 4 ; do cheer ; dance 6 ; cam two-shot
+  + clank @5: "Right here!" = 0 0/1.5 ; take clap ; dance 4
+latch: "After you, and thank you too!" = 0/.5 2/.5 4/1.5 5/.5 4/.5 3/.5 0/3.5 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide
+  + cue @5: "Take a bow!" = 4/.5 2/.5 0/1.5 ; do bow ; celebrate 4

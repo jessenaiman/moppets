@@ -1,0 +1,30 @@
+title: Bible · Ozzi
+id: bible-ozzi
+tab: Bible · Ozzi
+about: Studio 404 Bible solo showcase for Ozzi — phosphor CRT groove, swagger walk, purple-polarizer gag & antenna celebrate
+lead: ozzi
+key: E minor
+bpm: 118
+backing:
+bass: none
+stage: ozzi
+registers: ozzi -12
+breath: .5
+finale: "Wave" on 0
+
+[Vocal Sync · Oscilloscope Trace]
+"Clip red probes fast, green trace runs wild" = 0 2 3 5 4 2/.5 3/.5 0/1.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+"Black felt vest gleams, calm, cool, and mild" = 4 5 7 5 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Swagger walk across the patchbay" = 2/.5 3/.5 5/1.5 7/.5 5/.5 3/.5 2 1/2.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam low-angle
+
+[Vocal Sync · Goth Rock Belt]
+"Ride green waves high!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Phosphor glow lights up the night!" = 4 5 7/1.5 5 3/.5 2/.5 0/2 | III 4, I 4 ; do tilt ; cam closeup
+
+[Gag Lens & Antenna Leap]
+"Sway with the sine wave, catch the spark!" = 0 2 3 5 7 5/.5 3/.5 0/1.5 | I 4, I 4 ; do laugh ; dance 4 ; cam wide
+"Jump! Play loud! Make the whole stage shake!" = 3/1.5 5/.5 7 5 4 2/.5 1/.5 0/1.5 | IV 4, V 2, I 2 ; do cheer ; jump 1.5 ; cam low-angle
+"Tilt dark specs—see purple glow!" = 0 2 3 5 4/.5 2/.5 1/2.5 | I 4, V 4 ; do shrug ; take adjust-specs ; cam reaction
+
+[Bible Antenna Celebrate]
+"Patchbay sparks ignite the show!" = 4/.5 5/.5 7/1.5 5/.5 4 2/.5 0/3 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

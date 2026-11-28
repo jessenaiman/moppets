@@ -27,7 +27,7 @@
  */
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
-import { initChimera } from "../src/wasm/chimera.ts";
+import { initChimera } from "../src/chimera/wasm/chimera.ts";
 
 const STEP: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -239,7 +239,7 @@ for (const s of sung) {
 // The engine's dictionary, as `render notes` uses it. engine.ts calls the wasm when it loads,
 // so it is imported only after initChimera.
 await initChimera(readFileSync(new URL("../src/wasm/chimera.wasm", import.meta.url)));
-const { EnglishG2P, lyricsToSyllables } = await import("../src/wasm/engine.ts");
+const { EnglishG2P, lyricsToSyllables } = await import("../src/chimera/wasm/engine.ts");
 new EnglishG2P().setDictionaryText(gunzipSync(readFileSync(new URL("../public/data/cmudict.txt.gz", import.meta.url))).toString());
 const count = (w: string) => lyricsToSyllables(w).length;
 

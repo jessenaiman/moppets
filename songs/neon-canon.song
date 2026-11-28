@@ -1,0 +1,35 @@
+title: Neon Playbook II: The Shelf Canon
+id: neon-canon
+tab: 16 · Neon Playbook II: The Shelf Canon
+about: 16 · Act III: Gruff, Watt, Chip and Clank layer an offset canon walk — interrupted when Cue rips the scroll and Clank enters late
+lead: gruff
+key: G
+bpm: 112
+beat: B . t K | . Pf B . | t B . K | . B t . (swing .1)
+backing: 
+bass: none
+stage: gruff, watt, chip, clank, cue
+finale: "Lock" on 7
+
+[act 3]
+# Small groupings build from Gruff's walking bass into a staggered 3-voice canon with Watt & Chip.
+gruff: "Braided cords keep the slow bass walk" = 0 2 4 5 4 2 1 0 | I 4, IV 4 ; do nod ; move wide-left 4 ; cam wide
+gruff: "Heavy amps wake the dusty shelf" = 0 2 4 7 5 4 2 0 | V 4, I 4 ; take toaster-shrug ; move left 4 ; cam two-shot
+  + watt @2: "Six plugs count in time!" = 4/.5 5/.5 4 2 4/2 ; move right 4 ; jump 1.5
+gruff: "Step by step we pass the tune round" = 0 2 4 5 4 2 1 0 | I 4, V 4 ; do tilt ; move center 4 ; cam low-angle
+  + watt @2: "Step by step we pass it" = 2 4 5 4 2 0 ; move center 4
+  + chip @4: "Pass it round the room" = 7/.5 5/.5 4/.5 2/.5 0/2 ; take action ; move wide-right 4
+
+# Backstage joke: Cue's paper rips, band cuts, Clank answers a beat late with tape.
+cue: "Wait—my long paper scroll just tore!" = 4 4 5 7 5 4 2 1 | IV 4, V 4 ; do gasp ; take letter ; move right 4 ; cam closeup
+rest 2
+clank: "Wait one beat... I found tape!" = 0/2 2 4/.5 5/.5 4 2/3 | II 4, V 4 ; do nod ; react laugh ; take clap ; move center 4 ; cam reaction
+
+# Everyone locks the polyphonic groove together.
+gruff: "Lock the groove and lift the whole room!" = 0 2 4 5 7 5 4 2 | I 4, IV 4 ; do nod ; dance 6 ; cam wide
+  + watt @1: "Spark and hum!" = 4/.5 5/.5 7/2 ; jump 1.5 ; move left 4
+  + chip @2: "Bright high wings climb fast!" = 7 9 8 7 9/2 ; take stamp ; move left 4
+  + clank @4: "Right on cue at last!" = 0/.5 2/.5 4 2 0 ; take bow ; dance 4
+gruff: "Four old things make one sweet new song!" = 4 5 7 5 4 2 1 0 | V 4, I 4 ; do cheer ; celebrate 4 ; cam wide
+  + watt @2: "Plugged and strong!" = 4 5 7/4 ; celebrate 4
+  + chip @4: "We sing all night!" = 7 8 9 7 ; take acting-sheet ; move center 3

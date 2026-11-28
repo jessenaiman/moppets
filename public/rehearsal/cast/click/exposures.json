@@ -1,0 +1,16 @@
+{
+  "artist": "click",
+  "type": "reference exposures",
+  "columns": 8,
+  "count": 8,
+  "sources": [
+    "public/rehearsal/cast/click/sprites.webp#0",
+    "public/rehearsal/cast/click/sprites.webp#1",
+    "public/rehearsal/cast/click/sprites.webp#2",
+    "public/rehearsal/cast/click/sprites.webp#3",
+    "public/rehearsal/cast/click/sprites.webp#4",
+    "public/rehearsal/cast/click/sprites.webp#5",
+    "public/rehearsal/cast/click/sprites.webp#6",
+    "public/rehearsal/cast/click/sprites.webp#7"
+  ]
+}

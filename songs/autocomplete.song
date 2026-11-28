@@ -1,0 +1,52 @@
+title: Autocomplete
+id: autocomplete
+tab: 07 · Autocomplete
+about: The Moppets begin innocent sentences and Cue jumps in on the overlap with hilariously wrong guesses and reaction cuts
+lead: cue
+key: G
+bpm: 124
+beat: B . t K | . t B . | t B . K | . B t . (swing .12)
+backing: neon +0, watt +2, tabby +4, gruff +2
+stage: cue, watt, gruff, tabby, clank, neon
+finale: "Ding" on 7
+
+[verse 1]
+watt: "Hey folks, tell me how..." = 4/.5 4/.5 5 4 2 | I 4 ; do tilt ; move left 3 ; cam two-shot
+  + cue @2.5: "boots get..." = 6 5/.5
+cue: "fried on toast!" = 7 6 4/2 | V 4 ; react gasp ; take cast ; move right 3 ; cam reaction
+  + watt @2: "Not toast!" = 4 2/1 ; jump 1.5
+gruff: "Once upon a..." = 0 2 4 5 | IV 4 ; do nod ; move wide-left 3 ; cam two-shot
+cue: "tax return!" = 7 7 0/2 | I 4 ; react shrug ; take letter ; cam reaction
+  + gruff @2: "Fairy tale!" = 4/.5 2/.5 0 ; take toaster-shrug
+tabby: "Twinkle twinkle little..." = 0/.5 0/.5 4/.5 4/.5 5 5 | I 2, IV 2 ; do gasp ; move wide-right 3 ; cam two-shot
+cue: "spreadsheet!" = 1 1/3 | V 4 ; react gasp ; take acting-sheet ; cam reaction
+  + tabby @2: "Star!" = 7/2 ; take bow
+clank: "Beep boop please reboot my..." = 0/.5 0/.5 0/.5 0/.5 0 0 | V 4 ; do nod ; take clap ; move center 3 ; cam two-shot
+cue: "grandma's cat!" = 2 1 0/2 | I 4 ; react laugh ; move center 3 ; cam reaction
+  + clank @2: "Hard drive!" = 4 2/1 ; take bow
+
+[chorus, choir]
+cue: "Ding! I know just what you mean!" = 7/1.5 4/.5 4 5 4 2 4/2 | I 4, VI 4 ; do nod ; dance 6 ; cam wide
+  + neon @4: "What you mean!" = 7 5 4/2 ; take walk ; move left 3
+cue: "Tap, tap, tap—watch this smart machine!" = 2/.5 2/.5 2 1/.5 2/.5 4 5 4/3 | IV 4, V 4 ; do cheer ; move left 3 ; cam low-angle
+  + watt @5: "Smart machine!" = 7 5 4 ; jump 1.5
+cue: "Ding! I'm very, very sure!" = 7/1.5 4/.5 4 5 4 5 7/2 | I 4, VI 4 ; do nod ; move right 3 ; cam two-shot
+  + tabby @4: "Are you sure?!" = 4 5 7/2 ; move right 3
+cue: "Then let me check and type once more!" = 8 7 5 4 2 1/.5 1/.5 0/2 | II 4, V 2, I 2 ; do shrug ; move center 3 ; celebrate 4 ; cam wide
+  + gruff @4: "Type once more!" = 2 1 0/2 ; celebrate 4
+
+[verse 2]
+neon: "Rock and..." = 4/2 4/2 | I 4 ; do tilt ; move right 3 ; cam two-shot
+cue: "potted plant!" = 5 4 2/2 | V 4 ; react shrug ; cam reaction
+  + neon @2: "Roll!" = 7/2 ; take alt-idle
+watt: "Ribbit means I'm..." = 4 5 4 2 | IV 4 ; do nod ; move right 3 ; cam two-shot
+cue: "out of soup!" = 7 7 4/2 | I 4 ; react gasp ; cam reaction
+  + watt @2: "Frog!" = 5/2 ; jump 1.5
+gruff: "Roses are red and my fur is..." = 4/.5 4/.5 4/.5 2/.5 5/.5 5/.5 5/.5 4/.5 | I 2, V 2 ; do laugh ; move center 3 ; cam two-shot
+cue: "lemonade!" = 7 5 4/2 | I 4 ; react laugh ; take letter ; cam reaction
+  + gruff @2: "Purple!" = 2 0/1 ; take toaster-shrug
+tabby: "Thank you so much, you're..." = 4/.5 4/.5 5 7 5 | II 4 ; do bow ; move center 3 ; cam two-shot
+cue: "welcome!" = 1/2 0/2 | V 2, I 2 ; react nod ; move center 3 ; cam reaction
+rest 4
+
+[repeat chorus]

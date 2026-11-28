@@ -1,0 +1,37 @@
+title: Cue Playbook II: Duets and Trios
+id: cue-pairs
+tab: 27 · Cue Playbook II: Duets and Trios
+about: 27 · Cue drills paired partner switches across L/R lanes: Gruff and Chip trade octaves, Neon and Tabby mirror calls, and Watt, Clank and Zap stack a trio
+lead: cue
+key: D
+bpm: 112
+beat: B . t K | . t B . | t B . K | . B t . (swing .1)
+backing:
+bass: none
+stage: cue, gruff, chip, neon, tabby, watt, clank, zap
+finale: "Three" on 7
+
+[duet, high and low]
+# Two lines at once: Gruff low left, Chip high right, then swap lanes across center.
+cue: "First, a duet high and low!" = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4 ; do nod ; take cast ; move left 3 ; cam wide
+gruff: "I sing low beneath the floor" = 0 -1 -3 -1 0 2 0/2 | I 4, IV 4 ; take toaster-shrug ; move wide-left 4 ; cam two-shot
+  + chip: "I sing high above the door" = 7 6 4 6 7 9 7/2 ; take action ; move wide-right 4
+gruff: "Low and high we swap each lane!" = 0 2 4 2 0 -1 0/2 | IV 4, I 4 ; move right 4 ; cam low-angle
+  + chip: "High and low we switch the lane!" = 7 5 4 5 7 8 7/2 ; take stamp ; move left 4
+
+[duet, call and answer]
+cue: "Now a duet, call and reply!" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do tilt ; take letter ; move center 3 ; cam two-shot
+neon: "Is it twice?" = 4 5 7/2 | I 4 ; take walk ; move left 3 ; cam closeup
+tabby: "Yes, it's twice!" = 7 5 4/2 | V 4 ; take walk-right ; move right 3 ; cam closeup
+neon: "Is it bright?" = 4 5 7/2 | IV 4 ; move center 3 ; cam reaction
+tabby: "Shining bright!" = 7 5 4/2 | I 4 ; do nod ; take toast ; move center 3 ; cam two-shot
+
+[trio, one after another]
+# Watt starts, Clank joins two beats in, Zap four beats in.
+cue: "Now a trio, three in a row!" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do nod ; take acting-sheet ; cam wide
+watt: "Plug it in and turn it on!" = 0 2 4 5 4 2 0/2 | I 4, V 4 ; jump 1.5 ; move left 4 ; cam wide
+  + clank @2: "Turn it on and wait!" = 0 2 4 2 0/2 ; take clap ; move center 4
+  + zap @4: "Click it on!" = 7 5 4/2 ; take turn ; move right 4
+watt: "Three of us all humming now!" = 4 5 4 2 4 2 0/2 | IV 4, I 4 ; do gasp ; celebrate 4 ; cam wide
+  + clank @2: "Humming now!" = 0 -1 0/4 ; take bow ; celebrate 4
+  + zap @4: "Click, click, click!" = 7 7 7/2 ; celebrate 4

@@ -1,0 +1,16 @@
+kind: skit
+id: toaster
+title: The Toaster Knows
+about: Cue finds a toaster that answers questions, more or less, until Gruff admits it actually helped
+
+[scene 1]
+cue: "I found a toaster in the junk drawer. It answers questions!" ; do gasp ; take cast ; move left 2 ; cam wide
+tabby: "Toaster, what is the meaning of life?" ; do tilt ; take walk-right ; move right 2 ; cam closeup
+cue: "It says, toast. Lightly golden." ; do shrug ; take letter ; move center 2 ; cam reaction
+tabby: "That is a very confident answer." ; do nod ; take bow ; move center 2 ; cam two-shot
+
+[scene 2]
+gruff: "Toaster, how do I fix my broken radio?" ; do tilt ; move wide-left 2 ; cam two-shot
+cue: "It says, have you tried toast?" ; do gasp ; take acting-sheet ; move right 2 ; cam reaction
+gruff: "Honestly? That did help a little." ; do shrug ; react laugh ; take toaster-shrug ; move center 2 ; cam closeup
+tabby: "It never knows everything. But it always tries to warm you up." ; do bow ; take toast ; celebrate 3 ; cam wide

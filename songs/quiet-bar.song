@@ -1,0 +1,44 @@
+title: One Quiet Bar
+id: quiet-bar
+tab: House Band · One Quiet Bar
+about: The house band tries to leave one empty bar while Fuzz's guitar rings, Click's clock ticks, Thrum echoes, and Clacker sneaks one last key
+lead: fuzz
+key: C mixolydian
+bpm: 106
+backing:
+bass: none
+stage: fuzz, click, thrum, clacker
+registers: fuzz -12, click 0, thrum -12, clacker 0
+breath: .5
+finale: "Rest" on 0
+
+[count us in]
+click: "One, two, three, four!" = 0 0 2 4/4.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+fuzz: "Play one chord, then leave one quiet bar!" = 4 4 5/.5 4/.5 2 4/.5 3/.5 1 0/1.5 | IV 4, I 4 ; do tilt ; move right 4 ; cam two-shot
+
+[the held chord]
+click: "Hands up when I cut you off!" = 2 2 4 4 5 4 2/1.5 | IV 4, I 4 ; do gasp ; jump 1.5 ; cam reaction
+fuzz: "My chord is still a little warm!" = 0 2 4 5 6 5/.5 4/.5 2/1.5 | I 4, IV 4 ; do shrug ; take shred ; cam closeup
+clacker: "The lamp is on, the chord is gone" = 4 5 4 2 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move left 4 ; cam wide
+
+[the extra tick]
+fuzz: "The chord has stopped, so now we rest" = 4 4 5 4 2 3/.5 1/.5 0/1.5 | I 4, IV 4 ; do nod ; move center 4 ; cam closeup
+click: "One, two, three, four—and tick!" = 0 0 2 4/3 3/.5 0 | I 4, V 4 ; do gasp ; jump 1.5 ; cam reaction
+thrum: "There is no 'and' in four!" = 2 4 4/1.5 2/.5 1 0/2.5 | IV 4, I 4 ; do shrug ; move left 4 ; cam two-shot
+
+[the long return]
+clacker: "Who left the patch return turned up?" = 4 5 4 2 4 5/.5 3/.5 2/1.5 | I 4, IV 4 ; do gasp ; take performance ; cam closeup
+thrum: "I left it on, on, on!" = 0 2/.5 3/.5 4/2 3/2 2/1.5 | I 4, V 4 ; do laugh ; dance 6 ; cam low-angle
+fuzz: "Close it now while we can hear!" = 4 4 5 4 2 1 0/1.5 | IV 4, I 4 ; do nod ; move center 4 ; cam two-shot
+
+[the last key]
+thrum: "Here comes the bar with nothing in" = 0 1 2 4 4 3/.5 2/.5 1/1.5 | I 4, IV 4 ; do nod ; move center 4 ; cam wide
+clacker: "I just need one last key!" = 4 4 5/2 4 2 0/1.5 | V 4, I 4 ; do laugh ; jump 1.5 ; cam reaction
+click: "Now both hands up and count with me!" = 2 2 4 4 5 4/.5 3/.5 2/1.5 | IV 4, V 4 ; do cheer ; take performance ; cam low-angle
+
+[one quiet bar]
+fuzz: "Play one chord, then leave one quiet bar!" = 4 4 5/.5 4/.5 2 4/.5 3/.5 1 0/1.5 | IV 4, I 4 ; do bow ; celebrate 6 ; cam wide
+thrum: "Quiet bar!" = 0 2 0/1.5 | I 4 ; celebrate 4
+click: "One, two, three, four!" = 0 0 0 0/.5 | V 4 ; do gasp ; celebrate 4 ; cam wide
+  + clacker @2: "Hush!" = 4/1.5 ; do bow
+rest 4

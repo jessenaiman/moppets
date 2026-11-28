@@ -1,0 +1,44 @@
+title: Four on a Cardboard Horse
+id: cardboard-horse
+tab: 00 · Cardboard Horse
+about: Neon, Tabby, Cue and Gruff gallop across the stage on a rocking cardboard horse caravan with mouth-beatbox hoofbeats
+lead: neon
+key: G
+bpm: 120
+beat: B . t K | B . t . | B . t K | . t B t (swing .18)
+backing: neon +0, tabby +4, cue +2, gruff +0
+bass: gruff
+stage: neon, tabby, cue, gruff
+finale: "Whoa" on 7
+
+[saddle up]
+neon: "Grab the reins and hop right on!" = 0/.5 2/.5 4 4 5 4 2/3 | I 4, IV 4 ; do nod ; move left 4 ; jump 1.5 ; cam wide
+tabby: "Climb the roof and sing along!" = 4/.5 5/.5 7 5 4 2 0/3 | V 4, I 4 ; do laugh ; move right 4 ; jump 1.5 ; cam two-shot
+cue: "Hold the map the wrong way up" = 2/.5 4/.5 5 5 4 2 1/3 | II 4, V 4 ; do tilt ; take cast ; move left 4 ; cam reaction
+gruff: "Wheels roll fast so mind your cup!" = 0/.5 2/.5 4 2 1 -1 0/3 | IV 4, I 4 ; do shrug ; take toaster-shrug ; move right 4 ; cam closeup
+
+[trot chorus, choir]
+neon: "Four on a cardboard horse we ride!" = 4/.5 4/.5 5 4 2 4 5 7/2 | I 4, IV 4 ; do nod ; dance 6 ; cam wide
+  + tabby @6: "Clip clop!" = 5 7 ; jump 1.5
+tabby: "Wheels spin fast on the sunset side!" = 7/.5 5/.5 4 5 4 2 1 2/2 | V 4, I 4 ; do laugh ; move left 4 ; cam low-angle
+  + cue @6: "Whoa there!" = 4 2 ; jump 1.5
+cue: "Clip and clop down the paper hill!" = 4/.5 4/.5 5 4 2 4 5 7/2 | IV 4, VI 4 ; do tilt ; move right 4 ; cam two-shot
+  + gruff @6: "Hang on!" = 0 2 ; jump 1.5
+gruff: "Four bright voices and one big thrill!" = 5/.5 4/.5 2 4 2 1 -1 0/2 | V 4, I 4 ; do cheer ; move center 4 ; cam wide
+  + neon @6: "Ride on!" = 4 7 ; move center 2
+
+[horn break]
+cue: "Honk the horn!" = 7 5 7/2 | V 4 ; do gasp ; jump 1.5 ; cam reaction
+  + gruff @2: "Beep beep!" = 0 0 ; jump 1.5
+tabby: "Look, no hands!" = 8 7 5/2 | IV 4 ; do laugh ; move center 4 ; cam closeup
+neon: "Spin those wheels!" = 4 5 7/2 | I 4 ; do cheer ; dance 4 ; cam low-angle
+gruff: "Hold your hats and bounce with me!" = 2/.5 1/.5 0/.5 2/.5 4/.5 2/.5 0 | V 2, I 2 ; do laugh ; jump 1.5 ; cam wide
+  + tabby @2: "Bounce with me!" = 7/.5 5/.5 4 ; jump 1.5
+
+[repeat trot chorus]
+
+[curtain call]
+neon: "Whoa, horse! Take a bow!" = 4/.5 2/.5 0/.5 4/.5 7/2 | V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+  + tabby @2: "Take a bow!" = 7/.5 5/.5 4 ; do bow ; celebrate 2
+  + cue @2: "Bow right now!" = 2/.5 1/.5 0 ; do bow ; celebrate 2
+  + gruff @2: "Whoa right now!" = 0/.5 -1/.5 0 ; do bow ; celebrate 2

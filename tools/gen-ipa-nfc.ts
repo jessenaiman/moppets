@@ -15,7 +15,7 @@
  */
 import { fileURLToPath } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
-import { initChimera, call } from "../src/wasm/chimera.ts";
+import { initChimera, call } from "../src/chimera/wasm/chimera.ts";
 
 // the consonant inventory, from the engine (run `bun run wasm` first)
 await initChimera(readFileSync(new URL("../src/wasm/chimera.wasm", import.meta.url)));

@@ -1,0 +1,39 @@
+title: Sport Walkman Logger
+id: deck-audition
+tab: 00 · Deck Audition
+about: 90s Yellow Sport Walkman v3 logger Deck battles tape jams and binder-clip takes with stage-manager owl Tally
+lead: deck
+key: D minor
+bpm: 112
+backing:
+bass: none
+stage: deck, tally
+registers: deck -12, tally 0
+breath: .5
+finale: "Lock" on 0
+
+[verse 1]
+deck: "Yellow sport shell clips on the beat" = 0 2 3 5 4 3/.5 2/.5 0/1.5 | I 4, V 4 ; do nod ; move left 4 ; cam wide
+tally: "Red lamp blinks sharp, keep deck roll neat" = 4 5 7 5 4 3/.5 2/.5 0/1.5 | IV 4, I 4 ; do tilt ; move right 4 ; cam two-shot
+deck: "Walkman three logs right down the floor" = 0 2/.5 3/.5 5/.5 4/.5 3/.5 2/.5 0/3.5 | I 4, IV 4 ; do laugh ; take logging-clip ; cam closeup
+tally: "Take four oh four!" = 4 2/.5 1/.5 0/1.5 | IV 4
+tally: "White ticker curls right past the score!" = 4 5/.5 5/.5 7/2 5 4/.5 2/.5 0/1.5 | IV 4, V 4 ; do cheer ; take ticker-cue ; cam reaction
+
+[chorus]
+deck: "Snap that yellow lid, roll four oh four!" = 0/.5 2/.5 3/.5 4/.5 5/2 4 3/.5 2/.5 0/1.5 | I 4, IV 4 ; do cheer ; jump 1.5 ; cam low-angle
+tally: "Log that cue!" = 7 5 4/1.5 | IV 4 ; jump 1.5
+tally: "Count each beat and tap the tape once more!" = 4 5 7 5 4/.5 3/.5 2/.5 1/.5 0/1.5 | IV 4, I 4 ; do laugh ; dance 6 ; cam wide
+deck: "Keep rolling!" = 0 2 0/1.5 | I 4 ; dance 4
+
+[bridge]
+deck: "The cassette just chewed up the spool!" = 1 2 3 0/.5 -1/.5 0 2 0/1.5 | V 4, VI 4 ; do gasp ; take tape-jam ; move right 4 ; cam reaction
+rest 2
+tally: "Wait! Wind it fast, stay smooth and cool!" = 5 4 2/.5 3/1.5 4 5/.5 4/.5 2/1.5 | IV 4, V 4 ; do laugh ; move left 4 ; cam two-shot
+deck: "Binder clip locked, we're back in stride!" = 0 2 3 5/.5 4/.5 3 2/.5 0/2 | I 4, V 4 ; do cheer ; move center 4 ; cam closeup
+tally: "Back in stride!" = 5 4 2/1.5 | V 4 ; move center 4
+
+[repeat chorus]
+
+[curtain call]
+deck: "Clip the last take and bow down low" = 0 2 3 5/.5 4/.5 2 1/.5 0/2 | I 4, V 4 ; do bow ; celebrate 4 ; cam wide
+tally: "Hoot! Bow low!" = 4 2 0/1.5 | I 4 ; do bow ; celebrate 2

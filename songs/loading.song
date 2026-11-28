@@ -1,0 +1,49 @@
+title: Still Loading
+id: loading
+tab: 06 · Still Loading
+about: Chip freezes mid-thought for comedic dead-air buffer holds, then launches the whole crew into a catch-up dance
+lead: chip
+key: D
+bpm: 96
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .3)
+backing: neon +0, cue +2, tabby +4, gruff +2
+stage: chip, cue, neon, tabby, gruff, clank
+finale: "Hum" on 7
+
+tune a = 0/.5 2/.5 4 4 5 4 2 4/2 | I 4, VI 4
+
+[verse 1]
+chip: "Somebody asked me why the sky" = a ; do tilt ; take acting-sheet ; move left 4 ; cam wide
+chip: "Turns pink around the end of day" = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4 ; do nod ; move center 4 ; cam closeup
+  + tabby @5: "Wait all day!" = 7 5 4
+chip: "I spun my disk, I warmed my drive" = a ; do laugh ; take action ; move right 4 ; cam two-shot
+chip: "And whispered please don't go away" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2 ; do gasp ; move center 4 ; cam reaction
+
+[chorus, choir]
+chip: "Still loading, still loading" = 7 5 4/2 7 5 4/2 | I 4, VI 4 ; do shrug ; dance 6 ; cam wide
+  + neon @4: "Spinning disk!" = 4 2 4/2 ; take alt-idle ; move wide-left 4
+chip: "One point four four megs of nerve" = 4 4/.5 5/.5 5 4 2 4/3 | IV 4, V 4 ; do cheer ; jump 1.5 ; cam low-angle
+  + gruff @5: "Hold the curve!" = 2 1 0 ; take toaster-shrug
+chip: "Still loading, still loading" = 7 5 4/2 7 5 4/2 | I 4, VI 4 ; do nod ; move wide-right 4 ; cam two-shot
+  + tabby @4: "Catch up fast!" = 7 5 7/2 ; dance 4
+chip: "The best frames take a little while" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2 ; do bow ; dance 6 ; cam wide
+
+[verse 2, choir]
+chip: "Hum" = 4/4 | I 4 ; do tilt ; cam closeup
+  + cue: "Tick, tock, please wait..." = 7 6 7 6 ; take cast ; move left 3
+rest 3
+neon: "Ninety nine percent—wait, jump!" = 4/.5 5/.5 7/.5 5/.5 4/.5 2/.5 4 | V 4 ; do gasp ; take walk ; move right 4 ; jump 1.5 ; cam reaction
+chip: "Flushed cache! Watch my catch-up sprint run!" = 7/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 9/2 | I 4, V 2 ; do cheer ; take stamp ; move center 4 ; dance 4 ; cam wide
+  + tabby @2: "Go, Chip, go!" = 9/.5 7/.5 5/3 ; celebrate 4
+
+[verse 3]
+chip: "I checked the pages one by one" = a ; do nod ; move left 4 ; cam two-shot
+tabby: "We counted all the colors twice" = 4 5/.5 7/.5 7 5 4 2 1/2 | IV 4, V 4 ; do laugh ; move right 4 ; cam closeup
+chip: "And if I stall, I'll tell you so" = a ; do shrug ; move center 4 ; cam reaction
+gruff: "At least your spinner's awfully nice" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2 ; do bow ; take toaster-shrug ; cam wide
+
+[repeat chorus]
+
+[verse 4]
+rest 2
+chip: "Loaded!" = 4 7/5 | I 6 ; do bow ; take stamp ; celebrate 5 ; cam wide

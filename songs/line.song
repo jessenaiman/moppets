@@ -1,0 +1,37 @@
+title: Line?
+id: line
+tab: 20 · Line?
+about: Cue can prompt the whole cast. Then he turns over his own card.
+lead: cue
+key: G dorian
+bpm: 108
+backing:
+bass: none
+stage: cue
+finale: "Line" on 0
+
+[places]
+"Hat straight" = 0/.5 3/1.5 | I 2 ; do tilt ; move left 2 ; cam wide
+"Chin up" = 1/.5 4/1.5 | II 2 ; do nod ; move right 2 ; cam closeup
+"One foot on the mark" = 4/.5 4/.5 2/.5 1/.5 0/2 | I 4 ; do nod ; move center 3 ; cam wide
+"I keep your words" = 0 2/.5 3/.5 4/2 | IV 4 ; do tilt ; take acting-sheet ; cam closeup
+"Safe in the dark" = 6/.75 4/.25 2 1/2 | VII 2, V 2 ; do laugh ; dance 4 ; cam wide
+
+[prompt]
+"Need a line" = 0/.5 2/.5 4/2 | I 3 ; do nod ; take cast ; cam closeup
+rest 1
+"Take one of mine" = 6 5/.5 3/.5 2/2 | IV 2, I 2 ; do tilt ; move right 3 ; cam reaction
+"I roll it out" = 2 4/.5 3/.5 1/2 | II 4 ; do laugh ; move forward 3 ; cam low-angle
+"You step inside" = 1 3/.5 2/.5 0/2 | V 2, I 2 ; do cheer ; move center 3 ; cam wide
+
+[blank card]
+"Now for my part" = -2 -1 0 2 | VI 4 ; do gasp ; cam closeup
+rest 4
+"Who took my line" = 2/.5 1/.5 0 -1/2 | V 4 ; do shrug ; jump 1.5 ; cam reaction
+"Oh" = 0/2 | I 2 ; do gasp ; take cast ; cam closeup
+rest 2
+
+[invitation]
+"Need a line" = 0/.5 2/.5 4/2 | I 3 ; do nod ; take cast ; cam reaction
+rest 1
+"Stand here with me" = 5 3/.5 2/.5 0/2 | IV 2, I 2 ; do bow ; celebrate 4 ; cam wide

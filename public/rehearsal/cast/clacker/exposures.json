@@ -1,0 +1,19 @@
+{
+  "artist": "clacker",
+  "type": "reference exposures",
+  "columns": 8,
+  "count": 11,
+  "sources": [
+    "out/band-anim/clacker-play.gif#0",
+    "out/band-anim/clacker-play.gif#1",
+    "out/band-anim/clacker-play.gif#2",
+    "out/band-anim/clacker-play.gif#3",
+    "out/band-anim/clacker-play.gif#4",
+    "out/band-anim/clacker-play.gif#5",
+    "out/band-anim/clacker-play.gif#6",
+    "out/band-anim/clacker-play.gif#7",
+    "out/band-anim/clacker-play.gif#8",
+    "out/band-anim/clacker-play.gif#9",
+    "out/band-anim/clacker-play.gif#10"
+  ]
+}

@@ -1,0 +1,67 @@
+title: Rock Royalty 404
+id: rock-royalty-404
+tab: 00 · Rock Royalty 404
+about: 00 · Spare Parts rock Studio 404 — Caretaker opens the hall door for their big arena audition
+lead: leadsinger
+key: B minor
+bpm: 118
+backing: fuzz +0, click +2, thrum +4, clacker +0
+bass: none
+stage: band, leadsinger, gruff, click, fuzz, clacker, thrum
+registers: leadsinger -12, click -12, fuzz -24, clacker -12, thrum -24, gruff -24
+breath: .4
+finale: "Four oh four" = 7 7 7/2
+
+[intro]
+click: "One, two, three, four!" = 4/.5 5/.5 6 7/1.6 | I 4 ; do nod ; move left 3 ; cam wide
+  + gruff @0: "One, two, three, four!" = 0/.5 0/.5 2 0/1.6 ; move right 3
+  + fuzz @2: "Hey, hey!" = 7 7/.6 ; jump 1.5
+
+[verse 1]
+leadsinger: "Tap a screen and want a hit right now" = 4 4/.5 5/.5 4 2 4/.5 5/.5 4 2/1.6 | I 4, V 4 ; do tilt ; move left 4 ; cam wide
+leadsinger: "Throw the old box out when new hits town" = 4 4/.5 5/.5 4 2 4/.5 2/.5 1 0/1.6 | VI 4, V 2, I 2 ; react shrug ; move right 4 ; cam closeup
+gruff: "Thirty years unplugged in dust and rust" = 0/.5 0/.5 2/.5 4/.5 4 2/.5 0/.5 2 0/2.6 | I 4, IV 4 ; do nod ; move left 4 ; cam low-angle
+clacker: "No one thought the amp was worth a plug" = 2 2/.5 4/.5 2 1 2/.5 4/.5 2 0/1.6 | V 4, I 4 ; do shrug ; move right 4 ; cam two-shot
+click: "No cloud, just old tape!" = 7 5/1.5 4/.5 2 0/1.6 | IV 4, V 2 ; do laugh ; jump 1.5 ; cam reaction
+  + fuzz @0: "Who cares?" = 7 7/1.6 ; take shred
+leadsinger: "Made on a yardstick, loud and proud!" = 4 4/.5 2/.5 4/.5 5/.5 4 2 0/2.6 | I 4, V 2, I 2 ; do cheer ; move center 4 ; cam wide
+
+[pre-chorus]
+clacker: "No one hears us score four oh four" = 0 0/.5 2/.5 2 4 4 2 0/1.6 | VI 4, V 4 ; do tilt ; move center 4 ; cam two-shot
+  + click @5: "Four oh four!" = 7/.5 7/.5 7/1.6 ; jump 1.5
+fuzz: "Still do not care, plug in one more!" = 4 4/.5 5/.5 5 7 5 4 7/1.6 | IV 4, V 4 ; do cheer ; dance 6 ; cam low-angle
+  + gruff @5: "Plug in one more!" = 0/.5 2/.5 4/.5 0/1.1 ; move center 4
+
+[chorus, choir]
+leadsinger: "You left us unplugged in the dark back room" = 7/.5 7/.5 7/.5 5/.5 4 4/.5 5/.5 7 5 4/1.6 | I 4, VI 4 ; do nod ; dance 8 ; cam wide
+  + click: "You left us unplugged in the dark back room" = 9/.5 9/.5 9/.5 7/.5 6 6/.5 7/.5 9 7 6/1.6 ; dance 8
+  + gruff: "You left us unplugged in the dark back room" = 0/.5 0/.5 0/.5 2/.5 4 4/.5 2/.5 0 2 0/1.6 ; dance 8
+leadsinger: "Now hear thirty years of tube amp boom!" = 4/.5 4/.5 5/.5 4/.5 2 4 5 4 7/1.6 | IV 4, V 4 ; do laugh ; jump 1.5 ; cam low-angle
+  + click: "Now hear thirty years of tube amp boom!" = 6/.5 6/.5 7/.5 6/.5 4 6 7 6 9/1.6 ; jump 1.5
+  + gruff: "Now hear thirty years of tube amp boom!" = 0/.5 0/.5 2/.5 0/.5 -1 0 2 2 4/1.6 ; jump 1.5
+leadsinger: "No quick button—yeah, we learned the hard way" = 7/.5 7/.5 5 4 4/.5 4/.5 5 4/.5 2/.5 0/1.6 | VI 4, IV 4 ; do cheer ; take puppet-rig ; cam closeup
+  + fuzz: "No quick button—yeah, we learned the hard way" = 4/.5 4/.5 2 0 0/.5 0/.5 2 0/.5 -1/.5 0/1.6 ; take shred
+leadsinger: "Old junk is louder than your new play!" = 4 5/.5 4/.5 2/.5 4/.5 5 7 5 7/1.6 | II 4, V 4 ; do laugh ; move left 4 ; cam two-shot
+leadsinger: "Worth keeping plugged in!" = 7 5/.5 4/.5 5 7/2.6 | IV 4, V 2 ; do cheer ; jump 1.5 ; cam low-angle
+  + gruff @3: "Plug one more in!" = 0/.5 2/.5 4/.5 0/1.1 ; take toaster-shrug
+leadsinger: "Studio four oh four, watch the show begin!" = 4/.5 4/.5 4 5 4 2/1.5 4/.5 5 7/1.5 5/.5 7/2.6 | I 4, IV 4, V 2, I 2 ; do bow ; move center 4 ; celebrate 4 ; cam wide
+
+[verse 2]
+leadsinger: "Skip a track before the bass drops down" = 4 4/.5 5 4/.5 2 4 5/.5 4/.5 0/1.6 | I 4, V 2, I 2 ; do tilt ; move right 4 ; cam wide
+leadsinger: "Two brief stops and they all frown and pout" = 4 4/.5 5/.5 4 2 4/.5 2/.5 1 0/1.6 | VI 4, V 2, I 2 ; react gasp ; move center 4 ; cam reaction
+gruff: "Twenty winters for a power strip" = 0/.5 0/.5 2/.5 0/.5 2 4 4 2 0/1.6 | IV 4, I 4 ; do nod ; move wide-left 4 ; cam low-angle
+thrum: "Hands are clips and I still let it rip!" = 4 4/.5 2/.5 1/.5 1/.5 2 4 2 0/1.6 | V 4, I 4 ; do laugh ; jump 1.5 ; cam closeup
+  + click @5: "Let it rip!" = 7/.5 5/.5 7/1.6 ; take performance
+fuzz: "Thrum caught the echo, Click counts four" = 4/.5 5/.5 4 2/.5 4/.5 5 4 7/2.6 | IV 4, V 4 ; do cheer ; move left 4 ; cam two-shot
+clacker: "Clacker plays jazz off the closet floor" = 5/.5 5/.5 4 2 4/.5 4/.5 2 1 0/1.6 | II 4, V 4 ; do nod ; take performance ; cam reaction
+
+[breakdown]
+rest 2
+click: "Wait! Listen—the hall door!" = 4 4/.5 2/.5 4/.5 5 7/4.1 | VI 4, IV 4 ; do gasp ; move center 4 ; cam reaction
+leadsinger: "Show him we are ready, four oh four!" = 4/.5 5/.5 4/.5 2/.5 4 5 7 7 7/1.6 | IV 4, V 4 ; do cheer ; take performance ; jump 2 ; cam wide
+  + gruff @5: "Four oh four!" = 0/.5 2/.5 0/1.6 ; jump 2
+  + fuzz @0: "It is our big show!" = 4/.5 4/.5 5 5 4 7/3.6 ; move center 4
+click: "Just one solo!" = 7/.5 7/.5 9/.5 7/2.1 | V 4 ; do laugh ; jump 1.5 ; cam low-angle
+  + gruff @0: "Just one solo!" = 0/.5 0/.5 4/.5 0/2.1 ; move center 3
+
+[repeat chorus]

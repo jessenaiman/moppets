@@ -1,0 +1,122 @@
+title: The First Hello
+id: intro
+tab: The first hello
+about: Broadcast fanfare introductions in turn, then the whole Studio 404 choir on the chorus
+arrangement: introduction
+lead: neon
+key: D major
+bpm: 116
+bass: none
+breath: .25
+
+tune hello = 0 2 4 2 1 0 1 0/.75 | I 4, IV 4
+tune reply = 0 1 2 4 3 2 1 0/.75 | V 4, I 4
+
+[neon]
+neon: "I'm Neon—two tubes in a box" = hello ; do nod ; take walk ; move left 3 ; cam two-shot
+neon: "I hum twin notes around the clocks" = reply ; do cheer ; take alt-idle ; move center 3 ; cam wide
+turnaround V 4
+
+[cue]
+cue: "I am Cue—I read ev'ry line" = hello ; do tilt ; take cast ; move right 3 ; cam two-shot
+cue: "I turn my scroll so friends can shine" = reply ; do bow ; take letter ; move center 3 ; cam wide
+turnaround V 4
+
+[clank]
+clank: "I am Clank—I boot up my screen" = hello ; do nod ; take clap ; move left 3 ; cam low-angle
+clank: "Silver tape keeps my old frame clean" = reply ; do bow ; take bow ; move center 3 ; cam wide
+turnaround V 4
+
+[watt]
+watt: "I am Watt—my red switch glows bright" = hello ; do cheer ; jump 1.5 ; move right 3 ; cam two-shot
+watt: "Plug in with me and sing tonight" = reply ; do laugh ; move center 3 ; cam wide
+turnaround V 4
+
+[gruff]
+gruff: "One string is plenty, nice and low" = hello ; do nod ; take toaster-shrug ; move wide-left 3 ; cam low-angle
+gruff: "Hold this end tight and don’t let go" = reply ; do laugh ; move center 3 ; cam wide
+turnaround V 4
+
+[tabby]
+tabby: "I am Tabby stitched from old cloth" = hello ; do tilt ; take walk-right ; move right 3 ; cam closeup
+tabby: "My cracked screen purrs and keeps us warm" = reply ; do bow ; take toast ; move center 3 ; cam wide
+turnaround V 4
+
+[chip]
+chip: "I am Chip—my floppy spins bright" = hello ; do cheer ; take action ; move left 3 ; cam closeup
+chip: "Circuit crest gleams into the night" = reply ; do nod ; take stamp ; move center 3 ; cam wide
+turnaround V 4
+
+[zap]
+zap: "I am Zap—I change the channel" = hello ; do gasp ; take turn ; move right 3 ; cam reaction
+zap: "Every button means I'm sure" = reply ; do bow ; take walk-right ; move center 3 ; cam wide
+turnaround V 4
+
+[folio]
+folio: "I read the words that cross my screen" = hello ; do nod ; take chuckle ; move right 3 ; cam closeup
+folio: "My old scroll turns to start the scene" = reply ; do bow ; take belt ; move center 3 ; cam wide
+turnaround V 4
+
+[tracker]
+tracker: "I am Tracker—wide ninety deck" = hello ; do tilt ; take drawer-lead ; move left 3 ; cam two-shot
+tracker: "My tape door grins on ev'ry check" = reply ; do laugh ; move center 3 ; cam wide
+turnaround V 4
+
+[hertz]
+hertz: "I am Hertz on channel oh four" = hello ; do nod ; take crt-answer ; move right 3 ; cam low-angle
+hertz: "My rabbit ears catch ev'ry roar" = reply ; do cheer ; move center 3 ; cam wide
+turnaround V 4
+
+[ozzi]
+ozzi: "I am Ozzi—prince of patch bays" = hello ; do cheer ; take biascheck-skit ; move left 3 ; cam low-angle
+ozzi: "My purple specs ride green sine waves" = reply ; do laugh ; take audition-beats ; move center 3 ; cam wide
+turnaround V 4
+
+[deck]
+deck: "I am Deck—I log zero four" = hello ; do nod ; take logging-clip ; move right 3 ; cam closeup
+deck: "Press red record right on the floor" = reply ; do cheer ; take tape-jam ; move center 3 ; cam wide
+turnaround V 4
+
+[tally]
+tally: "I am Tally—light burning red" = hello ; do gasp ; take ticker-cue ; move left 3 ; cam two-shot
+tally: "My wood clip beak calls what you said" = reply ; do bow ; move center 3 ; cam wide
+turnaround V 4
+
+[clacker]
+clacker: "Keys click clean on my olive chest" = hello ; do nod ; take performance ; move right 3 ; cam two-shot
+clacker: "Four oh four keeps the beat all day" = reply ; do cheer ; move center 3 ; cam wide
+turnaround V 4
+
+[click]
+click: "Quartz clock ticks on the suitcase snare" = hello ; do nod ; take performance ; move left 3 ; cam two-shot
+click: "Tight downbeat never lets me slip" = reply ; do cheer ; move center 3 ; cam wide
+turnaround V 4
+
+[fuzz]
+fuzz: "Twin warm tubes glow bright up on ten" = hello ; do cheer ; take shred ; move right 3 ; cam low-angle
+fuzz: "Yardstick neck rings out loud again" = reply ; do bow ; take bow ; move center 3 ; cam wide
+turnaround V 4
+
+[latch]
+latch: "Press my switch and the mic comes live" = hello ; do nod ; move left 3 ; cam closeup
+latch: "One clean click gives the booth its cue" = reply ; do bow ; move center 3 ; cam wide
+turnaround V 4
+
+[leadsinger]
+leadsinger: "Red deck spins in my open chest" = hello ; do cheer ; take performance ; move right 3 ; cam closeup
+leadsinger: "Four oh four asks for one song more" = reply ; do bow ; move center 3 ; cam wide
+turnaround V 4
+
+[moonbell]
+moonbell: "Soft pale glow fills the quiet night" = hello ; do tilt ; take reach ; move left 3 ; cam closeup
+moonbell: "Golden bell rings above the floor" = reply ; do bow ; move center 3 ; cam wide
+turnaround V 4
+
+[thrum]
+thrum: "Orange loop feeds back to my chest" = hello ; do nod ; take performance ; move right 3 ; cam low-angle
+thrum: "Each warm echo comes back as Thrum" = reply ; do bow ; move center 3 ; cam wide
+turnaround V 4
+
+[chorus]
+"We are the scraps that found a song" = hello ; do cheer ; dance 6 ; cam wide
+"At four oh four we all belong" = reply ; do bow ; celebrate 4 ; cam wide

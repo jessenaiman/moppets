@@ -1291,6 +1291,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "moppet-wasm"
+version = "0.2.1"
+dependencies = [
+ "chimera",
+ "chimera-wasm",
+]
+
+[[package]]
 name = "ndk"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

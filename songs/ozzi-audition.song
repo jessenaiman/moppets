@@ -1,0 +1,47 @@
+title: Prince of Patchbays
+id: ozzi-audition
+tab: 00 · Ozzi Audition
+about: Goth-Rock Ozzi clips his alligator-clip test probes onto a glowing tube amp and leads Gruff and Watt through a royal patchbay fanfare
+lead: ozzi
+key: E minor
+bpm: 112
+backing: gruff +0, watt +2, clank +0
+bass: none
+stage: band, ozzi, gruff, watt, clank
+registers: ozzi -12, gruff -12, watt 0, clank -24
+breath: .4
+finale: "Four oh four" = 7 7 7/2
+
+tune riff = 0 0/.5 2/.5 3 2 0/.5 -1/.5 0/2.6 | I 4, VII 2, I 2
+tune chorus = 4 4/.5 5/.5 7 5 4/.5 2/.5 0/2.6 | IV 4, I 4
+
+[intro fanfare]
+ozzi: "Hear the prince of the patchbay call!" = 0 2/.5 3/.5 5 7 5/.5 3/.5 0/2.6 | I 4, V 2, I 2 ; do cheer ; move left 4 ; cam wide
+gruff: "Big bass call!" = -2/.4 0/.4 -2/.8 | I 2 ; move right 4
+watt: "Plug us all!" = 0/.4 2/.4 4/.8 | I 2 ; jump 1.5
+
+[verse 1]
+ozzi: "Purple specs on green phosphor glow" = riff ; do nod ; take adjust-specs ; cam closeup
+ozzi: "Clip the red probe right to the row" = riff ; do tilt ; take probe-arc ; move right 4 ; cam reaction
+ozzi: "Black felt vest with a bat wing seam" = chorus ; do laugh ; move center 4 ; cam low-angle
+gruff: "Plug that sine wave right in my stream!" = 0 0/.5 2/.5 0 -1 -2/.5 -1/.5 0/2.6 | V 4, I 4 ; do shrug ; take toaster-shrug ; move center 4 ; cam two-shot
+
+[chorus, choir]
+ozzi: "Prince of patch bays, turn up the coil!" = chorus ; do cheer ; jump 1.5 ; cam low-angle
+  + watt @3: "Turn up the coil!" = 3 2/.5 0/.5 2/2.6 ; jump 1.5
+ozzi: "Hear the tube amp bubble and boil!" = 4/.5 4/.5 5/.5 7/.5 5 4/.5 2/.5 0/1.6 | IV 2, V 2, I 2 ; do laugh ; dance 6 ; cam wide
+gruff: "Hear it boil!" = -2/.4 0/.4 -2/.8 | I 2 ; dance 4
+watt: "All six sockets light in the dark!" = 0 2 3/.5 4/.5 2 1/.5 0/.5 1/2.6 | VI 4, V 4 ; do nod ; move wide-left 4 ; cam reaction
+ozzi: "Ride the green wave, catch ev'ry spark!" = chorus ; do laugh ; move center 4 ; cam wide
+
+[patchbay bridge]
+watt: "Yellow plug jumps to slot number three!" = 0/.5 2/.5 3 4/.5 3/.5 2 0/.5 -2/.5 1/2.6 | IV 4, II 4 ; do gasp ; move center 4 ; jump 1.5 ; cam two-shot
+gruff: "Watch those patch cords wrap right past me!" = -2 0/.5 2/.5 3 2 1/.5 -1/.5 4/2.6 | VI 4, V 4 ; do shrug ; move left 4 ; cam reaction
+ozzi: "Flip the main switch—let antennas soar!" = 4/.5 5/.5 7 5 4/.5 2/.5 4 5/.5 8/2.1 | IV 4, V 4 ; do cheer ; take adjust-specs ; cam low-angle
+
+[repeat chorus]
+
+[curtain call]
+ozzi: "Pull that red probe, take a bow!" = 4 5 7 5/.5 4/.5 2 0/2.6 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide
+gruff: "Take a bow!" = -2/.4 0/.4 -3/.8 | I 2 ; do bow ; celebrate 2
+watt: "Lights out now!" = 0/.4 2/.4 4/.8 | I 2 ; do bow ; celebrate 2

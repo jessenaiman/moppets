@@ -1,0 +1,74 @@
+title: The Cue Playbook
+id: cue-playbook
+tab: 29 · ★ The Cue Playbook (Full Show)
+about: 29 · The Cue Playbook: Cue runs stage-blocking drills from solo roll call through paired L/R duets and trios to a synchronized ensemble bow
+lead: cue
+key: G
+bpm: 108
+beat: B . t . | Pf . t K | B . t . | Pf . t . (swing .12)
+backing: neon +0, watt +2, tabby +4, gruff +2, chip +7, clank +0, zap +4
+bass: none
+stage: cue, neon, tabby, gruff, clank, watt, chip, zap
+finale: "Page" on 7
+
+tune prompt = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4
+
+[act 1]
+# Cue reads the cast list; each Moppet enters downstage with its solo's signature phrase.
+cue: "Mic check! Here's the cast I've known!" = prompt ; do nod ; take cast ; move left 4 ; cam wide
+cue: "Meet sweet Neon—two bright tubes!" = prompt ; do nod ; cam two-shot
+neon: "Twice for me and twice for me!" = 4 5 4 2 4 5 4/2 | I 4, IV 4 ; do nod ; take walk ; move center 3 ; cam closeup
+cue: "Here is Tabby—she's the star!" = prompt ; take letter ; cam two-shot
+tabby: "Hear me, hear me sing!" = 7/1.5 5/.5 7/1.5 5/.5 9/4 | I 4, IV 4 ; do tilt ; take bow ; move right 3 ; cam closeup
+cue: "Here is Gruff, so warm and low!" = prompt ; cam two-shot
+gruff: "Look, I am so small!" = 4/2 3 2 1 0/3 | I 4, IV 4 ; react laugh ; take toaster-shrug ; move wide-left 3 ; cam low-angle
+cue: "Here is Clank, who thinks a lot..." = prompt ; cam reaction
+rest 2
+clank: "Yes!" = 0/4 | I 4 ; do nod ; react laugh ; take clap ; move center 3 ; cam closeup
+cue: "Here is Watt, who keeps lights bright!" = prompt ; cam two-shot
+watt: "Plug in, plug in, friends!" = 0/.5 7/.5 0/.5 7/.5 9/2 | I 4 ; do cheer ; jump 1.5 ; move wide-right 3 ; cam closeup
+cue: "Here is Chip, who tries it all!" = prompt ; take acting-sheet ; cam two-shot
+chip: "One more thing to try!" = 4/.5 5/.5 6/.5 7/.5 8/2 | IV 4 ; do gasp ; take stamp ; move left 3 ; cam closeup
+cue: "Here is Zap, my newest friend!" = prompt ; cam two-shot
+zap: "Zap! Cut to the moon!" = 7 7 5 4 4/4 | I 4, IV 4 ; do gasp ; take turn ; move right 3 ; cam closeup
+cue: "And I'm Cue! I hold the lines!" = 4 5 7 5 4 2 0/2 | IV 4, I 4 ; do bow ; move center 3 ; cam wide
+
+[duet, high and low]
+# Tight theatrical partner swap: Gruff below, Chip an octave above.
+cue: "First, a duet high and low!" = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4 ; do nod ; move left 3 ; cam wide
+gruff: "I sing low beneath the floor" = 0 -1 -3 -1 0 2 0/2 | I 4, IV 4 ; move wide-left 4 ; cam two-shot
+  + chip: "I sing high above the door" = 7 6 4 6 7 9 7/2 ; take action ; move wide-right 4
+gruff: "Low and high we swap each lane!" = 0 2 4 2 0 -1 0/2 | IV 4, I 4 ; move right 4 ; cam low-angle
+  + chip: "High and low we switch the lane!" = 7 5 4 5 7 8 7/2 ; move left 4
+
+[duet, call and answer]
+cue: "Now a duet, call and reply!" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do tilt ; move center 3 ; cam two-shot
+neon: "Is it twice?" = 4 5 7/2 | I 4 ; take alt-idle ; move left 3 ; cam closeup
+tabby: "Yes, it's twice!" = 7 5 4/2 | V 4 ; take walk-right ; move right 3 ; cam closeup
+neon: "Is it bright?" = 4 5 7/2 | IV 4 ; move center 3 ; cam reaction
+tabby: "Shining bright!" = 7 5 4/2 | I 4 ; do nod ; take toast ; move center 3 ; cam two-shot
+
+[trio, one after another]
+# Watt starts, Clank joins two beats in, Zap four beats in.
+cue: "Now a trio, three in a row!" = 0/.5 2/.5 4 4/.5 5/.5 4 2 0/3 | I 4, V 4 ; do nod ; cam wide
+watt: "Plug it in and turn it on!" = 0 2 4 5 4 2 0/2 | I 4, V 4 ; jump 1.5 ; move left 4 ; cam wide
+  + clank @2: "Turn it on and wait!" = 0 2 4 2 0/2 ; take clap ; move center 4
+  + zap @4: "Click it on!" = 7 5 4/2 ; take turn ; move right 4
+watt: "Three of us all humming now!" = 4 5 4 2 4 2 0/2 | IV 4, I 4 ; do gasp ; dance 4 ; cam wide
+  + clank @2: "Humming now!" = 0 -1 0/4 ; dance 4
+  + zap @4: "Click, click, click!" = 7 7 7/2 ; jump 1.5
+
+[act 3]
+cue: "Here's the last page of my scroll..." = 4 5 4 2 1 0 -1/2 | VI 4, V 4 ; do tilt ; take acting-sheet ; move left 3 ; cam closeup
+cue: "Wait—this last page has no words!" = 2 2 2 1 0 -1 0/2 | IV 4, V 4 ; do shrug ; move wide-left 4 ; cam reaction
+rest 2
+tabby: "Then we'll write it all together!" = 0/.5 2/.5 4 5 7 5 4 4/2 | I 4, VI 4 ; do nod ; move center 4 ; cam two-shot
+  + gruff @4: "All together!" = 0 2 4/.5 2/1.5 ; take toaster-shrug ; move center 4
+
+[chorus, choir]
+cue: "All the lines you sang tonight!" = 4 5 7 5 4 2 4/2 | VI 4, V 4 ; do cheer ; dance 6 ; cam wide
+  + chip @4: "Sang tonight!" = 7 8 9/2 ; take stamp ; dance 4
+  + zap @4: "Click!" = 7/4 ; take turn
+cue: "That's the page I'll keep!" = 4 5 4 2 0/4 | IV 4, I 4 ; do bow ; take cast ; move center 3 ; celebrate 4 ; cam wide
+  + neon: "Twice for me!" = 4 5 4/2 ; celebrate 4
+  + clank @4: "Yes!" = 0/4 ; take bow ; celebrate 4

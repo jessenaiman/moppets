@@ -1,0 +1,41 @@
+title: Hoot, Take 404
+id: tally-audition
+tab: 00 · Tally & Deck
+about: Stage manager owl Tally loses track of the take count while Deck snaps binder clips and jams cassette ribbon with Cue cheering them on
+lead: tally
+key: C major
+bpm: 112
+backing: deck +0, cue +2
+bass: none
+stage: tally, deck, cue
+registers: tally 0, deck -12, cue 0
+breath: .4
+finale: "Cut" on 7
+
+[verse 1]
+tally: "Red lamp blinks right on top of my head" = 0 2/.5 4/.5 5 4 4 2/.5 1/.5 0/1.6 | I 4, V 2, I 2 ; do nod ; move left 4 ; cam wide
+deck: "Walkman three logs the beats that you said" = 0/.5 2/.5 4 2 1 1 0/.5 -1/.5 0/1.6 | V 4, I 4 ; do nod ; take logging-clip ; move right 4 ; cam two-shot
+cue: "Hold the script! Did we skip four oh three?" = 2 4/.5 5/.5 4 2 2 1/.5 1/.5 0/1.6 | II 4, V 2, I 2 ; do laugh ; take cast ; cam reaction
+tally: "One clean slate—count it right after me!" = 4 5/.5 7/.5 5 4 4 2/.5 1/.5 0/1.6 | IV 4, I 4 ; do tilt ; move center 4 ; cam wide
+
+[chorus, choir]
+tally: "Hoot! Take four oh four, roll the tape!" = 4 5/.5 7/.5 5 4/1.5 2/.5 1/.5 0/2.1 | IV 4, I 4 ; do cheer ; jump 1.5 ; cam low-angle
+  + deck @5: "Roll the tape!" = -2/.5 0/.5 2/1.6 ; jump 1.5
+deck: "Red rec key snaps the beat into shape!" = 0 2/.5 4/.5 5 4 4 2/.5 1/.5 0/1.6 | I 4, V 2, I 2 ; do laugh ; dance 6 ; cam two-shot
+  + tally @5: "Into shape!" = 7/.5 5/.5 7/1.6 ; dance 4
+tally: "Ticker curls bright and white on cue!" = 4/.5 5/.5 7/1.5 5/.5 4 2 1 1/1.6 | IV 4, V 4 ; do shrug ; take ticker-cue ; cam closeup
+cue: "One clean wrap and the whole crew breaks through!" = 7 5/.5 4/.5 2 1 1 2/.5 1/.5 0/1.6 | V 4, I 4 ; do laugh ; move left 4 ; cam wide
+
+[recount bridge]
+tally: "Wait—was that take four hundred and two?!" = 0 2/.5 4/.5 5 7 7 5/.5 4/.5 2/1.6 | VI 4, II 4 ; do laugh ; move wide-right 4 ; cam reaction
+rest 2
+deck: "Tape jammed tight! Pull that spool straight on through!" = 3 2/.5 1/.5 0 2 2 4/.5 2/.5 0/1.6 | IV 4, V 2, I 2 ; do shrug ; take tape-jam ; move center 4 ; cam closeup
+cue: "Count down sharp—three, two, one, lock the cue!" = 4 5/.5 7/.5 5 4 4 2/.5 1/.5 0/1.6 | V 4, I 4 ; do cheer ; move center 4 ; jump 1.5 ; cam two-shot
+  + tally @5: "Lock the cue!" = 9/.5 7/.5 9/1.6 ; move center 4
+
+[repeat chorus]
+
+[curtain call]
+tally: "Four oh four! Drop slates and bow!" = 4 5 7 5/.5 4/.5 2 7/2.6 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide
+  + deck @5: "Take a bow!" = 2/.5 1/.5 0/1.6 ; do bow ; celebrate 2
+  + cue @5: "Cut right now!" = 5/.5 4/.5 2/1.6 ; do bow ; celebrate 2

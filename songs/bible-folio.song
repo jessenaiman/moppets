@@ -1,0 +1,30 @@
+title: Bible · Folio
+id: bible-folio
+tab: Bible · Folio
+about: Studio 404 Bible solo showcase for Folio — word-eyes scroll waltz, flutter jump, belt & chuckle takes
+lead: folio
+key: G major
+meter: 3/4
+bpm: 112
+backing:
+bass: none
+stage: folio
+registers: folio -12
+breath: .5
+finale: "Page" on 0
+
+[Vocal Sync · Page-Flip Waltz]
+"Turn the scroll slow, read the line" = 0/2 2 4/2 5 4/2 2 1/2.5 | I 3, I 3, IV 3, V 3 ; do nod ; move left 3 ; cam wide
+"Ink and felt shine gold and fine" = 3/2 5 7/2 5 4/2 2 0/2.5 | IV 3, IV 3, V 3, I 3 ; do tilt ; move right 3 ; cam closeup
+"Word eyes sparkle across the page" = 1/2 2 4 2 3 4/2 2 2/2.5 | II 3, V 3, I 3, V 3 ; do laugh ; move center 3 ; cam wide
+
+[Vocal Sync · Waltz Belt]
+"Long gold scroll shines!" = 0 2 5 7/2.5 | IV 3, V 3 ; do cheer ; take belt ; cam low-angle
+"Waltz across the stage!" = 4/1.5 5 7 5/.5 3/1.5 | III 3, IV 3 ; do tilt ; dance 6 ; cam closeup
+
+[Flutter Jump & Chuckle Take]
+"Flutter up high in three!" = 0 2 4 5 7/.5 4 | I 3, IV 3 ; do cheer ; jump 1.5 ; cam low-angle
+"Warm soft chuckles greet all you see!" = 0/2 2 4/2 5 4 3 2 0/2.5 | I 3, I 3, V 3, I 3 ; do laugh ; take chuckle ; cam reaction
+
+[Bible Folio Bow]
+"Clear words ring strong and proud!" = 4/2 5 7/3 4/2 1 0/2.5 | V 3, IV 3, V 3, I 3 ; do bow ; celebrate 3 ; cam wide

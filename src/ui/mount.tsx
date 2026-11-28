@@ -1,14 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { useMoppet } from "../choir/store";
+import { buildCatalog } from "./SongNavigator";
 import { App } from "./App.tsx";
-import { engine } from "../audio/AudioEngine.ts";
-import { inPlugin } from "../audio/pluginBridge.ts";
 
-export async function mount(root: HTMLElement): Promise<void> {
-  // the stores start from the plugin's state, or a first render would show (and a control could send) defaults
-  if (inPlugin) await (await import("./pluginState.ts")).attachToPlugin();
-  // console/debug handle (used by the browser smoke test)
-  (window as unknown as { __chimeraEngine: typeof engine }).__chimeraEngine = engine;
+export function mount(root: HTMLElement): void {
+  const act = new URLSearchParams(location.search).get("act");
+  const state = useMoppet.getState();
+  const linked = act && buildCatalog(state.studio404, state.freshSkit?.title).some((item) => item.id === act);
+  state.setLesson(linked ? act : state.lesson);
   root.replaceChildren();
   createRoot(root).render(
     <StrictMode>

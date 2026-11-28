@@ -1,0 +1,31 @@
+title: Bible · Clank
+id: bible-clank
+tab: Bible · Clank
+about: Studio 404 Bible solo showcase for Clank — 2.5D multiplane 12fps locomotion, CRT jaw sync, clap & bow takes
+lead: clank
+key: A minor
+bpm: 112
+backing:
+bass: none
+stage: clank
+registers: clank -24
+breath: .5
+finale: "Boot" on 0
+
+[Vocal Sync · Staccato Port Check]
+"Boot up! Step left, check the frame" = 0 1 2/1.5 3/.5 2 1 0/1.5 | I 4, IV 4 ; do nod ; move left 4 ; cam wide
+"Stride right, crisp brass calls my name" = -3 -1 1/1.5 2/.5 1 -1 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam low-angle
+"Braided hoses swing in time" = 2/1.5 3/.5 2/1.5 0/.5 -2 -1 0/1.5 | VI 4, IV 4 ; do laugh ; move forward 4 ; cam closeup
+"Charcoal coat keeps neat and prime" = 1/1.5 2/.5 1 -1 1/1.5 -1/.5 0/1.5 | V 4, I 4 ; do shrug ; move center 4 ; cam wide
+
+[Vocal Sync · Sustained Tenor]
+"Deep green screen wakes" = 0/1.5 3/2.5 2/1.5 1/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Steady phosphor shines!" = 2/1.5 0/.5 2/1.5 1/.5 -1/3.5 | VI 4, V 4 ; do nod ; cam closeup
+
+[Multiplane Locomotion & Clap]
+"Clank walks twos across the floor" = 0 2 3/1.5 2/.5 3/1.5 1/.5 0/1.5 | I 4, IV 2, I 2 ; do laugh ; dance 4 ; cam wide
+"Hop once, hit that phosphor score!" = 3 2 0 -2 2/1.5 1/.5 -1/1.5 | IV 4, V 4 ; do cheer ; jump 2 ; cam low-angle
+"Clap! Two steel claws lock the beat" = 0 2 3/1.5 2/.5 1 -1 0/1.5 | I 4, V 2, I 2 ; do nod ; take clap ; cam closeup
+
+[Bible Bow & Celebrate]
+"Clean frame shines from head to feet!" = 3 2 3/1.5 1/.5 2 -1 0/1.5 | IV 2, V 2, I 4 ; do bow ; celebrate 4 ; cam wide

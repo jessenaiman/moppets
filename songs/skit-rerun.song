@@ -1,0 +1,20 @@
+kind: skit
+id: rerun
+title: Rerun Class
+about: Vee teaches from the last surviving rerun tape while Clank, Gruff, and Pip hit meta deja-vu blocking and remote-control punchlines
+
+[scene 1]
+neon: "Class is in session! Today's rerun is episode four oh four." ; do nod ; take walk ; move left 2 ; cam wide
+watt: "Is that the one where the green frog learns to count?" ; do tilt ; jump 1.5 ; move right 2 ; cam two-shot
+neon: "No. That tape got taped over. With a toaster cooking show." ; do shrug ; take alt-idle ; move right 2 ; cam reaction
+
+[scene 2]
+clank: "I learned to bake sourdough. Wait—didn't we run this scene?" ; do shrug ; take clap ; move left 2 ; cam closeup
+gruff: "Deja vu. Yesterday you hummed straight at the toaster." ; do laugh ; take toaster-shrug ; move wide-left 2 ; cam two-shot
+clank: "And the toaster hummed right back. We are still very close." ; do nod ; react laugh ; take bow ; move center 2 ; cam reaction
+
+[scene 3]
+neon: "Focus, class! Rewind, run that back, and drop the remote!" ; do gasp ; jump 1.5 ; move center 2 ; cam low-angle
+gruff: "Wait—why did my toast just pop up twice?" ; do gasp ; move left 2 ; cam reaction
+neon: "Skip the commercials and cue the bow!" ; do cheer ; dance 3 ; cam two-shot
+watt: "Too late. The remote still tastes like Tuesday." ; do laugh ; celebrate 3 ; cam wide

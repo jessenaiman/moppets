@@ -1,0 +1,42 @@
+title: Tracking Lines & Rabbit Ears
+id: tracker-hertz-cart
+tab: 00 · Tracker & Hertz
+about: Slim blinking-12:00 90s VHS Tracker (75 DU) and giant wood-grain console CRT TV Hertz (150 DU) trade cord gags and harmonized banter
+lead: tracker
+key: E major
+bpm: 112
+backing: hertz +2
+bass: none
+stage: tracker, hertz
+registers: tracker -24, hertz -12
+breath: .4
+finale: "Play" on 0
+
+tune cart = 0 2/.5 4/.5 5 4 2/.5 1/.5 0/2.6 | I 4, V 2, I 2
+tune crt = 4 5/.5 7/.5 5 4 2/.5 1/.5 0/2.6 | IV 4, I 4
+
+[verse 1]
+tracker: "Slim tape deck blinks twelve oh oh bright" = cart ; do laugh ; move left 4 ; cam wide
+  + hertz @5.5: "Mine says four!" = 4/.5 2/.5 4/1.1
+hertz: "Big oak box blasts oh four once more!" = crt ; do nod ; move right 4 ; cam low-angle
+tracker: "Yellow cord pulls my tape tray wide!" = cart ; do shrug ; take drawer-lead ; cam reaction
+hertz: "Rabbit ears catch snow on my screen!" = crt ; do gasp ; take crt-answer ; cam closeup
+
+[chorus]
+tracker: "Pop the drawer out, click rewind, play!" = cart ; do cheer ; jump 1.5 ; cam two-shot
+  + hertz @5.5: "Wait—don't play!" = 7/.5 5/.5 4/1.1
+hertz: "Big wood tube glows warm down the bay!" = crt ; do laugh ; dance 6 ; cam wide
+tracker: "Twelve oh oh blinks while reels spin fast" = cart ; do laugh ; move right 4 ; cam closeup
+hertz: "Channel four laughs back at you now!" = crt ; do nod ; move left 4 ; cam two-shot
+
+[bridge]
+tracker: "Wait—that yellow cable got stuck!" = 0/1.5 2/.5 4/.5 5/.5 7 5/.5 4/.5 2/2.6 | VI 4, IV 4 ; do gasp ; move wide-left 4 ; cam reaction
+  + hertz @5: "Let go!" = 2 0/1.6 ; move wide-right 2 ; cam two-shot
+hertz: "Pull! Snap! Back to center on luck!" = 7/1.5 5/1.5 4/.5 2/.5 4 2/.5 1/.5 0/1.6 | V 4, I 4 ; do cheer ; move center 4 ; jump 1.5 ; cam wide
+  + tracker @5: "Whoa!" = 0/2.6 ; move center 2 ; jump 1.5
+
+[repeat chorus]
+
+[curtain call]
+tracker: "Two plugs, one cord—hit stop and bow!" = 0 2 4/.5 5/.5 4 2/.5 1/.5 0/2.6 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide
+  + hertz @5: "Channel oh four!" = 4/.5 2/.5 1/.5 0/1.1 ; do bow ; celebrate 4

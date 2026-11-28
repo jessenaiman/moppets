@@ -1,0 +1,46 @@
+title: Rewind, Be Kind
+id: rewind
+tab: 08 · Rewind, Be Kind
+about: Vee moons backwards across the stage like a warbling cassette, then snaps forward with Tabby, Scribe, Pip, and Gruff
+lead: neon
+key: F
+bpm: 108
+beat: B . t . | Pf . t K | B . t . | Pf . t K (swing .45)
+backing: watt +2, tabby +4, cue +0, gruff +2
+stage: neon, tabby, cue, watt, gruff, clank
+finale: "Kind" on 7
+
+tune a = 0/.5 0/.5 2 4 4 5 4 2/2 | I 4, VI 4
+
+[verse 1]
+neon: "I keep the last ten minutes near" = a ; do nod ; take walk ; move right 3 ; cam two-shot
+neon: "I play them back so crisp and clear" = 4 4/.5 5/.5 7 7 5 4 4/2 | IV 4, V 4 ; do laugh ; move left 3 ; cam closeup
+  + watt @5: "Crisp and clear!" = 7 5 4
+neon: "Tape three from Tuesday wound too tight" = a ; do tilt ; move wide-right 3 ; cam reaction
+neon: "It sounds like soup and socks and night" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2 ; do shrug ; move left 3 ; cam wide
+  + gruff @5: "Socks at night?!" = 2 1 0 ; take toaster-shrug
+
+[chorus, choir]
+neon: "Rewind, be kind, rewind!" = 2/.5 4/1.5 5/.5 7/1.5 5/.5 4/3.5 | I 4, V 4 ; do cheer ; take alt-idle ; move back 3 ; cam wide
+  + tabby @5: "Spin it back!" = 7 5 4 ; take walk-right ; move wide-left 3
+neon: "I hold what fits upon my reel" = 4/.5 4/.5 5 7 5 4 2 4/2 | IV 4, I 4 ; do nod ; dance 6 ; cam two-shot
+  + cue @5: "Check the reel!" = 7 5 4 ; take acting-sheet
+neon: "Rewind, be kind, rewind!" = 2/.5 4/1.5 5/.5 7/1.5 5/.5 4/3.5 | I 4, VI 4 ; do cheer ; move forward 3 ; jump 1.5 ; cam low-angle
+  + gruff @5: "Snap it fast!" = 2/0.5 1/0.5 0/2 ; move center 3
+neon: "Repeat the parts that matter most" = 4 5/.5 7/.5 5 4 2 1 0/2 | II 4, V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+
+[verse 2]
+rest 2
+neon: "Wub wub wub wub" = 4 3 1/2 -1/2 | I 6 ; do gasp ; move wide-left 4 ; cam closeup
+tabby: "Oh no, the tape!" = 7 5 4 2 | VI 4 ; do gasp ; move left 3 ; cam reaction
+neon: "Hang on, rewind right!" = -1/.5 0/.5 2/.5 4/.5 7/2 | V 4 ; do cheer ; take walk ; move center 3 ; jump 1.5 ; cam low-angle
+
+[verse 3]
+neon: "You told me that you like the blue" = a ; do nod ; move right 3 ; cam two-shot
+neon: "You told me that you have a cat" = 4 4/.5 5/.5 7 7 5 4 4/2 | IV 4, V 4 ; do laugh ; move wide-right 3 ; cam reaction
+  + tabby @5: "That's Tabby!" = 7 5 4 ; take toast ; move right 3
+neon: "And way back when you said your name" = a ; do tilt ; move center 3 ; cam two-shot
+neon: "I think it might have been a spoon" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2 ; do shrug ; move left 3 ; cam wide
+  + gruff @5: "Silver spoon!" = 2 1 0
+
+[repeat chorus]

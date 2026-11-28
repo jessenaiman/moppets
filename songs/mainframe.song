@@ -1,0 +1,60 @@
+title: Mainframe Blues
+id: mainframe
+tab: 09 · Mainframe Blues
+about: Clank fills a room to add two plus two while Tabby, Watt, and Cue hit synchronized horn-section steps on every doo-wah punch
+lead: clank
+key: G mixolydian
+bpm: 84
+backing: watt +2, tabby +4, cue +2, neon +0
+stage: clank, tabby, watt, cue, neon
+bass: neon
+finale: "Blues" on 0
+
+tune a = 4/.5 4/.5 2 0/.5 2/.5 4 2 0/3 | I 4, I 4
+
+[verse 1]
+clank: "I fill a room to add up two" = a ; do nod ; take clap ; move left 3 ; cam wide
+  + tabby @6: "doo wah" = 8 6 ; move left 2
+  + watt @6: "doo wah" = 6 4 ; move left 2
+  + cue @6: "doo wah" = 10 8 ; move left 2
+clank: "My fans all hum the whole night through" = 4/.5 4/.5 2 0/.5 2/.5 4 6 4/3 | IV 4, IV 4 ; do laugh ; move right 3 ; cam two-shot
+  + tabby @6: "doo wah" = 7 5 ; move right 2
+  + watt @6: "doo wah" = 5 3 ; move right 2
+  + cue @6: "doo wah" = 9 7 ; move right 2
+clank: "You ask me what's three plus one" = 4/.5 4/.5 2 0/.5 2/.5 4 0/4 | I 4, I 4 ; do tilt ; move center 3 ; cam closeup
+  + tabby @6: "doo wah" = 8 6 ; jump 1.5
+  + watt @6: "doo wah" = 6 4 ; jump 1.5
+  + cue @6: "doo wah" = 10 8 ; jump 1.5
+clank: "Give me a week, I'll get it done" = 4 4/.5 6/.5 4 2 1 0/.5 0/2.5 | V 4, I 4 ; do shrug ; move forward 3 ; cam low-angle
+  + tabby @6: "doo wah" = 6 6 ; move center 2
+  + watt @6: "doo wah" = 4 4 ; move center 2
+  + cue @6: "doo wah" = 8 8 ; move center 2
+
+[chorus, choir]
+clank: "I've got the mainframe blues!" = 0/.5 2/.5 4 6 4 4/4 | I 4, IV 4 ; do cheer ; dance 6 ; cam wide
+  + neon @5: "Add it up!" = 4 2 0 ; take walk ; dance 4
+clank: "Too big to fit in your shoes!" = 4 4 2 4 2 0 0/2 | I 4, V 4 ; do laugh ; move wide-left 3 ; cam two-shot
+  + tabby @5: "Big red shoes!" = 8 6 4 ; take bow
+clank: "But ask me anything at all!" = 0/.5 2/.5 4 6 6 6 4 2/2 | IV 4, I 4 ; do nod ; move right 3 ; cam low-angle
+  + watt @6: "At all!" = 6 4 ; jump 1.5
+clank: "I'll think it over down the hall!" = 4 4/.5 2/.5 0 2 1 0 0/2 | V 4, I 4 ; do shrug ; take clap ; move center 3 ; celebrate 4 ; cam wide
+
+[verse 2]
+clank: "They packed me tight inside a phone" = a ; do gasp ; move left 3 ; cam closeup
+  + tabby @6: "doo wah" = 8 6 ; move left 2
+  + watt @6: "doo wah" = 6 4 ; move left 2
+  + cue @6: "doo wah" = 10 8 ; move left 2
+clank: "But I still hum when I'm alone" = 4/.5 4/.5 2 0/.5 2/.5 4 6 4/3 | IV 4, IV 4 ; do nod ; move right 3 ; cam two-shot
+  + tabby @6: "doo wah" = 7 5 ; move right 2
+  + watt @6: "doo wah" = 5 3 ; move right 2
+  + cue @6: "doo wah" = 9 7 ; move right 2
+clank: "Now four plus four, I know that's eight!" = a ; do cheer ; move center 3 ; cam reaction
+  + tabby @6: "doo wah" = 8 6 ; jump 1.5
+  + watt @6: "doo wah" = 6 4 ; jump 1.5
+  + cue @6: "doo wah" = 10 8 ; jump 1.5
+clank: "I worked it out, though I was late!" = 4 4/.5 6/.5 4 2 1 0/.5 0/2.5 | V 4, I 4 ; do bow ; take bow ; move back 3 ; cam low-angle
+  + tabby @6: "doo wah" = 6 6 ; move center 2
+  + watt @6: "doo wah" = 4 4 ; move center 2
+  + cue @6: "doo wah" = 8 8 ; move center 2
+
+[repeat chorus]

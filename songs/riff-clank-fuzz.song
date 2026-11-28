@@ -1,0 +1,30 @@
+title: Deep Hum & Twelve-Inch Fret
+id: riff-clank-fuzz
+tab: Riff · Clank & Fuzz
+about: Fuzz and Clank trade ruler-guitar riffs, charcoal-coat hose grooves, a stage crossover with shred & clap takes, and unison rock jumps
+lead: fuzz
+key: E minor
+bpm: 120
+backing:
+bass: none
+stage: fuzz, clank
+registers: fuzz -12, clank -24
+breath: .5
+finale: "Fret" on -3
+
+[Guitar Lead · Pose-to-Pose]
+fuzz: "Strike one chord across the twelve" = 0 2 3/1.5 5/.5 4 2 0/1.5 | I 4, I 4 ; move left 4 ; cam wide
+clank: "Boom! Boom!" = 4/1.5 0/2 | I 4 ; move right 4
+fuzz: "Coat and cable move themselves" = 4 5 6 5 4 2 0/1.5 | V 4, V 4 ; do laugh ; dance 4 ; cam two-shot
+clank: "Watch us!" = 4 0/2.5 | V 4 ; dance 2
+
+[Stage Crossover · Shred & Clap]
+clank: "Deep low phosphor hum holds true" = 0 2 3 5 4 2 0/1.5 | IV 4, IV 4 ; do shrug ; move left 4 ; cam low-angle
+fuzz: "Yardstick strings break clean on two!" = 4 5 6 5 4 2 0/1.5 | V 4, V 4 ; do cheer ; take shred ; move right 4 ; cam closeup
+clank: "Braided steel claws lock down the groove!" = 0 2 3 5 4 2/.5 1/.5 0/1.5 | I 4, I 4 ; do nod ; take clap ; cam reaction
+
+[Unison Payoff & Rock Jump]
+fuzz: "Leap! Twelve frames lock and swing on cue!" = 0 2 3 5 6 5/.5 4/.5 2/1.5 | IV 4, V 4 ; do cheer ; jump 2 ; cam low-angle
+clank: "Jump! Twelve frames swing right on cue!" = 0 2 3 5 4 2 0/1.5 | IV 4, V 4 ; jump 2
+fuzz: "Plum coat and screen bow down for you!" = 4 5 6 5 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do bow ; take bow ; celebrate 4 ; cam wide
+clank: "Bow for you!" = 4 2 0/1.5 | I 4 ; do bow ; celebrate 2

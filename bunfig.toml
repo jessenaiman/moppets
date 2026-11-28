@@ -1,0 +1,3 @@
+# songs/*.song are lead sheets (src/choir/songFile.ts), imported as text
+[loader]
+".song" = "text"

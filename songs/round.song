@@ -1,0 +1,34 @@
+kind: round
+id: round
+
+[words jam]
+title: "Who Put the Jam in My Top Hat?"
+"Who put the jam in my top hat"
+"Pass me the toast and hide the cat"
+"My socks can dance my shoes can squeak"
+"We sing in rounds all through the week"
+last: "Jam"
+
+[words key]
+title: "I Found a Key"
+"I found a key that fits no door"
+"It hums a tune it learned from you"
+"So ask it twice and ask it nice"
+"It turns the lock and lets us through"
+last: "Click"
+
+[words toast]
+title: "The Toast Knows a Thing"
+"Toast pops up with a fact or two"
+"Warm and kind and a smidge burnt through"
+"Ask the old lamp to light the way"
+"Not quite wise but it tries all day"
+last: "Ding"
+
+[words studio]
+title: "Studio Four Oh Four!"
+"Plug the cord in turn the dial bright"
+"Hertz shows snow while green eyes blink white"
+"Tap two keys and start the tape show"
+"Four oh four plays fast and spins slow"
+last: "Four"

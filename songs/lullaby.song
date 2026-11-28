@@ -1,0 +1,40 @@
+title: Static Lullaby
+id: lullaby
+tab: 10 · Static Lullaby
+about: Tabby gently paints in snow and stars on her screen with soulful parallax sway while Gruff, Pip, and Scribe add affectionate jokes
+lead: tabby
+key: F
+bpm: 74
+beat: B . . . | . . . . | t . . . | . . . . (swing 0)
+backing: neon +0, watt +2, cue +4, gruff +2
+stage: tabby, neon, watt, cue, gruff, clank
+finale: "Sleep" on 7
+
+tune a = 4/1.5 2/.5 0 2 4/1.5 5/.5 4 4 | I 4, IV 4
+
+[verse 1]
+tabby: "Hush now, the screen is soft and gray" = a ; do tilt ; move left 4 ; cam closeup
+  + neon @5: "Soft and gray..." = 4 2 0 ; take alt-idle
+tabby: "A pale light drifts so far away" = 4/1.5 5/.5 7 7 5/1.5 4/.5 2 1 | I 4, V 4 ; do nod ; move center 4 ; cam wide
+tabby: "I see a horse or just a chair" = a ; do shrug ; move right 4 ; cam two-shot
+  + gruff @5: "Looks like soup!" = 2 1 0 ; take toaster-shrug
+tabby: "I'll paint it in, though check it's there" = 5/1.5 4/.5 2 4 2/1.5 1/.5 1 0 | II 4, V 2, I 2 ; do laugh ; move center 4 ; cam closeup
+
+[chorus, choir]
+tabby: "Sleep, sleep, the snow will fall" = 7/2 4/2 5 4 2 4 | I 4, VI 4 ; do bow ; dance 6 ; cam wide
+  + watt @4: "Softly fall..." = 7 5 4/2 ; move left 4
+tabby: "I might be guessing—ask again" = 4/.5 5/.5 7 5 4 2 4 2/2 | IV 4, V 4 ; do tilt ; take bow ; move left 4 ; cam closeup
+  + cue @4: "Ask again!" = 7 5 7/2 ; take acting-sheet
+tabby: "Sleep, sleep, I'll tell you true" = 7/2 4/2 5 4 2 4 | I 4, VI 4 ; do nod ; dance 6 ; cam two-shot
+  + neon @4: "Tell you true..." = 4 2 4/2 ; move right 4
+tabby: "When I'm not sure, I'll say so too" = 4 5/.5 4/.5 2 1 2 1 0/2 | II 4, V 2, I 2 ; do shrug ; celebrate 4 ; cam wide
+
+[verse 2]
+tabby: "I filled each gap with soft blue light" = a ; do nod ; move right 4 ; cam closeup
+  + watt @5: "Soft blue light..." = 5 4 2 ; move center 4
+tabby: "A moon, a sheep, a kite at night" = 4/1.5 5/.5 7 7 5/1.5 4/.5 2 1 | I 4, V 4 ; do gasp ; move forward 4 ; cam reaction
+  + cue @5: "Wait—a sheep?!" = 7 5 4 ; take letter
+tabby: "Some are real and some I made" = 4/1.5 2/.5 0 2 4/1.5 5/.5 4/2 | I 4, IV 4 ; do laugh ; take toast ; move back 4 ; cam two-shot
+tabby: "So check my screen—I might just fade" = 5/1.5 4/.5 2 4 2/1.5 1/.5 1 0 | II 4, V 2, I 2 ; do shrug ; move center 4 ; cam closeup
+
+[repeat chorus]

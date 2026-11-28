@@ -1,0 +1,24 @@
+kind: skit
+id: all-rise
+title: All Rise, Lightly Browned
+about: Cue conducts a courtroom rehearsal in the junk drawer while Tabby pops up and Gruff argues the recipe
+
+[scene 1]
+cue: "Court is in session. All rise." ; do nod ; take cast ; move left 2 ; cam wide
+gruff: "I am standing." ; do shrug ; take toaster-shrug ; move wide-left 2 ; cam low-angle
+tabby: "So am I." ; do nod ; jump 1.5 ; move right 2 ; cam two-shot
+cue: "Then who just went up?" ; do gasp ; react tilt ; cam reaction
+
+# Hold through the scene change. Cue follows the toast with his eyes.
+[scene 2]
+tabby: "One slice. Very straight back." ; do tilt ; take walk-right ; move center 2 ; cam closeup
+cue: "Will the witness please take the stand?" ; do nod ; take acting-sheet ; cam two-shot
+gruff: "It's on the stand. You're reading the recipe." ; do laugh ; move center 2 ; cam reaction
+cue: "I see. Both sides may now be heard." ; do nod ; take letter ; move left 2 ; cam wide
+
+# The turn belongs to Tabby. Gruff waits for the second side.
+[scene 3]
+tabby: "This side says crunch." ; do cheer ; take toast ; jump 1.5 ; cam closeup
+gruff: "Turn it over." ; do shrug ; move left 2 ; cam reaction
+tabby: "Crunch." ; do laugh ; celebrate 2 ; cam closeup
+cue: "First time both sides have agreed." ; do bow ; celebrate 3 ; move center 2 ; cam wide

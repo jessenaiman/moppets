@@ -4,7 +4,7 @@
  */
 import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
-import { writeGestures } from "../src/wasm/wire.ts";
+import { writeGestures } from "../src/chimera/wasm/wire.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const scenario = JSON.parse(readFileSync(`${ROOT}crates/chimera/tests/golden/voice.json`, "utf8")).find((s: { name: string }) => s.name === "speech-male");

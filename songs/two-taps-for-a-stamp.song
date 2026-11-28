@@ -1,0 +1,41 @@
+title: Two Taps for a Stamp
+id: two-taps-for-a-stamp
+tab: Post Office · Two Taps
+about: Cue has a secret to send. Chip weighs the letter. Tabby gets the message before the letter leaves Cue's hand.
+lead: cue
+stage: cue, chip, tabby
+key: F major
+meter: 6/8
+bpm: 96
+backing:
+bass: none
+finale: "Hush" on 0
+
+tune knock = 0/.5 0/.5 4/1 2/.5 0/.5 | I 3
+tune wing = 2/.5 2/.5 5/1 4/.5 2/.5 | IV 3
+
+[the envelope]
+cue: "I wrote one word and folded it small" = 0/.5 2/1 2/.5 4/.5 3/.5 2/.5 1/.5 0/.5 2/1.5 | I 3, VI 3 ; do nod ; move left 4 ; cam wide
+  + tabby @4.5: "So small!" = 4/.5 2/1
+chip: "Which slot takes a word that weighs this much" = 4/.5 4/.5 2/.5 4/.5 5/1 5/.5 4/.5 2/.5 1/1.5 | II 3, V 3 ; do tilt ; move right 4 ; cam closeup
+
+[postage]
+chip: "Two taps for a stamp" = knock ; do gasp ; jump 1.5 ; cam low-angle
+cue: "One fold for a wing" = wing ; do nod ; move center 3 ; cam two-shot
+tabby: "Pass this note from string to string" = 5/.5 4/.5 2/1 3/.5 2/.5 1/1 0/2 | IV 3, I 3 ; do laugh ; move right 4 ; dance 6 ; cam wide
+  + chip @4: "Tap tap!" = 4 4/1
+
+[the delivery]
+tabby: "Mine says hush. Does yours say hush" = 4/.5 2/.5 0/2 4/.5 4/.5 2/.5 0/1.5 | I 3, VI 3 ; do laugh ; move left 4 ; cam reaction
+cue: "How did you read it? It's still in my hand" = 2/.5 3/.5 4/.5 5/.5 4/.5 4/.5 5/.5 4/.5 2/.5 1/1.5 | II 3, V 3 ; do gasp ; jump 1.5 ; cam closeup
+rest 1
+tabby: "You sang it" = 4/.5 2/1 0/1.5 | I 3 ; take bow ; move center 3 ; cam two-shot
+rest 2
+chip: "Next time send the tune" = 0/.5 2/.5 4/1 5/.5 4/.5 | V 3 ; do shrug ; move center 3 ; cam reaction
+
+[repeat postage]
+
+[the reply]
+cue: "Keep the stamp. I'll sing" = 2/.5 2/.5 4/1 1/.5 0/.5 | I 3 ; do bow ; celebrate 3 ; cam wide
+  + chip @2: "Hush" = 0/1 ; celebrate 1
+  + tabby @2: "Hush!" = 4/1 ; do bow ; celebrate 1

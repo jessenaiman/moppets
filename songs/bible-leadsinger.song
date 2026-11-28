@@ -1,0 +1,27 @@
+title: Bible · LeadSinger
+id: bible-leadsinger
+tab: Bible · LeadSinger
+about: Studio 404 Bible solo showcase for LeadSinger — cassette-chest showstopper sweep, belt jump, puppet-rig & grand bow
+lead: leadsinger
+key: B minor
+bpm: 118
+backing:
+bass: none
+stage: leadsinger
+registers: leadsinger -12
+breath: .5
+finale: "Sing" on 0
+
+[Vocal Sync · Showstopper Staccato]
+"Red tape spins fast, deck door snaps tight" = 0 2 3 5 4 2/.5 3/.5 0/1.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+"Two bar eyes flash blue, gold, and bright" = 4 5 7 5 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Front-stage sweep right into the light!" = 2 3 5 7 5/.5 3/.5 2 1/1.5 | IV 4, V 4 ; do laugh ; move forward 4 ; cam low-angle
+
+[Vocal Sync · Showstopper Belt & Jump]
+"Soar loud, high, free!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; jump 2 ; cam low-angle
+"Bare chassis rules the stage!" = 4 5/.5 7/.5 5/2 3/.5 0/3 | III 4, I 4 ; do tilt ; cam closeup
+
+[Rig Showcase & Grand Bow]
+"Chrome cans grip the whole wide room!" = 0 2 3/1.5 5/.5 4 1 0/1.5 | I 4, V 2, I 2 ; do shrug ; take puppet-rig ; cam wide
+"Downstage dance—turn up the boom!" = 0/.5 2/.5 3/1.5 5/.5 4 1/.5 0/3 | I 4, V 2, I 2 ; do laugh ; take performance ; dance 4 ; cam low-angle
+"Four oh four shakes out the gloom!" = 4 5 7 5 2/.5 4/.5 0/2.5 | IV 4, I 4 ; do bow ; move center 4 ; celebrate 4 ; cam wide

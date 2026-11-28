@@ -1,0 +1,38 @@
+title: Every Socket
+id: every-socket
+tab: 22 · Every Socket
+about: 22 · Six-socket power strip Watt sprints left and right hunting open outlets before a sparked-up proud bow
+lead: watt
+key: F
+bpm: 120
+backing:
+bass: none
+stage: watt
+registers: watt -12
+breath: .5
+finale: "On" on 7
+
+# The Remote's Cut (S-5): Watt sprints L/R plugging in the whole stage.
+
+[verse 1]
+"I've got six slots and all are hot" = 0/.5 4/.5 7 4/.5 0/.5 4/.5 7/.5 9/1.5 | I 4, IV 2 ; do nod ; move wide-left 4 ; cam wide
+"I buzz when cords snap in" = 7 4/.5 2/.5 4 0 4/1.5 | IV 2, I 4 ; do tilt ; move wide-right 4 ; cam closeup
+"The decks can roll, the lamps can glow" = 0/.5 4/.5 7 4/.5 1/.5 4/.5 8/.5 7/1.5 | I 4, V 2 ; do laugh ; move left 4 ; cam low-angle
+"Red switch wears one big grin!" = 9 7/.5 4/.5 2 1 0/1.5 | V 2, I 4 ; do cheer ; move center 4 ; cam reaction
+
+[chorus]
+"Plug in! Plug in, friends!" = 0/.75 4/.75 0/.5 7/.5 4 | I 2, V 2 ; do gasp ; jump 1.5 ; cam low-angle
+"The stage needs the juice!" = 2/.5 6/.75 2/.75 5/.5 7 | V 2, I 2 ; do cheer ; dance 4 ; cam wide
+"When the whole cast hunts a spark" = 0/.5 2/.5 4 7/.5 9/.5 7 4/1.5 | IV 4, V 2 ; do laugh ; move right 4 ; cam closeup
+"Not one outlet will come loose!" = 9/.5 7/.5 4/.5 2/.5 4 1 0/1.5 | V 2, I 4 ; do nod ; move center 4 ; cam wide
+
+[verse 2]
+"Who unplugged Clank? Who tripped the strip?" = 0/.5 4/.5 7 4 0/.5 4/.5 7/.5 9 | I 4, IV 2 ; do gasp ; move wide-right 4 ; cam reaction
+"Give me that prong right now!" = 7 4/.5 2/.5 4 0 4/1.5 | IV 2, I 4 ; do tilt ; move left 4 ; cam closeup
+"Six bright holes glow from head to heels" = 0/.5 4/.5 7 4/.5 1/.5 4/.5 8/.5 7/1.5 | I 4, V 2 ; do laugh ; dance 5 ; cam low-angle
+"No blown fuse stops this show!" = 9 7/.5 4/.5 2 1 0/1.5 | V 2, I 4 ; do cheer ; move center 4 ; cam wide
+
+[repeat chorus]
+
+[curtain call]
+"Six live volts! Take a bow!" = 4/.5 2/.5 0/.5 4/.5 2/.5 7 | V 2, I 2 ; do bow ; celebrate 4 ; cam wide

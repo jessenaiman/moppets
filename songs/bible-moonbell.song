@@ -1,0 +1,31 @@
+title: Bible · Moonbell
+id: bible-moonbell
+tab: Bible · Moonbell
+about: Studio 404 Bible solo showcase for Moonbell — full 7-take locomotion, phosphor bell-dome sync & stage command
+lead: moonbell
+key: G dorian
+bpm: 112
+backing:
+bass: none
+stage: moonbell
+registers: moonbell 0
+breath: .5
+finale: "Glow" on 0
+
+[Vocal Sync · Staccato Patrol]
+"Step left, glass bell checks the wing" = 0 2 4 2 5/1.5 4/.5 3/1.5 | I 4, IV 4 ; do tilt ; move left 4 ; cam wide
+"Glide right, catch that warm gold ring" = 4 6 4/1.5 3/.5 4 2 0/1.5 | V 4, I 4 ; do nod ; move right 4 ; cam closeup
+"Hey, why's my beam on the floor?" = 3 4 5 3 4/1.5 5/.5 6/1.5 | IV 4, V 4 ; do gasp ; take react ; cam reaction
+"Back home! Center stage once more!" = 5 3 4/1.5 2/.5 4 2 0/1.5 | IV 2, V 2, I 4 ; do laugh ; move center 4 ; cam wide
+
+[Vocal Sync · Sustained Belt & Reach]
+"Moon bell shines high!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; take reach ; cam low-angle
+"Ring clear through the night!" = 2 4 6/1.5 4/.5 5/3.5 | III 4, IV 4 ; do tilt ; move forward 4 ; cam closeup
+
+[Dance Break & Jump Hit]
+"Jump up past the beams right now!" = 0 4 7/1.5 5/.5 6 4 2/1.5 | I 4, III 4 ; do cheer ; jump 2 ; cam low-angle
+"Spin and groove, I'll show you how!" = 3/1.5 4/.5 5 3 4 6 4/1.5 | IV 4, V 4 ; do laugh ; dance 4 ; cam wide
+
+[Bible Takes & Finale Bow]
+"Wait, I reach to catch the gleam" = 3 5 7/1.5 5/.5 6/1.5 5/.5 4/1.5 | IV 4, V 4 ; do gasp ; take reach ; move center 4 ; cam closeup
+"Cue the bow, I own this scene!" = 5/1.5 3/.5 4 1 4 2 0/1.5 | IV 2, V 2, I 4 ; do bow ; celebrate 4 ; cam wide

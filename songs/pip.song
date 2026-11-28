@@ -1,0 +1,51 @@
+title: Pip Repeats
+id: pip
+tab: 12 · Pip Repeats
+about: Watt bounces across the stage turning every Moppet line into comedic puns until the whole cast echoes back with spark hops
+lead: watt
+key: A
+bpm: 118
+beat: B . t K | . t B . | t B . K | . B t . (swing .05)
+backing: neon +0, tabby +4, cue +2, gruff +2
+stage: watt, tabby, neon, cue, gruff, clank
+finale: "Croak!" on 7
+
+tune a = 7 5 4 2 | V 4
+
+[verse 1]
+tabby: "Hello there!" = 4 5 4/2 | I 4 ; do nod ; take bow ; move left 2 ; cam two-shot
+watt: "Jello there!" = 4 5 4/2 | I 4 ; do gasp ; jump 1.5 ; cam reaction
+  + tabby @2: "Close!" = 7/2
+neon: "Nice to meet you!" = 2 4 5 4 | IV 4 ; do laugh ; take walk ; move right 2 ; cam two-shot
+watt: "Ice to eat you!" = 2 4 5 4 | IV 4 ; do cheer ; jump 1.5 ; cam reaction
+  + neon @2: "Please don't!" = 7 5/1
+cue: "Pass the butter!" = a ; do tilt ; take acting-sheet ; move left 2 ; cam two-shot
+watt: "Zap the shutter!" = a ; do gasp ; jump 1.5 ; move right 2 ; cam closeup
+  + cue @2: "Write that down!" = 7/0.5 5/0.5 4 ; take letter
+gruff: "Excellent frog!" = 0 2 4 7 | I 4 ; do shrug ; take toaster-shrug ; move wide-left 2 ; cam two-shot
+watt: "Bright green spark frog!" = 0 2 4 7 | I 4 ; do cheer ; jump 1.5 ; move center 2 ; cam low-angle
+
+[chorus, choir]
+watt: "Ribbit, ribbit, copy me!" = 4/.5 2/.5 4/.5 2/.5 5 4 2/4 | I 4, V 4 ; do cheer ; dance 6 ; cam wide
+  + tabby @4: "Copy Pip!" = 7 5 4/2 ; take toast
+watt: "Watch close, learn fast, try again!" = 2 4/.5 5/.5 7 5 4 2/3 | IV 4, V 4 ; do nod ; move left 3 ; jump 1.5 ; cam two-shot
+  + neon @5: "Try again!" = 7 5 4 ; take alt-idle
+watt: "Ribbit, ribbit, one more time!" = 4/.5 2/.5 4/.5 2/.5 5 4 2/4 | I 4, V 4 ; do laugh ; move right 3 ; cam low-angle
+  + gruff @4: "One more time!" = 2 1 0/2 ; celebrate 4
+watt: "Now I've caught it—watch me shine!" = 4 5/.5 4/.5 2 1 1 0/3 | II 4, V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+  + clank @4: "Watch him shine!" = 4 2 0 ; take clap
+
+[verse 2]
+watt: "Lily pad!" = 4 5 7/2 | I 4 ; do nod ; jump 1.5 ; move left 2 ; cam two-shot
+neon: "Lily pad!" = 4 5 7/2 | I 4 ; do laugh ; move left 2 ; cam closeup
+  + watt @2: "Hop!" = 9/2
+watt: "Splish, splash, splosh!" = 7 5 4/2 | V 4 ; do gasp ; jump 1.5 ; move center 2 ; cam reaction
+clank: "Splish, splash, splosh!" = 7 5 4/2 | V 4 ; do bow ; take bow ; move right 2 ; cam two-shot
+  + watt @2: "Nice stomp!" = 7 5/1
+watt: "Moppets rule!" = 4 5 7/2 | IV 4 ; do cheer ; jump 1.5 ; move right 2 ; cam low-angle
+tabby: "Moppets rule!" = 4 5 7/2 | IV 4 ; do cheer ; take toast ; move center 2 ; cam two-shot
+watt: "Thank you, teachers!" = a ; do bow ; move center 2 ; cam closeup
+gruff: "You're welcome, Pip!" = 4 2 1 0 | I 4 ; do laugh ; celebrate 3 ; cam wide
+  + watt @2: "Zap-zap!" = 7 5
+
+[repeat chorus]

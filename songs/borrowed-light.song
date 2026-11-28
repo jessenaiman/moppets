@@ -1,0 +1,38 @@
+title: Borrowed Light
+id: borrowed-light
+tab: Moonbell · Borrowed Light
+about: Moonbell auditions for the followspot. It follows Thrum’s bass instead, until she calls the blackout herself.
+lead: moonbell
+key: G dorian
+meter: 6/8
+bpm: 117
+backing:
+bass: none
+stage: moonbell
+registers: moonbell 0
+finale: "Glow" on 0
+
+[first crossing]
+"Left goes the light" = 0/.5 3 2/.5 4/4 | I 3, VII 3 ; do tilt ; move left 4.5 ; cam wide
+"Right goes my shade" = 4/.5 0 2/.5 1/4 | IV 3, V 3 ; do nod ; move right 5 ; cam closeup
+
+[bass steals the light]
+rest 3
+"My spot has feet" = 4/.5 4/.5 6/.5 7/1.5 | VII 3 ; do gasp ; take react ; cam reaction
+"No, that's his bass" = 7/.5 5/.5 3/.5 0/1.5 | IV 1.5, I 1.5 ; do shrug ; move center 3 ; cam two-shot
+rest 1.5
+
+[the bargain]
+"Four little strings" = 2/.5 3/.5 4/.5 5/1.5 | IV 3 ; do tilt ; take reach ; cam closeup
+"Pull up the day" = 5/.5 6/.5 7 4/4 | II 3, VII 3 ; do cheer ; dance 6 ; cam wide
+
+[the leap]
+"Up past the lamp" = 0/.5 2/.5 4/.5 7/1.5 | I 3 ; do cheer ; jump 2.5 ; cam low-angle
+"Down on the boards" = 7/1.5 6/.5 5 3/3 | III 3, IV 3 ; do laugh ; move forward 4 ; cam closeup
+
+[blackout]
+rest 3
+"Who lit the dark" = 4/.5 3/.5 2/.5 1/1.5 | V 3 ; do gasp ; take reach ; cam reaction
+rest 1.5
+"I did" = 2/.5 0/2.5 | I 3 ; do bow ; celebrate 3 ; cam wide
+rest 1.5

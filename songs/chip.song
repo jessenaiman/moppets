@@ -1,0 +1,45 @@
+title: Chip Reads the Manual
+id: chip
+tab: 03 · Chip’s song
+about: Chip zips across the stage reading every manual rule aloud while Cue, Tabby, Neon, and Gruff trade brisk counterpoint cues
+lead: chip
+key: C major
+bpm: 108
+beat: B . t K | . t B . | t B . K | . B t . (swing 0.05)
+backing: neon +0, tabby +4, gruff +2, cue +1
+stage: chip, tabby, cue, neon, gruff, clank
+registers: chip 0
+breath: .25
+finale: "Stamp!" on 7
+
+[verse 1]
+chip: "Eight bits wide and made of maybe" = 0/0.5 2/0.5 4 5 4 2 4 0/1.75 | I 4, IV 4 ; do nod ; take acting-sheet ; move left 3 ; cam closeup
+  + cue @4: "Read page one!" = 7/0.5 5/0.5 4/1.5 ; take letter ; move right 3
+chip: "Check the bold tabs, I'll read all day" = 2/0.5 4/0.5 5 7 7 5 4 2/1.75 | VI 4, II 4 ; do laugh ; move right 3 ; cam two-shot
+  + tabby @4: "Step right up!" = 9/0.5 7/0.5 5/1.5 ; move left 3
+chip: "Ten crisp lines in tiny clear print" = 4/0.5 4/0.5 5 7 8 7 5 4/1.75 | I 4, VI 4 ; do tilt ; take action ; move wide-right 3 ; cam wide
+  + gruff @4: "My eyes squint!" = 2 1 0/1.5 ; do shrug ; take toaster-shrug
+chip: "Flip the shutter, catch one more hint!" = 4/0.5 2/0.5 1 2 4 2 1 0/1.75 | II 4, V 2, I 2 ; do gasp ; move center 3 ; jump 1.5 ; cam low-angle
+  + neon @4: "Check the tint!" = 5/0.5 4/0.5 7/1.5 ; move wide-left 3
+
+[chorus, choir]
+chip: "Stamp each bright sheet from back to front!" = 7 7/0.5 5/0.5 4 5 4 2 4/1.75 | I 4, IV 4 ; do cheer ; take stamp ; dance 6 ; cam wide
+  + tabby @4: "Back to front!" = 7 5 7/1.5 ; move right 3
+chip: "Thread my bright name right through each stunt!" = 7/0.5 7/0.5 5 7 5 4 2 1/1.75 | IV 4, V 4 ; do nod ; move left 3 ; cam two-shot
+  + cue @4: "Through each stunt!" = 9 7 5/1.5 ; move left 3
+chip: "Read each bright page from left to right!" = 4 5/0.5 7/0.5 8 7 5 4 2/1.75 | V 4, VI 4 ; do laugh ; move right 3 ; cam low-angle
+  + neon @4: "Left to right!" = 7 5 4/1.5 ; jump 1.5
+chip: "Moppets groove when gears align right!" = 5/0.5 4/0.5 2 5 2 1 -1 0/1.75 | II 4, V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+  + gruff @4: "Gears spin bright!" = 2 1 0/1.5 ; move center 3
+
+[verse 2]
+cue: "Page twelve tells us: keep patch cords curled!" = 4/0.5 5/0.5 7 5 4 2 4 2/1.75 | IV 4, I 4 ; do nod ; take cast ; move center 3 ; cam closeup
+  + chip @4: "Check page four!" = 7 5 7/1.5 ; move wide-left 3
+gruff: "Where do plugs go in this wide world?" = 0/0.5 2/0.5 4 2 0 1 2 0/1.75 | II 4, V 4 ; do shrug ; take toaster-shrug ; move left 3 ; cam reaction
+  + tabby @4: "Wait for me!" = 7 8 7/1.5 ; move wide-right 3
+chip: "Stamp! Approved! Clear the whole stage floor!" = 7/0.5 7/0.5 8 7 5 4 2 4/1.75 | I 4, IV 4 ; do cheer ; take stamp ; move center 3 ; jump 1.5 ; cam low-angle
+  + neon @4: "Hit page four!" = 5 4 2/1.5 ; move center 3
+chip: "One point four four disk megs and more!" = 4/0.5 5/0.5 7 8 7 5 4 2/1.75 | II 4, V 2, I 2 ; do laugh ; move right 3 ; cam two-shot
+  + tabby @4: "Give us more!" = 7 8 7/1.5 ; move center 3
+
+[repeat chorus]

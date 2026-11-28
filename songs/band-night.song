@@ -1,0 +1,36 @@
+title: Band Night
+id: band-night
+tab: 14 · Band Night
+about: 14 · Tabby and Watt bring the Spare Parts band out of the drawer with riser cutaways and a spotlight dance finale
+lead: tabby
+key: C
+bpm: 112
+beat: B . t K | . t B . | B . t K | . B t . (swing .1)
+backing: watt +2
+bass: none
+stage: band, tabby, watt
+finale: "Play" on 7
+
+[verse 1]
+tabby: "Here comes the band from the back of the drawer" = 4/.5 4/.5 5 4/.5 2/.5 4 5/.5 4/.5 2 0/2 | I 4, IV 4 ; do nod ; move left 4 ; cam wide
+watt: "Cord and a keyboard and cans on the floor" = 2/.5 2/.5 4 2/.5 1/.5 2 4/.5 2/.5 1 0/2 | V 4, I 4 ; do tilt ; move right 4 ; cam two-shot
+tabby: "Thrum takes the low part, he hums it so deep" = 4/.5 4/.5 5 4/.5 2/.5 4 5/.5 7/.5 5 4/2 | I 4, IV 4 ; do laugh ; move right 4 ; cam low-angle
+watt: "Clacker plays keys while the tin drummer sleeps!" = 5/.5 4/.5 2 1/.5 2/.5 4 2/.5 1/.5 -1 0/2 | V 4, I 4 ; react laugh ; move left 4 ; cam reaction
+
+[chorus, choir]
+tabby: "Play it again! Play it again!" = 7 7/.5 5/.5 4/2 7 7/.5 5/.5 4/2 | I 4, V 4 ; do cheer ; dance 6 ; cam wide
+  + watt: "Play it again! Play it again!" = 4 4/.5 2/.5 0/2 4 4/.5 2/.5 2/2 ; dance 6
+tabby: "The band in the drawer never sleeps!" = 4/.5 4/.5 5 7 5/.5 4/.5 2 0/3 | IV 4, I 4 ; do laugh ; jump 1.5 ; cam low-angle
+  + watt @4: "Never sleeps!" = 4/.5 2/.5 0/3 ; jump 1.5
+
+[band cutaway]
+watt: "Fuzz hits a chord on his ruler guitar!" = 0/.5 2/.5 4/.5 5/.5 7 7 5/.5 4/.5 2 0/2 | I 4, IV 4 ; do gasp ; move center 4 ; cam closeup
+tabby: "Click snaps the sticks and rings out like a star!" = 4/.5 5/.5 7/.5 9/.5 7 7 5/.5 4/.5 2 0/2 | V 4, I 4 ; do cheer ; move center 4 ; cam closeup
+tabby: "Step out and spin in the spotlight with pride!" = 0/.5 2/.5 4/.5 5/.5 7 7 5/.5 4/.5 2 0/2 | IV 4, V 4 ; do laugh ; dance 6 ; cam low-angle
+  + watt @4: "Side to side!" = 4/.5 2/.5 0/3 ; dance 4
+
+[repeat chorus]
+
+[curtain call]
+tabby: "Four in the drawer and two up front—bow!" = 4/.5 5/.5 7/.5 5/.5 4/.25 2/.25 4/.25 2/.25 7 | V 2, I 2 ; do bow ; celebrate 4 ; cam wide
+  + watt @2: "Take a bow!" = 2/.5 1/.5 0 ; do bow ; celebrate 2

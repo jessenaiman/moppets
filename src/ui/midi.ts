@@ -1,104 +1,106 @@
 /**
- * Web MIDI keyboards: note on/off (with velocity) from every connected input, including ones
- * plugged in later. The voice hears one note per pitch: a pitch held on several keyboards or
- * channels sounds until the last of them lets go. All-notes-off and unplugging release what
- * that input (channel) was holding.
+ * Thin MPE / CC / Pad extension on top of CHIMERA's official `@chimera/ui/midi.ts`.
+ * Zero duplicated note-ownership or hot-plug state: `@chimera/ui/midi.ts` owns polyphonic
+ * key tracking and All-Notes-Off (`CC 120`/`123`), while this module taps channel metadata,
+ * MPE pitch bend (`0xe0`), channel/poly pressure (`0xd0`/`0xa0`), and CCs (`CC 74` slide, `CC 21–28`).
  */
-import { inPlugin } from "../audio/pluginBridge.ts";
+import {
+  connectMidi as connectChimeraMidi,
+  disconnectMidi as disconnectChimeraMidi,
+  midiSupported,
+  type MidiHandlers,
+  type MidiStatus,
+} from "@chimera/ui/midi.ts";
 
-export type MidiStatus = "off" | "connecting" | "on" | "unsupported" | "denied";
+export { midiSupported, type MidiHandlers, type MidiStatus };
 
-export interface MidiHandlers {
-  noteOn: (note: number, velocity: number) => void;
-  noteOff: (note: number) => void;
-  /** names of the connected inputs (on every change) */
-  inputs: (names: string[]) => void;
+export interface MidiControl {
+  kind: "cc" | "note" | "bend" | "pressure" | "keyPressure";
+  /** 0-based MIDI channel (0 = Ch 1 master, 1..15 = MPE note channels, 9 = Ch 10 pads) */
+  channel: number;
+  /** CC number, MIDI note (for note / keyPressure), or 0 (channel bend / channel pressure) */
+  number: number;
+  /** 0..127 (or -1..1 for pitch bend) */
+  value: number;
 }
 
-/** The plugin gets its MIDI from the host. */
-export const midiSupported = (): boolean => !inPlugin && typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function";
-
-let handlers: MidiHandlers | null = null;
-let access: MIDIAccess | null = null;
-let pending: Promise<void> | null = null;
-/** bumped by disconnect: a connection still waiting for permission then gives up */
-let generation = 0;
-/** who holds each pitch, as "input id \0 channel" */
-const owners = new Map<number, Set<string>>();
-const SEP = "\u0000";
-
-function press(owner: string, note: number, velocity: number): void {
-  let set = owners.get(note);
-  if (!set) owners.set(note, (set = new Set()));
-  const first = set.size === 0;
-  set.add(owner);
-  if (first) handlers?.noteOn(note, velocity);
+export interface ExtendedMidiHandlers extends MidiHandlers {
+  noteOnWithChannel?: (note: number, velocity: number, channel: number) => void;
 }
 
-function lift(owner: string, note: number): void {
-  const set = owners.get(note);
-  if (!set || !set.delete(owner)) return;
-  if (set.size > 0) return;
-  owners.delete(note);
-  handlers?.noteOff(note);
+const controlListeners = new Set<(c: MidiControl) => boolean | void>();
+let lastNoteChannel = 0;
+let tapAccess: MIDIAccess | null = null;
+const wrappedInputs = new WeakSet<MIDIInput>();
+
+export function onMidiControl(fn: (c: MidiControl) => boolean | void): () => void {
+  controlListeners.add(fn);
+  return () => void controlListeners.delete(fn);
 }
 
-/** Release every note whose owner matches. */
-function liftWhere(match: (owner: string) => boolean): void {
-  for (const [note, set] of [...owners]) for (const o of [...set]) if (match(o)) lift(o, note);
+function offer(c: MidiControl): boolean {
+  let claimed = false;
+  for (const fn of controlListeners) {
+    if (fn(c)) claimed = true;
+  }
+  return claimed;
 }
 
-function attach(a: MIDIAccess): void {
-  const names: string[] = [];
-  const live = new Set<string>();
-  a.inputs.forEach((input) => {
-    if (input.state === "disconnected") return;
-    live.add(input.id);
-    names.push(input.name || "MIDI keyboard");
+function installChannelTap(access: MIDIAccess): void {
+  access.inputs.forEach((input) => {
+    if (input.state === "disconnected" || wrappedInputs.has(input)) return;
+    const baseHandler = input.onmidimessage;
+    if (!baseHandler) return;
+    wrappedInputs.add(input);
     input.onmidimessage = (e: MIDIMessageEvent) => {
       const d = e.data;
       if (!d || d.length < 2) return;
       const kind = d[0] & 0xf0;
-      const owner = input.id + SEP + (d[0] & 0x0f);
-      if (kind === 0x90 && d.length > 2 && d[2] > 0) press(owner, d[1], d[2]);
-      else if (kind === 0x80 || kind === 0x90) lift(owner, d[1]);
-      else if (kind === 0xb0 && (d[1] === 123 || d[1] === 120)) liftWhere((o) => o === owner); // all notes / sound off
+      const channel = d[0] & 0x0f;
+      if (kind === 0x90 && d.length > 2 && d[2] > 0) {
+        if (offer({ kind: "note", channel, number: d[1], value: d[2] })) return;
+        lastNoteChannel = channel;
+      } else if (kind === 0x80 || kind === 0x90) {
+        if (offer({ kind: "note", channel, number: d[1], value: 0 })) return;
+      } else if (kind === 0xe0 && d.length > 2) {
+        offer({ kind: "bend", channel, number: 0, value: ((d[2] << 7) + d[1] - 8192) / 8192 });
+        return;
+      } else if (kind === 0xd0) {
+        offer({ kind: "pressure", channel, number: 0, value: d[1] });
+        return;
+      } else if (kind === 0xa0 && d.length > 2) {
+        offer({ kind: "keyPressure", channel, number: d[1], value: d[2] });
+        return;
+      } else if (kind === 0xb0 && d.length > 2 && d[1] !== 120 && d[1] !== 123) {
+        offer({ kind: "cc", channel, number: d[1], value: d[2] });
+        return;
+      }
+      baseHandler.call(input, e);
     };
   });
-  // unplugged inputs release what they held
-  liftWhere((o) => !live.has(o.slice(0, o.indexOf(SEP))));
-  handlers?.inputs(names);
 }
 
-/** Ask for MIDI access and listen (one request at a time; resolves when connected). */
-export function connectMidi(h: MidiHandlers): Promise<void> {
-  handlers = h;
-  if (access) return Promise.resolve();
-  if (pending) return pending;
-  const gen = generation;
-  const p = navigator.requestMIDIAccess({ sysex: false }).then(
-    (a) => {
-      if (gen !== generation) return; // disconnected while the browser was asking
-      access = a;
-      a.onstatechange = () => attach(a);
-      attach(a);
+export async function connectMidi(h: ExtendedMidiHandlers): Promise<void> {
+  await connectChimeraMidi({
+    noteOn: (note, velocity) => {
+      if (h.noteOnWithChannel) h.noteOnWithChannel(note, velocity, lastNoteChannel);
+      else h.noteOn(note, velocity);
     },
-  );
-  pending = p;
-  const clear = () => {
-    if (pending === p) pending = null;
-  };
-  p.then(clear, clear);
-  return p;
+    noteOff: h.noteOff,
+    inputs: h.inputs,
+  });
+  if (!tapAccess && typeof navigator.requestMIDIAccess === "function") {
+    tapAccess = await navigator.requestMIDIAccess({ sysex: false });
+    const prevState = tapAccess.onstatechange;
+    tapAccess.onstatechange = (ev) => {
+      prevState?.call(tapAccess!, ev);
+      if (tapAccess) installChannelTap(tapAccess);
+    };
+  }
+  if (tapAccess) installChannelTap(tapAccess);
 }
 
 export function disconnectMidi(): void {
-  generation++;
-  pending = null;
-  if (access) {
-    access.inputs.forEach((input) => (input.onmidimessage = null));
-    access.onstatechange = null;
-    access = null;
-  }
-  liftWhere(() => true);
+  tapAccess = null;
+  disconnectChimeraMidi();
 }

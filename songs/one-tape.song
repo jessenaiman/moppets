@@ -1,0 +1,37 @@
+title: One Tape
+id: one-tape
+tab: 24 · One Tape
+about: 24 · Vintage cassette cat Tabby struts her swagger groove from one bootleg tape — glitches and all
+lead: tabby
+key: C
+bpm: 118
+backing:
+bass: none
+stage: tabby
+breath: .5
+finale: "Me" on 7
+
+# The Remote's Cut (S-5): Tabby learned every cool step from one cassette — plus one stray voice.
+
+[verse 1]
+"I learned each strut from one old tape" = 0/.5 2 4/.5 5 2/.5 4/.5 5 7/2.5 | I 4, VI 4 ; do tilt ; move left 4 ; cam wide
+"I tracked it all night long" = 5/.5 5 4/.5 3 2 1/3.5 | II 4, V 4 ; do nod ; move right 5 ; cam closeup
+"I nailed the steps, I nailed the bows" = 4/.5 5 7/.5 5 4/.5 5/.5 4 2/2.5 | I 4, VI 4 ; do laugh ; dance 6 ; cam low-angle
+"Just one strange glitch went wrong!" = 5/.5 4/.5 3/1.5 2/.5 1 0/3.5 | II 2, V 2, I 4 ; do gasp ; move center 4 ; cam reaction
+
+[chorus]
+"Hear me, hear me swing!" = 7/1.5 5/.5 7/1.5 5/.5 9/3.5 | I 4, IV 4 ; do cheer ; jump 2 ; cam low-angle
+"Queen of the cassette!" = 4/1.5 5/.5 7/.5 9/.5 7/4.5 | VI 4, II 4 ; do laugh ; dance 6 ; cam wide
+"When that warm reel starts to hum" = 0/.5 2/.5 4 5 7/1.5 8/.5 9/2.5 | II 4, V 4 ; do tilt ; move right 4 ; cam closeup
+"I'm the star they won't forget!" = 9 8/.5 7/.5 5 4/.5 2/.5 0/3.5 | V 4, I 4 ; do nod ; move center 4 ; cam wide
+
+[verse 2]
+"Side B flipped fast, a bass voice spoke" = 0/.5 2 4/.5 5 2/.5 4/.5 5 7/2.5 | I 4, VI 4 ; do gasp ; move left 4 ; cam reaction
+"I played it off like jazz" = 5/.5 5 4/.5 3 2 1/3.5 | II 4, V 4 ; do shrug ; move right 4 ; cam closeup
+"My paws on deck, ribbon so clean" = 4/.5 5 7/.5 5 4/.5 5/.5 4 2/2.5 | I 4, VI 4 ; do laugh ; dance 6 ; cam low-angle
+"That coolest cat there was!" = 5 4/.5 3/.5 2 1 0/3.5 | II 2, V 2, I 4 ; do cheer ; move center 4 ; cam wide
+
+[repeat chorus]
+
+[curtain call]
+"Flip the tape, take a bow" = 4 2/.5 0/2.5 4 2/.5 0/2 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide

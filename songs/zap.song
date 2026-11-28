@@ -1,0 +1,64 @@
+title: Every Button
+id: zap
+tab: 18 · Every Button
+about: 18 · Zap has a button for everything (and no idea what any of them do), turning big console Hertz and slim 12:00 Tracker into unwitting victims before a 28-button xylophone finale
+lead: zap
+key: C
+bpm: 122
+backing:
+bass: none
+stage: zap, hertz, tracker
+finale: "Zap" on 7
+
+# D-141 Trio Comedy Showtune: Zap honestly thinks every button helps; Hertz (150 DU) & Tracker (75 DU) take the hits.
+
+[verse 1]
+zap: "I press red for the sun" = 0/.5 2/.5 4/.5 5/.5 7/.5 4/1.5 | I 4 ; do nod ; move left 3.5 ; cam wide
+zap: "Oops it turned Hertz to snow" = 5/.5 4/.5 2/.5 0/.5 -1/.5 0/1.5 | IV 2, V 2 ; do shrug ; move right 3.5 ; cam reaction
+hertz: "Hey my screen is all snow!" = 7/.5 5/.5 4/.5 2/.5 4/.5 7/1.5 | I 2, VI 2 ; do tilt ; take crt-answer ; jump 1.5 ; cam closeup
+zap: "Wait I can fix it Watch go!" = 4/.5 5/.5 7/.5 9/.5 7/.5 5/.5 7 | II 2, V 2 ; do cheer ; move center 3.5 ; cam wide
+zap: "Try the green one for breeze" = 0/.5 2/.5 4/.5 5/.5 7/.5 4/1.5 | I 4 ; do nod ; move right 3.5 ; cam two-shot
+zap: "Whoops that popped out his door" = 5/.5 4/.5 2/.5 0/.5 2/.5 4/1.5 | IV 2, V 2 ; do laugh ; move left 3.5 ; cam reaction
+tracker: "My tape tray hit the floor!" = 4/.5 2/.5 0/.5 -1/.5 0/.5 2/1.5 | II 2, V 2 ; do nod ; take drawer-lead ; jump 1.5 ; cam closeup
+zap: "Hey I meant to do that!" = 7/.5 5/.5 4/.5 2/.5 1/.5 0/1.5 | IV 2, I 2 ; do bow ; move center 3.5 ; cam wide
+
+[chorus]
+zap: "Ev'ry button has a job" = 7/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 | I 4 ; do cheer ; dance 4 ; cam wide
+hertz: "Stop my rainbow bars are bent!" = 9/.5 7/.5 5/.5 4/.5 2/.5 4/.5 5 | IV 2, V 2 ; do gasp ; take crt-answer ; move left 3 ; cam reaction
+zap: "Fast rewind and then fast play" = 7/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 | I 2, VI 2 ; do nod ; move right 3 ; cam two-shot
+tracker: "My twelve oh oh came unglued!" = 4/.5 2/.5 0/.5 2/.5 4/.5 2/.5 0 | II 2, V 2 ; do shrug ; take drawer-lead ; move left 2 ; cam closeup
+zap: "Push a button watch it fly" = 7/.5 7/.5 9/.5 7/.5 5/.5 4/.5 2 | I 2, IV 2 ; do laugh ; jump 1.5 ; cam low-angle
+zap: "Click click oops went the sky" = 4/.5 4/.5 5/.5 7/.5 4/.5 2/1.5 | V 2, I 2 ; do tilt ; move center 3.5 ; cam wide
+zap: "Click click" = 7/.5 7/.5 | V 1 ; cam closeup
+rest 1
+zap: "That's the one I meant!" = 9/.5 7/.5 5/.5 4/.5 7/2 | I 2, V 2 ; do cheer ; celebrate 4 ; cam wide
+turnaround I 2
+
+[verse 2]
+zap: "Cartwheel left to press rewind" = 7/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 | I 2, IV 2 ; do cheer ; move wide-left 3.5 ; cam wide
+tracker: "Why am I in fast forward?" = 4/.5 2/.5 0/.5 -1/.5 0/.5 2/.5 0 | II 2, V 2 ; do gasp ; take drawer-lead ; jump 1.5 ; cam reaction
+zap: "Backflip straight on number four" = 7/.5 7/.5 9/.5 7/.5 5/.5 4/.5 2 | I 2, VI 2 ; do laugh ; jump 1.5 ; cam low-angle
+hertz: "No you wiped my screen clean blank!" = 9/.5 7/.5 5/.5 4/.5 2/.5 4/.5 5 | IV 2, V 2 ; do shrug ; take crt-answer ; move center 3 ; cam reaction
+zap: "Handstand press the yellow bar" = 0/.5 2/.5 4/.5 5/.5 7/.5 9/.5 7 | I 4 ; do tilt ; move right 3.5 ; cam closeup
+zap: "Now I'm aiming at the stars" = 5/.5 4/.5 2/.5 0/.5 2/.5 4/.5 2 | IV 2, II 2 ; do nod ; move center 3.5 ; cam low-angle
+hertz: "Please put down the guide key now!" = 7/.5 5/.5 4/.5 2/.5 4/.5 5/.5 7 | V 4 ; do gasp ; cam two-shot
+zap: "Watch this double button bow!" = 9/.5 7/.5 5/.5 4/.5 2/.5 1/.5 0 | IV 2, I 2 ; do bow ; celebrate 4 ; cam wide
+
+[bridge]
+zap: "Uh oh did I break the show" = 2/.5 2/.5 4/.5 5/.5 4/.5 2/.5 0 | VI 4 ; do shrug ; cam closeup
+hertz: "Three two one" = 5 4 2/2 | IV 4 ; do gasp ; move center 3 ; cam two-shot
+  + tracker @2: "Oh no no no" = 0/.5 -1/.5 0/.5 -1/.5 ; move center 2 ; cam reaction
+zap: "Wait they light up like a band" = 2/.5 4/.5 5/.5 4/.5 2/.5 4/.5 5 | II 4 ; do cheer ; dance 4 ; cam wide
+zap: "Ev'ry key is in my hand!" = 7/.5 5/.5 4/.5 5/.5 7/.25 9/.25 7/.5 | V 3 ; do laugh ; jump 1.5 ; cam low-angle
+rest 1
+
+[repeat chorus]
+
+[xylophone]
+turnaround I 4, IV 4
+zap: "Click each key from top to toe!" = 0/.5 2/.5 4/.5 5/.5 7/.5 9/.5 7 | V 4 ; do cheer ; dance 4 ; cam wide
+hertz: "Whoa!" = 9/2 | I 2 ; do gasp ; take crt-answer ; jump 1.5 ; cam wide
+tracker: "Go!" = 4/2 | IV 2 ; do nod ; take drawer-lead ; move left 2 ; jump 1.5 ; cam wide
+turnaround VI 4, II 4
+zap: "One two three all twenty eight!" = 7/.5 7/.5 9/.5 7/.5 5/.5 4/.5 7 | I 4 ; do laugh ; celebrate 4 ; cam wide
+turnaround V 4

@@ -1,0 +1,31 @@
+title: Bible · Gruff
+id: bible-gruff
+tab: Bible · Gruff
+about: Studio 404 Bible solo showcase for Gruff — weighty stomp groove, wired cable-monster bass vocal sync, toaster-shrug & celebrate
+lead: gruff
+key: A aeolian
+bpm: 104
+backing:
+bass: none
+stage: gruff
+registers: gruff -24
+breath: .5
+finale: "Hum" on 0
+
+[Vocal Sync · Staccato Stomp]
+"Stomp left, thick cord hugs the floor" = 0 2 3/1.5 4/.5 5 3 0/1.5 | I 4, IV 4 ; do nod ; move left 4 ; cam wide
+"Stomp right, brass bolts rattle more" = 4 5 7/1.5 5/.5 4/1.5 2/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam low-angle
+"Check that gauge glow warm and bright" = 3 4 5/1.5 4/.5 3 2 1/1.5 | VI 4, V 4 ; do gasp ; move forward 4 ; cam closeup
+"One big plug locks down just right" = 2 3 4/1.5 2/.5 1 4 0/1.5 | V 4, I 4 ; do laugh ; move center 4 ; cam wide
+
+[Vocal Sync · Sustained Rumble]
+"Deep warm bass hums" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Cords hum beneath the stage!" = 4/1.5 5/2 3/.5 2/1.5 1/.5 0/1.5 | VI 4, V 4 ; do nod ; cam closeup
+
+[Dance Break · Heavy Groove]
+"Swing those big boots side to side" = 0 2 3/1.5 4/.5 3 2 0/1.5 | I 4, IV 4 ; do laugh ; dance 4 ; cam wide
+"Hop once! Watch the floorboards hide!" = 3 4 5/1.5 7/.5 5/1.5 4/.5 2/1.5 | IV 4, V 4 ; do cheer ; jump 2 ; cam low-angle
+
+[Bible Takes · Shrug & Celebrate]
+"Wait, that shrug felt kind of good!" = 0 2 3/1.5 4/.5 5 2 4/1.5 | I 4, V 4 ; do shrug ; take toaster-shrug ; cam reaction
+"Big frame stands right where it should!" = 4 5 7/1.5 5/.5 3 2 0/1.5 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide

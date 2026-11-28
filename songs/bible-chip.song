@@ -1,0 +1,30 @@
+title: Bible · Chip
+id: bible-chip
+tab: Bible · Chip
+about: Studio 404 Bible solo showcase for Chip — crisp chirp staccato, action & stamp takes, fidget dance & jump accents
+lead: chip
+key: C major
+bpm: 120
+backing:
+bass: none
+stage: chip
+breath: .5
+finale: "Chirp" on 0
+
+[Vocal Sync · Staccato Chirp]
+"Tap click, spin disk, chirp right on cue" = 0 2 4 5 7 5/.5 4/.5 2/1.5 | I 4, I 4 ; do nod ; move left 3 ; cam wide
+"Red drive light blinks green, gold, and blue" = 4 6 8 6 7 5/.5 4/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 3 ; cam closeup
+"Circuit wings snap left, then right" = 5 7 8 7 5/.5 4/.5 1/2.5 | IV 4, V 4 ; do gasp ; jump 1.5 ; cam low-angle
+"Safety pins shine warm and bright!" = 4 5 7 5 4/.5 2/.5 0/2.5 | IV 4, I 4 ; do laugh ; move center 3 ; cam wide
+
+[Vocal Sync · Sustained Bird Belt]
+"Hold high, bright clear note!" = 0/1.5 7/2.5 5 4 2/1.5 | IV 4, V 4 ; do cheer ; take action ; cam low-angle
+"Chirp straight from my chest!" = 4 5 6/1.5 7/1.5 5/2.5 | III 4, IV 4 ; do tilt ; cam closeup
+
+[Fidget Dance & Jump Accents]
+"Dart left, hop right, fidget and bounce!" = 7 5 4/.5 2/.5 4 5/.5 7/.5 5/2.5 | I 4, IV 4 ; do laugh ; dance 4 ; cam wide
+"Hop up, ev'ry spark helps me bounce!" = 4 5 7/.5 8/.5 7 5/.5 4/.5 1/2.5 | IV 4, V 4 ; do cheer ; jump 1.5 ; cam low-angle
+
+[Bible Takes · Stamp & Bow]
+"Two quick taps! Stamp down the page!" = 0 2 4 5 4/.5 2/.5 1/2.5 | I 4, V 4 ; do shrug ; take stamp ; cam reaction
+"Small wings own the center stage!" = 4 5 7 5 2/.5 4/.5 0/2.5 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

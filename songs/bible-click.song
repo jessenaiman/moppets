@@ -1,0 +1,30 @@
+title: Bible · Click
+id: bible-click
+tab: Bible · Click
+about: Studio 404 Bible solo showcase for Click — shutter speedster micro-hops, performance loop & crisp bow
+lead: click
+key: G major
+bpm: 120
+backing:
+bass: none
+stage: click
+registers: click 0
+breath: .5
+finale: "Four" on 0
+
+[Vocal Sync · Quartz Speed Staccato]
+"Tick tock! One, two, three, four right now!" = 0 2 4 2 3/.5 5/.5 3 0/1.5 | I 4, IV 4 ; do nod ; move left 3.5 ; cam wide
+"Quartz clock locks down tight on the brow" = 1 4 1 -1 2 4/.5 2/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 3.5 ; cam closeup
+"Shutter snaps each crisp eighth-note flash" = 3 5/.5 3 0/.5 3 4 2 1/1.5 | IV 4, V 4 ; do gasp ; move center 3.5 ; cam reaction
+
+[Vocal Sync · Sustained Click Belt]
+"Bright red beat holds!" = -2/1.5 5/2.5 4/1.5 1/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Metronome swings clean and true!" = 2 1/.5 2/.5 4/2 3/1.5 4/.5 5/1.5 | III 4, IV 4 ; do tilt ; cam closeup
+
+[Shutter Groove & Micro-Hops]
+"Micro-hop from beat to beat!" = 0/1.5 2/.5 4 2 3/1.5 5/.5 3/1.5 | I 4, IV 4 ; do laugh ; jump 1.2 ; cam low-angle
+"Suitcase snare locks down the street!" = 3 5 3 0 4/1.5 2/.5 1/1.5 | IV 4, V 4 ; do cheer ; dance 4 ; cam wide
+"Rapid shutter clicks on cue!" = 0/1.5 2/.5 4/1.5 2/.5 4 1 -1/1.5 | I 4, V 4 ; do nod ; take performance ; cam closeup
+
+[Bible Crisp Bow]
+"Sharp sticks gleam straight through for you!" = 3 5 4/1.5 2/.5 4 2 0/1.5 | IV 2, V 2, I 4 ; do bow ; celebrate 4 ; cam wide

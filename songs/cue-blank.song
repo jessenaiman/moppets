@@ -1,0 +1,27 @@
+title: Cue Playbook III: Everyone
+id: cue-blank
+tab: 28 · Cue Playbook III: Everyone
+about: 28 · Cue freezes in mild panic over a blank last page until the whole Studio 404 crew rescues the finale together
+lead: cue
+key: E aeolian
+bpm: 94
+beat: B . . . | Pf . t . | B . . . | Pf . t . (swing .2)
+backing: neon +0, watt +2, tabby +4, gruff +2, chip +7, clank +0, zap +4
+bass: none
+stage: cue, tabby, gruff, chip, zap, neon, clank, watt
+finale: "Page" on 7
+
+[act 3]
+cue: "Here's the last page of my scroll..." = 4 5 4 2 1 0 -1/2 | VI 4, VII 4 ; do tilt ; take cast ; move center 3 ; cam closeup
+cue: "Wait—this last page has no words!" = 2 2 2 1 0 -1 0/2 | IV 4, VII 4 ; do shrug ; take acting-sheet ; move wide-left 4 ; cam reaction
+rest 3
+tabby: "Then we'll write it all together!" = 0/.5 2/.5 4 5 7 5 4 4/2 | I 4, VI 4 ; do nod ; take toast ; move center 4 ; cam two-shot
+  + gruff @4: "All together!" = 0 2 4/.5 2/1.5 ; take toaster-shrug ; move right 4
+
+[chorus, choir]
+cue: "All the lines you sang tonight!" = 4 5 7 5 4 2 4/2 | VI 4, VII 4 ; do cheer ; dance 6 ; cam wide
+  + chip @4: "Sang tonight!" = 7 8 9/2 ; take stamp ; jump 1.5
+  + zap @4: "Click!" = 7/4 ; take turn
+cue: "That's the page I'll keep!" = 4 5 4 2 0/4 | IV 4, I 4 ; do bow ; take letter ; move center 3 ; celebrate 4 ; cam wide
+  + neon: "Twice for me!" = 4 5 4/2 ; take walk ; celebrate 4
+  + clank @4: "Yes!" = 0/4 ; take bow ; celebrate 4

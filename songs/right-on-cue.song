@@ -1,0 +1,39 @@
+title: Right on Cue
+id: right-on-cue
+tab: Neon & Cue · Right on Cue
+about: Cue has a mark but no line. Neon has a tune and nowhere to stand.
+lead: cue
+key: D mixolydian
+bpm: 112
+backing:
+bass: none
+stage: neon, cue
+finale: "Cue" on 0
+
+[the offer]
+cue: "I've got a mark" = 0/.5 2/.5 4 2/2 | I 4 ; do nod ; move left 3.5 ; cam wide
+neon: "I've got a tune" = -3/.75 -2/.25 0 2/2 | I 4 ; do tilt ; move right 3.5 ; cam two-shot
+cue: "I've lost my line" = 1/.5 3/.5 5 3/2 | IV 4 ; do shrug ; cam closeup
+neon: "Then borrow two" = 2/.75 3/.25 4 6/2 | VII 4 ; do laugh ; cam closeup
+
+[step inside]
+cue: "I lay the loop" = 0 2/.5 3/.5 4/2 | I 4 ; do nod ; move center 3.5 ; cam wide
+neon: "I step inside" = 4 5/.5 4/.5 2/2 | IV 4 ; do cheer ; move center 3.5 ; cam two-shot
+cue: "Your turn to shine" = 1 3/.5 2/.5 1/2 | V 4 ; do tilt ; dance 4 ; cam reaction
+neon: "Your turn to try" = -3 0 2 4 | I 4 ; do laugh ; dance 4 ; cam low-angle
+
+[right on cue]
+cue: "Right on cue" = 4/.75 3/.25 2/3 | I 4 ; do cheer ; jump 1.5 ; cam low-angle
+  + neon: "One light" = 2 0/3 ; jump 1.5
+neon: "Right on cue" = 5/.75 4/.25 3/3 | IV 4 ; do cheer ; dance 4 ; cam two-shot
+  + cue: "One more" = 3 1/3 ; dance 4
+cue: "One little loop makes room for two" = 0/.5 2/.5 4 4 3 2 1 0/2 | IV 4, I 4 ; do laugh ; celebrate 6 ; cam wide
+  + neon: "Two lights one song" = 5/2 4/2 2/2 2/2 ; celebrate 6
+
+[missed entrance]
+cue: "And now we bow" = 2 3/.5 4/.5 1/2 | V 4 ; do bow ; cam reaction
+rest 2
+neon: "Too soon" = 4/.5 2/1.5 | I 2 ; do gasp ; cam closeup
+cue: "I meant to do that" = 0/.5 0/.5 2 1 0 | I 4 ; do shrug ; cam two-shot
+
+[repeat right on cue]

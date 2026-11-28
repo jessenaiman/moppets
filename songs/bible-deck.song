@@ -1,0 +1,30 @@
+title: Bible · Deck
+id: bible-deck
+tab: Bible · Deck
+about: Studio 404 Bible solo showcase for Deck — 90s Yellow Sport Walkman v3 bounce, logging-clip tape-jam slapstick & celebrate
+lead: deck
+key: D minor
+bpm: 114
+backing:
+bass: none
+stage: deck
+registers: deck -12
+breath: .5
+finale: "Lock" on 0
+
+[Vocal Sync · Sport Walkman Staccato]
+"Yellow sport shell clips on the beat" = 0 2 3 5 4 2/.5 3/.5 0/1.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+"Press red rec down, plastic looks neat" = 4 5 4 2 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Take four oh four rolls crisp and clean" = 2 3 5 4 3 5/.5 2/.5 1/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam reaction
+
+[Vocal Sync · Sustained Logger Belt]
+"Walkman three rolls!" = 0/1.5 3/1.5 5 4/3.5 | IV 4, V 4 ; do cheer ; cam low-angle
+"Spools spin through the night!" = 2/1.5 4 5 4/.5 3/3.5 | III 4, IV 4 ; do tilt ; cam closeup
+
+[Logger Strut & Tape-Jam Slapstick]
+"Bounce with the strap, tap out the cue" = 0 2/.5 3/.5 5/2 4 3/.5 2/.5 0/1.5 | I 4, I 4 ; do laugh ; dance 8 ; cam wide
+"Jump! Watch the spools spin clean and true!" = 3 5/.5 4/.5 5 3 2/1.5 1/.5 4/1.5 | IV 4, V 4 ; do cheer ; jump 1.5 ; cam low-angle
+"Tape jams tight—watch that reel shake!" = 0 2 3/1.5 5/.5 4 2 0/1.5 | I 4, V 4 ; do shrug ; take logging-clip ; cam reaction
+
+[Bible Celebrate & Bow]
+"Walkman locked! Now check the score!" = 3 5 4/2 3 2/.5 1/.5 0/1.5 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

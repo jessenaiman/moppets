@@ -1,0 +1,34 @@
+title: Cue Playbook I: Meet the Moppets
+id: cue-intro
+tab: 26 · Cue Playbook I: Meet the Moppets
+about: 26 · Cue runs a mic check and introduces each Moppet downstage with their signature phrase while Clank drops in a beat late
+lead: cue
+key: G
+bpm: 108
+beat: B . t . | Pf . t K | B . t . | Pf . t . (swing .12)
+backing:
+bass: none
+stage: cue, neon, tabby, gruff, clank, watt, chip, zap
+finale: "Lines" on 7
+
+tune prompt = 0/.5 2/.5 4 4 5 4 2/3 | I 4, V 4
+
+[act 1]
+# Cue runs mic check and calls each Moppet downstage with its solo's signature phrase.
+cue: "Mic check! Here's the cast I've known!" = prompt ; do nod ; take cast ; move left 4 ; cam wide
+cue: "Meet sweet Neon—two bright tubes!" = prompt ; do nod ; cam two-shot
+neon: "Twice for me and twice for me!" = 4 5 4 2 4 5 4/2 | I 4, IV 4 ; do nod ; take walk ; move center 3 ; cam closeup
+cue: "Here is Tabby—she's the star!" = prompt ; take letter ; cam two-shot
+tabby: "Hear me, hear me sing!" = 7/1.5 5/.5 7/1.5 5/.5 9/4 | I 4, IV 4 ; do tilt ; take bow ; move right 3 ; cam closeup
+cue: "Here is Gruff, so warm and low!" = prompt ; cam two-shot
+gruff: "Look, I am so small!" = 4/2 3 2 1 0/3 | I 4, IV 4 ; react laugh ; take toaster-shrug ; move wide-left 3 ; cam low-angle
+cue: "Here is Clank, who thinks a lot..." = prompt ; cam reaction
+rest 2
+clank: "Yes!" = 0/4 | I 4 ; do nod ; react laugh ; take clap ; move center 3 ; cam closeup
+cue: "Here is Watt, who keeps lights bright!" = prompt ; cam two-shot
+watt: "Plug in, plug in, friends!" = 0/.5 7/.5 0/.5 7/.5 9/2 | I 4 ; do cheer ; jump 1.5 ; move wide-right 3 ; cam closeup
+cue: "Here is Chip, who tries it all!" = prompt ; take acting-sheet ; cam two-shot
+chip: "One more thing to try!" = 4/.5 5/.5 6/.5 7/.5 8/2 | IV 4 ; do gasp ; take stamp ; move left 3 ; cam closeup
+cue: "Here is Zap, my newest friend!" = prompt ; cam two-shot
+zap: "Zap! Cut to the moon!" = 7 7 5 4 4/4 | I 4, IV 4 ; do gasp ; take turn ; move right 3 ; cam closeup
+cue: "And I'm Cue! I hold the lines!" = 4 5 7 5 4 2 0/2 | IV 4, I 4 ; do bow ; move center 3 ; celebrate 4 ; cam wide

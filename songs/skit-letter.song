@@ -1,0 +1,18 @@
+kind: skit
+id: letter
+title: Dear Sandwich
+about: Scribe the typewriter hijacks Pip's mail delivery while Clank huddles the crew to stamp and save the letter
+
+[scene 1]
+watt: "Special delivery! Scribe, help me write a letter to my..." ; do cheer ; jump 1.5 ; move wide-left 2 ; cam wide
+cue: "Sandwich?" ; do tilt ; take letter ; move right 2 ; cam reaction
+watt: "To my grandmother!" ; do gasp ; jump 1.5 ; move center 2 ; cam closeup
+cue: "Dear Grandmother, you are my very favorite sandwich." ; do nod ; take acting-sheet ; move left 2 ; cam two-shot
+clank: "Envelope sealed! Wait—check line one!" ; do gasp ; take clap ; move wide-right 2 ; cam reaction
+
+[scene 2]
+clank: "It is close. It is not correct. Yet it feels oddly close." ; do nod ; move center 2 ; cam two-shot
+watt: "Huddle tight. Dear Grandmother, I miss you." ; do nod ; move center 2 ; cam closeup
+cue: "And your double-toasted sandwiches." ; do laugh ; take cast ; move right 2 ; cam reaction
+watt: "Okay. That part is true. Mail it!" ; do shrug ; celebrate 3 ; cam wide
+clank: "Stamped, folded, and toasted! Ship it!" ; do bow ; take bow ; celebrate 3 ; cam wide

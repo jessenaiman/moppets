@@ -1,0 +1,659 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+/*
+ ---break---
+ */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Tailwind v4 responsive layout & contrast layer for Moppet Choir.
+ * Keeps CHIMERA's warm walnut/brass/teal tokens intact while eliminating
+ * the fighting fixed-height / dark-on-dark / narrow-column CSS hacks.
+ */
+@theme {
+  --color-studio-bg: #17110d;
+  --color-studio-panel: #221811;
+  --color-studio-border: #634831;
+  --color-studio-cream: #f8efe2;
+  --color-studio-muted: #c7b194;
+  --color-studio-teal: #50cfad;
+  --color-studio-gold: #e3bd7f;
+  --color-studio-ember: #e06a4f;
+}
+
+/* Responsive two-column desk: balanced 16:9 stage + flush full-height sheet music to the right */
+.vs-main.vs-score-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (max-width: 960px) {
+  .vs-main.vs-score-desk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.vs-score-desk .vs-stage-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.vs-transport-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.vs-transport-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: #17100b;
+  color: #f8efe2;
+}
+
+.vs-transport-bar .vs-play-btn {
+  padding: 0.42rem 0.9rem;
+  border-radius: 7px;
+  border: 1px solid rgba(80, 207, 173, 0.7);
+  background: rgba(80, 207, 173, 0.22);
+  color: #f8efe2;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-play-btn:hover {
+  background: rgba(80, 207, 173, 0.36);
+  color: #ffffff;
+}
+
+.vs-transport-bar .vs-live-btn {
+  padding: 0.42rem 0.75rem;
+  border-radius: 7px;
+  border: 1px solid rgba(227, 189, 127, 0.55);
+  background: rgba(227, 189, 127, 0.14);
+  color: #f4dfba;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-live-btn:hover {
+  background: rgba(227, 189, 127, 0.28);
+  color: #ffffff;
+}
+
+.vs-transport-bar .vs-scrubber {
+  flex: 1 1 160px;
+  min-width: 0;
+  accent-color: #50cfad;
+  height: 6px;
+  cursor: pointer;
+}
+
+.vs-transport-bar .vs-time-readout {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e7d8c1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vs-transport-bar .vs-fs-btn {
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: rgba(46, 33, 22, 0.85);
+  color: #f8efe2;
+  line-height: 1;
+}
+
+.vs-scene-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.vs-scene-pill {
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(116, 84, 56, 0.6);
+  background: rgba(42, 29, 19, 0.9);
+  color: #ebd9be;
+  font-size: 0.76rem;
+  text-transform: capitalize;
+}
+
+.vs-scene-pill[aria-current="step"] {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.24);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.vs-score-desk .vs-player-frame {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  max-height: none;
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 103, 56, 0.55);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.vs-score-desk .vs-player-frame.portrait {
+  aspect-ratio: 9 / 16;
+  width: auto;
+  height: min(62vh, 560px);
+  margin-inline: auto;
+}
+
+/* High-contrast rehearsal transport bar (fixes dark-on-dark unreadable timestamp & button) */
+.vs-rehearsal-controls {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(180deg, rgba(16, 12, 9, 0.72), rgba(12, 9, 7, 0.94));
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(248, 239, 226, 0.14);
+  color: #faf4e8;
+}
+
+.vs-rehearsal-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.1rem;
+  padding: 0 0.65rem;
+  border-radius: 7px;
+  border: 1px solid rgba(80, 207, 173, 0.55);
+  background: rgba(80, 207, 173, 0.18);
+  color: #f8efe2;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vs-rehearsal-controls button:hover {
+  background: rgba(80, 207, 173, 0.34);
+  color: #ffffff;
+}
+
+.vs-rehearsal-controls span {
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vs-rehearsal-controls input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #50cfad;
+  height: 6px;
+  cursor: pointer;
+}
+
+/* Legible full-width MusicRack sheet music */
+.vs-score-desk .music-rack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  height: 100%;
+  min-height: 480px;
+  max-height: clamp(540px, 78vh, 820px);
+  background: #fbf6e9;
+  color: #2b1e17;
+  border: 1px solid #946738;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vs-score-desk .music-rack .rack-paper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.vs-score-desk .music-rack .rack-paper > div {
+  width: 100%;
+}
+
+.vs-score-desk .music-rack .rack-paper svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Balanced Launchkey + action deck (eliminates wide empty side gutters) */
+.instrument-bay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+}
+
+.bay-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(116, 84, 56, 0.55);
+  background: rgba(34, 24, 17, 0.88);
+}
+
+.bay-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bay-toolbar button {
+  padding: 0.42rem 0.8rem;
+  border-radius: 7px;
+  border: 1px solid rgba(148, 103, 56, 0.55);
+  background: rgba(46, 33, 22, 0.9);
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bay-toolbar button:hover {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.16);
+}
+
+.bay-toolbar button[aria-pressed="true"] {
+  border-color: #50cfad;
+  background: rgba(80, 207, 173, 0.24);
+  color: #ffffff;
+}
+
+.bay-toolbar small {
+  color: #dfbb85;
+  font-size: 0.75rem;
+  padding-inline: 0.35rem;
+}
+
+.vs-midi .launchkey {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.vs-midi .organ-keys {
+  width: min(100%, 760px);
+  height: clamp(58px, 7vw, 84px);
+  margin-inline: auto;
+}
+
+.vs-midi .organ-manual-shell {
+  width: min(100%, 784px);
+  margin-inline: auto;
+}
+
+/* Clear Master Volume control in TopBar */
+.topbar-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 189, 127, 0.38);
+  background: rgba(24, 17, 12, 0.88);
+  color: #f8efe2;
+}
+
+.topbar-volume button {
+  border: 0;
+  background: transparent;
+  color: #f8efe2;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+}
+
+.topbar-volume input[type="range"] {
+  width: clamp(96px, 14vw, 150px);
+  accent-color: #50cfad;
+  cursor: pointer;
+}
+
+.topbar-volume output {
+  min-width: 3.5ch;
+  text-align: right;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #50cfad;
+  font-variant-numeric: tabular-nums;
+}
+
+/* High-contrast active world tab inside the locked Studio Stage Bar */
+[data-stage-bar="locked"] button[role="tab"][aria-selected="true"] {
+  background: #50cfad !important;
+  border-color: #50cfad !important;
+  color: #0e1a17 !important;
+  box-shadow: 0 0 14px rgba(80, 207, 173, 0.35);
+}
+
+.vs-score-desk .choir-score {
+  border-color: #91aba0;
+  background: #f0f6f2;
+  min-height: min(420px, 68vh);
+}
+.choir-score header button, .choir-score footer button {
+  background: transparent;
+  border: 1px solid #9cb5aa;
+  color: inherit;
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+.choir-score header button:hover { background: #35554d; }
+.choir-score footer button[aria-pressed=true] { background: #d3e8df; color: #204e3e; }
+.choir-score [data-refs] { cursor: pointer; }
+.choir-score [aria-label="Singer colors"] { font-size: 12px; }
+.choir-score .choir-note-sounding {
+  filter: drop-shadow(0 0 1.4px currentColor);
+}
+/*
+ ---break---
+ */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+/*
+ ---break---
+ */
+:root {
+  --background: #140d09;
+  --foreground: #f8efe2;
+  --card: #221811;
+  --card-foreground: #f8efe2;
+  --popover: #1b130d;
+  --popover-foreground: #f8efe2;
+  --primary: #e3bd7f;
+  --primary-foreground: #17110d;
+  --secondary: #2d1f15;
+  --secondary-foreground: #f8efe2;
+  --muted: #261a12;
+  --muted-foreground: #c7b194;
+  --accent: #362519;
+  --accent-foreground: #f8efe2;
+  --destructive: #c44032;
+  --border: rgba(164, 114, 62, 0.42);
+  --input: rgba(164, 114, 62, 0.42);
+  --ring: #e3bd7f;
+  --chart-1: #50cfad;
+  --chart-2: #e3bd7f;
+  --chart-3: #e06a4f;
+  --chart-4: #57d3e8;
+  --chart-5: #a98fc4;
+  --radius: 0.625rem;
+  --sidebar: #1b130d;
+  --sidebar-foreground: #f8efe2;
+  --sidebar-primary: #e3bd7f;
+  --sidebar-primary-foreground: #17110d;
+  --sidebar-accent: #2d1f15;
+  --sidebar-accent-foreground: #f8efe2;
+  --sidebar-border: rgba(164, 114, 62, 0.42);
+  --sidebar-ring: #e3bd7f;
+}
+
+.live-console-theme {
+  --background: #080b0d;
+  --foreground: #edf6f3;
+  --card: #101518;
+  --card-foreground: #edf6f3;
+  --popover: #12191d;
+  --popover-foreground: #edf6f3;
+  --primary: #34d399;
+  --primary-foreground: #05130e;
+  --secondary: #161d22;
+  --secondary-foreground: #dcebe6;
+  --muted: #151c20;
+  --muted-foreground: #8ea39d;
+  --accent: #192428;
+  --accent-foreground: #edf6f3;
+  --destructive: #ef4444;
+  --border: rgba(148, 178, 170, 0.16);
+  --input: rgba(148, 178, 170, 0.22);
+  --ring: #34d399;
+}
+
+/* Warm Walnut & Brass Proscenium Arch Frame */
+.theater-proscenium {
+  position: relative;
+  border-radius: 14px;
+  padding: 12px 12px 14px;
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(255, 212, 138, 0.22), transparent 65%),
+    linear-gradient(180deg, #4b2d18 0%, #2a180d 14%, #180d07 86%, #311d11 100%);
+  border: 2px solid #9d7138;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 228, 176, 0.36),
+    inset 0 0 22px rgba(0, 0, 0, 0.72),
+    0 22px 48px rgba(0, 0, 0, 0.65);
+}
+
+.theater-marquee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 14px 8px;
+  pointer-events: none;
+}
+
+.theater-bulb {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #fff8de 0%, #f1be66 55%, #8a5b21 100%);
+  box-shadow: 0 0 8px rgba(255, 217, 138, 0.85);
+}
+
+.theater-footlights {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 9px 18px 2px;
+  pointer-events: none;
+}
+
+.theater-footlight-shell {
+  width: 24px;
+  height: 11px;
+  border-radius: 999px 999px 3px 3px;
+  background: radial-gradient(ellipse at 50% 25%, #fff5d0 0%, #eab967 48%, #774e20 100%);
+  border: 1px solid #c99446;
+  box-shadow: 0 -4px 14px rgba(255, 206, 118, 0.55);
+}
+
+.theater-scrubber {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(224, 96, 62, 0.9), rgba(227, 189, 127, 0.85), rgba(80, 207, 173, 0.65));
+  outline: none;
+  cursor: pointer;
+}
+
+.theater-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #fff5dc, #e3bd7f 65%, #8b5d22 100%);
+  border: 2px solid #2b1a0f;
+  box-shadow: 0 0 10px rgba(227, 189, 127, 0.8);
+}
+
+.theater-scrubber::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #fff5dc, #e3bd7f 65%, #8b5d22 100%);
+  border: 2px solid #2b1a0f;
+  box-shadow: 0 0 10px rgba(227, 189, 127, 0.8);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Studio 404 Illustrated Songbook: isolate crisp typography & pill contrast from CHIMERA's unlayered Hershey/button rules */
+.songbook-reader {
+  font-family: "Instrument Sans", "Archivo", system-ui, -apple-system, sans-serif;
+  color: #1c1410;
+}
+.songbook-reader .font-serif {
+  font-family: "Fraunces", Georgia, serif;
+}
+.songbook-reader .font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+.songbook-reader [data-sb-tone="dark"] {
+  background-color: #1c1410;
+  background-image: none;
+  color: #faf7f1;
+}
+.songbook-reader [data-sb-tone="teal"] {
+  background-color: #203832;
+  background-image: none;
+  color: #e9fff7;
+}
+.songbook-reader [data-sb-tone="light"] {
+  background-color: #fffdf9;
+  background-image: none;
+  color: #473425;
+}
+/*
+ ---break---
+ */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+/*
+ ---break---
+ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

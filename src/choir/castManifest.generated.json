@@ -1,0 +1,6122 @@
+{
+  "generatedAt": "2026-11-26T20:01:07.715Z",
+  "version": 5,
+  "studio404Count": 21,
+  "aliases": {
+    "tracking": "tracker",
+    "moonbeam": "moonbell",
+    "amplifier": "fuzz",
+    "spool": "thrum"
+  },
+  "characters": {
+    "chip": {
+      "id": "chip",
+      "bibleDir": "Chip",
+      "displayName": "Chip",
+      "role": "Floppy-disk circuit bird",
+      "color": "#d9b440",
+      "accentB": "#f08c4b",
+      "heightDu": 78,
+      "scaleFactor": 0.752,
+      "portraitUrl": "/cast/chip/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/chip/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/chip/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "action": {
+          "url": "/cast/chip/action.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "acting-sheet": {
+          "url": "/cast/chip/acting-sheet.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "stamp": {
+          "url": "/cast/chip/stamp.webp",
+          "cols": 6,
+          "rows": 6,
+          "frames": 36,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/chip/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.961,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "stamp": "stamp",
+        "two-taps": "stamp",
+        "action": "action",
+        "acting-sheet": "acting-sheet",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Chip.designcraft",
+        "bibleHeroSrc": "bibles/general/Chip/img/chip_staged_front.png",
+        "bibleHeroUrl": "/cast/chip/bible-hero.webp",
+        "stageModelSource": "bibles/general/Chip/motion/.../{chip-loop,chip_performance,chip-action}.webm + chip_acting_4x2_keyed.png + chip-propreq1-stamp.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Canon v2 Hardware Chip (PCB wings, safety-pin vest, alligator-clip feet); v1 felt Stage Loops excluded."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5011,
+          "y": 0.9648
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.502,
+          "y": 0.6621,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.4687,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.5,
+          "y": 0.3281,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.498,
+          "y": 0.2529,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3594,
+          "y": 0.3789,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.3125,
+          "y": 0.6563,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6445,
+          "y": 0.3789,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.6914,
+          "y": 0.6602,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.498,
+          0.2529
+        ],
+        "note": "Rigged 3D GLB (/cast/chip/chip-3d.glb, 6 pose clips) + head-mounted AniCraft articulated beak CHIMERA viseme sheet (/cast/chip/chip-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Chip/rig/rig.json",
+        "meshJson": "bibles/general/Chip/rig/mesh.json",
+        "lottieJson": "bibles/general/Chip/rig/chip.lottie.json",
+        "blenderJson": "bibles/general/Chip/rig/chip.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/chip/chip-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/chip/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.15,
+          "height": 0.095,
+          "offsetY": -0.025,
+          "offsetZ": 0.012,
+          "mouthOnly": true
+        }
+      }
+    },
+    "clacker": {
+      "id": "clacker",
+      "bibleDir": "Clacker",
+      "displayName": "Clacker",
+      "role": "Spare Parts keyboard-chassis keys",
+      "color": "#a0cc88",
+      "accentB": "#f2ca91",
+      "heightDu": 98,
+      "scaleFactor": 0.927,
+      "portraitUrl": "/cast/clacker/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/clacker/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/clacker/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "puppet-rig": {
+          "url": "/cast/clacker/puppet-rig.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "performance": {
+          "url": "/cast/clacker/performance.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/clacker/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.948,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "puppet-rig": "puppet-rig",
+        "performance": "performance",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Clacker.designcraft",
+        "bibleHeroSrc": "bibles/general/Clacker/crops/clacker_v2_band_pose.png",
+        "bibleHeroUrl": "/cast/clacker/bible-hero.webp",
+        "stageModelSource": "bibles/general/Clacker/motion/.../{clacker-idle,clacker-play-mp4,clacker-puppet-rig,clacker_performance}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Canon v2 keyboard chassis \u2014 full Bible WebMs verified against Canon Hero."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.4997,
+          "y": 0.9102
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.6765,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4863,
+          "y": 0.5278,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4961,
+          "y": 0.4197,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4941,
+          "y": 0.3628,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3398,
+          "y": 0.457,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2617,
+          "y": 0.6406,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6523,
+          "y": 0.457,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7383,
+          "y": 0.6445,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4941,
+          0.3628
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/clacker/clacker-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/clacker/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.4941,
+        "pivotY": 0.3628,
+        "widthFrac": 0.145,
+        "heightFrac": 0.085,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Clacker/rig/rig.json",
+        "meshJson": "bibles/general/Clacker/rig/mesh.json",
+        "lottieJson": "bibles/general/Clacker/rig/clacker.lottie.json",
+        "blenderJson": "bibles/general/Clacker/rig/clacker.blender.json"
+      }
+    },
+    "clank": {
+      "id": "clank",
+      "bibleDir": "Clank",
+      "displayName": "Clank",
+      "role": "Old PC monitor tenor",
+      "color": "#8e9a8c",
+      "accentB": "#50cfad",
+      "heightDu": 104,
+      "scaleFactor": 0.979,
+      "portraitUrl": "/cast/clank/portrait.webp",
+      "renderMode": "atlas",
+      "multiplane": {
+        "id": "clank",
+        "displayName": "Clank",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 960,
+        "hasProceduralPhosphorCrt": false,
+        "hasPurplePolarizerGagProp": false,
+        "crtFace": {
+          "nodeId": 10,
+          "screenCenter": [
+            318,
+            214
+          ],
+          "screenSize": [
+            300,
+            270
+          ],
+          "skewYDeg": 2.5,
+          "leftEye": [
+            -68,
+            -28,
+            52
+          ],
+          "rightEye": [
+            72,
+            -32,
+            48
+          ],
+          "mouth": [
+            2,
+            62
+          ]
+        },
+        "extraParts": {},
+        "nodes": [
+          {
+            "id": 1,
+            "name": "Leg_Boot_L",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/leg_boot.webp",
+            "width": 340,
+            "height": 382,
+            "anchor": [
+              122.39999999999999,
+              366.71999999999997,
+              0
+            ],
+            "position": [
+              454,
+              955,
+              0
+            ],
+            "scale": [
+              -56,
+              56,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -18
+          },
+          {
+            "id": 2,
+            "name": "Leg_Boot_R",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/leg_boot.webp",
+            "width": 340,
+            "height": 382,
+            "anchor": [
+              122.39999999999999,
+              366.71999999999997,
+              0
+            ],
+            "position": [
+              626,
+              955,
+              0
+            ],
+            "scale": [
+              56,
+              56,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -18
+          },
+          {
+            "id": 3,
+            "name": "Pelvis_Ctrl",
+            "role": "torso",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              540,
+              725,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 2
+          },
+          {
+            "id": 4,
+            "name": "Coat_Back",
+            "role": "torso",
+            "parent": 3,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/charcoal_coat.webp",
+            "width": 494,
+            "height": 518,
+            "anchor": [
+              247,
+              383.32,
+              0
+            ],
+            "position": [
+              50,
+              50,
+              0
+            ],
+            "scale": [
+              86,
+              86,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -10
+          },
+          {
+            "id": 5,
+            "name": "PC_Torso",
+            "role": "torso",
+            "parent": 3,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/pc_torso.webp",
+            "width": 468,
+            "height": 497,
+            "anchor": [
+              234,
+              387.66,
+              0
+            ],
+            "position": [
+              50,
+              42,
+              0
+            ],
+            "scale": [
+              64,
+              64,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 8
+          },
+          {
+            "id": 6,
+            "name": "Coat_Front_Lapels",
+            "role": "torso",
+            "parent": 3,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/coat_front_lapels.webp",
+            "width": 494,
+            "height": 518,
+            "anchor": [
+              247,
+              383.32,
+              0
+            ],
+            "position": [
+              50,
+              50,
+              0
+            ],
+            "scale": [
+              86,
+              86,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 22
+          },
+          {
+            "id": 7,
+            "name": "Arm_L",
+            "role": "armL",
+            "parent": 6,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/ide_claw_arm_left.webp",
+            "width": 779,
+            "height": 209,
+            "anchor": [
+              708.89,
+              100.32,
+              0
+            ],
+            "position": [
+              72,
+              182,
+              0
+            ],
+            "scale": [
+              50,
+              50,
+              100
+            ],
+            "rotationDeg": -56,
+            "defaultOpacity": 100,
+            "zPx": 14,
+            "distalOffset": [
+              47,
+              100
+            ],
+            "hoseDeform": {
+              "bendEndU": 0.66,
+              "axis": "x-left",
+              "restBendPx": -12
+            }
+          },
+          {
+            "id": 8,
+            "name": "Arm_R",
+            "role": "armR",
+            "parent": 6,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/ide_claw_arm.webp",
+            "width": 779,
+            "height": 209,
+            "anchor": [
+              70.11,
+              100.32,
+              0
+            ],
+            "position": [
+              422,
+              182,
+              0
+            ],
+            "scale": [
+              50,
+              50,
+              100
+            ],
+            "rotationDeg": 56,
+            "defaultOpacity": 100,
+            "zPx": 14,
+            "distalOffset": [
+              732,
+              100
+            ],
+            "hoseDeform": {
+              "bendEndU": 0.66,
+              "axis": "x-right",
+              "restBendPx": -12
+            }
+          },
+          {
+            "id": 9,
+            "name": "Head_Null",
+            "role": "head",
+            "parent": 6,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              247,
+              42,
+              0
+            ],
+            "scale": [
+              116,
+              116,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 28
+          },
+          {
+            "id": 10,
+            "name": "CRT_Head",
+            "role": "head",
+            "parent": 9,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/clank/rig/crt_head_blank.webp",
+            "width": 507,
+            "height": 501,
+            "anchor": [
+              233.22,
+              460.92,
+              0
+            ],
+            "position": [
+              50,
+              50,
+              0
+            ],
+            "scale": [
+              78,
+              78,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 32
+          }
+        ]
+      },
+      "clips": {
+        "idle": {
+          "url": "/cast/clank/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.942,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/clank/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.942,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "clap": {
+          "url": "/cast/clank/clap.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.942,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "bow": {
+          "url": "/cast/clank/bow.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.942,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/clank/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "clap": "clap",
+        "bow": "bow",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Clank.designcraft",
+        "bibleHeroSrc": "bibles/general/Clank/img/Clank_CharcoalCoat_3View_Turnaround_CANON.png",
+        "bibleHeroUrl": "/cast/clank/bible-hero.webp",
+        "stageModelSource": "multiplane-2.5d (10 nodes)",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Classic 5-layer Charcoal Coat cel sandwich with blank CRT glass + 12fps replacement visemes, hidden arm sockets behind lapels, and curved braided-cable hose claws."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.8889
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis_Ctrl",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.6713,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Coat_Front_Lapels",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.6713,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Head_Null",
+          "role": "neck",
+          "x": 0.5,
+          "y": 0.3995,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "CRT_Head CRT Mouth",
+          "role": "head-jaw",
+          "x": 0.5625,
+          "y": 0.2663,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Arm_L",
+          "role": "shoulder-l",
+          "x": 0.3606,
+          "y": 0.511,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Arm_L distal",
+          "role": "hand-l",
+          "x": 0.2132,
+          "y": 0.7294,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Arm_R",
+          "role": "shoulder-r",
+          "x": 0.6394,
+          "y": 0.511,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Arm_R distal",
+          "role": "hand-r",
+          "x": 0.7868,
+          "y": 0.7294,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5625,
+          0.2663
+        ],
+        "note": "Rigged 3D GLB (/cast/clank/clank-3d.glb, 6 pose clips) + head-mounted AniCraft phosphor CRT CHIMERA viseme sheet (/cast/clank/clank-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Clank/rig/rig.json",
+        "meshJson": "bibles/general/Clank/rig/mesh.json",
+        "lottieJson": "bibles/general/Clank/rig/clank.lottie.json",
+        "blenderJson": "bibles/general/Clank/rig/clank.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/clank/clank-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/clank/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.22,
+          "height": 0.165,
+          "offsetY": 0,
+          "offsetZ": 0.008
+        }
+      }
+    },
+    "click": {
+      "id": "click",
+      "bibleDir": "Click",
+      "displayName": "Click",
+      "role": "Spare Parts quartz metronome drummer",
+      "color": "#f4c96b",
+      "accentB": "#e06a4f",
+      "heightDu": 82,
+      "scaleFactor": 0.787,
+      "portraitUrl": "/cast/click/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/click/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.9,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/click/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.9,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "performance": {
+          "url": "/cast/click/performance.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.9,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/click/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.966,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "performance": "performance",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Click.designcraft",
+        "bibleHeroSrc": "bibles/general/Click/img/staged_front_v3_rgba.png",
+        "bibleHeroUrl": "/cast/click/bible-hero.webp",
+        "stageModelSource": "bibles/general/Click/motion/.../{click-idle,click-drum-mp4,click_v3_performance}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Canon v3 quartz metronome drummer (v1 pyramid click_v1_sheet_loop excluded)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.4959,
+          "y": 0.8984
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.4688,
+          "y": 0.6422,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4844,
+          "y": 0.4789,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.5039,
+          "y": 0.3602,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5039,
+          "y": 0.2973,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3555,
+          "y": 0.4023,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2422,
+          "y": 0.6406,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6602,
+          "y": 0.4023,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7148,
+          "y": 0.5195,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5039,
+          0.2973
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/click/click-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/click/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.492,
+        "pivotY": 0.418,
+        "widthFrac": 0.195,
+        "heightFrac": 0.115,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Click/rig/rig.json",
+        "meshJson": "bibles/general/Click/rig/mesh.json",
+        "lottieJson": "bibles/general/Click/rig/click.lottie.json",
+        "blenderJson": "bibles/general/Click/rig/click.blender.json"
+      }
+    },
+    "cue": {
+      "id": "cue",
+      "bibleDir": "Cue",
+      "displayName": "Cue",
+      "role": "Brass-hood teleprompter & stage director",
+      "color": "#c9c2ae",
+      "accentB": "#e3bd7f",
+      "heightDu": 98,
+      "scaleFactor": 0.927,
+      "portraitUrl": "/cast/cue/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/cue/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.9,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "acting-sheet": {
+          "url": "/cast/cue/acting-sheet.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "cast": {
+          "url": "/cast/cue/cast.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.9,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "letter": {
+          "url": "/cast/cue/letter.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.948,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/cue/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.94,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/cue/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.945,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "letter": "letter",
+        "fold": "letter",
+        "cast": "cast",
+        "acting-sheet": "acting-sheet",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Cue.designcraft",
+        "bibleHeroSrc": "bibles/general/Cue/img/cue_hero_v2.png",
+        "bibleHeroUrl": "/cast/cue/bible-hero.webp",
+        "stageModelSource": "effectcraft/cue/footage/cue_idle_4x2_keyed.png + cue-{motion,cast}.webm + cue-propreq1-letter.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "S-6: Added dedicated 48f@12fps Blue-chroma Keylight sing loop protecting #2F7D4E green chest CRT + clean RGBA portrait cutout."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.4839,
+          "y": 0.8984
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5254,
+          "y": 0.6634,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.418,
+          "y": 0.5139,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4922,
+          "y": 0.4052,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4941,
+          "y": 0.3479,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.375,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1836,
+          "y": 0.4961,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6055,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.6523,
+          "y": 0.5234,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4941,
+          0.3479
+        ],
+        "note": "Rigged 3D GLB (/cast/cue/cue-3d.glb, 6 pose clips) + head-mounted AniCraft warm scroll CHIMERA viseme sheet (/cast/cue/cue-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Cue/rig/rig.json",
+        "meshJson": "bibles/general/Cue/rig/mesh.json",
+        "lottieJson": "bibles/general/Cue/rig/cue.lottie.json",
+        "blenderJson": "bibles/general/Cue/rig/cue.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/cue/cue-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/cue/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.23,
+          "height": 0.175,
+          "offsetY": 0,
+          "offsetZ": 0.01
+        }
+      }
+    },
+    "deck": {
+      "id": "deck",
+      "bibleDir": "Deck",
+      "displayName": "Deck",
+      "role": "Sport Walkman v3 master-tape logger",
+      "color": "#8e9a8c",
+      "accentB": "#f2c15a",
+      "heightDu": 96,
+      "scaleFactor": 0.909,
+      "portraitUrl": "/cast/deck/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/deck/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/deck/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "logging-clip": {
+          "url": "/cast/deck/logging-clip.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "tape-jam": {
+          "url": "/cast/deck/tape-jam.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/deck/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.932,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "log-take": "logging-clip",
+        "record": "logging-clip",
+        "logging-clip": "logging-clip",
+        "tape-jam": "tape-jam",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Deck.designcraft",
+        "bibleHeroSrc": "bibles/general/Deck/img/Deck_SportWalkman_Redesign_v3.png",
+        "bibleHeroUrl": "/cast/deck/bible-hero.webp",
+        "stageModelSource": "animations/effectcraft/deck/{idle,sing,logging-clip}.webm + exports/twos-12fps/tape-jam.webm",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Sport Walkman v3 canon \u2014 48f idle, sing & logging-clip + 24f @ 12fps tape-jam from EffectCraft."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.471,
+          "y": 0.9531
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.4668,
+          "y": 0.653,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4609,
+          "y": 0.4614,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4824,
+          "y": 0.322,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4883,
+          "y": 0.2475,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.2344,
+          "y": 0.3711,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1367,
+          "y": 0.6523,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6992,
+          "y": 0.3711,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7969,
+          "y": 0.6523,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4883,
+          0.2475
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/deck/deck-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/deck/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.49,
+        "pivotY": 0.346,
+        "widthFrac": 0.22,
+        "heightFrac": 0.13,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Deck/rig/rig.json",
+        "meshJson": "bibles/general/Deck/rig/mesh.json",
+        "lottieJson": "bibles/general/Deck/rig/deck.lottie.json",
+        "blenderJson": "bibles/general/Deck/rig/deck.blender.json"
+      }
+    },
+    "folio": {
+      "id": "folio",
+      "bibleDir": "Folio",
+      "displayName": "Folio",
+      "role": "Scroll teleprompter with word-eyes",
+      "color": "#d4b483",
+      "accentB": "#e3bd7f",
+      "heightDu": 96,
+      "scaleFactor": 0.909,
+      "portraitUrl": "/cast/folio/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/folio/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "sing": {
+          "url": "/cast/folio/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "chuckle": {
+          "url": "/cast/folio/chuckle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "belt": {
+          "url": "/cast/folio/belt.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/folio/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.943,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "laugh": "chuckle",
+        "chuckle": "chuckle",
+        "belt": "belt",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Folio.designcraft",
+        "bibleHeroSrc": "bibles/general/Folio/img/folio-assembled-rig.png",
+        "bibleHeroUrl": "/cast/folio/bible-hero.webp",
+        "stageModelSource": "bibles/general/Folio/motion/folio-{idle,sing,chuckle,belt}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Real Folio Scroll Teleprompter \u2014 idle, sing, chuckle & belt baked straight from Folio/motion/folio-*.webm."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.516,
+          "y": 0.9781
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5417,
+          "y": 0.7094,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4875,
+          "y": 0.5375,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4938,
+          "y": 0.4125,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5021,
+          "y": 0.3453,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.2958,
+          "y": 0.4562,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1625,
+          "y": 0.6438,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6875,
+          "y": 0.4562,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.8833,
+          "y": 0.7094,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5021,
+          0.3453
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/folio/folio-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/folio/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.52,
+        "pivotY": 0.412,
+        "widthFrac": 0.088,
+        "heightFrac": 0.064,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Folio/rig/rig.json",
+        "meshJson": "bibles/general/Folio/rig/mesh.json",
+        "lottieJson": "bibles/general/Folio/rig/folio.lottie.json",
+        "blenderJson": "bibles/general/Folio/rig/folio.blender.json"
+      }
+    },
+    "fuzz": {
+      "id": "fuzz",
+      "bibleDir": "Fuzz",
+      "displayName": "Fuzz",
+      "role": "Spare Parts tube-amp lead guitarist",
+      "color": "#dfaa75",
+      "accentB": "#f28c6a",
+      "heightDu": 104,
+      "scaleFactor": 0.979,
+      "portraitUrl": "/cast/fuzz/portrait.webp",
+      "renderMode": "atlas",
+      "multiplane": {
+        "id": "fuzz",
+        "displayName": "Fuzz \u2014 Tube-Amp Shred Guitarist",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 960,
+        "hasProceduralPhosphorCrt": false,
+        "hasPurplePolarizerGagProp": false,
+        "extraParts": {},
+        "nodes": [
+          {
+            "id": 243,
+            "name": "Guitar_ElectricMayhem",
+            "role": "guitar",
+            "parent": 99,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/fuzz_d18_guitar_cutout.webp",
+            "width": 534,
+            "height": 1431,
+            "anchor": [
+              267,
+              715.5,
+              0
+            ],
+            "position": [
+              204,
+              250,
+              0
+            ],
+            "scale": [
+              36,
+              36,
+              100
+            ],
+            "rotationDeg": -60,
+            "defaultOpacity": 100,
+            "zPx": 38
+          },
+          {
+            "id": 219,
+            "name": "Head_NONET",
+            "role": "gagVariant",
+            "parent": 14,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/head_chassis_nonet.webp",
+            "width": 484,
+            "height": 305,
+            "anchor": [
+              242,
+              152.5,
+              0
+            ],
+            "position": [
+              50,
+              -32.00000000000006,
+              0
+            ],
+            "scale": [
+              64.5,
+              64.5,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 35.06666666666667
+          },
+          {
+            "id": 195,
+            "name": "Head_PLAY",
+            "role": "singVariant",
+            "parent": 14,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/head_chassis_play.webp",
+            "width": 484,
+            "height": 305,
+            "anchor": [
+              242,
+              152.5,
+              0
+            ],
+            "position": [
+              50,
+              -32.00000000000006,
+              0
+            ],
+            "scale": [
+              64.5,
+              64.5,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 34.8
+          },
+          {
+            "id": 171,
+            "name": "Head_404",
+            "role": "altVariant",
+            "parent": 14,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/head_chassis_404.webp",
+            "width": 484,
+            "height": 305,
+            "anchor": [
+              242,
+              152.5,
+              0
+            ],
+            "position": [
+              50,
+              -32.00000000000006,
+              0
+            ],
+            "scale": [
+              64.5,
+              64.5,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 34.53333333333333
+          },
+          {
+            "id": 147,
+            "name": "Head_Hardware",
+            "role": "head",
+            "parent": 14,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_head_404.webp",
+            "width": 410,
+            "height": 343,
+            "anchor": [
+              205,
+              171.5,
+              0
+            ],
+            "position": [
+              50,
+              -90.00000000000006,
+              0
+            ],
+            "scale": [
+              78,
+              78,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 24.333333333333332
+          },
+          {
+            "id": 123,
+            "name": "Cords",
+            "role": "hairOrTrim",
+            "parent": 14,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_cords.webp",
+            "width": 628,
+            "height": 316,
+            "anchor": [
+              314,
+              158,
+              0
+            ],
+            "position": [
+              30,
+              -220.00000000000006,
+              0
+            ],
+            "scale": [
+              54,
+              54,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 14
+          },
+          {
+            "id": 99,
+            "name": "Coat_Torso",
+            "role": "torso",
+            "parent": 2,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_coat_torso.webp",
+            "width": 395,
+            "height": 479,
+            "anchor": [
+              197.5,
+              239.5,
+              0
+            ],
+            "position": [
+              50,
+              -60,
+              0
+            ],
+            "scale": [
+              78,
+              78,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 18
+          },
+          {
+            "id": 75,
+            "name": "Arm_R",
+            "role": "armR",
+            "parent": 99,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_arm_r.webp",
+            "width": 120,
+            "height": 352,
+            "anchor": [
+              60,
+              25,
+              0
+            ],
+            "position": [
+              358,
+              66,
+              0
+            ],
+            "scale": [
+              82,
+              82,
+              100
+            ],
+            "rotationDeg": 22,
+            "defaultOpacity": 100,
+            "zPx": 48,
+            "distalOffset": [
+              82,
+              336
+            ],
+            "hoseDeform": {
+              "bendEndU": 0.68,
+              "axis": "y-down",
+              "restBendPx": 20
+            }
+          },
+          {
+            "id": 51,
+            "name": "Arm_L",
+            "role": "armL",
+            "parent": 99,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_arm_l.webp",
+            "width": 135,
+            "height": 351,
+            "anchor": [
+              70,
+              25,
+              0
+            ],
+            "position": [
+              36,
+              66,
+              0
+            ],
+            "scale": [
+              80,
+              80,
+              100
+            ],
+            "rotationDeg": -22,
+            "defaultOpacity": 100,
+            "zPx": 28,
+            "distalOffset": [
+              46,
+              336
+            ],
+            "hoseDeform": {
+              "bendEndU": 0.68,
+              "axis": "y-down",
+              "restBendPx": -20
+            }
+          },
+          {
+            "id": 27,
+            "name": "Boots",
+            "role": "legs",
+            "parent": 2,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/fuzz/rig/part_boots.webp",
+            "width": 391,
+            "height": 391,
+            "anchor": [
+              195.5,
+              195.5,
+              0
+            ],
+            "position": [
+              50,
+              135,
+              0
+            ],
+            "scale": [
+              72,
+              72,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.333333333333332
+          },
+          {
+            "id": 14,
+            "name": "Head_Null",
+            "role": "head",
+            "parent": 99,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              197.5,
+              47.192307692307736,
+              0
+            ],
+            "scale": [
+              128.2051282051282,
+              128.2051282051282,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 22.333333333333332
+          },
+          {
+            "id": 2,
+            "name": "Pelvis_Ctrl",
+            "role": "torso",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              540,
+              760,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 4
+          }
+        ]
+      },
+      "clips": {
+        "idle": {
+          "url": "/cast/fuzz/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.969,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/fuzz/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.969,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "shred": {
+          "url": "/cast/fuzz/shred.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.969,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "bow": {
+          "url": "/cast/fuzz/bow.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.969,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "puppet-rig": {
+          "url": "/cast/fuzz/puppet-rig.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.914,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/fuzz/walk.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.859,
+          "cellWidth": 256,
+          "cellHeight": 256
+        }
+      },
+      "directedTakes": {
+        "puppet-rig": "puppet-rig",
+        "shred": "shred",
+        "bow": "bow",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Fuzz.designcraft",
+        "bibleHeroSrc": "bibles/general/Fuzz/img/candidates/Fuzz_D18_Hero_Portrait_3Prong_CANON.png",
+        "bibleHeroUrl": "/cast/fuzz/bible-hero.webp",
+        "stageModelSource": "multiplane-2.5d (12 nodes)",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Classic cel-layered 12-node 2.5D multiplane rig (Cords behind head, fretting Arm_L behind strapped 12-inch ruler guitar, strumming Arm_R in front) + EffectCraft D18 loops."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.8889
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis_Ctrl",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.7037,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Coat_Torso",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.6019,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Head_Null",
+          "role": "neck",
+          "x": 0.5,
+          "y": 0.463,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head_Hardware",
+          "role": "head-jaw",
+          "x": 0.5,
+          "y": 0.3333,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Arm_L",
+          "role": "shoulder-l",
+          "x": 0.3834,
+          "y": 0.4765,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Arm_L distal",
+          "role": "hand-l",
+          "x": 0.4378,
+          "y": 0.6483,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Arm_R",
+          "role": "shoulder-r",
+          "x": 0.6159,
+          "y": 0.4765,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Arm_R distal",
+          "role": "hand-r",
+          "x": 0.559,
+          "y": 0.6522,
+          "parent": "shoulder-r"
+        },
+        {
+          "id": "prop",
+          "label": "Guitar_ElectricMayhem",
+          "role": "prop",
+          "x": 0.5047,
+          "y": 0.6094,
+          "parent": "spine"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "multiplane-jaw-sine",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5,
+          0.3333
+        ],
+        "note": "2.5D multiplane rig (12 nodes) with dedicated singVariant layer swap. + editable AniCraft facial polish (/cast/fuzz/fuzz-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Fuzz/rig/rig.json",
+        "meshJson": "bibles/general/Fuzz/rig/mesh.json",
+        "lottieJson": "bibles/general/Fuzz/rig/fuzz.lottie.json",
+        "blenderJson": "bibles/general/Fuzz/rig/fuzz.blender.json"
+      }
+    },
+    "gruff": {
+      "id": "gruff",
+      "bibleDir": "Gruff",
+      "displayName": "Gruff",
+      "role": "Wired cable-monster upright bass",
+      "color": "#d98a4e",
+      "accentB": "#e07a5f",
+      "heightDu": 200,
+      "scaleFactor": 1.48,
+      "portraitUrl": "/cast/gruff/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/gruff/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/gruff/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "toaster-shrug": {
+          "url": "/cast/gruff/toaster-shrug.webp",
+          "cols": 6,
+          "rows": 6,
+          "frames": 36,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/gruff/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.98,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "shrug": "toaster-shrug",
+        "toaster-shrug": "toaster-shrug",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Gruff.designcraft",
+        "bibleHeroSrc": "bibles/general/Gruff/img/gruff_staged_front_v3.png",
+        "bibleHeroUrl": "/cast/gruff/bible-hero.webp",
+        "stageModelSource": "animations/effectcraft/gruff/exports/choir/{idle,sing}.webm + toaster-shrug.webm",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Real Wired Cable Monster Canon v3 (replaces stale pre-wired tin-radio cutout)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.491,
+          "y": 0.9375
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5059,
+          "y": 0.6414,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4922,
+          "y": 0.4523,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4883,
+          "y": 0.3148,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4883,
+          "y": 0.2414,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.2227,
+          "y": 0.3633,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1406,
+          "y": 0.5273,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.7539,
+          "y": 0.3633,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.8555,
+          "y": 0.5195,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4883,
+          0.2414
+        ],
+        "note": "AniCraft CHIMERA 8-viseme hood face overlay (/cast/gruff/gruff-polish.anicraft + anicraft-face-4x2.png) mounted cleanly inside Gruff hood recess."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/gruff/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.495,
+        "pivotY": 0.222,
+        "widthFrac": 0.175,
+        "heightFrac": 0.165
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Gruff/rig/rig.json",
+        "meshJson": "bibles/general/Gruff/rig/mesh.json",
+        "lottieJson": "bibles/general/Gruff/rig/gruff.lottie.json",
+        "blenderJson": "bibles/general/Gruff/rig/gruff.blender.json"
+      }
+    },
+    "hertz": {
+      "id": "hertz",
+      "bibleDir": "Hertz",
+      "displayName": "Hertz",
+      "role": "Tall wood-grain console CRT TV straight man (150 DU)",
+      "color": "#7be86b",
+      "accentB": "#e3bd7f",
+      "heightDu": 150,
+      "scaleFactor": 1.38,
+      "portraitUrl": "/cast/hertz/portrait.webp",
+      "renderMode": "atlas",
+      "multiplane": {
+        "id": "hertz",
+        "displayName": "Hertz \u2014 Retro CRT Broadcast Monitor",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 1037,
+        "hasProceduralPhosphorCrt": false,
+        "hasPurplePolarizerGagProp": false,
+        "extraParts": {},
+        "nodes": [
+          {
+            "id": 571,
+            "name": "Screen_Bars",
+            "role": "gagVariant",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_screen_bars.webp",
+            "width": 363,
+            "height": 285,
+            "anchor": [
+              181.5,
+              142.5,
+              0
+            ],
+            "position": [
+              27.999999999999943,
+              39.99999999999994,
+              0
+            ],
+            "scale": [
+              88,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 0,
+            "zPx": 35.353846153846156
+          },
+          {
+            "id": 548,
+            "name": "Screen_Static",
+            "role": "singVariant",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_screen_static.webp",
+            "width": 362,
+            "height": 281,
+            "anchor": [
+              181,
+              140.5,
+              0
+            ],
+            "position": [
+              27.999999999999943,
+              39.99999999999994,
+              0
+            ],
+            "scale": [
+              88,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 0,
+            "zPx": 35.10769230769231
+          },
+          {
+            "id": 525,
+            "name": "Screen_OSD",
+            "role": "altVariant",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_screen_osd.webp",
+            "width": 363,
+            "height": 281,
+            "anchor": [
+              181.5,
+              140.5,
+              0
+            ],
+            "position": [
+              27.999999999999943,
+              39.99999999999994,
+              0
+            ],
+            "scale": [
+              88,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 34.86153846153846
+          },
+          {
+            "id": 502,
+            "name": "CRT_Head",
+            "role": "head",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_crt_head.webp",
+            "width": 695,
+            "height": 487,
+            "anchor": [
+              347.5,
+              243.5,
+              0
+            ],
+            "position": [
+              49.99999999999994,
+              39.99999999999994,
+              0
+            ],
+            "scale": [
+              74,
+              74,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 24.76923076923077
+          },
+          {
+            "id": 479,
+            "name": "Rabbit_Ears",
+            "role": "antenna",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_rabbit_ears.webp",
+            "width": 503,
+            "height": 324,
+            "anchor": [
+              251,
+              305,
+              0
+            ],
+            "position": [
+              45.99999999999994,
+              -123.00000000000006,
+              0
+            ],
+            "scale": [
+              62,
+              62,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -27.630769230769232
+          },
+          {
+            "id": 456,
+            "name": "RCA_Cables",
+            "role": "hairOrTrim",
+            "parent": 329,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_rca_cables.webp",
+            "width": 116,
+            "height": 212,
+            "anchor": [
+              12,
+              18,
+              0
+            ],
+            "position": [
+              287.99999999999994,
+              62.99999999999994,
+              0
+            ],
+            "scale": [
+              74,
+              74,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 40.12307692307692
+          },
+          {
+            "id": 433,
+            "name": "Vest",
+            "role": "torso",
+            "parent": 317,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_vest.webp",
+            "width": 420,
+            "height": 397,
+            "anchor": [
+              210,
+              340,
+              0
+            ],
+            "position": [
+              50,
+              43,
+              0
+            ],
+            "scale": [
+              78,
+              78,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 5.846153846153847
+          },
+          {
+            "id": 410,
+            "name": "Arm_R",
+            "role": "armR",
+            "parent": 433,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_arm_r.webp",
+            "width": 262,
+            "height": 367,
+            "anchor": [
+              14,
+              22,
+              0
+            ],
+            "position": [
+              381.79487179487177,
+              65.64102564102564,
+              0
+            ],
+            "scale": [
+              84.61538461538461,
+              84.61538461538461,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 54
+          },
+          {
+            "id": 387,
+            "name": "Arm_L",
+            "role": "armL",
+            "parent": 433,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_arm_l.webp",
+            "width": 266,
+            "height": 363,
+            "anchor": [
+              248,
+              22,
+              0
+            ],
+            "position": [
+              38.20512820512823,
+              65.64102564102564,
+              0
+            ],
+            "scale": [
+              84.61538461538461,
+              84.61538461538461,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 54
+          },
+          {
+            "id": 364,
+            "name": "Leg_Sneaker_R",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_leg_sneaker_r.webp",
+            "width": 212,
+            "height": 591,
+            "anchor": [
+              106,
+              591,
+              0
+            ],
+            "position": [
+              610,
+              1037,
+              0
+            ],
+            "scale": [
+              64,
+              62,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.076923076923077
+          },
+          {
+            "id": 341,
+            "name": "Leg_Sneaker_L",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/hertz/rig/part_leg_sneaker_l.webp",
+            "width": 212,
+            "height": 591,
+            "anchor": [
+              106,
+              591,
+              0
+            ],
+            "position": [
+              470,
+              1037,
+              0
+            ],
+            "scale": [
+              64,
+              62,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.384615384615383
+          },
+          {
+            "id": 329,
+            "name": "Head_Null",
+            "role": "head",
+            "parent": 433,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              210.00000000000006,
+              -163.8461538461538,
+              0
+            ],
+            "scale": [
+              128.2051282051282,
+              128.2051282051282,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 22.307692307692307
+          },
+          {
+            "id": 317,
+            "name": "Pelvis_Ctrl",
+            "role": "torso",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              540,
+              825,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 4
+          }
+        ]
+      },
+      "clips": {
+        "idle": {
+          "url": "/cast/hertz/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/hertz/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "crt-answer": {
+          "url": "/cast/hertz/crt-answer.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/hertz/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.948,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "tilt": "crt-answer",
+        "crt-answer": "crt-answer",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Hertz.designcraft",
+        "bibleHeroSrc": "bibles/general/Hertz/img/Hertz_90sCRTTV_Redesign_CANON.png",
+        "bibleHeroUrl": "/cast/hertz/bible-hero.webp",
+        "stageModelSource": "multiplane-2.5d (13 nodes)",
+        "animationTier": "multiplane-2.5d",
+        "notes": "Native 13-node 2.5D wood-grain console CRT rig (150 DU) + 24f @ 12fps idle, sing & crt-answer from EffectCraft."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.9213
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis_Ctrl",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.7639,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Vest",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.7574,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Head_Null",
+          "role": "neck",
+          "x": 0.5,
+          "y": 0.3935,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "CRT_Head",
+          "role": "head-jaw",
+          "x": 0.5,
+          "y": 0.3843,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Arm_L",
+          "role": "shoulder-l",
+          "x": 0.3759,
+          "y": 0.5593,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Arm_L distal",
+          "role": "hand-l",
+          "x": 0.2244,
+          "y": 0.7676,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Arm_R",
+          "role": "shoulder-r",
+          "x": 0.6241,
+          "y": 0.5593,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Arm_R distal",
+          "role": "hand-r",
+          "x": 0.7756,
+          "y": 0.7701,
+          "parent": "shoulder-r"
+        },
+        {
+          "id": "prop",
+          "label": "Screen_Bars",
+          "role": "prop",
+          "x": 0.4796,
+          "y": 0.3843,
+          "parent": "spine"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5,
+          0.3843
+        ],
+        "note": "Canonical 13-node Redesign v2 wood-grain CRT Multiplane rig + live CH 04 / VIDEO 1 phosphor CRT eyes & CHIMERA vowel mouth + SMPTE Screen_Bars / Screen_Static crt-answer gag."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Hertz/rig/rig.json",
+        "meshJson": "bibles/general/Hertz/rig/mesh.json",
+        "lottieJson": "bibles/general/Hertz/rig/hertz.lottie.json",
+        "blenderJson": "bibles/general/Hertz/rig/hertz.blender.json"
+      }
+    },
+    "latch": {
+      "id": "latch",
+      "bibleDir": "Latch",
+      "displayName": "Latch",
+      "role": "Talkback pedal",
+      "color": "#f0ac65",
+      "accentB": "#a3bebb",
+      "heightDu": 84,
+      "scaleFactor": 0.805,
+      "portraitUrl": "/cast/latch/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/latch/idle.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.84,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "sing": {
+          "url": "/cast/latch/sing.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.84,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "listening": {
+          "url": "/cast/latch/listening.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.84,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk": {
+          "url": "/cast/latch/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.901,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "listening": "listening",
+        "listen": "listening",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Latch.designcraft",
+        "bibleHeroSrc": "bibles/general/Latch/img/candidates/latch_tactile_hero_rgba.png",
+        "bibleHeroUrl": "/cast/latch/bible-hero.webp",
+        "stageModelSource": "bibles/general/Latch/img/candidates/latch_sing_idle_4x2_rgba.png",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Upgraded per S-6 / D-12 to tactile Studio 404 cast-metal stompbox with coiled-spring chassis feet & 1/4-inch TRS spring arms (3x candidates, EffectCraft Keylight alpha=0)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Spring Chassis Base",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.84
+        },
+        {
+          "id": "pelvis",
+          "label": "Cast-Metal Lower Housing",
+          "role": "pelvis",
+          "x": 0.46,
+          "y": 0.72,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Slotted Rear Hinge & Felt Washer",
+          "role": "spine",
+          "x": 0.24,
+          "y": 0.56,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Inner Brass Contact Spring",
+          "role": "neck",
+          "x": 0.52,
+          "y": 0.55,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Ribbed Rubber Tread & Talk Lamp",
+          "role": "head-jaw",
+          "x": 0.62,
+          "y": 0.48,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Side Mount",
+          "role": "shoulder-l",
+          "x": 0.42,
+          "y": 0.63,
+          "parent": "pelvis"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left 1/4-inch TRS Spring Arm",
+          "role": "hand-l",
+          "x": 0.53,
+          "y": 0.67,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Side Mount",
+          "role": "shoulder-r",
+          "x": 0.74,
+          "y": 0.58,
+          "parent": "pelvis"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right 1/4-inch TRS Spring Arm",
+          "role": "hand-r",
+          "x": 0.83,
+          "y": 0.59,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "sing-vs-idle-loop",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.62,
+          0.52
+        ],
+        "note": "Tactile D-12 cast-metal stompbox 8f@12fps hinged rubber tread jaw + glowing #FFB059 amber talk lamp."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Latch/rig/rig.json",
+        "meshJson": "bibles/general/Latch/rig/mesh.json",
+        "lottieJson": "bibles/general/Latch/rig/latch.lottie.json",
+        "blenderJson": "bibles/general/Latch/rig/latch.blender.json"
+      },
+      "multiplane": {
+        "id": "latch",
+        "displayName": "Latch",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 960,
+        "hasProceduralPhosphorCrt": false,
+        "hasPurplePolarizerGagProp": false,
+        "extraParts": {},
+        "nodes": [
+          {
+            "id": 1,
+            "name": "Foot_Base_Null",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              0,
+              0,
+              0
+            ],
+            "position": [
+              540,
+              948,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -12
+          },
+          {
+            "id": 2,
+            "name": "Latch_Pelvis",
+            "role": "torso",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              0,
+              0,
+              0
+            ],
+            "position": [
+              540,
+              828,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 0
+          },
+          {
+            "id": 3,
+            "name": "Latch_Pedal_Rest",
+            "role": "restVariant",
+            "parent": 2,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/latch/rest.webp",
+            "width": 960,
+            "height": 480,
+            "anchor": [
+              480,
+              451.2,
+              0
+            ],
+            "position": [
+              0,
+              120,
+              0
+            ],
+            "scale": [
+              86,
+              86,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 4
+          },
+          {
+            "id": 4,
+            "name": "Latch_Pedal_Sing",
+            "role": "singVariant",
+            "parent": 2,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/latch/speaking.webp",
+            "width": 960,
+            "height": 480,
+            "anchor": [
+              480,
+              451.2,
+              0
+            ],
+            "position": [
+              0,
+              120,
+              0
+            ],
+            "scale": [
+              86,
+              86,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 6
+          },
+          {
+            "id": 5,
+            "name": "Latch_Pedal_Alt",
+            "role": "altVariant",
+            "parent": 2,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/latch/listening.webp",
+            "width": 960,
+            "height": 480,
+            "anchor": [
+              480,
+              451.2,
+              0
+            ],
+            "position": [
+              0,
+              120,
+              0
+            ],
+            "scale": [
+              86,
+              86,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 5
+          },
+          {
+            "id": 6,
+            "name": "Head_Pedal_Null",
+            "role": "head",
+            "parent": 2,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              0,
+              0,
+              0
+            ],
+            "position": [
+              0,
+              -155,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 12
+          },
+          {
+            "id": 7,
+            "name": "Spring_Antenna_Null",
+            "role": "antenna",
+            "parent": 6,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              0,
+              0,
+              0
+            ],
+            "position": [
+              0,
+              -82,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 14
+          }
+        ]
+      }
+    },
+    "leadsinger": {
+      "id": "leadsinger",
+      "bibleDir": "LeadSinger",
+      "displayName": "LeadSinger",
+      "role": "Spare Parts BareChassis lead vocalist",
+      "color": "#f28c6a",
+      "accentB": "#e3bd7f",
+      "heightDu": 102,
+      "scaleFactor": 0.962,
+      "portraitUrl": "/cast/leadsinger/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/leadsinger/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/leadsinger/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 6,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "puppet-rig": {
+          "url": "/cast/leadsinger/puppet-rig.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "performance": {
+          "url": "/cast/leadsinger/performance.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/leadsinger/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.979,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "puppet-rig": "puppet-rig",
+        "performance": "performance",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "LeadSinger.designcraft",
+        "bibleHeroSrc": "bibles/general/LeadSinger/img/staged_front.png",
+        "bibleHeroUrl": "/cast/leadsinger/bible-hero.webp",
+        "stageModelSource": "bibles/general/LeadSinger/motion/.../leadsinger-{idle,sing-mp4,puppet-rig,_performance}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "BareChassis cassette-chest canon \u2014 idle, 8s sing, puppet-rig & performance baked from Bible WebMs."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.498,
+          "y": 0.918
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.502,
+          "y": 0.6472,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.498,
+          "y": 0.477,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4961,
+          "y": 0.3533,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.502,
+          "y": 0.2876,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3594,
+          "y": 0.3984,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2813,
+          "y": 0.6289,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6445,
+          "y": 0.3984,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7188,
+          "y": 0.6094,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.502,
+          0.2876
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/leadsinger/leadsinger-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/leadsinger/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.5,
+        "pivotY": 0.274,
+        "widthFrac": 0.175,
+        "heightFrac": 0.105,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/LeadSinger/rig/rig.json",
+        "meshJson": "bibles/general/LeadSinger/rig/mesh.json",
+        "lottieJson": "bibles/general/LeadSinger/rig/leadsinger.lottie.json",
+        "blenderJson": "bibles/general/LeadSinger/rig/leadsinger.blender.json"
+      }
+    },
+    "moonbell": {
+      "id": "moonbell",
+      "bibleDir": "Moonbell",
+      "displayName": "Moonbell",
+      "role": "Guest phosphor voice",
+      "color": "#9be7ff",
+      "accentB": "#ffd38a",
+      "heightDu": 96,
+      "scaleFactor": 0.909,
+      "portraitUrl": "/cast/moonbell/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/moonbell/idle.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "sing": {
+          "url": "/cast/moonbell/sing.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "jump": {
+          "url": "/cast/moonbell/jump.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "reach": {
+          "url": "/cast/moonbell/reach.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "react": {
+          "url": "/cast/moonbell/react.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk-left": {
+          "url": "/cast/moonbell/walk-left.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk-right": {
+          "url": "/cast/moonbell/walk-right.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk": {
+          "url": "/cast/moonbell/walk-right.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "jump": "jump",
+        "reach": "reach",
+        "react": "react",
+        "walk-left": "walk-left",
+        "walk-right": "walk-right",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Moonbell.designcraft",
+        "bibleHeroSrc": "bibles/general/Moonbell/crops/moonbell_staged_front.png",
+        "bibleHeroUrl": "/cast/moonbell/bible-hero.webp",
+        "stageModelSource": "bibles/general/Moonbell/motion/.../moonbell-cels-{idle,expressions,jump,reach,react,walk-left,walk-right}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Full 7-take 12fps Bible cels WebM pack verified on-model against Moonbell Canon."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.4921,
+          "y": 0.9349
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.468,
+          "y": 0.6564,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5015,
+          "y": 0.4897,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4927,
+          "y": 0.3684,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4869,
+          "y": 0.3028,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.1686,
+          "y": 0.4115,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1512,
+          "y": 0.5104,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.8198,
+          "y": 0.4115,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.8488,
+          "y": 0.4844,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4869,
+          0.3028
+        ],
+        "note": "AniCraft CHIMERA mouth-only viseme overlay (/cast/moonbell/moonbell-polish.anicraft + anicraft-face-4x2.png) with Three.js beat-synced stage groove."
+      },
+      "defects": [],
+      "anicraftFaceOverlay": {
+        "url": "/cast/moonbell/anicraft-face-4x2.png",
+        "cols": 4,
+        "rows": 2,
+        "pivotX": 0.4869,
+        "pivotY": 0.3028,
+        "widthFrac": 0.145,
+        "heightFrac": 0.085,
+        "mouthOnly": true
+      },
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Moonbell/rig/rig.json",
+        "meshJson": "bibles/general/Moonbell/rig/mesh.json",
+        "lottieJson": "bibles/general/Moonbell/rig/moonbell.lottie.json",
+        "blenderJson": "bibles/general/Moonbell/rig/moonbell.blender.json"
+      }
+    },
+    "neon": {
+      "id": "neon",
+      "bibleDir": "Neon",
+      "displayName": "Neon",
+      "role": "Backstage dual-tube neon sign",
+      "color": "#57d3e8",
+      "accentB": "#ff5e99",
+      "heightDu": 104,
+      "scaleFactor": 0.979,
+      "portraitUrl": "/cast/neon/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/neon/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "sing": {
+          "url": "/cast/neon/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/neon/walk.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.883,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "alt-idle": {
+          "url": "/cast/neon/alt-idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 256,
+          "cellHeight": 256
+        }
+      },
+      "directedTakes": {
+        "walk": "walk",
+        "alt-idle": "alt-idle",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Neon.designcraft",
+        "bibleHeroSrc": "moppets/characters/neon/portrait/neon_portrait.png",
+        "bibleHeroUrl": "/cast/neon/bible-hero.webp",
+        "stageModelSource": "bibles/general/Neon/motion/.../{neon_performance,neon-loop,neon-walk,neon-idle}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Scarf & Jacket Canon v2 (legacy v1 wire-grille Stage Loops & head-only viseme crop excluded)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5005,
+          "y": 0.9281
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.4958,
+          "y": 0.6721,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.5085,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4958,
+          "y": 0.3895,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5,
+          "y": 0.3257,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.325,
+          "y": 0.4313,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2083,
+          "y": 0.6563,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6083,
+          "y": 0.4313,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7875,
+          "y": 0.6531,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5,
+          0.3257
+        ],
+        "note": "Rigged 3D GLB (/cast/neon/neon-3d.glb, 6 pose clips) + head-mounted AniCraft dual-ring neon CHIMERA viseme sheet (/cast/neon/neon-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Neon/rig/rig.json",
+        "meshJson": "bibles/general/Neon/rig/mesh.json",
+        "lottieJson": "bibles/general/Neon/rig/neon.lottie.json",
+        "blenderJson": "bibles/general/Neon/rig/neon.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/neon/neon-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "screen-material-slot",
+        "screenStyle": "neon-rings"
+      }
+    },
+    "ozzi": {
+      "id": "ozzi",
+      "bibleDir": "Ozzi",
+      "displayName": "Ozzi",
+      "role": "Goth-rock bare CRT oscilloscope",
+      "color": "#8f6bff",
+      "accentB": "#5eff98",
+      "heightDu": 100,
+      "scaleFactor": 0.944,
+      "portraitUrl": "/cast/ozzi/portrait.webp",
+      "renderMode": "atlas",
+      "multiplane": {
+        "id": "ozzi",
+        "displayName": "Ozzi \u2014 Bare CRT Goth Oscilloscope",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 990,
+        "hasProceduralPhosphorCrt": true,
+        "hasPurplePolarizerGagProp": true,
+        "extraParts": {
+          "sine_rest": {
+            "url": "/cast/ozzi/rig/sine_rest.webp",
+            "width": 204,
+            "height": 54
+          },
+          "sine_speak": {
+            "url": "/cast/ozzi/rig/sine_speak.webp",
+            "width": 89,
+            "height": 22
+          },
+          "sine_spike": {
+            "url": "/cast/ozzi/rig/sine_spike.webp",
+            "width": 195,
+            "height": 83
+          }
+        },
+        "nodes": [
+          {
+            "id": 1243,
+            "name": "probe_jaw_black",
+            "role": "handL",
+            "parent": 264,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/probe_jaw_black.webp",
+            "width": 223,
+            "height": 137,
+            "anchor": [
+              200,
+              110,
+              0
+            ],
+            "position": [
+              21.555555555555202,
+              112.11111111111131,
+              0
+            ],
+            "scale": [
+              -80.55555555555554,
+              -80.55555555555554,
+              100
+            ],
+            "rotationDeg": -180,
+            "defaultOpacity": 100,
+            "zPx": 68
+          },
+          {
+            "id": 1220,
+            "name": "probe_jaw_red",
+            "role": "handR",
+            "parent": 217,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/probe_jaw_red.webp",
+            "width": 214,
+            "height": 156,
+            "anchor": [
+              192,
+              126,
+              0
+            ],
+            "position": [
+              22.000000000000114,
+              112.11111111111131,
+              0
+            ],
+            "scale": [
+              80.55555555555554,
+              80.55555555555554,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 68
+          },
+          {
+            "id": 217,
+            "name": "conduit_arm_R",
+            "role": "armR",
+            "parent": 1165,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/conduit_arm_R.webp",
+            "width": 297,
+            "height": 158,
+            "anchor": [
+              272,
+              26,
+              0
+            ],
+            "position": [
+              51.235294117646845,
+              110.58823529411734,
+              0
+            ],
+            "scale": [
+              105.88235294117646,
+              105.88235294117646,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 54
+          },
+          {
+            "id": 264,
+            "name": "conduit_arm_L",
+            "role": "armL",
+            "parent": 1165,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/conduit_arm_L.webp",
+            "width": 291,
+            "height": 158,
+            "anchor": [
+              266,
+              26,
+              0
+            ],
+            "position": [
+              474.7647058823527,
+              110.58823529411734,
+              0
+            ],
+            "scale": [
+              -105.88235294117646,
+              105.88235294117646,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 54
+          },
+          {
+            "id": 1165,
+            "name": "goth_vest_torso",
+            "role": "torso",
+            "parent": 99,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/goth_vest_torso.webp",
+            "width": 526,
+            "height": 447,
+            "anchor": [
+              263,
+              390,
+              0
+            ],
+            "position": [
+              50.00000000000006,
+              50,
+              0
+            ],
+            "scale": [
+              68.00000000000001,
+              68.00000000000001,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 6.896551724137931
+          },
+          {
+            "id": 997,
+            "name": "scope_chassis",
+            "role": "head",
+            "parent": 111,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/scope_bezel_frame.webp",
+            "width": 456,
+            "height": 423,
+            "anchor": [
+              228,
+              395,
+              0
+            ],
+            "position": [
+              50.000000000000114,
+              50.00000000000006,
+              0
+            ],
+            "scale": [
+              68.00000000000001,
+              68.00000000000001,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 24.482758620689655
+          },
+          {
+            "id": 166,
+            "name": "cord_bangs",
+            "role": "hairOrTrim",
+            "parent": 997,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/cord_bangs.webp",
+            "width": 565,
+            "height": 474,
+            "anchor": [
+              282,
+              115,
+              0
+            ],
+            "position": [
+              228,
+              47.94117647058812,
+              0
+            ],
+            "scale": [
+              120.58823529411764,
+              111.76470588235293,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 14
+          },
+          {
+            "id": 123,
+            "name": "spring_aerial",
+            "role": "antenna",
+            "parent": 997,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/spring_aerial.webp",
+            "width": 95,
+            "height": 370,
+            "anchor": [
+              47,
+              332,
+              0
+            ],
+            "position": [
+              228,
+              9.705882352941046,
+              0
+            ],
+            "scale": [
+              79.41176470588235,
+              79.41176470588235,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -28.93793103448276
+          },
+          {
+            "id": 111,
+            "name": "neck",
+            "role": "head",
+            "parent": 1165,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              262.9999999999998,
+              72.35294117647038,
+              0
+            ],
+            "scale": [
+              147.05882352941174,
+              147.05882352941174,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 22.689655172413794
+          },
+          {
+            "id": 99,
+            "name": "pelvis",
+            "role": "torso",
+            "parent": 30,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              163,
+              5.294117647059011,
+              0
+            ],
+            "scale": [
+              147.05882352941174,
+              147.05882352941174,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 4.551724137931035
+          },
+          {
+            "id": 76,
+            "name": "boot_L",
+            "role": "legs",
+            "parent": 18,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/boot_L.webp",
+            "width": 253,
+            "height": 326,
+            "anchor": [
+              126.5,
+              313,
+              0
+            ],
+            "position": [
+              136,
+              50,
+              0
+            ],
+            "scale": [
+              68,
+              68,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.586206896551722
+          },
+          {
+            "id": 53,
+            "name": "boot_R",
+            "role": "legs",
+            "parent": 18,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/boot_R.webp",
+            "width": 253,
+            "height": 326,
+            "anchor": [
+              126.5,
+              313,
+              0
+            ],
+            "position": [
+              -36,
+              50,
+              0
+            ],
+            "scale": [
+              68,
+              68,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.724137931034484
+          },
+          {
+            "id": 30,
+            "name": "rod_legs",
+            "role": "legs",
+            "parent": 18,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/ozzi/rig/rod_legs.webp",
+            "width": 326,
+            "height": 128,
+            "anchor": [
+              163,
+              120,
+              0
+            ],
+            "position": [
+              50,
+              -124,
+              0
+            ],
+            "scale": [
+              68,
+              68,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.862068965517242
+          },
+          {
+            "id": 18,
+            "name": "boot_pivot",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              540,
+              990,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -18
+          }
+        ]
+      },
+      "clips": {
+        "idle": {
+          "url": "/cast/ozzi/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/ozzi/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "adjust-specs": {
+          "url": "/cast/ozzi/adjust-specs.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "probe-arc": {
+          "url": "/cast/ozzi/probe-arc.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "bow": {
+          "url": "/cast/ozzi/bow.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "gag": {
+          "url": "/cast/ozzi/gag.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk": {
+          "url": "/cast/ozzi/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.956,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "adjust-specs": "adjust-specs",
+        "biascheck-skit": "adjust-specs",
+        "audition-beats": "probe-arc",
+        "probe-arc": "probe-arc",
+        "gag": "gag",
+        "bow": "bow",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Ozzi.designcraft",
+        "bibleHeroSrc": "bibles/general/Ozzi/img/Ozzi_GothOscilloscope_CANON.png",
+        "bibleHeroUrl": "/cast/ozzi/bible-hero.webp",
+        "stageModelSource": "multiplane-2.5d (14 nodes)",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Native 14-node 2.5D bare-CRT multiplane rig + clean-alpha idle/sing + biascheck-skit & audition-beats."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.9167
+        },
+        {
+          "id": "pelvis",
+          "label": "pelvis",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.6833,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "goth_vest_torso",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.6833,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "neck",
+          "role": "neck",
+          "x": 0.5,
+          "y": 0.4833,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "scope_chassis",
+          "role": "head-jaw",
+          "x": 0.5,
+          "y": 0.4833,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "conduit_arm_L",
+          "role": "shoulder-l",
+          "x": 0.6333,
+          "y": 0.5074,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "probe_jaw_black",
+          "role": "hand-l",
+          "x": 0.7963,
+          "y": 0.5648,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "conduit_arm_R",
+          "role": "shoulder-r",
+          "x": 0.3667,
+          "y": 0.5074,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "probe_jaw_red",
+          "role": "hand-r",
+          "x": 0.2,
+          "y": 0.5648,
+          "parent": "shoulder-r"
+        },
+        {
+          "id": "prop",
+          "label": "spring_aerial",
+          "role": "prop",
+          "x": 0.5,
+          "y": 0.2407,
+          "parent": "head-jaw"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "multiplane-jaw-sine",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5,
+          0.4833
+        ],
+        "note": "Procedural phosphor CRT waveform + sing_speak/sine_spike swap. + editable AniCraft facial polish (/cast/ozzi/ozzi-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Ozzi/rig/rig.json",
+        "meshJson": "bibles/general/Ozzi/rig/mesh.json",
+        "lottieJson": "bibles/general/Ozzi/rig/ozzi.lottie.json",
+        "blenderJson": "bibles/general/Ozzi/rig/ozzi.blender.json"
+      }
+    },
+    "tabby": {
+      "id": "tabby",
+      "bibleDir": "Tabby",
+      "displayName": "Tabby",
+      "role": "Cracked-tablet cat soprano",
+      "color": "#3fbfa0",
+      "accentB": "#f2c15a",
+      "heightDu": 96,
+      "scaleFactor": 0.909,
+      "portraitUrl": "/cast/tabby/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/tabby/idle-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        },
+        "bow": {
+          "url": "/cast/tabby/bow.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.92,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk-right": {
+          "url": "/cast/tabby/walk-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        },
+        "toast": {
+          "url": "/cast/tabby/toast.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 8,
+          "loop": false,
+          "anchorY": 0.938,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "visemes": {
+          "url": "/cast/tabby/visemes-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        },
+        "turnaround": {
+          "url": "/cast/tabby/turnaround-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        },
+        "jump": {
+          "url": "/cast/tabby/jump.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.94,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "reaction": {
+          "url": "/cast/tabby/reaction-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        },
+        "sing": {
+          "url": "/cast/tabby/sing.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.94,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk": {
+          "url": "/cast/tabby/walk-4x2.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 512,
+          "cellHeight": 512
+        }
+      },
+      "directedTakes": {
+        "bow": "bow",
+        "toast": "toast",
+        "walk-right": "walk-right",
+        "jump": "jump",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Tabby.designcraft",
+        "bibleHeroSrc": "bibles/general/Tabby/crops/tabby_staged_front.png",
+        "bibleHeroUrl": "/cast/tabby/bible-hero.webp",
+        "stageModelSource": "bibles/general/Tabby/motion/.../{tabby-idle,tabby-bow,tabby-walk_right}.webm + tabby-propreq1-toast.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Patched-coat cracked-tablet Canon (legacy v1 rainbow-vest Stage Loops & opaque tabby_walk_right excluded)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.4919,
+          "y": 0.9023
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.4766,
+          "y": 0.6355,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.4746,
+          "y": 0.4653,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.4727,
+          "y": 0.3416,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4766,
+          "y": 0.2759,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3398,
+          "y": 0.3867,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2813,
+          "y": 0.6328,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6133,
+          "y": 0.3867,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.6719,
+          "y": 0.6328,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.505,
+          0.276
+        ],
+        "note": "7 PhotoCraft isolated needle-felted mouth decals (/cast/tabby/mouths/{rest,closed,fv,ee,ah,oh,oo}.webp) + continuous 13-part 2.5D articulated rig + editable AniCraft bone pilot (/cast/tabby/tabby-ribbon-pilot.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Tabby/rig/rig.json",
+        "meshJson": "bibles/general/Tabby/rig/mesh.json",
+        "lottieJson": "bibles/general/Tabby/rig/tabby.lottie.json",
+        "blenderJson": "bibles/general/Tabby/rig/tabby.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/tabby/tabby-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "tabby-led-mouth"
+      }
+    },
+    "tally": {
+      "id": "tally",
+      "bibleDir": "Tally",
+      "displayName": "Tally",
+      "role": "Stage manager owl & ticker beacon",
+      "color": "#e06a4f",
+      "accentB": "#f6d55c",
+      "heightDu": 92,
+      "scaleFactor": 0.874,
+      "portraitUrl": "/cast/tally/portrait.webp",
+      "renderMode": "atlas",
+      "multiplane": {
+        "id": "tally",
+        "displayName": "Tally \u2014 Booth Camera & Ticker Owl",
+        "compWidth": 1080,
+        "compHeight": 1080,
+        "centerX": 540,
+        "floorY": 1037,
+        "hasProceduralPhosphorCrt": false,
+        "hasPurplePolarizerGagProp": false,
+        "extraParts": {},
+        "nodes": [
+          {
+            "id": 752,
+            "name": "Brass_Iris_Closed",
+            "role": "altVariant",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/brass_iris_closed.webp",
+            "width": 82,
+            "height": 82,
+            "anchor": [
+              41,
+              41,
+              0
+            ],
+            "position": [
+              71.9736842105263,
+              89.94736842105266,
+              0
+            ],
+            "scale": [
+              99.99999999999997,
+              99.99999999999997,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 35.411764705882355
+          },
+          {
+            "id": 729,
+            "name": "Brass_Iris_Open",
+            "role": "singVariant",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/brass_iris_open.webp",
+            "width": 82,
+            "height": 82,
+            "anchor": [
+              41,
+              41,
+              0
+            ],
+            "position": [
+              71.9736842105263,
+              89.94736842105266,
+              0
+            ],
+            "scale": [
+              99.99999999999997,
+              99.99999999999997,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 35.22352941176471
+          },
+          {
+            "id": 706,
+            "name": "Brass_Iris",
+            "role": "restVariant",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/brass_iris_mid.webp",
+            "width": 82,
+            "height": 82,
+            "anchor": [
+              41,
+              41,
+              0
+            ],
+            "position": [
+              71.9736842105263,
+              89.94736842105266,
+              0
+            ],
+            "scale": [
+              99.99999999999997,
+              99.99999999999997,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 35.035294117647055
+          },
+          {
+            "id": 683,
+            "name": "Head_Housing",
+            "role": "head",
+            "parent": 506,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/head_housing.webp",
+            "width": 293,
+            "height": 222,
+            "anchor": [
+              146.5,
+              195,
+              0
+            ],
+            "position": [
+              303.5000000000001,
+              44.77528089887642,
+              0
+            ],
+            "scale": [
+              106.74157303370788,
+              106.74157303370788,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 25.058823529411764
+          },
+          {
+            "id": 660,
+            "name": "Paper_Ticker",
+            "role": "hairOrTrim",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/paper_ticker.webp",
+            "width": 708,
+            "height": 76,
+            "anchor": [
+              6,
+              48,
+              0
+            ],
+            "position": [
+              286.50000000000006,
+              168.68421052631578,
+              0
+            ],
+            "scale": [
+              50.52631578947367,
+              50.52631578947367,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 40.65882352941176
+          },
+          {
+            "id": 621,
+            "name": "ON_AIR_Dome_Lit",
+            "role": "gagVariant",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/on_air_dome_lit.webp",
+            "width": 94,
+            "height": 78,
+            "anchor": [
+              47,
+              77,
+              0
+            ],
+            "position": [
+              146.50000000000006,
+              7.631578947368496,
+              0
+            ],
+            "scale": [
+              96.84210526315786,
+              96.84210526315786,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 34.470588235294116
+          },
+          {
+            "id": 598,
+            "name": "ON_AIR_Dome",
+            "role": "restVariant",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/on_air_dome_off.webp",
+            "width": 81,
+            "height": 99,
+            "anchor": [
+              40.5,
+              94,
+              0
+            ],
+            "position": [
+              146.50000000000006,
+              7.631578947368496,
+              0
+            ],
+            "scale": [
+              99.99999999999997,
+              99.99999999999997,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 34.28235294117647
+          },
+          {
+            "id": 575,
+            "name": "Clothespin_Ear",
+            "role": "body",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/clothespin_ear.webp",
+            "width": 192,
+            "height": 49,
+            "anchor": [
+              28,
+              22,
+              0
+            ],
+            "position": [
+              260.1842105263158,
+              24.473684210526358,
+              0
+            ],
+            "scale": [
+              78.94736842105262,
+              78.94736842105262,
+              100
+            ],
+            "rotationDeg": -50,
+            "defaultOpacity": 100,
+            "zPx": 0.47058823529411775
+          },
+          {
+            "id": 552,
+            "name": "Antenna_Stub",
+            "role": "antenna",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/antenna_stub.webp",
+            "width": 153,
+            "height": 23,
+            "anchor": [
+              148,
+              12,
+              0
+            ],
+            "position": [
+              218.0789473684211,
+              7.631578947368496,
+              0
+            ],
+            "scale": [
+              71.57894736842104,
+              71.57894736842104,
+              100
+            ],
+            "rotationDeg": 112,
+            "defaultOpacity": 100,
+            "zPx": -28.094117647058823
+          },
+          {
+            "id": 529,
+            "name": "Antenna_Long",
+            "role": "antenna",
+            "parent": 683,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/antenna_long.webp",
+            "width": 461,
+            "height": 36,
+            "anchor": [
+              455,
+              18,
+              0
+            ],
+            "position": [
+              7.552631578947398,
+              21.315789473684276,
+              0
+            ],
+            "scale": [
+              71.57894736842104,
+              71.57894736842104,
+              100
+            ],
+            "rotationDeg": 43,
+            "defaultOpacity": 100,
+            "zPx": -28.28235294117647
+          },
+          {
+            "id": 506,
+            "name": "Cloak_Body",
+            "role": "torso",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/cloak_body.webp",
+            "width": 607,
+            "height": 425,
+            "anchor": [
+              303.5,
+              65,
+              0
+            ],
+            "position": [
+              50,
+              -449,
+              0
+            ],
+            "scale": [
+              89,
+              89,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": 5.411764705882353
+          },
+          {
+            "id": 483,
+            "name": "Tripod_Chassis",
+            "role": "legs",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/inner_chassis.webp",
+            "width": 280,
+            "height": 374,
+            "anchor": [
+              140,
+              310,
+              0
+            ],
+            "position": [
+              50,
+              -163,
+              0
+            ],
+            "scale": [
+              80,
+              80,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -16.823529411764707
+          },
+          {
+            "id": 460,
+            "name": "Tripod_Leg_R",
+            "role": "legs",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/tripod_leg_r.webp",
+            "width": 22,
+            "height": 223,
+            "anchor": [
+              11,
+              10,
+              0
+            ],
+            "position": [
+              116,
+              -163,
+              0
+            ],
+            "scale": [
+              72,
+              72,
+              100
+            ],
+            "rotationDeg": -14.5,
+            "defaultOpacity": 100,
+            "zPx": -17.058823529411764
+          },
+          {
+            "id": 437,
+            "name": "Tripod_Leg_L",
+            "role": "legs",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/tripod_leg_l.webp",
+            "width": 21,
+            "height": 225,
+            "anchor": [
+              10.5,
+              10,
+              0
+            ],
+            "position": [
+              -16,
+              -163,
+              0
+            ],
+            "scale": [
+              72,
+              72,
+              100
+            ],
+            "rotationDeg": 14.5,
+            "defaultOpacity": 100,
+            "zPx": -17.294117647058822
+          },
+          {
+            "id": 414,
+            "name": "Tripod_Foot_R",
+            "role": "legs",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/tripod_foot_r.webp",
+            "width": 99,
+            "height": 92,
+            "anchor": [
+              49,
+              91,
+              0
+            ],
+            "position": [
+              154,
+              50,
+              0
+            ],
+            "scale": [
+              98,
+              98,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.529411764705884
+          },
+          {
+            "id": 391,
+            "name": "Tripod_Foot_L",
+            "role": "legs",
+            "parent": 379,
+            "sourceType": "Footage",
+            "publicSrc": "/cast/tally/rig/tripod_foot_l.webp",
+            "width": 103,
+            "height": 91,
+            "anchor": [
+              51,
+              90,
+              0
+            ],
+            "position": [
+              -54,
+              50,
+              0
+            ],
+            "scale": [
+              98,
+              98,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -17.764705882352942
+          },
+          {
+            "id": 379,
+            "name": "Tripod_Root",
+            "role": "legs",
+            "parent": null,
+            "sourceType": "Null",
+            "publicSrc": null,
+            "width": 0,
+            "height": 0,
+            "anchor": [
+              50,
+              50,
+              0
+            ],
+            "position": [
+              540,
+              1037,
+              0
+            ],
+            "scale": [
+              100,
+              100,
+              100
+            ],
+            "rotationDeg": 0,
+            "defaultOpacity": 100,
+            "zPx": -18
+          }
+        ]
+      },
+      "clips": {
+        "idle": {
+          "url": "/cast/tally/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/tally/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "ticker-cue": {
+          "url": "/cast/tally/ticker-cue.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/tally/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.98,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "gasp": "ticker-cue",
+        "ticker-cue": "ticker-cue",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Tally.designcraft",
+        "bibleHeroSrc": "bibles/general/Tally/img/Tally_Hero_CANON.jpg",
+        "bibleHeroUrl": "/cast/tally/bible-hero.webp",
+        "stageModelSource": "multiplane-2.5d (17 nodes)",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Native 17-node 2.5D multiplane owl rig + 48f ticker-cue directed take from EffectCraft."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.9602
+        },
+        {
+          "id": "pelvis",
+          "label": "Tripod_Root",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.9602,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Cloak_Body",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.4981,
+          "parent": "pelvis"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head_Housing",
+          "role": "head-jaw",
+          "x": 0.5,
+          "y": 0.4815,
+          "parent": "spine"
+        },
+        {
+          "id": "prop",
+          "label": "ON_AIR_Dome_Lit",
+          "role": "prop",
+          "x": 0.5,
+          "y": 0.3167,
+          "parent": "head-jaw"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "multiplane-jaw-sine",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5,
+          0.4815
+        ],
+        "note": "2.5D multiplane rig (17 nodes) with dedicated singVariant layer swap. + editable AniCraft facial polish (/cast/tally/tally-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Tally/rig/rig.json",
+        "meshJson": "bibles/general/Tally/rig/mesh.json",
+        "lottieJson": "bibles/general/Tally/rig/tally.lottie.json",
+        "blenderJson": "bibles/general/Tally/rig/tally.blender.json"
+      }
+    },
+    "thrum": {
+      "id": "thrum",
+      "bibleDir": "Thrum",
+      "displayName": "Thrum",
+      "role": "Spare Parts reel-to-reel tape echo",
+      "color": "#83c7c3",
+      "accentB": "#e3bd7f",
+      "heightDu": 106,
+      "scaleFactor": 0.996,
+      "portraitUrl": "/cast/thrum/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/thrum/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.915,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/thrum/sing.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.915,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "performance": {
+          "url": "/cast/thrum/performance.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/thrum/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.966,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "performance": "performance",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Thrum.designcraft",
+        "bibleHeroSrc": "bibles/general/Thrum/img/staged_front.png",
+        "bibleHeroUrl": "/cast/thrum/bible-hero.webp",
+        "stageModelSource": "bibles/general/Thrum/motion/.../{thrum-idle,thrum-play-mp4,thrum_performance}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Canon v2 tape-echo hardware rig \u2014 idle, play & performance baked from Bible WebMs."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5,
+          "y": 0.9141
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5059,
+          "y": 0.6698,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5039,
+          "y": 0.5142,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.502,
+          "y": 0.4011,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.4961,
+          "y": 0.3414,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3633,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.2344,
+          "y": 0.668,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6484,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.7773,
+          "y": 0.668,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.4961,
+          0.3414
+        ],
+        "note": "Rigged 3D GLB (/cast/thrum/thrum-3d.glb, 6 pose clips) + head-mounted AniCraft CHIMERA mouth-only viseme sheet (/cast/thrum/thrum-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Thrum/rig/rig.json",
+        "meshJson": "bibles/general/Thrum/rig/mesh.json",
+        "lottieJson": "bibles/general/Thrum/rig/thrum.lottie.json",
+        "blenderJson": "bibles/general/Thrum/rig/thrum.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/thrum/thrum-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/thrum/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.16,
+          "height": 0.095,
+          "offsetY": -0.025,
+          "offsetZ": 0.012,
+          "mouthOnly": true
+        }
+      }
+    },
+    "tracker": {
+      "id": "tracker",
+      "bibleDir": "Tracker",
+      "displayName": "Tracker",
+      "role": "Slim 12:00 90s VHS deck (75 DU)",
+      "color": "#57d3e8",
+      "accentB": "#8ce0a8",
+      "heightDu": 75,
+      "scaleFactor": 0.726,
+      "portraitUrl": "/cast/tracker/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/tracker/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/tracker/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "drawer-lead": {
+          "url": "/cast/tracker/drawer-lead.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk": {
+          "url": "/cast/tracker/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.96,
+          "cellWidth": 256,
+          "cellHeight": 256
+        }
+      },
+      "directedTakes": {
+        "nod": "drawer-lead",
+        "drawer-lead": "drawer-lead",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Tracker.designcraft",
+        "bibleHeroSrc": "bibles/general/Tracker/img/Tracker_90sVHS_Redesign_CANON.png",
+        "bibleHeroUrl": "/cast/tracker/bible-hero.webp",
+        "stageModelSource": "animations/effectcraft/tracker/exports/twos-12fps/{idle,sing,drawer-lead}.webm (walk uses canonical 24f idle stride)",
+        "animationTier": "effectcraft-webm-atlas",
+        "notes": "Canon v2 Slim 12:00 90s VHS deck (75 DU) \u2014 24f @ 12fps idle, sing & drawer-lead from EffectCraft (replaces legacy 04:04 double-VFD rig)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5118,
+          "y": 0.9648
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.498,
+          "y": 0.694,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.498,
+          "y": 0.5212,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.5332,
+          "y": 0.3956,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5215,
+          "y": 0.3289,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.1094,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.1055,
+          "y": 0.4766,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.9453,
+          "y": 0.4414,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.957,
+          "y": 0.3945,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5215,
+          0.3289
+        ],
+        "note": "Canon v2 Slim 12:00 90s VHS deck (75 DU) 2.5D EffectCraft rig — CHIMERA vowel openness drives cassette-tray jaw opening across sing.webp frames + glowing 12:00 green VFD + drawer-lead pop."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Tracker/rig/rig.json",
+        "meshJson": "bibles/general/Tracker/rig/mesh.json",
+        "lottieJson": "bibles/general/Tracker/rig/tracker.lottie.json",
+        "blenderJson": "bibles/general/Tracker/rig/tracker.blender.json"
+      }
+    },
+    "watt": {
+      "id": "watt",
+      "bibleDir": "Watt",
+      "displayName": "Watt",
+      "role": "Six-socket power strip",
+      "color": "#e06a4f",
+      "accentB": "#f6d55c",
+      "heightDu": 94,
+      "scaleFactor": 0.892,
+      "portraitUrl": "/cast/watt/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/watt/idle.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.922,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/watt/sing.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.93,
+          "cellWidth": 240,
+          "cellHeight": 320
+        },
+        "walk": {
+          "url": "/cast/watt/walk.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.966,
+          "cellWidth": 344,
+          "cellHeight": 384
+        }
+      },
+      "directedTakes": {
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Watt.designcraft",
+        "bibleHeroSrc": "moppets/00-flow-queue/07_Watt/Watt_v2_hardware_portrait.png",
+        "bibleHeroUrl": "/cast/watt/bible-hero.webp",
+        "stageModelSource": "bibles/general/Watt/motion/.../{watt-rig,watt_performance}.webm",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Canon v2 ochre vest + brass alligator clamps + taped PVC legs (v1 naked power-strip Stage Loops & watt-idle excluded)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5108,
+          "y": 0.9219
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5,
+          "y": 0.7015,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5,
+          "y": 0.5614,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.5254,
+          "y": 0.4595,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5215,
+          "y": 0.4061,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.3906,
+          "y": 0.4961,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Hand",
+          "role": "hand-l",
+          "x": 0.3242,
+          "y": 0.7031,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6563,
+          "y": 0.4961,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Hand",
+          "role": "hand-r",
+          "x": 0.6758,
+          "y": 0.7031,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5215,
+          0.4061
+        ],
+        "note": "Rigged 3D GLB (/cast/watt/watt-3d.glb, 6 pose clips) + head-mounted AniCraft socket-face CHIMERA viseme sheet (/cast/watt/watt-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Watt/rig/rig.json",
+        "meshJson": "bibles/general/Watt/rig/mesh.json",
+        "lottieJson": "bibles/general/Watt/rig/watt.lottie.json",
+        "blenderJson": "bibles/general/Watt/rig/watt.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/watt/watt-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/watt/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.125,
+          "height": 0.078,
+          "offsetY": -0.028,
+          "offsetZ": 0.012,
+          "offsetX": 0,
+          "mouthOnly": true
+        }
+      }
+    },
+    "zap": {
+      "id": "zap",
+      "bibleDir": "Zap",
+      "displayName": "Zap",
+      "role": "Universal remote, self-appointed director",
+      "color": "#7fd36b",
+      "accentB": "#57d3e8",
+      "heightDu": 94,
+      "scaleFactor": 0.892,
+      "portraitUrl": "/cast/zap/portrait.webp",
+      "renderMode": "atlas",
+      "clips": {
+        "idle": {
+          "url": "/cast/zap/idle.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.891,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "idle-sheet": {
+          "url": "/cast/zap/idle-sheet.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "anchorY": 0.95,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "turn": {
+          "url": "/cast/zap/turn.webp",
+          "cols": 8,
+          "rows": 6,
+          "frames": 48,
+          "fps": 12,
+          "loop": false,
+          "anchorY": 0.92,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "walk-right": {
+          "url": "/cast/zap/walk-right.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.891,
+          "cellWidth": 256,
+          "cellHeight": 256
+        },
+        "sing": {
+          "url": "/cast/zap/sing.webp",
+          "cols": 4,
+          "rows": 2,
+          "frames": 8,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.92,
+          "cellWidth": 344,
+          "cellHeight": 384
+        },
+        "walk": {
+          "url": "/cast/zap/walk-right.webp",
+          "cols": 6,
+          "rows": 4,
+          "frames": 24,
+          "fps": 12,
+          "loop": true,
+          "anchorY": 0.891,
+          "cellWidth": 256,
+          "cellHeight": 256
+        }
+      },
+      "directedTakes": {
+        "turn": "turn",
+        "walk-right": "walk-right",
+        "idle-sheet": "idle-sheet",
+        "walk": "walk",
+        "step": "walk"
+      },
+      "bibleAudit": {
+        "status": "verified-bible",
+        "bibleFile": "Zap.designcraft",
+        "bibleHeroSrc": "bibles/general/Zap/crops/zap_app_rest.png",
+        "bibleHeroUrl": "/cast/zap/bible-hero.webp",
+        "stageModelSource": "bibles/general/Zap/motion/.../{zap-idle,zap-turn,zap-walk_right}.webm + zap_idle_4x2_keyed.png",
+        "animationTier": "bible-webm-atlas",
+        "notes": "Upgraded per S-6 / D-12 to autonomous Studio 404 brass-and-steel alligator test-clip hardware hands on #0000FF Blue chroma (zero green LCD bleed; Zap.designcraft updated with 0 preflight errors)."
+      },
+      "ikPoints": [
+        {
+          "id": "root-foot",
+          "label": "Root Foot Anchor",
+          "role": "root-foot",
+          "x": 0.5054,
+          "y": 0.8906
+        },
+        {
+          "id": "pelvis",
+          "label": "Pelvis",
+          "role": "pelvis",
+          "x": 0.5117,
+          "y": 0.6317,
+          "parent": "root-foot"
+        },
+        {
+          "id": "spine",
+          "label": "Spine",
+          "role": "spine",
+          "x": 0.5117,
+          "y": 0.4667,
+          "parent": "pelvis"
+        },
+        {
+          "id": "neck",
+          "label": "Neck",
+          "role": "neck",
+          "x": 0.5098,
+          "y": 0.3467,
+          "parent": "spine"
+        },
+        {
+          "id": "head-jaw",
+          "label": "Head / Jaw",
+          "role": "head-jaw",
+          "x": 0.5137,
+          "y": 0.2831,
+          "parent": "neck"
+        },
+        {
+          "id": "shoulder-l",
+          "label": "Left Shoulder",
+          "role": "shoulder-l",
+          "x": 0.375,
+          "y": 0.3906,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-l",
+          "label": "Left Brass Alligator-Clip Hand",
+          "role": "hand-l",
+          "x": 0.16,
+          "y": 0.68,
+          "parent": "shoulder-l"
+        },
+        {
+          "id": "shoulder-r",
+          "label": "Right Shoulder",
+          "role": "shoulder-r",
+          "x": 0.6484,
+          "y": 0.3906,
+          "parent": "spine"
+        },
+        {
+          "id": "hand-r",
+          "label": "Right Brass Alligator-Clip Hand",
+          "role": "hand-r",
+          "x": 0.84,
+          "y": 0.68,
+          "parent": "shoulder-r"
+        }
+      ],
+      "vocalSyncSpec": {
+        "mode": "open-closed-viseme",
+        "hasDedicatedMouthOpen": true,
+        "mouthPivot": [
+          0.5137,
+          0.2831
+        ],
+        "note": "Rigged 3D GLB (/cast/zap/zap-3d.glb, 6 pose clips) + head-mounted AniCraft green-LCD CHIMERA viseme sheet (/cast/zap/zap-polish.anicraft)."
+      },
+      "defects": [],
+      "rigArtifacts": {
+        "rigJson": "bibles/general/Zap/rig/rig.json",
+        "meshJson": "bibles/general/Zap/rig/mesh.json",
+        "lottieJson": "bibles/general/Zap/rig/zap.lottie.json",
+        "blenderJson": "bibles/general/Zap/rig/zap.blender.json"
+      },
+      "model3d": {
+        "url": "/cast/zap/zap-3d.glb",
+        "scale": 1,
+        "yOffset": 0,
+        "yawOffsetDeg": 0,
+        "faceOverlay": "anicraft-face-sheet",
+        "faceSheet": {
+          "url": "/cast/zap/anicraft-face-4x2.png",
+          "cols": 4,
+          "rows": 2,
+          "width": 0.2,
+          "height": 0.145,
+          "offsetY": 0.012,
+          "offsetZ": 0.01,
+          "offsetX": -0.012
+        }
+      }
+    }
+  },
+  "sets": {
+    "stage-dark": {
+      "id": "stage-dark",
+      "label": "Studio 404 Dark Stage",
+      "url": "/cast/sets/stage-dark.webp"
+    },
+    "arena-lit": {
+      "id": "arena-lit",
+      "label": "Studio 404 Arena Lit",
+      "url": "/cast/sets/arena-lit.webp"
+    },
+    "stage-left": {
+      "id": "stage-left",
+      "label": "Stage Left Drum Corner",
+      "url": "/cast/sets/stage-left.webp"
+    },
+    "bench-right": {
+      "id": "bench-right",
+      "label": "Stage Right Repair Bench",
+      "url": "/cast/sets/bench-right.webp"
+    },
+    "rhythm-riser": {
+      "id": "rhythm-riser",
+      "label": "Spare Parts Rhythm Riser",
+      "url": "/cast/sets/rhythm-riser.webp"
+    },
+    "caretaker-door": {
+      "id": "caretaker-door",
+      "label": "Caretaker Door Cracked Beam",
+      "url": "/cast/sets/caretaker-door.webp"
+    },
+    "studio404-floor": {
+      "id": "studio404-floor",
+      "label": "Studio 404 Wooden Floor",
+      "url": "/cast/sets/studio404-floor.webp"
+    },
+    "studio404-spotlight": {
+      "id": "studio404-spotlight",
+      "label": "Studio 404 Spotlight Stage",
+      "url": "/cast/sets/studio404-spotlight.webp"
+    }
+  }
+}

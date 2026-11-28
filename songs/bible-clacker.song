@@ -1,0 +1,30 @@
+title: Bible · Clacker
+id: bible-clacker
+tab: Bible · Clacker
+about: Studio 404 Bible solo showcase for Clacker — percussive tap walk, slate snaps, puppet-rig & performance takes
+lead: clacker
+key: F major
+bpm: 118
+backing:
+bass: none
+stage: clacker
+registers: clacker -12
+breath: .5
+finale: "Click" on 0
+
+[Vocal Sync · Slate Snap Staccato]
+"Click clack keys snap clean on the beat" = 0 2 4 5 4 2/.5 4/.5 0/1.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+"Spring steel tips tap fast on my feet" = 4 5 7 5 4 2/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Slate board claps one, two, three, four sharp" = 3 5 7 5 4 6/.5 4/.5 1/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam reaction
+
+[Vocal Sync · Sustained Key Ring]
+"Warm synth chord rings!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Tap shoes dance across the floor!" = 4 6 7/1.5 4/.5 2 4/.5 0/2 | III 4, I 4 ; do tilt ; cam closeup
+
+[Tap Walk, Rig & Slate Jump]
+"Tap walk left and right in groove" = 0 2 4 5 4 2/.5 0/2 | I 4, I 4 ; do laugh ; dance 4 ; cam wide
+"Slate jump! Watch these keyboard shoes move!" = 4 5/.5 7/.5 9 7/.5 5/.5 4 1/2.5 | IV 4, V 4 ; do cheer ; jump 1.5 ; cam low-angle
+"Pitch wheel bends ev'ry crisp note!" = 0/.5 2/.5 4 5/.5 4/.5 2 0/3.5 | I 4, I 4 ; do shrug ; take puppet-rig ; cam closeup
+
+[Bible Performance & Celebrate]
+"Keys shine bright across the coat!" = 4 5 7/.5 5/.5 4 2/.5 0/3 | IV 4, I 4 ; do bow ; take performance ; celebrate 4 ; cam wide

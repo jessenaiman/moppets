@@ -1,0 +1,30 @@
+title: Bible · Fuzz
+id: bible-fuzz
+tab: Bible · Fuzz
+about: Studio 404 Bible solo showcase for Fuzz — 12-node D18 ruler-guitar shred stance, distortion leap & rock bow
+lead: fuzz
+key: E minor
+bpm: 120
+backing:
+bass: none
+stage: fuzz
+registers: fuzz -12
+breath: .5
+finale: "Shred" on 0
+
+[Vocal Sync · Amp Riff Staccato]
+"Turn the knob straight up past the ten" = 0 2 3 5 4 2/.5 3/.5 0/1.5 | I 4, I 4 ; move left 4 ; cam wide
+"Twin glass tubes glow bright once more, friend!" = 4 5 6 5 4 2/.5 1/.5 4/1.5 | V 4, V 4 ; move right 4 ; cam closeup
+"Yardstick fretboard snaps left and right" = 2 3 5 6 5 3/.5 2/.5 0/1.5 | IV 4, V 4 ; move center 4 ; cam low-angle
+
+[Vocal Sync · Sustained Tube Belt]
+"Loud warm amp roars!" = 0 2 5/2 4/3.5 | IV 4, V 4 ; cam low-angle
+"Overdrive rings through the halls!" = 4 5/.5 6/1.5 5 3/1.5 2/.5 0/1.5 | III 4, IV 4 ; cam closeup
+
+[Distortion Leap & Shred Stance]
+"Power stance! Let that wool coat shake!" = 0 2 3/1.5 5/.5 6 5/.5 3/.5 0/1.5 | I 4, I 4 ; dance 8 ; cam wide
+"Jump! Play loud! Make the whole stage shake!" = 3 5 6 5 4 2/.5 1/.5 0/1.5 | IV 4, V 4 ; jump 2 ; cam low-angle
+"Plum wool coat shreds down to the bone" = 0 2 3 5 4 2/.5 4/.5 0/1.5 | I 4, V 4 ; do cheer ; take shred ; cam closeup
+
+[Bible Rock Bow]
+"Yardstick strings stand proud alone!" = 3 5 6 5 2/1.5 4/.5 0/1.5 | IV 4, I 4 ; do bow ; take bow ; celebrate 4 ; cam wide

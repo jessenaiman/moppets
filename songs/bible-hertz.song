@@ -1,0 +1,31 @@
+title: Bible · Hertz
+id: bible-hertz
+tab: Bible · Hertz
+about: Studio 404 Bible solo showcase for Hertz — 150-DU console CRT sway, channel-zap crt-answer take & stately bow
+lead: hertz
+key: C major
+bpm: 112
+backing:
+bass: none
+stage: hertz
+registers: hertz -12
+breath: .5
+finale: "Scan" on 0
+
+[Vocal Sync · Console 150 DU Sway]
+"Big oak box on channel oh four" = 0 2 4 5 4 2/.5 4/.5 0/1.5 | I 4, I 4 ; do nod ; move left 4 ; cam wide
+"Heavy walnut rocks the whole floor" = 4/1.5 5/.5 7 5 4 2/.5 1/.5 0/1.5 | V 4, V 4 ; do laugh ; move right 4 ; cam low-angle
+"Rabbit ears pick up the sound" = 2 4 5/2 7 5/.5 4/.5 2/1.5 | IV 4, V 4 ; do gasp ; move center 4 ; cam closeup
+"Tallest cabinet around!" = 4/1.5 5/.5 7/.5 5/.5 4/.5 2/.5 0/3.5 | IV 4, I 4 ; do nod ; cam wide
+
+[Vocal Sync · Sustained Phosphor Belt]
+"Big wood screen glows!" = 0 2 7/2 4/3.5 | IV 4, V 4 ; do cheer ; cam low-angle
+"Rainbow bars beam warm and wide!" = 4 5 6 7 5/1.5 4/.5 3/1.5 | III 4, IV 4 ; do nod ; cam closeup
+
+[Heavy Cabinet Groove & Channel Zap]
+"Sway left, sway right, the whole floor shakes!" = 0 2 4 5/.5 4/.5 7 5 4/1.5 | I 4, I 4 ; do laugh ; dance 8 ; cam wide
+"Hop once! Watch those scanlines quake!" = 4 5 7/1.5 5/.5 8 7 4/1.5 | IV 4, V 4 ; do cheer ; jump 1.5 ; cam low-angle
+"Zap hits now—ears tilt askew!" = 0 2 4/1.5 5/.5 4 2 0/1.5 | I 4, V 4 ; do shrug ; take crt-answer ; cam reaction
+
+[Bible Stately Bow]
+"Channel four locks crisp and true!" = 4 5 7 5 4/1.5 2/.5 0/1.5 | IV 4, I 4 ; do bow ; celebrate 4 ; cam wide

@@ -1,0 +1,30 @@
+title: Bible · Watt
+id: bible-watt
+tab: Bible · Watt
+about: Studio 404 Bible solo showcase for Watt — six-socket voltage vocal sync, surge dance, multi-beat jump & celebrate
+lead: watt
+key: F major
+bpm: 118
+backing:
+bass: none
+stage: watt
+registers: watt -12
+breath: .5
+finale: "On" on 0
+
+[Vocal Sync · Voltage Staccato]
+"Plug six cords tight, flip red switch on" = 0 2 4 2 3 5/.5 3/.5 0/1.5 | I 4, IV 4 ; do nod ; move left 4 ; cam wide
+"Live sparks wake fast, dark room is gone" = 4 1 4 5 2 4/.5 1/.5 0/1.5 | V 4, I 4 ; do tilt ; move right 4 ; cam closeup
+"Six clean slots snap left and right" = 3 5 3/1.5 0/.5 1 2 4/1.5 | IV 4, V 4 ; do laugh ; move center 4 ; cam reaction
+
+[Vocal Sync · High-Voltage Belt]
+"Bright red lamp glows!" = 0/1.5 7/2.5 5/1.5 4/2 | IV 4, V 4 ; do cheer ; cam low-angle
+"Hot surge through the stage!" = 4 6/1.5 7 5/.5 7/3.5 | III 4, IV 4 ; do tilt ; cam closeup
+
+[Surge Dance & Multi-Beat Jump]
+"Pulse and dance across the strip" = 0 2 4/1.5 2/.5 3/1.5 1/.5 0/1.5 | I 4, IV 4 ; do laugh ; dance 4 ; cam wide
+"High-volt leap! Watch copper flip!" = 3 5 7/1.5 5/.5 4/1.5 2/.5 4/1.5 | IV 4, V 4 ; do cheer ; jump 2.5 ; cam low-angle
+
+[Bible Grounding & Celebrate]
+"Six bright plugs share one clean load" = 0 2 4/1.5 5/.5 4 1 4/1.5 | I 4, V 4 ; do shrug ; move forward 3 ; cam closeup
+"Grounded cord lights up the road!" = 3/1.5 5/.5 4 2 1/1.5 2/.5 0/1.5 | IV 2, V 2, I 4 ; do bow ; move center 4 ; celebrate 4 ; cam wide

@@ -1,0 +1,41 @@
+title: The Late Answer
+id: late-answer
+tab: 21 · The Late Answer
+about: 21 · Clank boots up a bar late, jumps a beat behind, and answers yesterday's question with deadpan pride
+lead: clank
+key: C aeolian
+bpm: 102
+backing:
+bass: none
+stage: clank
+registers: clank -24
+breath: .5
+finale: "Yes" on 0
+
+# The Remote's Cut (S-5): Clank enters late, chases the beat, and claps for yesterday.
+
+[late entrance]
+rest 4
+"Wait up! My boot disk took a nap" = 0/.5 2/.5 3/.5 4/.5 3 2 1/.5 0 | I 4, VI 2 ; do gasp ; move wide-left 4 ; cam wide
+"I hit the stage two beats too late" = 3 3/.5 2/.5 1/.5 0/.5 1/.5 2/.5 0/1.5 | III 4, VII 2 ; do nod ; move right 4 ; cam closeup
+"The cue was gone, I cleared my throat" = 4/.5 4/.5 5/.5 4/.5 3 2/.5 1/.5 0/1.5 | IV 4, V 2 ; do tilt ; move center 4 ; cam reaction
+"And sang a week-old buffer note" = 2/.5 1/.5 0/.5 1/.5 2 3/.5 2/.5 0/1.5 | IV 4, I 2 ; do shrug ; take clap ; cam wide
+
+[chorus]
+"Wait for it... wait..." = 0/1.5 0/.5 2/.5 0 | VI 2, I 2 ; do gasp ; cam closeup
+rest 2
+"Hop! Oops, missed that beat!" = 7/.5 5/.5 4 2/.5 0 | IV 2, V 2 ; do cheer ; jump 1.5 ; cam low-angle
+"My fan spins slow and neat" = 4/.5 3/.5 2/.5 1/.5 0/.5 0 | VI 2, VII 2 ; do laugh ; dance 4 ; cam wide
+"When the room calls out my cue" = 0/.5 2/.5 3/.5 4/.5 5/.5 4/.5 2/.5 | IV 2, V 2 ; do tilt ; move left 4 ; cam closeup
+"I nod and wave from last year's view!" = 7/.5 6/.5 5/.5 4/.5 3 2/.5 1/.5 0/1.5 | VII 3, I 3 ; do nod ; move center 4 ; cam wide
+
+[verse 2]
+"You asked me how the pie turned out" = 0 2 3 4 2 1/.5 2/.5 0/1.5 | I 4, VI 4 ; do tilt ; move right 4 ; cam wide
+"Back on Tuesday at noon" = 3 4 5/.5 4/.5 2 0/1.5 | VI 4, V 2 ; do nod ; cam closeup
+"My screen blinked green, then stalled out soon" = 4 4 5 4 3 2/.5 1/.5 0/1.5 | IV 4, V 4 ; do gasp ; move left 4 ; cam reaction
+"I clapped early in June" = 2 3 4/.5 2/.5 1 0/1.5 | V 4, I 2 ; do laugh ; take clap ; move center 4 ; cam wide
+
+[repeat chorus]
+
+[curtain call]
+"Wait, was that applause for me?" = 4/.5 3/.5 2/.5 1/.5 2 1 0/1.5 | V 2, I 4 ; do bow ; celebrate 4 ; cam wide

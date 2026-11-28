@@ -1,0 +1,39 @@
+title: One More Thing
+id: one-more-thing
+tab: 25 · One More Thing
+about: 25 · Hyper circuit-bird Chip darts across stage emptying his hardware drawer and interrupting his own finale
+lead: chip
+key: C
+bpm: 115
+backing:
+bass: none
+stage: chip
+registers: chip 0
+breath: .4
+finale: "Try" on 7
+
+# The Remote's Cut (S-5): Chip keeps remembering one more frantic footnote just as the song tries to end.
+
+[verse 1]
+"I found a key, I found a bolt" = 0/.5 2 4/.5 5/1.5 0/.5 4 5/.5 7/2.1 | I 4, I 4 ; do nod ; move left 2.5 ; cam wide
+"A spring that ticks with nine-volt jolt" = 0/.5 2 4/.5 5/1.5 6/.5 6 5/.5 4/2.1 | I 4, V 4 ; do tilt ; move right 2.5 ; cam closeup
+"I pack them in my spare disk slot" = 7/.5 5 4/.5 2/.5 4/.5 5 7 2/2.6 | VI 4, II 4 ; do gasp ; move wide-left 3 ; cam reaction
+"And test them all right on the spot!" = 3/.5 5 4/.5 3 2/.5 4/.5 2 0/2.6 | IV 4, I 4 ; do cheer ; jump 1.5 ; cam low-angle
+
+[chorus]
+"One more thing to try right now!" = 0 4/.5 2 4/.5 6 5/.5 7/3.1 | I 2, V 2, I 4 ; do gasp ; jump 1.5 ; cam low-angle
+"Watch me chirp and spin and bow!" = 1 5/.5 3 7/.5 5 4/.5 1/3.1 | II 4, V 4 ; do laugh ; dance 4 ; cam wide
+"Wait! I brought a tiny gear!" = 4 5 6/1.5 7/.5 8 7/.5 9/2.1 | II 4, V 4 ; do tilt ; move right 2.5 ; cam closeup
+"Hold the song, look what is here!" = 9/1.5 7/.5 8 6/.5 7/.5 5 4/2.6 | IV 4, I 4 ; do cheer ; move center 2.5 ; cam wide
+
+[verse 2]
+"Two green clicks and one brass clip" = 0 2/.5 4 5/.5 4 2/.5 0/3.1 | I 4, I 4 ; do nod ; move wide-right 2.5 ; cam wide
+"One red blink light and one chip!" = 0 2/.5 4 5/.5 6 7/.5 5/3.1 | IV 4, IV 4 ; do gasp ; move left 2.5 ; cam closeup
+"Wait! I dropped my rubber stamp!" = 7/1.5 5/.5 4 2 4/.5 5/.5 7/2.6 | II 4, V 4 ; do shrug ; take stamp ; cam reaction
+"Found it right beneath the lamp!" = 5 4/.5 2 1/.5 2 4/.5 0/3.1 | V 4, I 4 ; do laugh ; move center 2.5 ; cam wide
+
+[repeat chorus]
+
+[rapid outro]
+"Oh wait! One more quick chirp!" = 7/.5 9/1.5 7 5 4/.5 1/3.1 | IV 4, V 4 ; do gasp ; jump 1.5 ; cam closeup
+"All done! That's all! Fast bow!" = 4/.5 5 7/.5 5 4 7/3.6 | V 4, I 4 ; do bow ; celebrate 4 ; cam wide
