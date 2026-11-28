@@ -1,6 +1,6 @@
 /**
  * Studio 404 Character Bible Gallery (`?cast`, `S-5`, `D-9`):
- * Reads 100% of all 21 Studio 404 characters, portraits, roles, CHIMERA voice parameters,
+ * Reads 100% of all 20 Studio 404 characters, portraits, roles, CHIMERA voice parameters,
  * solo showcases, and verified Character Bible WebP clips from the single unified Bible manifest.
  */
 import { BIBLE_SOLO_ORDER } from "../choir/bibleSolos.ts";
@@ -25,7 +25,6 @@ const FEATURED_ENSEMBLE_ACT: Readonly<Record<string, string>> = {
   click: "quiet-bar",
   thrum: "quiet-bar",
   clacker: "quiet-bar",
-  latch: "latch",
   deck: "deck-audition",
   tally: "tally-audition",
   ozzi: "ozzi-audition",
@@ -46,7 +45,9 @@ export function CastGallery() {
           </div>
           <div className="flex gap-4 text-sm underline">
             <a href="/">Live Console</a>
+            <a href="?scale">Size Chart</a>
             <a href="?watch=tabby-solo">Theater</a>
+            <a href="?kids">Kids Farm (Separate)</a>
           </div>
         </header>
 

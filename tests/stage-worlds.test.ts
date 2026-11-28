@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
+import * as THREE from "three";
+import { CAST_MANIFEST } from "../src/choir/castManifest.ts";
 import { parseSongFile } from "../src/choir/songFile.ts";
 import { buildSong } from "../src/choir/songbook.ts";
 import { CaravanSetpiece3D, CARAVAN_DECK_BASE_Y, CARAVAN_SADDLE_BASE_Y } from "../src/stage/caravanSetpiece3D.ts";
+import { resolve3DClipName, sanitizeThreeAnimationClip } from "../src/stage/actors3D.ts";
 import { simulateStageAutopilot } from "../src/stage/stageAutopilot.ts";
 import {
   getSurfaceSampleAt,
@@ -160,5 +163,111 @@ describe("S-54 3D stage worlds & setpieces", () => {
     expect(caravanAp[0]?.props.length).toBe(0);
     expect(storybookAp[0]?.props.length).toBe(0);
     expect(theaterAp[0]?.props.length).toBeGreaterThan(0);
+  });
+
+  test("resolve3DClipName maps extended Kimodo skit/stage cues natively when present and falls back cleanly when absent", () => {
+    const fullCastClips = new Map(
+      [
+        "idle",
+        "sing",
+        "walk",
+        "jump",
+        "spin",
+        "bow",
+        "dance",
+        "cheer",
+        "clap",
+        "wave",
+        "laugh",
+        "shrug",
+        "gasp",
+        "nod",
+        "tilt",
+        "sit",
+        "sneak",
+        "run",
+        "strut",
+        "conduct",
+        "piano",
+        "violin",
+        "headbang",
+        "croon",
+        "yawn",
+        "panic",
+        "stagger",
+      ].map((name) => [name, {} as never]),
+    );
+
+    const expectedNative: Array<[string, string]> = [
+      ["laugh", "laugh"],
+      ["chuckle", "laugh"],
+      ["shrug", "shrug"],
+      ["toaster-shrug", "shrug"],
+      ["gasp", "gasp"],
+      ["surprise", "gasp"],
+      ["nod", "nod"],
+      ["double nod", "nod"],
+      ["tilt", "tilt"],
+      ["think", "tilt"],
+      ["sit", "sit"],
+      ["sneak", "sneak"],
+      ["run", "run"],
+      ["strut", "strut"],
+      ["conduct", "conduct"],
+      ["piano", "piano"],
+      ["violin", "violin"],
+      ["headbang", "headbang"],
+      ["croon", "croon"],
+      ["yawn", "yawn"],
+      ["sleep", "yawn"],
+      ["panic", "panic"],
+      ["stagger", "stagger"],
+      ["bonk", "stagger"],
+      ["applaud", "clap"],
+    ];
+    for (const [cue, expected] of expectedNative) {
+      expect(resolve3DClipName(cue, false, fullCastClips)).toBe(expected);
+    }
+
+    const legacySixClips = new Map(
+      ["idle", "sing", "walk", "jump", "spin", "bow"].map((name) => [name, {} as never]),
+    );
+    expect(resolve3DClipName("laugh", false, legacySixClips)).toBe("jump");
+    expect(resolve3DClipName("shrug", false, legacySixClips)).toBe("jump");
+    expect(resolve3DClipName("gasp", false, legacySixClips)).toBe("spin");
+    expect(resolve3DClipName("nod", false, legacySixClips)).toBe("walk");
+    expect(resolve3DClipName("tilt", false, legacySixClips)).toBe("spin");
+    expect(resolve3DClipName("yawn", false, legacySixClips)).toBe("idle");
+  });
+
+  test("sanitizeThreeAnimationClip strips .scale, non-root .position, and horizontal XZ root drift", () => {
+    const raw = new THREE.AnimationClip("walk_dirty", 1, [
+      new THREE.VectorKeyframeTrack("pelvis.scale", [0, 1], [1.2, 1.2, 1.2, 1.8, 1.8, 1.8]),
+      new THREE.VectorKeyframeTrack("upper_arm_L.position", [0, 1], [0.1, 0.2, 0.3, 0.6, 0.5, 0.9]),
+      new THREE.VectorKeyframeTrack("pelvis.position", [0, 1], [0.05, 0.85, -0.02, 0.9, 1.05, 0.7]),
+      new THREE.QuaternionKeyframeTrack("chest.quaternion", [0, 1], [0, 0, 0, 1, 0, 0.1, 0, 0.995]),
+    ]);
+
+    const clean = sanitizeThreeAnimationClip(raw);
+    const names = clean.tracks.map((t) => t.name);
+    expect(names).toEqual(["pelvis.position", "chest.quaternion"]);
+
+    const rootPos = clean.tracks.find((t) => t.name === "pelvis.position")!;
+    const expected = [0.05, 0.85, -0.02, 0.05, 1.05, -0.02];
+    expect(rootPos.values.length).toBe(expected.length);
+    for (let i = 0; i < expected.length; i++) {
+      expect(rootPos.values[i]).toBeCloseTo(expected[i]!, 5);
+    }
+  });
+
+  test("CAST_MANIFEST canonical heights anchor Tabby at 100 DU and Moonbell at 70 DU", () => {
+    expect(CAST_MANIFEST.characters.moonbell?.heightDu).toBe(70);
+    expect(CAST_MANIFEST.characters.moonbell?.scaleFactor).toBe(0.7);
+    expect(CAST_MANIFEST.characters.tabby?.heightDu).toBe(100);
+    expect(CAST_MANIFEST.characters.tabby?.scaleFactor).toBe(1);
+    expect(CAST_MANIFEST.characters.hertz?.heightDu).toBe(150);
+    expect(CAST_MANIFEST.characters.hertz?.scaleFactor).toBe(1.5);
+    expect(CAST_MANIFEST.characters.gruff?.heightDu).toBe(200);
+    expect(CAST_MANIFEST.characters.gruff?.scaleFactor).toBe(2);
   });
 });

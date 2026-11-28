@@ -311,7 +311,7 @@ export function CastPartsAuditPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#745438]/45 bg-[#241810] px-3 py-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold tracking-wider uppercase text-[#e3bd7f]">
-            {fullCastMode ? "Full 21-Cast Character Bibles" : "Onstage Cast & Bible Audit"}
+            {fullCastMode ? `Full ${summary.totalCount}-Cast Character Bibles` : "Onstage Cast & Bible Audit"}
           </span>
           <Badge variant="outline" className="border-[#745438]/60 text-[10px] text-[#d6c2a5]">
             {summary.totalCount} Models
