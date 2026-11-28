@@ -1,6 +1,11 @@
 /**
- * Direct CHIMERA MIDI-only vocal playback, seeking, live keyboard singing, and 60 Hz frame telemetry.
- * Zero extra gain/compressor wrappers: audio flows straight through CHIMERA's AudioEngine -> master -> speakers/recorder.
+ * Direct CHIMERA MIDI-only vocal playback + pure-JS band stem (`bandSynth.ts`), seeking,
+ * live keyboard/Web-MIDI singing, and 60 Hz frame telemetry.
+ *
+ * Audio contract (`.agents/skills/chimera-midi-vocals/SKILL.md`):
+ *  - Vocals synthesize directly from `.mid` + `.song` through CHIMERA WASM (`planSong` / `planNoteOn`).
+ *  - Band (`bass`, `keys`, `drums`) renders in pure JS and feeds the exact same `AudioEngine.master`
+ *    node (single volume control, zero compressor/EQ wrappers, captured automatically by `recordStream()`).
  */
 import { engine } from "../audio/AudioEngine.ts";
 import { planMelisma, planNoteOff, planNoteOn, planSong, type Gesture, type HumanArtic } from "../wasm/engine.ts";
@@ -8,6 +13,7 @@ import { useStore } from "../ui/store.ts";
 import { VoiceModel } from "../ui/analysis.ts";
 import { g2p } from "../ui/speech.ts";
 import type { TelemetryMessage } from "../worklet/protocol.ts";
+import { renderBandStem } from "./bandSynth.ts";
 import { tabbyCharacterGesture, TABBY_VOICE } from "./tabby.ts";
 import type { CameraPreset, MopAction, ParsedMopSong } from "./midiSong.ts";
 
@@ -24,6 +30,7 @@ export interface MopFrameState {
   camPreset: CameraPreset;
   moveTarget: string | null;
   jumpProgress: number;
+  singingNow: boolean;
   tele: TelemetryMessage | null;
   artic: HumanArtic | null;
   rms: number;
@@ -45,6 +52,7 @@ interface ActiveRun {
   endPlanSec: number;
   notes: ScheduledNoteMeta[];
   song: ParsedMopSong;
+  bandNode: AudioBufferSourceNode | null;
 }
 
 let activeRun: ActiveRun | null = null;
@@ -52,8 +60,11 @@ let runToken = 0;
 let lastSongSec = 0;
 let currentSong: ParsedMopSong | null = null;
 let onEndCallback: (() => void) | null = null;
+let bandOn = true;
 
-// Live playable keyboard state
+const stemCache = new WeakMap<ParsedMopSong, { rate: number; samples: Float32Array | null }>();
+
+// Live playable keyboard / Web MIDI state
 let liveKeys: number[] = [];
 let liveSounding: { midi: number; syl: ParsedMopSong["phrases"][0]["notes"][0]["syl"]; tag: number } | null = null;
 let liveSyllableCursor = 0;
@@ -68,6 +79,23 @@ const notify = () => {
 export function subscribePlayer(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+export function isBandEnabled(): boolean {
+  return bandOn;
+}
+
+export function setBandEnabled(on: boolean): void {
+  if (bandOn === on) return;
+  bandOn = on;
+  if (activeRun) {
+    const resumeSec = getFrameState(activeRun.song).songSec;
+    const song = activeRun.song;
+    const endCb = onEndCallback ?? undefined;
+    void playSong(song, { startSec: resumeSec, onEnd: endCb });
+  } else {
+    notify();
+  }
 }
 
 engine.onPlanned((m) => {
@@ -114,13 +142,33 @@ export function resetTabbyVoice(): void {
   });
 }
 
+function stopBandNode(run: ActiveRun | null): void {
+  if (!run?.bandNode) return;
+  try {
+    run.bandNode.stop();
+    run.bandNode.disconnect();
+  } catch {
+    // already stopped
+  }
+  run.bandNode = null;
+}
+
 export function stopSong(): void {
   runToken++;
   if (activeRun) {
+    stopBandNode(activeRun);
     activeRun = null;
     engine.stopSpeech();
     notify();
   }
+}
+
+function getOrRenderBandStem(song: ParsedMopSong, sampleRate: number): Float32Array | null {
+  const cached = stemCache.get(song);
+  if (cached && cached.rate === sampleRate) return cached.samples;
+  const samples = renderBandStem(song.bandParts, song.bpm, song.durationSec, sampleRate);
+  stemCache.set(song, { rate: sampleRate, samples });
+  return samples;
 }
 
 export async function playSong(
@@ -139,7 +187,13 @@ export async function playSong(
   const startSec = Math.max(0, Math.min(opts.startSec ?? 0, song.durationSec - 0.5));
   const startBeat = startSec / beatSec;
 
-  const flatNotes: { beat: number; beats: number; midi: number; syl: ParsedMopSong["phrases"][0]["notes"][0]["syl"]; phraseIndex: number }[] = [];
+  const flatNotes: {
+    beat: number;
+    beats: number;
+    midi: number;
+    syl: ParsedMopSong["phrases"][0]["notes"][0]["syl"];
+    phraseIndex: number;
+  }[] = [];
   for (const ph of song.phrases) {
     for (const n of ph.notes) {
       if (n.beat + n.beats <= startBeat + 0.02) continue;
@@ -148,12 +202,11 @@ export async function playSong(
   }
   if (!flatNotes.length) return false;
 
-  // Group contiguous notes (gaps > 0.15 beats start a fresh breath phrase)
   const gestures: Gesture[] = [];
   const segments: ReturnType<typeof planSong>["segments"] = [];
   const metas: ScheduledNoteMeta[] = [];
-  let maxEnd = 0.5;
-  const lead = 0.28;
+  const lead = 0.24;
+  let maxEnd = Math.max(0.5, lead + (song.durationSec - startSec));
 
   let group: typeof flatNotes = [];
   const flush = () => {
@@ -165,7 +218,7 @@ export async function playSong(
     );
     gestures.push(...plan.gestures);
     segments.push(...plan.segments);
-    maxEnd = Math.max(maxEnd, plan.end + 0.3);
+    maxEnd = Math.max(maxEnd, plan.end + 0.35);
 
     let cursor = t0;
     for (const g of group) {
@@ -193,6 +246,15 @@ export async function playSong(
 
   const charG = tabbyCharacterGesture(0, maxEnd);
   const planId = engine.schedule({ gestures: [charG, ...gestures], segments, end: maxEnd }, true);
+
+  let bandNode: AudioBufferSourceNode | null = null;
+  if (bandOn) {
+    const stem = getOrRenderBandStem(song, engine.sampleRate);
+    if (stem) {
+      bandNode = engine.playStem(stem, engine.sampleRate, startSec, lead);
+    }
+  }
+
   lastSongSec = startSec;
   activeRun = {
     planId,
@@ -201,6 +263,7 @@ export async function playSong(
     endPlanSec: maxEnd,
     notes: metas,
     song,
+    bandNode,
   };
   notify();
   return true;
@@ -253,7 +316,11 @@ export async function playLiveNoteOn(midi: number, velocity = 96): Promise<void>
     });
     const breathScale = 0.68 + 0.35 * Math.min(1, Math.max(0, velocity / 96));
     engine.scheduleGestures(
-      gs.map((g) => (g.targets.breath !== undefined ? { ...g, targets: { ...g.targets, breath: g.targets.breath * breathScale } } : g)),
+      gs.map((g) =>
+        g.targets.breath !== undefined
+          ? { ...g, targets: { ...g.targets, breath: g.targets.breath * breathScale } }
+          : g,
+      ),
     );
     liveSounding = { midi, syl, tag };
   }
@@ -292,6 +359,7 @@ export function stopLiveKeys(): void {
 export function getFrameState(song: ParsedMopSong | null): MopFrameState {
   const teleRaw = engine.latest;
   const artic = teleRaw ? VoiceModel.articFromArray(teleRaw.t.artic) : null;
+  // `teleRaw.t.outRms` measures strictly Tabby's CHIMERA vocal tract (unaffected by the band stem on `master`)!
   const rms = teleRaw?.t.outRms ?? 0;
   const f0 = teleRaw?.t.f0 ?? 0;
 
@@ -311,6 +379,7 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
       camPreset: "wide",
       moveTarget: null,
       jumpProgress: 0,
+      singingNow: liveSinging,
       tele: teleRaw,
       artic,
       rms,
@@ -323,6 +392,7 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
     const vc = engine.voiceClock() ?? activeRun.offset;
     planSec = Math.max(0, vc - activeRun.offset);
     if (planSec > activeRun.endPlanSec + 0.35) {
+      stopBandNode(activeRun);
       const cb = onEndCallback;
       activeRun = null;
       lastSongSec = 0;
@@ -340,7 +410,7 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
   // Match active note and phrase
   let activeNote: ScheduledNoteMeta | null = null;
   for (const n of activeRun.notes) {
-    if (planSec >= n.t0 - 0.04 && planSec <= n.t1 + 0.05) {
+    if (planSec >= n.t0 - 0.035 && planSec <= n.t1 + 0.045) {
       activeNote = n;
       break;
     }
@@ -351,27 +421,50 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
     song.phrases.find((p) => beat >= p.startBeat && beat < p.startBeat + p.beats) ??
     null;
 
+  // Keep Tabby in `sing`/`belt` across the entire sung phrase span (consonant closures `/p t k/` drop RMS briefly)
+  let inSungPhrase = false;
+  if (phrase) {
+    let pMin = Infinity;
+    let pMax = -Infinity;
+    for (const n of activeRun.notes) {
+      if (n.phraseIndex === phrase.index) {
+        if (n.t0 < pMin) pMin = n.t0;
+        if (n.t1 > pMax) pMax = n.t1;
+      }
+    }
+    if (pMin <= pMax && planSec >= pMin - 0.06 && planSec <= pMax + 0.08) {
+      inSungPhrase = true;
+    }
+  }
+
+  const singingNow = Boolean(inSungPhrase || activeNote || rms > 0.014);
+  const firstPhraseBeat = song.phrases[0]?.startBeat ?? 4;
+
   let cueAction: MopAction = "idle";
   let jumpProgress = 0;
+  const moveTarget: string | null = phrase?.moveTarget ?? null;
+
   if (phrase) {
     const localBeat = beat - phrase.startBeat;
     if (phrase.doGesture === "bow" || phrase.celebrate) {
-      cueAction = "bow";
+      cueAction = singingNow && localBeat < phrase.beats * 0.65 ? "sing" : "bow";
     } else if (phrase.take === "toast") {
       cueAction = "toast";
-    } else if (phrase.moveTarget && phrase.moveTarget !== "center") {
-      cueAction = "walk";
+    } else if (singingNow) {
+      if (phrase.section.includes("Sustained") || (f0 > 335 && rms > 0.018)) {
+        cueAction = "belt";
+      } else {
+        cueAction = "sing";
+      }
     } else if (phrase.doGesture === "laugh" || phrase.doGesture === "cheer") {
       cueAction = "chuckle";
-    } else if (phrase.section.includes("Sustained") || (f0 > 330 && rms > 0.015)) {
-      cueAction = "belt";
-    } else if (activeNote || rms > 0.012) {
-      cueAction = "sing";
+    } else {
+      cueAction = "idle";
     }
     if (phrase.jump && localBeat >= 0 && localBeat <= 1.6) {
       jumpProgress = localBeat / 1.6;
     }
-  } else if (rms > 0.012) {
+  } else if (singingNow) {
     cueAction = "sing";
   }
 
@@ -384,12 +477,15 @@ export function getFrameState(song: ParsedMopSong | null): MopFrameState {
     beat,
     beatStep,
     phraseIndex: phrase?.index ?? -1,
-    phraseText: phrase?.words.replace(/_/g, "") ?? "",
+    phraseText:
+      phrase?.words.replace(/_/g, "") ??
+      (beat < firstPhraseBeat ? "♪ Studio 404 Band Intro…" : ""),
     wordText: activeNote?.word ?? "",
     cueAction,
     camPreset: phrase?.cam ?? "wide",
-    moveTarget: phrase?.moveTarget ?? null,
+    moveTarget,
     jumpProgress,
+    singingNow,
     tele: teleWithBeat,
     artic,
     rms,

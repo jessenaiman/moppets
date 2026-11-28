@@ -1,11 +1,25 @@
 /**
- * Pure-TS `.song` + `.mid` loader and syllable-to-MIDI planner for Moppets.
- * Keeps `songs/*.song` + `songs/*.mid` as the single editable source of truth.
+ * `.song` + `.mid` loader, live lyric syllable checker, and backing-band extractor for Moppets.
+ * Keeps `songs/*.song` + `songs/*.mid` as the single editable source of truth (`docs/writing-songs.md`).
  */
 import { lyricsToSyllables, type Syllable } from "../wasm/engine.ts";
+import {
+  arrangeBandFromChords,
+  beatPatternToDrums,
+  type BandId,
+  type BandPart,
+  type SongChord,
+} from "./bandSynth.ts";
 
 export type CameraPreset = "wide" | "closeup" | "reaction" | "low-angle";
 export type MopAction = "idle" | "sing" | "belt" | "chuckle" | "walk" | "toast" | "bow";
+
+export interface PhraseWordCheck {
+  syllables: string[];
+  noteCount: number;
+  ok: boolean;
+  problem: string;
+}
 
 export interface SongPhrase {
   index: number;
@@ -13,6 +27,8 @@ export interface SongPhrase {
   words: string;
   degrees: number[];
   rhythm: number[];
+  chordText?: string;
+  directiveText?: string;
   startBeat: number;
   beats: number;
   /** Parsed cues from `; do ... ; take ... ; move ... ; jump ; dance ; celebrate ; cam ...` */
@@ -34,16 +50,75 @@ export interface ParsedMopSong {
   lead: string;
   key: string;
   bpm: number;
+  beatPattern?: string;
   durationBeats: number;
   durationSec: number;
   phrases: SongPhrase[];
+  chords: SongChord[];
+  bandParts: BandPart[];
   finaleWord?: string;
+  rawSongText: string;
+  rawMidiBytes: Uint8Array;
 }
 
 export interface MidiTrackIn {
   name: string;
   channel?: number;
   notes: { beat: number; beats: number; midi: number; vel: number }[];
+}
+
+const KEY_SEMITONES: Record<string, number> = {
+  C: 0,
+  "C#": 1,
+  Db: 1,
+  "D♭": 1,
+  D: 2,
+  "D#": 3,
+  Eb: 3,
+  "E♭": 3,
+  E: 4,
+  F: 5,
+  "F#": 6,
+  "F♯": 6,
+  Gb: 6,
+  G: 7,
+  "G#": 8,
+  Ab: 8,
+  "A♭": 8,
+  A: 9,
+  "A#": 10,
+  Bb: 10,
+  "B♭": 10,
+  B: 11,
+};
+
+const SCALES: Record<string, number[]> = {
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 11],
+  aeolian: [0, 2, 3, 5, 7, 8, 10],
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
+  phrygian: [0, 1, 3, 5, 7, 8, 10],
+};
+
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+function parseKeySpec(spec: string): { rootPc: number; scale: number[] } {
+  const parts = spec.trim().split(/\s+/);
+  const rootPc = KEY_SEMITONES[parts[0] ?? "D"] ?? 2;
+  const mode = (parts[1] ?? "major").toLowerCase();
+  return { rootPc, scale: SCALES[mode] ?? SCALES.dorian };
+}
+
+function chordTones(degreeIdx: number, rootPc: number, scale: number[]): number[] {
+  const at = (step: number) => {
+    const len = scale.length;
+    const oct = Math.floor(step / len);
+    const idx = ((step % len) + len) % len;
+    return (rootPc + scale[idx] + oct * 12 + 120) % 12;
+  };
+  return [at(degreeIdx), at(degreeIdx + 2), at(degreeIdx + 4)];
 }
 
 export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: MidiTrackIn[] } {
@@ -111,7 +186,12 @@ export function parseMidi(bytes: Uint8Array): { bpm: number | null; tracks: Midi
         const on = open.get(key)?.shift();
         if (on !== undefined) {
           const start = Math.floor(on / 128);
-          notes.push({ beat: start / division, beats: Math.max(0.05, (tick - start) / division), midi: a, vel: on % 128 });
+          notes.push({
+            beat: start / division,
+            beats: Math.max(0.05, (tick - start) / division),
+            midi: a,
+            vel: on % 128,
+          });
         }
       }
     }
@@ -164,14 +244,37 @@ export function sungSyllables(text: string): Syllable[] {
   return out;
 }
 
+/** Check whether edited phrase words match the phrase's note count (`docs/writing-songs.md`). */
+export function checkPhraseWords(words: string, noteCount: number): PhraseWordCheck {
+  const syls = words.trim() ? sungSyllables(words) : [];
+  const syllables = syls.map((s) => s.text);
+  const diff = syllables.length - noteCount;
+  const problem =
+    !syllables.length
+      ? "no words"
+      : diff > 0
+        ? `+${diff} extra (${syllables.length}/${noteCount})`
+        : diff < 0
+          ? `${-diff} short (${syllables.length}/${noteCount})`
+          : "";
+  return { syllables, noteCount, ok: !problem, problem };
+}
+
+/** Stretch the final syllable over spare notes using `_` holds (`docs/writing-songs.md`). */
+export function holdFixWords(words: string, spareNotes: number): string {
+  if (spareNotes <= 0) return words;
+  return words.replace(/([A-Za-z'_])([^A-Za-z'_]*)$/, `$1${"_".repeat(spareNotes)}$2`);
+}
+
 const num = (s: string) => Number(s.startsWith(".") ? `0${s}` : s.startsWith("-.") ? `-0${s.slice(1)}` : s);
 
 export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: string): ParsedMopSong {
   const meta = new Map<string, string>();
   let section = "Verse";
-  // Intro bar (4 beats) matches Moppet Choir's lead-in bar in `buildSong`
+  // Intro bar (4 beats) matches Moppet Choir's lead-in groove bar in `buildSong`
   let cursorBeat = 4;
   const rawPhrases: Omit<SongPhrase, "notes">[] = [];
+  const rawChordSpecs: { beat: number; spec: string }[] = [];
 
   for (const rawLine of songText.split("\n")) {
     const line = rawLine.trim();
@@ -189,7 +292,7 @@ export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: st
     const m = /^(?:([a-z]+):\s*)?"([^"]*)"\s*=\s*([^;]*)(.*)$/.exec(line);
     if (!m) continue;
     const words = m[2];
-    const [notesPart] = m[3].split("|");
+    const [notesPart, chordsPart] = m[3].split("|");
     const degrees: number[] = [];
     const rhythm: number[] = [];
     for (const tok of notesPart.trim().split(/\s+/).filter(Boolean)) {
@@ -198,12 +301,17 @@ export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: st
       rhythm.push(b === undefined ? 1 : num(b));
     }
     const beats = rhythm.reduce((a, b) => a + b, 0);
+    if (chordsPart?.trim()) {
+      rawChordSpecs.push({ beat: cursorBeat, spec: chordsPart.trim() });
+    }
     const phrase: Omit<SongPhrase, "notes"> = {
       index: rawPhrases.length,
       section,
       words,
       degrees,
       rhythm,
+      chordText: chordsPart?.trim(),
+      directiveText: m[4].trim(),
       startBeat: cursorBeat,
       beats,
     };
@@ -221,6 +329,25 @@ export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: st
     cursorBeat += beats;
   }
 
+  const keySpec = meta.get("key") ?? "D dorian";
+  const { rootPc, scale } = parseKeySpec(keySpec);
+  const chords: SongChord[] = [
+    // Opening 4-beat groove bar on tonic (I)
+    { beat: 0, beats: 4, tones: chordTones(0, rootPc, scale) },
+  ];
+  for (const item of rawChordSpecs) {
+    let b = item.beat;
+    for (const seg of item.spec.split(",")) {
+      const [rStr, beatsStr] = seg.trim().split(/\s+/);
+      const deg = ROMAN.indexOf((rStr ?? "").toUpperCase());
+      const cBeats = beatsStr ? num(beatsStr) : 4;
+      if (deg >= 0 && Number.isFinite(cBeats) && cBeats > 0) {
+        chords.push({ beat: b, beats: cBeats, tones: chordTones(deg, rootPc, scale) });
+        b += cBeats;
+      }
+    }
+  }
+
   const midi = parseMidi(midiBytes);
   const bpm = midi.bpm ?? (Number(meta.get("bpm")) || 112);
   const track =
@@ -231,15 +358,25 @@ export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: st
   let noteIdx = 0;
   const phrases: SongPhrase[] = rawPhrases.map((p) => {
     const syls = sungSyllables(p.words);
+    const noteTargetCount = Math.max(syls.length, p.rhythm.length);
     const notes: SongPhrase["notes"] = [];
-    for (let i = 0; i < syls.length; i++) {
-      const mn = midiNotes[noteIdx];
-      if (mn) {
-        notes.push({ beat: mn.beat, beats: mn.beats, midi: mn.midi, vel: mn.vel, syl: syls[i] });
-        noteIdx++;
-      } else {
+    for (let i = 0; i < noteTargetCount; i++) {
+      const syl =
+        syls[i] ??
+        syls[syls.length - 1] ?? {
+          text: "la",
+          onset: [],
+          nucleus: { ipa: "ɑ", stress: 1 },
+          coda: [],
+          wordEnd: true,
+          phraseEnd: false,
+        };
+      if (i < p.rhythm.length && midiNotes[noteIdx]) {
+        const mn = midiNotes[noteIdx++];
+        notes.push({ beat: mn.beat, beats: mn.beats, midi: mn.midi, vel: mn.vel, syl });
+      } else if (i < p.rhythm.length) {
         const dBeat = p.startBeat + p.rhythm.slice(0, i).reduce((a, b) => a + b, 0);
-        notes.push({ beat: dBeat, beats: p.rhythm[i] ?? 1, midi: 62 + (p.degrees[i] ?? 0), vel: 90, syl: syls[i] });
+        notes.push({ beat: dBeat, beats: p.rhythm[i] ?? 1, midi: 62 + (p.degrees[i] ?? 0), vel: 90, syl });
       }
     }
     const startBeat = notes[0]?.beat ?? p.startBeat;
@@ -270,22 +407,72 @@ export function parseMopSong(songText: string, midiBytes: Uint8Array, leadId: st
       celebrate: true,
       notes: [{ beat: mn.beat, beats: mn.beats, midi: mn.midi, vel: mn.vel, syl: syls[0] }],
     });
+    chords.push({ beat: mn.beat, beats: mn.beats, tones: chordTones(0, rootPc, scale) });
   }
 
   const lastBeat = phrases.reduce((m, p) => Math.max(m, p.startBeat + p.beats), cursorBeat);
   const durationBeats = lastBeat + 2;
+  const beatPattern = meta.get("beat")?.trim() || undefined;
+
+  // Extract MIDI `band *` tracks (`band bass`, `band keys`, `band drums`, `band xylophone`), plus `.song` beat groove!
+  const midiBandParts: BandPart[] = [];
+  for (const tr of midi.tracks) {
+    const lower = tr.name.trim().toLowerCase();
+    if (!lower.startsWith("band ") || !tr.notes.length) continue;
+    const rawKind = lower.slice(5).trim();
+    const id: BandId | null =
+      rawKind === "bass" || rawKind === "keys" || rawKind === "drums" || rawKind === "xylophone"
+        ? rawKind
+        : null;
+    if (id) midiBandParts.push({ id, notes: tr.notes });
+  }
+
+  let bandParts: BandPart[];
+  if (midiBandParts.length > 0) {
+    bandParts = [...midiBandParts];
+    if (!bandParts.some((p) => p.id === "drums") && beatPattern) {
+      const kit = beatPatternToDrums(beatPattern, lastBeat, chords);
+      if (kit.notes.length) bandParts.push({ id: "drums", notes: kit.notes });
+    }
+  } else {
+    bandParts = arrangeBandFromChords(chords, bpm, beatPattern);
+  }
+
   return {
     id: meta.get("id") ?? `bible-${leadId}`,
     title: meta.get("title") ?? "Bible · Tabby",
     about: meta.get("about") ?? "",
     lead: meta.get("lead") ?? leadId,
-    key: meta.get("key") ?? "D dorian",
+    key: keySpec,
     bpm,
+    beatPattern,
     durationBeats,
     durationSec: (durationBeats * 60) / bpm + 0.35,
     phrases,
+    chords,
+    bandParts,
     finaleWord,
+    rawSongText: songText,
+    rawMidiBytes: midiBytes,
   };
+}
+
+/** Rebuild a `ParsedMopSong` when the user edits phrase words in the app (`docs/writing-songs.md`). */
+export function updateSongPhraseWords(song: ParsedMopSong, phraseIndex: number, newWords: string): ParsedMopSong {
+  const sanitized = newWords.replace(/"/g, "”");
+  let phraseCursor = 0;
+  const updatedLines = song.rawSongText.split("\n").map((rawLine) => {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith("#") || /^\[.+\]$/.test(trimmed)) return rawLine;
+    if (/^finale:\s*"/.test(trimmed) && phraseIndex === song.phrases.length - 1 && song.finaleWord !== undefined) {
+      return rawLine.replace(/"[^"]*"/, `"${sanitized}"`);
+    }
+    const m = /^(\s*(?:[a-z]+:\s*)?)"([^"]*)"(\s*=\s*.*)$/.exec(rawLine);
+    if (!m) return rawLine;
+    if (phraseCursor++ !== phraseIndex) return rawLine;
+    return `${m[1]}"${sanitized}"${m[3]}`;
+  });
+  return parseMopSong(updatedLines.join("\n"), song.rawMidiBytes, song.lead);
 }
 
 export async function fetchTabbySong(): Promise<ParsedMopSong> {

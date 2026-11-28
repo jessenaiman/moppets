@@ -27,6 +27,10 @@ for tests and the `chimera` CLI.
 
 ## What it does
 
+- **Moppets**: Studio 404 stage for Mop #1 (`Tabby`) singing editable `.song` + `.mid` lead sheets
+  live through the CHIMERA airway alongside a pure-JS backing band (`bass`, `keys`, `drums`),
+  2.5D-lit Canon v2 `#00FF00` 24 fps FMV `VideoTexture` clips, computer/MIDI keys, and `1280×720`
+  video recording.
 - **Play**: drag the tongue, lips and jaw in a live cutaway of the head; vowel pad, encoders,
   computer keyboard and Web MIDI.
 - **Speak**: English text (CMUdict with a letter-to-sound fallback), Turkish text (EN/TR) or

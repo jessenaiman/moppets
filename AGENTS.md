@@ -25,6 +25,10 @@ and the CLI) under a React UI. See the README.
   `crates/chimera-plugin/`: CLAP, VST3 and AU (`docs/plugin.md`).
 - `src/wasm/`: the UI's facade over the engine. `src/worklet/`: the AudioWorklet. `src/ui/`: React
   and the canvas renderers. `src/song/`: Sing's tunes, fitting words to them, clip recording.
+- `src/moppets/`: Studio 404 stage (`MoppetStage3D.tsx`), `.song` + `.mid` lead-sheet planner &
+  editable words (`midiSong.ts`), pure-JS backing band (`bandSynth.ts`), CHIMERA vocal + band
+  playback (`player.ts`), Mop #1 Canon v2 `Tabby` (`tabby.ts`), and `1280×720` clip export
+  (`exportVideo.ts`). Assets live under `public/moppets/tabby/`.
 - `src/rig/`: a body the 3D head can be worn on (`docs/rig.md`); `rig.html` is its dev playground
   (wireframe and nerve x-ray), and `tools/rig/gen-body.ts` makes its mesh
   (`src/rig/body.rig.bin`: generated, never edited).
@@ -63,16 +67,18 @@ and the CLI) under a React UI. See the README.
 - **Nothing copyrighted goes in git.** `public/shows/` is gitignored; never ship CSD audio or
   anything derived from it.
 - **Voice tuning follows `docs/hill-climb/README.md`** and never edits its judges.
+- **Moppets audio & stage contract:** Route `.mid` + `.song` vocals directly through CHIMERA WASM
+  within calibrated `DEFAULT_SOURCE` bounds (`pressure: 6.6–8.4`, `brightness: 0.15–0.50`,
+  `tension: 0.36–0.68`, `glide >= 0.06`) and route the pure-JS band (`bandSynth.ts`) into the single
+  `AudioEngine.master` node (zero extra compressors, zero pre-bounced vocal caches, zero samples).
+  Follow Studio 404 World Bible v3 (`Zero Persian Rug Lock` bare concrete/hardwood stage floor,
+  non-contact frontline mic beside the wooden riser, Canon v2 `#00FF00` FMV `VideoTexture` streams,
+  zero placeholder primitive boxes/cones) and CHIMERA's Hershey vector-display UI (`>= 11px`).
 
 ## Checks
 
 | When you touch | Run |
 |---|---|
-| anything | `bun run test` and `bun run typecheck` |
+| `src/moppets/`, `src/ui/`, `src/audio/` | `bun run typecheck` and `bun run build` (no custom Playwright test scripts unless requested) |
 | `crates/chimera/` sound | re-bless goldens (above); `cargo run --release -q -p chimera --example bench` against the previous commit |
-| `crates/chimera-wasm/`, `src/wasm/`, `src/worklet/`, `src/main.tsx` | `bun run build && bun run preview`, then `bun tools/e2e.ts` |
-| `src/ui/`, `src/show/`, CSS | `bun run lint:layout` |
 | `src/rig/`, `src/ui/render/anatomy3d.ts`, `beams3d.ts` | `bun test tests/rig.test.ts`; look at `/rig.html` in `bun run dev` |
-| `crates/chimera-plugin/`, `src/audio/`, `src/ui/store.ts`, `src/ui/singing.ts`, `src/ui/speech.ts`, `src/ui/pluginState.ts` | `bun run build`, `cargo build -p chimera-plugin --release --example ui_harness`, then `bun tools/plugin-e2e.ts` |
-| the plugin's page or CSS | the harness (above), then `bun tools/layout-lint.ts --plugin --url http://127.0.0.1:8549/` |
-| the plugin, on a branch that builds on CI | read the REAPER group in the run's log, screenshots included (`docs/plugin.md`, "Testing in a host") |

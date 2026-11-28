@@ -96,6 +96,19 @@ export class AudioEngine {
     return this.tap.stream;
   }
 
+  /** Play a pure-JS accompaniment stem directly into `master` (shares single volume + clip recording). */
+  playStem(samples: Float32Array, sampleRate: number, offsetSec = 0, delaySec = 0): AudioBufferSourceNode | null {
+    if (!this.ctx || !this.master || samples.length === 0) return null;
+    const buf = this.ctx.createBuffer(1, samples.length, sampleRate);
+    buf.getChannelData(0).set(samples);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(this.master);
+    const clampedOffset = Math.max(0, Math.min(offsetSec, Math.max(0, buf.duration - 0.01)));
+    src.start(this.ctx.currentTime + Math.max(0, delaySec), clampedOffset);
+    return src;
+  }
+
   get running(): boolean {
     return !!this.ctx && this.ctx.state === "running";
   }

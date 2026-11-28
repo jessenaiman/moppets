@@ -10,8 +10,9 @@ import { BEAT_PRESETS, BASS_NOTE, beatReady, parseBeat, type BeatStep } from "..
 import { singNoteOn, singNoteOff, stopSinging } from "./singing.ts";
 import { stopSpeaking } from "./speech.ts";
 import { connectMidi, disconnectMidi, type MidiStatus } from "./midi.ts";
+import { playLiveNoteOff, playLiveNoteOn, stopLiveKeys, stopSong } from "../moppets/player.ts";
 
-export type Mode = "play" | "speak" | "sing" | "bestiary" | "beatbox";
+export type Mode = "moppets" | "play" | "speak" | "sing" | "bestiary" | "beatbox";
 
 export interface BeatState {
   steps: (BeatStep | null)[];
@@ -118,7 +119,7 @@ function updateGate(s: { hold: boolean; heldNotes: number[]; mode: Mode; keyCall
     return;
   }
   // keys that trigger calls leave the breath to the call; sung notes breathe by themselves
-  const keysBreathe = !(s.mode === "bestiary" && s.keyCall) && s.mode !== "sing";
+  const keysBreathe = !(s.mode === "bestiary" && s.keyCall) && s.mode !== "sing" && s.mode !== "moppets";
   engine.gate(s.hold || (keysBreathe && s.heldNotes.length > 0) ? 1 : 0);
 }
 
@@ -173,11 +174,15 @@ export const useStore = create<State>((set, get) => ({
   hold: false,
   heldNotes: [],
   view: { pressure: true, particles: true, grid: false, calipers: true, threeD: false },
-  // the app opens on Sing: hearing a song is the quickest way in (the plugin opens there too)
-  mode: "sing",
+  // Web app opens on Moppets stage unless `?view=chimera` is set; plugin opens on Sing
+  mode: inPlugin || (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "chimera") ? "sing" : "moppets",
   setMode: (m) => {
     const prev = get().mode;
     if (prev === m) return;
+    if (prev === "moppets") {
+      stopSong();
+      stopLiveKeys();
+    }
     if (inPlugin) {
       // Rust stops the notes and the breath when the mode changes, and sets Beatbox's posture
       set((s) => ({ mode: m, heldNotes: [], hold: false, artic: m === "beatbox" ? { ...s.artic, ...beatReady(s.body) } : s.artic }));
@@ -211,7 +216,7 @@ export const useStore = create<State>((set, get) => ({
     }
     if (prev === "sing") stopSinging();
     // speech and song breathe by themselves: a held breath would drone under them
-    if (m === "speak" || m === "sing") set({ hold: false });
+    if (m === "speak" || m === "sing" || m === "moppets") set({ hold: false });
     if (m === "beatbox") {
       // a beatboxer waits with the jaw nearly closed; the sounds bring their own breath
       set({ hold: false });
@@ -371,7 +376,7 @@ export const useStore = create<State>((set, get) => ({
     pressOf.set(midi, press);
     // a sung note or a call is a one-off message, lost if sent before the audio exists (held
     // pitches and breath are resent at startup): send it once audio is up, if still pressed
-    if (!s.started && (s.mode === "sing" || (s.mode === "bestiary" && s.keyCall))) {
+    if (!s.started && (s.mode === "sing" || s.mode === "moppets" || (s.mode === "bestiary" && s.keyCall))) {
       const sess = session;
       void s.start().then(() => {
         const t = get();
@@ -379,7 +384,8 @@ export const useStore = create<State>((set, get) => ({
       });
       return;
     }
-    if (s.mode === "sing") singNoteOn(midi, velocity, s.body);
+    if (s.mode === "moppets") void playLiveNoteOn(midi, velocity);
+    else if (s.mode === "sing") singNoteOn(midi, velocity, s.body);
     else if (s.mode === "bestiary") {
       const pp = creatureById(s.creature)?.params.find((p) => p.role === "pitch");
       const f = pp ? creatureKeyHz(midi, pp) : undefined;
@@ -402,6 +408,10 @@ export const useStore = create<State>((set, get) => ({
       return;
     }
     const s = get();
+    if (s.mode === "moppets") {
+      playLiveNoteOff(midi);
+      return;
+    }
     if (s.mode === "sing") {
       singNoteOff(midi, s.body);
       return;

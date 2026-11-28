@@ -27,6 +27,9 @@ import { presetOf, PRESETS } from "./body.ts";
 const AnatomyView3D = lazy(() => import("./components/AnatomyView3D.tsx").then((m) => ({ default: m.AnatomyView3D })));
 // the duet page (`?show=<id>`): two 3D heads replaying a pre-rendered song
 const DuetPage = lazy(() => import("./components/DuetPage.tsx").then((m) => ({ default: m.DuetPage })));
+const MoppetStageScreen = lazy(() => import("../moppets/MoppetStudioApp.tsx").then((m) => ({ default: m.MoppetStageScreen })));
+const MoppetsRight = lazy(() => import("../moppets/MoppetStudioApp.tsx").then((m) => ({ default: m.MoppetsRight })));
+const MoppetAirwayScreen = lazy(() => import("../moppets/MoppetStudioApp.tsx").then((m) => ({ default: m.MoppetAirwayScreen })));
 
 /** the show to play, from `?show=<id>` (a plain folder name under public/shows) */
 function showId(): string | null {
@@ -69,6 +72,7 @@ function TopBar() {
                 { value: "beatbox", label: "Beatbox" },
               ]
             : [
+                { value: "moppets", label: "Moppets" },
                 { value: "play", label: "Play" },
                 { value: "speak", label: "Speak" },
                 { value: "sing", label: "Sing" },
@@ -221,8 +225,18 @@ function Wall() {
     <div className={`app text-colors mode-${mode}${inPlugin ? " in-plugin" : ""}`}>
       <TopBar />
       <main className={`wall wall-${mode}`}>
-        <LeftScreen />
-        {mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}
+        {mode === "moppets" ? (
+          <Suspense fallback={null}>
+            <MoppetStageScreen />
+            <MoppetsRight />
+            <MoppetAirwayScreen />
+          </Suspense>
+        ) : (
+          <>
+            <LeftScreen />
+            {mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}
+          </>
+        )}
       </main>
       {inPlugin && <ResizeGrip />}
     </div>

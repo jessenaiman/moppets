@@ -480,11 +480,12 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
 
 // Sing's Record video: sings the lyrics to the tune again into a clip to save; the face screen leaves out
 // its readouts while it records
+const singUrl = `${url}${url.includes("?") ? "&" : "?"}view=chimera`;
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
   page.on("console", (m) => m.type() === "error" && errors.push(`[video] ${m.text()}`));
   page.on("pageerror", (e) => errors.push(`[video] pageerror: ${e.message}`));
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.locator(".lyrics textarea").fill("one two three");
   await page.getByRole("combobox", { name: "Tune" }).selectOption({ label: "Playful" });
   await page.getByRole("button", { name: /^Record video$/ }).click();
@@ -524,7 +525,7 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
       }
     };
   });
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.locator(".lyrics textarea").fill("one two");
   // both taps land before the first has started the audio (a second Playwright click would wait,
   // and then find Cancel)
@@ -554,7 +555,7 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
       return start.apply(this, a);
     };
   });
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.locator(".lyrics textarea").fill("one two three four five six seven eight");
   await page.getByRole("button", { name: /^Sing$/ }).click();
   await page.waitForTimeout(2500);
@@ -595,7 +596,7 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
       return fill.call(this, t, ...a);
     };
   });
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.locator(".lyrics textarea").fill("one two three four five six seven eight nine ten");
   await page.getByRole("button", { name: /^Record video$/ }).click();
   await page.getByRole("button", { name: /^Cancel$/ }).waitFor({ timeout: 10000 });
@@ -633,7 +634,7 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
       return draw.apply(this, a);
     } as typeof CanvasRenderingContext2D.prototype.drawImage;
   });
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.locator(".lyrics textarea").fill("one two three four five six seven eight nine ten");
   await page.getByRole("button", { name: /^Record video$/ }).click();
   await page.getByRole("button", { name: /^Cancel$/ }).waitFor({ timeout: 10000 });
@@ -668,7 +669,7 @@ for (const slowAt of ["48000", "any", "48000-gesture"]) {
       return fill.call(this, t, ...a);
     };
   });
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(singUrl, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: /^Record video$/ }).click();
   await page.waitForTimeout(2500);
   await page.evaluate(() => ((window as unknown as { __texts: string[] }).__texts = []));

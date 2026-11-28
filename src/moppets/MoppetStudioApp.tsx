@@ -1,35 +1,53 @@
 /**
- * CHIMERA Moppets Studio — Mop #1 (Tabby) workspace wrapping Three.js stage, CHIMERA MIDI-only
- * singing, live playable keys, vocal tract inspector, and 1280x720 MP4/WebM export.
+ * Moppets screens inside CHIMERA's settled Hershey vector-display UI (`docs/ui-redesign.md`).
+ *
+ * - `MoppetStageScreen`: the left focus screen hosting the 60 fps Studio 404 Three.js stage +
+ *   camera & directed-take chips.
+ * - `MoppetsRight`: the right instrument column (`ActionBar` with Spacebar Sing, `Band` stem chip,
+ *   `Record video` 1280x720 MP4/WebM export; `Lead sheet` with live word editing & CMUdict syllable
+ *   check per `docs/writing-songs.md`; 4-slot OP-1 `Voice` encoders; `<Screen watch>` live `Airway`;
+ *   and CHIMERA's 25-key `<Keys />` + Web MIDI `<MidiButton />`).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./studio.css";
-import { engine } from "../audio/AudioEngine.ts";
 import { useStore } from "../ui/store.ts";
 import { AnatomyView } from "../ui/components/AnatomyView.tsx";
+import { ActionBar, PrimaryButton } from "../ui/components/ActionBar.tsx";
+import { EncoderPages } from "../ui/components/Encoder.tsx";
+import { Keys, MidiButton } from "../ui/components/Keys.tsx";
+import { Chip, Screen } from "../ui/components/Screen.tsx";
+import { noteName } from "../ui/components/VoiceControls.tsx";
 import { TABBY_VOICE } from "./tabby.ts";
-import { fetchTabbySong, type CameraPreset, type MopAction, type ParsedMopSong } from "./midiSong.ts";
+import {
+  checkPhraseWords,
+  fetchTabbySong,
+  holdFixWords,
+  updateSongPhraseWords,
+  type CameraPreset,
+  type MopAction,
+  type ParsedMopSong,
+} from "./midiSong.ts";
 import {
   getFrameState,
   getLastSongSec,
+  isBandEnabled,
   isPlayingSong,
-  playLiveNoteOff,
-  playLiveNoteOn,
   playSong,
   resetTabbyVoice,
+  setBandEnabled,
   setCurrentSong,
   stopLiveKeys,
   stopSong,
   subscribePlayer,
 } from "./player.ts";
-import { MoppetStage3D, type StageDebugInfo } from "./MoppetStage3D.tsx";
+import { MoppetStage3D } from "./MoppetStage3D.tsx";
 import { canExportVideo, getMasterRecordStream, StageVideoExporter } from "./exportVideo.ts";
 
 const ACTIONS: { id: MopAction; label: string }[] = [
   { id: "idle", label: "Idle" },
   { id: "sing", label: "Sing" },
   { id: "belt", label: "Belt" },
-  { id: "chuckle", label: "Chuckle" },
+  { id: "chuckle", label: "Laugh" },
   { id: "walk", label: "Walk" },
   { id: "toast", label: "Toast" },
   { id: "bow", label: "Bow" },
@@ -38,72 +56,174 @@ const ACTIONS: { id: MopAction; label: string }[] = [
 const CAMERAS: { id: CameraPreset | "auto"; label: string }[] = [
   { id: "auto", label: "Auto" },
   { id: "wide", label: "Wide" },
-  { id: "closeup", label: "Close-Up" },
-  { id: "low-angle", label: "Low Angle" },
+  { id: "closeup", label: "Close" },
+  { id: "low-angle", label: "Low" },
 ];
-
-const KEYBOARD_NOTES: { midi: number; label: string; keyHint: string; sharp?: boolean }[] = [
-  { midi: 60, label: "C4", keyHint: "Z" },
-  { midi: 61, label: "C#4", keyHint: "S", sharp: true },
-  { midi: 62, label: "D4", keyHint: "X" },
-  { midi: 63, label: "D#4", keyHint: "D", sharp: true },
-  { midi: 64, label: "E4", keyHint: "C" },
-  { midi: 65, label: "F4", keyHint: "V" },
-  { midi: 66, label: "F#4", keyHint: "G", sharp: true },
-  { midi: 67, label: "G4", keyHint: "B" },
-  { midi: 68, label: "G#4", keyHint: "H", sharp: true },
-  { midi: 69, label: "A4", keyHint: "N" },
-  { midi: 70, label: "A#4", keyHint: "J", sharp: true },
-  { midi: 71, label: "B4", keyHint: "M" },
-  { midi: 72, label: "C5", keyHint: "Q" },
-  { midi: 74, label: "D5", keyHint: "W" },
-  { midi: 76, label: "E5", keyHint: "E" },
-];
-
-const KEY_TO_MIDI = new Map(KEYBOARD_NOTES.map((k) => [k.keyHint.toLowerCase(), k.midi]));
 
 function fmtClock(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function MoppetStudioApp() {
-  const [song, setSong] = useState<ParsedMopSong | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [songSec, setSongSec] = useState(0);
-  const [activePhrase, setActivePhrase] = useState(-1);
+// Shared stage bridge between `MoppetStageScreen` (left column) and `MoppetsRight` (right column)
+interface SharedStudioBridge {
+  song: ParsedMopSong | null;
+  originalSong: ParsedMopSong | null;
+  stageCanvas: HTMLCanvasElement | null;
+  caption: string;
+  cameraOverride: CameraPreset | "auto";
+  actionOverride: MopAction | null;
+  listeners: Set<() => void>;
+}
+
+const bridge: SharedStudioBridge = {
+  song: null,
+  originalSong: null,
+  stageCanvas: null,
+  caption: "",
+  cameraOverride: "auto",
+  actionOverride: null,
+  listeners: new Set(),
+};
+
+function notifyBridge(): void {
+  for (const fn of bridge.listeners) fn();
+}
+
+function useBridgeState() {
+  const [, bump] = useState(0);
+  useEffect(() => {
+    const fn = () => bump((n) => n + 1);
+    bridge.listeners.add(fn);
+    return () => {
+      bridge.listeners.delete(fn);
+    };
+  }, []);
+  return bridge;
+}
+
+let songLoadStarted = false;
+
+function ensureSongLoaded(onError: (msg: string) => void): void {
+  if (bridge.song || songLoadStarted) return;
+  songLoadStarted = true;
+  void fetchTabbySong()
+    .then((loaded) => {
+      bridge.song = loaded;
+      bridge.originalSong = loaded;
+      setCurrentSong(loaded);
+      notifyBridge();
+    })
+    .catch((e) => {
+      songLoadStarted = false;
+      onError(e instanceof Error ? e.message : String(e));
+    });
+}
+
+export function MoppetStageScreen() {
+  const b = useBridgeState();
   const [caption, setCaption] = useState("");
-  const [rms, setRms] = useState(0);
-  const [f0, setF0] = useState(0);
-  const [cameraOverride, setCameraOverride] = useState<CameraPreset | "auto">("auto");
-  const [actionOverride, setActionOverride] = useState<MopAction | null>(null);
-  const [pressedMidi, setPressedMidi] = useState<number[]>([]);
-  const [exporting, setExporting] = useState(false);
-  const [exportElapsed, setExportElapsed] = useState(0);
-  const [exportNote, setExportNote] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const volume = useStore((s) => s.volume);
-  const setVolume = useStore((s) => s.setVolume);
-  const source = useStore((s) => s.source);
-  const setSource = useStore((s) => s.setSource);
-
-  const stageCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const captionRef = useRef("");
-  const exporterRef = useRef<StageVideoExporter | null>(null);
-  const exportStartedAtRef = useRef(0);
-  const songRef = useRef<ParsedMopSong | null>(null);
-  const stageDebugRef = useRef<StageDebugInfo | null>(null);
-  const [fmvBadge, setFmvBadge] = useState("FMV loading…");
-  songRef.current = song;
 
   useEffect(() => {
-    void fetchTabbySong()
-      .then((loaded) => {
-        setSong(loaded);
-        setCurrentSong(loaded);
-      })
-      .catch((e) => setErrorMsg(e instanceof Error ? e.message : String(e)));
+    ensureSongLoaded(() => {});
+  }, []);
+
+  const getFrame = useCallback(() => getFrameState(bridge.song), []);
+  const handleCanvasReady = useCallback((c: HTMLCanvasElement | null) => {
+    bridge.stageCanvas = c;
+  }, []);
+  const handleCaptionFrame = useCallback((text: string) => {
+    if (text !== bridge.caption) {
+      bridge.caption = text;
+      setCaption(text);
+    }
+  }, []);
+
+  return (
+    <Screen
+      className="left s-moppet-stage"
+      focus
+      label="Studio 404 stage"
+      lead={
+        <span className="moppet-stage-head-lead">
+          <img className="moppet-avatar" src="/moppets/tabby/portrait.webp" alt="" />
+          <span className="moppet-stage-title">{TABBY_VOICE.name} · Studio 404</span>
+        </span>
+      }
+      tools={
+        <div className="moppet-chip-row">
+          {ACTIONS.map((a) => (
+            <Chip
+              key={a.id}
+              on={b.actionOverride === a.id}
+              onClick={() => {
+                bridge.actionOverride = bridge.actionOverride === a.id ? null : a.id;
+                notifyBridge();
+              }}
+            >
+              {a.label}
+            </Chip>
+          ))}
+          {CAMERAS.map((c) => (
+            <Chip
+              key={c.id}
+              tone="amber"
+              on={b.cameraOverride === c.id}
+              onClick={() => {
+                bridge.cameraOverride = c.id;
+                notifyBridge();
+              }}
+            >
+              {c.label}
+            </Chip>
+          ))}
+        </div>
+      }
+    >
+      <div className="moppet-stage-wrap">
+        <MoppetStage3D
+          getFrame={getFrame}
+          cameraOverride={b.cameraOverride}
+          actionOverride={b.actionOverride}
+          onCanvasReady={handleCanvasReady}
+          onCaptionFrame={handleCaptionFrame}
+        />
+        {caption && (
+          <div className="moppet-caption-bar" data-layout="overlay">
+            <div className="moppet-caption-text">{caption}</div>
+          </div>
+        )}
+      </div>
+    </Screen>
+  );
+}
+
+export function MoppetsRight() {
+  const b = useBridgeState();
+  const song = b.song;
+
+  const [playing, setPlaying] = useState(false);
+  const [bandOn, setBandOnState] = useState(isBandEnabled());
+  const [songSec, setSongSec] = useState(0);
+  const [activePhrase, setActivePhrase] = useState(-1);
+  const [f0, setF0] = useState(0);
+  const [editingWords, setEditingWords] = useState(false);
+  const [draftWords, setDraftWords] = useState<string[]>([]);
+  const [exporting, setExporting] = useState(false);
+  const [exportElapsed, setExportElapsed] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const source = useStore((s) => s.source);
+  const setSource = useStore((s) => s.setSource);
+  const artic = useStore((s) => s.artic);
+  const setArtic = useStore((s) => s.setArtic);
+
+  const exporterRef = useRef<StageVideoExporter | null>(null);
+  const exportStartedAtRef = useRef(0);
+
+  useEffect(() => {
+    ensureSongLoaded((msg) => setErrorMsg(msg));
     return () => {
       stopSong();
       stopLiveKeys();
@@ -111,26 +231,25 @@ export function MoppetStudioApp() {
   }, []);
 
   useEffect(() => {
-    return subscribePlayer(() => setPlaying(isPlayingSong()));
+    if (song && !editingWords) {
+      setDraftWords(song.phrases.map((p) => p.words));
+    }
+  }, [song, editingWords]);
+
+  useEffect(() => {
+    return subscribePlayer(() => {
+      setPlaying(isPlayingSong());
+      setBandOnState(isBandEnabled());
+    });
   }, []);
 
-  // Poll lightweight UI readouts at ~12 Hz (never throttling the 60 fps Three.js stage)
   useEffect(() => {
     const id = setInterval(() => {
-      const f = getFrameState(songRef.current);
+      const f = getFrameState(bridge.song);
       setPlaying(f.playing);
       setSongSec(f.songSec);
       setActivePhrase(f.phraseIndex);
-      setRms(f.rms);
       setF0(f.f0);
-      const dbg = stageDebugRef.current;
-      if (dbg) {
-        setFmvBadge(
-          dbg.usingVideoTexture
-            ? `FMV ${dbg.activeAction} ${dbg.frameIndex}/${dbg.totalFrames}f`
-            : `Canon ${dbg.activeAction}`,
-        );
-      }
       if (exporterRef.current) {
         setExportElapsed((performance.now() - exportStartedAtRef.current) / 1000);
       }
@@ -144,7 +263,7 @@ export function MoppetStudioApp() {
     exporterRef.current = null;
     try {
       const out = await rec.stopAndDownload("tabby-studio404");
-      setExportNote(`Saved ${out.filename} (${Math.round(out.sizeBytes / 1024)} KB)`);
+      setNotice(`Saved ${out.filename} (${Math.round(out.sizeBytes / 1024)} KB)`);
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : String(e));
     } finally {
@@ -159,6 +278,7 @@ export function MoppetStudioApp() {
     if (isPlayingSong()) {
       stopSong();
       setPlaying(false);
+      if (exporterRef.current) await finishExport();
       return;
     }
     const resumeAt = getLastSongSec() >= song.durationSec - 1 ? 0 : getLastSongSec();
@@ -175,16 +295,19 @@ export function MoppetStudioApp() {
   const handleSeek = async (sec: number) => {
     if (!song) return;
     setSongSec(sec);
-    if (isPlayingSong()) {
-      await playSong(song, { startSec: sec });
-    } else {
-      await playSong(song, { startSec: sec });
-    }
+    const ok = await playSong(song, { startSec: sec });
+    setPlaying(ok);
+  };
+
+  const handleBandToggle = () => {
+    const next = !bandOn;
+    setBandOnState(next);
+    setBandEnabled(next);
   };
 
   const handleExportToggle = async () => {
     setErrorMsg(null);
-    setExportNote(null);
+    setNotice(null);
     if (!song) return;
     if (exporterRef.current) {
       stopSong();
@@ -193,17 +316,18 @@ export function MoppetStudioApp() {
     }
     try {
       if (!canExportVideo()) throw new Error("MediaRecorder video export is unavailable in this browser");
-      await playSong(song, {
+      const ok = await playSong(song, {
         startSec: 0,
         onEnd: () => {
           setPlaying(false);
           void finishExport();
         },
       });
+      setPlaying(ok);
       const stream = getMasterRecordStream();
       exporterRef.current = new StageVideoExporter(
-        () => stageCanvasRef.current,
-        () => captionRef.current,
+        () => bridge.stageCanvas,
+        () => bridge.caption,
         stream,
       );
       exportStartedAtRef.current = performance.now();
@@ -214,345 +338,281 @@ export function MoppetStudioApp() {
     }
   };
 
-  // Computer keyboard live singing (Z-M, Q-E)
-  useEffect(() => {
-    const down = new Set<string>();
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      const k = e.key.toLowerCase();
-      const midi = KEY_TO_MIDI.get(k);
-      if (midi === undefined || down.has(k)) return;
-      down.add(k);
-      setPressedMidi((prev) => (prev.includes(midi) ? prev : [...prev, midi]));
-      void playLiveNoteOn(midi, 96);
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      const midi = KEY_TO_MIDI.get(k);
-      if (midi === undefined || !down.has(k)) return;
-      down.delete(k);
-      setPressedMidi((prev) => prev.filter((m) => m !== midi));
-      playLiveNoteOff(midi);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-    };
-  }, []);
+  const handleWordEdit = (phraseIdx: number, nextWords: string) => {
+    if (!song) return;
+    const nextDrafts = draftWords.slice();
+    nextDrafts[phraseIdx] = nextWords;
+    setDraftWords(nextDrafts);
 
-  const getFrame = useCallback(() => getFrameState(songRef.current), []);
-  const handleCanvasReady = useCallback((c: HTMLCanvasElement | null) => {
-    stageCanvasRef.current = c;
-  }, []);
-  const handleStageDebug = useCallback((dbg: StageDebugInfo) => {
-    stageDebugRef.current = dbg;
-  }, []);
-  const onCaptionFrame = useCallback((text: string) => {
-    if (text !== captionRef.current) {
-      captionRef.current = text;
-      setCaption(text);
+    const phrase = song.phrases[phraseIdx];
+    if (!phrase) return;
+    const check = checkPhraseWords(nextWords, phrase.rhythm.length);
+    if (check.ok) {
+      const updated = updateSongPhraseWords(song, phraseIdx, nextWords);
+      bridge.song = updated;
+      setCurrentSong(updated);
+      notifyBridge();
     }
-  }, []);
+  };
+
+  const handleRevertWords = () => {
+    if (!bridge.originalSong) return;
+    bridge.song = bridge.originalSong;
+    setCurrentSong(bridge.originalSong);
+    setDraftWords(bridge.originalSong.phrases.map((p) => p.words));
+    notifyBridge();
+    setNotice("Reverted lead sheet to bible-tabby.song");
+  };
+
+  const handleDownloadSong = () => {
+    if (!song) return;
+    const blob = new Blob([song.rawSongText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${song.id}.song`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
 
   const duration = song?.durationSec ?? 34;
+  const pct = (v: number) => ({ value: String(Math.round(v * 100)), unit: "%" });
 
   return (
-    <div className="mop-shell">
-      {/* Top Transport Bar */}
-      <header className="mop-topbar">
-        <div className="mop-brand">
-          <img className="mop-brand-mark" src="/moppets/tabby/portrait.webp" alt="Tabby" />
-          <h1 className="mop-brand-title">CHIMERA Moppets Studio</h1>
-          <span className="mop-song-pill mop-num">
-            {song ? `${song.title} · ${Math.round(song.bpm)} BPM · ${song.key}` : "Loading score…"}
-          </span>
-        </div>
+    <div className="right right-moppets">
+      <ActionBar label="Moppets" onSpace={() => void handlePlayToggle()}>
+        <PrimaryButton
+          label="Sing"
+          playing={playing}
+          onClick={() => void handlePlayToggle()}
+          title="Play Tabby's Studio 404 score through CHIMERA WASM + backing band (Space)"
+        />
+        <Chip on={bandOn} onClick={handleBandToggle} title="Toggle pure-JS bass, electric piano & beat accompaniment">
+          Band
+        </Chip>
+        <Chip
+          toggle={false}
+          tone="amber"
+          onClick={() => void handleExportToggle()}
+          disabled={!song}
+          title="Record 1280x720 stage video + CHIMERA master audio"
+        >
+          {exporting ? `Save clip (${exportElapsed.toFixed(1)}s)` : "Record video"}
+        </Chip>
+        <a className="chip" href="/rig.html" title="Open the 3D body rig playground">
+          3D Rig
+        </a>
+      </ActionBar>
 
-        <div className="mop-transport">
-          <button
-            type="button"
-            className="mop-btn primary"
-            disabled={!song}
-            onClick={() => void handlePlayToggle()}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              {playing ? (
-                <path fill="currentColor" d="M3 2h3.5v12H3V2zm6.5 0H13v12H9.5V2z" />
-              ) : (
-                <path fill="currentColor" d="M3.5 2.2v11.6L13.5 8 3.5 2.2z" />
-              )}
-            </svg>
-            {playing ? "Pause" : "Play"}
-          </button>
-
+      <Screen
+        className="s-moppet-sheet"
+        title="Lead sheet"
+        sub={song ? `${song.title} · ${Math.round(song.bpm)} BPM · ${song.key}` : "Loading…"}
+        tools={
+          <Chip on={editingWords} onClick={() => setEditingWords((v) => !v)}>
+            Edit words
+          </Chip>
+        }
+      >
+        <div className="moppet-timeline-row">
           <input
             type="range"
             aria-label="Song timeline"
-            className="mop-range mop-scrubber"
             min={0}
             max={duration}
             step={0.1}
             value={Math.min(duration, songSec)}
             onChange={(e) => void handleSeek(Number(e.target.value))}
+            style={{ "--pos": `${Math.min(100, (songSec / Math.max(1, duration)) * 100)}%` } as React.CSSProperties}
           />
-
-          <span className="mop-num" style={{ fontSize: 12, color: "var(--m-muted)", minWidth: 82, textAlign: "right" }}>
+          <span className="moppet-clock">
             {fmtClock(songSec)} / {fmtClock(duration)}
           </span>
         </div>
 
-        <div className="mop-top-actions">
-          <label className="mop-vol-wrap">
-            <span>Vol</span>
-            <input
-              type="range"
-              aria-label="Master Volume"
-              className="mop-range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={volume}
-              onChange={(e) => setVolume(Number(e.target.value))}
-            />
-          </label>
-
-          <button
-            type="button"
-            className={`mop-btn ${exporting ? "export-active" : ""}`}
-            disabled={!song}
-            onClick={() => void handleExportToggle()}
-          >
-            {exporting ? `Save Now (${exportElapsed.toFixed(1)}s)` : "Export Video"}
-          </button>
-
-          <a className="mop-btn" href="/?view=chimera">
-            Airway Lab
-          </a>
-          <a className="mop-btn" href="/rig.html">
-            3D Rig
-          </a>
-        </div>
-      </header>
-
-      {/* Center 16:9 Three.js Stage */}
-      <section className="mop-stage-card" aria-label="Studio 404 Three.js Stage">
-        <MoppetStage3D
-          getFrame={getFrame}
-          cameraOverride={cameraOverride}
-          actionOverride={actionOverride}
-          onCanvasReady={handleCanvasReady}
-          onCaptionFrame={onCaptionFrame}
-          onStageDebug={handleStageDebug}
-        />
-
-        <div className="mop-stage-overlay-top">
-          <div className="mop-action-group" role="group" aria-label="Stage actions">
-            {ACTIONS.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                className={`mop-pill-btn ${actionOverride === a.id ? "active" : ""}`}
-                data-action={a.id}
-                onClick={() => setActionOverride((prev) => (prev === a.id ? null : a.id))}
-              >
-                {a.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mop-cam-group" role="group" aria-label="Camera angles">
-            {CAMERAS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className={`mop-pill-btn ${cameraOverride === c.id ? "active" : ""}`}
-                data-cam={c.id}
-                onClick={() => setCameraOverride(c.id)}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mop-stage-overlay-bottom">
-          <span className="mop-num" style={{ fontSize: 12, color: "var(--m-muted)", background: "rgba(17,16,20,0.78)", padding: "5px 10px", borderRadius: 8, border: "1px solid var(--m-border)" }}>
-            {f0 > 40 ? `${Math.round(f0)} Hz` : "Ready"} · RMS {rms.toFixed(3)} · {fmvBadge}
-          </span>
-          {caption && <div className="mop-caption-box">{caption}</div>}
-        </div>
-      </section>
-
-      {/* Bottom 3-Zone Studio Console */}
-      <section className="mop-console">
-        {/* Left: Cast Roster */}
-        <div className="mop-panel">
-          <div className="mop-panel-head">
-            <h2 className="mop-panel-title">Cast Roster</h2>
-            <span className="mop-num" style={{ fontSize: 11, color: "var(--m-teal)" }}>1 / 21</span>
-          </div>
-
-          <div className="mop-cast-active">
-            <img className="mop-cast-avatar" src="/moppets/tabby/portrait.webp" alt="Tabby portrait" />
-            <div className="mop-cast-meta">
-              <div className="mop-cast-name">{TABBY_VOICE.name}</div>
-              <div className="mop-cast-role">{TABBY_VOICE.role}</div>
-              <div className="mop-meter-track">
-                <div className="mop-meter-fill" style={{ width: `${Math.min(100, rms * 450)}%` }} />
-              </div>
-            </div>
-          </div>
-
-          <div className="mop-cast-next">
-            <strong>Mop #1 Canon v2:</strong> Female 90 · Child 10%, lit 24 fps <code>#00FF00</code> FMV <code>VideoTexture</code> streams atop Studio 404 trunk riser. Next migration slot: <strong>Neon</strong>.
-          </div>
-
-          {(errorMsg || exportNote) && (
-            <div className={`mop-status-line ${errorMsg ? "mop-status-err" : ""}`}>
-              <span>{errorMsg ?? exportNote}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Center: Lead Sheet & Playable Keys */}
-        <div className="mop-panel">
-          <div className="mop-panel-head">
-            <h2 className="mop-panel-title">Lead Sheet &amp; Live Keys</h2>
-            <span className="mop-num" style={{ fontSize: 11, color: "var(--m-muted)" }}>
-              Click phrase to seek · Z–M / Q–E to sing
-            </span>
-          </div>
-
-          <div className="mop-phrases">
-            {song?.phrases.map((p) => (
-              <button
-                key={p.index}
-                type="button"
-                className={`mop-phrase-row ${activePhrase === p.index ? "active" : ""}`}
-                onClick={() => void handleSeek((p.startBeat * 60) / song.bpm)}
-              >
-                <span>{p.words.replace(/_/g, "")}</span>
-                <span className="mop-phrase-cue">
-                  {[p.doGesture, p.take, p.moveTarget, p.cam].filter(Boolean).join(" · ") || p.section}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="mop-piano" role="group" aria-label="Playable vocal keyboard">
-            {KEYBOARD_NOTES.map((k) => {
-              const down = pressedMidi.includes(k.midi);
-              return (
+        <div className="moppet-sheet-body">
+          {!editingWords
+            ? song?.phrases.map((p) => (
                 <button
-                  key={k.midi}
+                  key={p.index}
                   type="button"
-                  className={`mop-key ${k.sharp ? "sharp" : ""} ${down ? "pressed" : ""}`}
-                  onPointerDown={() => {
-                    setPressedMidi((prev) => (prev.includes(k.midi) ? prev : [...prev, k.midi]));
-                    void playLiveNoteOn(k.midi, 96);
-                  }}
-                  onPointerUp={() => {
-                    setPressedMidi((prev) => prev.filter((m) => m !== k.midi));
-                    playLiveNoteOff(k.midi);
-                  }}
-                  onPointerLeave={() => {
-                    if (down) {
-                      setPressedMidi((prev) => prev.filter((m) => m !== k.midi));
-                      playLiveNoteOff(k.midi);
-                    }
-                  }}
+                  className={`moppet-phrase-btn${activePhrase === p.index ? " on" : ""}`}
+                  onClick={() => void handleSeek((p.startBeat * 60) / song.bpm)}
                 >
-                  <span>{k.keyHint}</span>
+                  <span>{p.words.replace(/_/g, "")}</span>
+                  <span className="moppet-phrase-tag">
+                    {[p.take ?? p.doGesture, p.cam].filter(Boolean).join(" · ") || p.section}
+                  </span>
                 </button>
-              );
-            })}
-          </div>
+              ))
+            : song?.phrases.map((p, idx) => {
+                const text = draftWords[idx] ?? p.words;
+                const check = checkPhraseWords(text, p.rhythm.length);
+                const spare = p.rhythm.length - check.syllables.length;
+                return (
+                  <div key={p.index} className={`moppet-edit-row${check.ok ? "" : " bad"}`}>
+                    <input
+                      type="text"
+                      className="moppet-edit-input"
+                      aria-label={`Phrase ${idx + 1} lyrics`}
+                      value={text}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onChange={(e) => handleWordEdit(idx, e.target.value)}
+                    />
+                    <div className={`moppet-edit-meta${check.ok ? "" : " bad"}`}>
+                      <span>
+                        {check.syllables.join("·") || "—"} ·{" "}
+                        {check.ok ? `${check.noteCount} ✓` : check.problem}
+                      </span>
+                      {!check.ok && spare > 0 && (
+                        <Chip
+                          toggle={false}
+                          onClick={() => handleWordEdit(idx, holdFixWords(text, spare))}
+                        >
+                          Hold (_)
+                        </Chip>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
         </div>
 
-        {/* Right: CHIMERA Voice & Live Airway */}
-        <div className="mop-panel">
-          <div className="mop-panel-head">
-            <h2 className="mop-panel-title">CHIMERA Voice &amp; Airway</h2>
-            <button type="button" className="mop-btn" style={{ height: 26, padding: "0 9px", fontSize: 11 }} onClick={resetTabbyVoice}>
-              Reset Canon
-            </button>
+        {editingWords && (
+          <div className="moppet-edit-toolbar">
+            <Chip toggle={false} onClick={handleDownloadSong}>
+              Save .song
+            </Chip>
+            <Chip toggle={false} onClick={handleRevertWords}>
+              Revert
+            </Chip>
           </div>
+        )}
 
-          <div className="mop-sliders">
-            <label className="mop-slider-field">
-              <div className="mop-slider-top">
-                <span>Pressure</span>
-                <span className="mop-num">{source.pressure.toFixed(1)}</span>
-              </div>
-              <input
-                type="range"
-                className="mop-range"
-                min={6.4}
-                max={8.6}
-                step={0.1}
-                value={source.pressure}
-                onChange={(e) => setSource({ pressure: Number(e.target.value) })}
-              />
-            </label>
+        {(errorMsg || notice) && (
+          <p className={`moppet-notice${errorMsg ? " err" : ""}`} role="status">
+            {errorMsg ?? notice}
+          </p>
+        )}
+      </Screen>
 
-            <label className="mop-slider-field">
-              <div className="mop-slider-top">
-                <span>Tension</span>
-                <span className="mop-num">{source.tension.toFixed(2)}</span>
-              </div>
-              <input
-                type="range"
-                className="mop-range"
-                min={0.35}
-                max={0.72}
-                step={0.01}
-                value={source.tension}
-                onChange={(e) => setSource({ tension: Number(e.target.value) })}
-              />
-            </label>
+      <Screen
+        className="s-voice"
+        title="Voice"
+        sub="Tabby · Female 90 · Child 10%"
+        tools={
+          <Chip toggle={false} onClick={resetTabbyVoice} title="Restore calibrated Tabby soprano parameters">
+            Tabby preset
+          </Chip>
+        }
+      >
+        <EncoderPages
+          label="Tabby voice"
+          pages={[
+            {
+              name: "Source",
+              encoders: [
+                {
+                  label: "Breath",
+                  value: source.pressure,
+                  min: 6.4,
+                  max: 8.6,
+                  step: 0.1,
+                  onChange: (v) => setSource({ pressure: v }),
+                  format: (v) => ({ value: v.toFixed(1), unit: "cmH₂O" }),
+                },
+                {
+                  label: "Pressed",
+                  value: source.tension,
+                  min: 0.36,
+                  max: 0.68,
+                  step: 0.01,
+                  onChange: (v) => setSource({ tension: v }),
+                  format: pct,
+                },
+                {
+                  label: "Bright",
+                  value: source.brightness,
+                  min: 0.15,
+                  max: 0.5,
+                  step: 0.01,
+                  onChange: (v) => setSource({ brightness: v }),
+                  format: pct,
+                },
+                {
+                  label: "Breathy",
+                  value: source.breathiness,
+                  min: 0.04,
+                  max: 0.22,
+                  step: 0.01,
+                  onChange: (v) => setSource({ breathiness: v }),
+                  format: pct,
+                },
+              ],
+            },
+            {
+              name: "Tract",
+              encoders: [
+                {
+                  label: "Rate",
+                  value: source.vibratoRate,
+                  min: 4.8,
+                  max: 6.6,
+                  step: 0.1,
+                  onChange: (v) => setSource({ vibratoRate: v }),
+                  format: (v) => ({ value: v.toFixed(1), unit: "Hz" }),
+                },
+                {
+                  label: "Glide",
+                  value: source.glide,
+                  min: 0.06,
+                  max: 0.14,
+                  step: 0.005,
+                  onChange: (v) => setSource({ glide: v }),
+                  format: (v) => ({ value: String(Math.round(v * 1000)), unit: "ms" }),
+                },
+                {
+                  label: "Larynx",
+                  value: artic.larynx,
+                  min: -0.6,
+                  max: 0.8,
+                  step: 0.02,
+                  onChange: (v) => setArtic({ larynx: v }),
+                  format: (v) => ({ value: `${v >= 0 ? "+" : ""}${v.toFixed(2)}`, unit: "cm" }),
+                },
+                {
+                  label: "Twang",
+                  value: artic.epilarynx,
+                  min: 0,
+                  max: 0.45,
+                  step: 0.01,
+                  onChange: (v) => setArtic({ epilarynx: v }),
+                  format: pct,
+                },
+              ],
+            },
+          ]}
+        />
+      </Screen>
 
-            <label className="mop-slider-field">
-              <div className="mop-slider-top">
-                <span>Brightness</span>
-                <span className="mop-num">{source.brightness.toFixed(2)}</span>
-              </div>
-              <input
-                type="range"
-                className="mop-range"
-                min={0.12}
-                max={0.55}
-                step={0.01}
-                value={source.brightness}
-                onChange={(e) => setSource({ brightness: Number(e.target.value) })}
-              />
-            </label>
-
-            <label className="mop-slider-field">
-              <div className="mop-slider-top">
-                <span>Breathiness</span>
-                <span className="mop-num">{source.breathiness.toFixed(2)}</span>
-              </div>
-              <input
-                type="range"
-                className="mop-range"
-                min={0.04}
-                max={0.24}
-                step={0.01}
-                value={source.breathiness}
-                onChange={(e) => setSource({ breathiness: Number(e.target.value) })}
-              />
-            </label>
-          </div>
-
-          <div className="mop-tract-box" aria-label="Live CHIMERA sagittal vocal tract">
-            <AnatomyView showFormants={false} />
-          </div>
-        </div>
-      </section>
+      <Screen
+        className="s-keys"
+        title="Keys"
+        sub={f0 > 45 ? `${noteName(f0)} · ${Math.round(f0)} Hz` : "A–; keys · Z/X octave"}
+        tools={<MidiButton />}
+      >
+        <Keys />
+      </Screen>
     </div>
+  );
+}
+
+export function MoppetAirwayScreen() {
+  return (
+    <Screen watch className="s-moppet-airway" title="Airway" sub="Live sagittal vocal tract">
+      <AnatomyView showFormants={false} />
+    </Screen>
   );
 }

@@ -1,239 +1,38 @@
-/* CHIMERA Moppets Studio — Craft-floor compliant dark theater tokens */
-:root {
-  --m-bg: #111014;
-  --m-surface: #18161d;
-  --m-well: #211e28;
-  --m-border: #2e2938;
-  --m-ink: #f2efe9;
-  --m-muted: #a7a0b5;
-  --m-teal: #2fbfa0;
-  --m-amber: #e6a24c;
-  --m-blue: #5ea8ff;
-  --m-danger: #f06e6e;
-  --m-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --m-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+/* Moppets mode inside CHIMERA's settled Hershey vector-display system (`docs/ui-redesign.md`).
+   Follows AGENTS.md rules: Hershey Medium >= 11px, pure black ground, --ink / --label / --label-quiet,
+   DOM content flowing cleanly inside .screen-body, <Screen watch> ordered below interactive screens on phone. */
+
+@media (min-width: 1101px) {
+  .wall.wall-moppets {
+    grid-template-columns: minmax(0, 1.28fr) minmax(380px, 1fr);
+    grid-template-rows: auto minmax(220px, 1fr);
+    grid-template-areas:
+      "mstage mright"
+      "mairway mright";
+    align-items: stretch;
+  }
+  .wall.wall-moppets .s-moppet-stage {
+    grid-area: mstage;
+  }
+  .wall.wall-moppets .right-moppets {
+    grid-area: mright;
+  }
+  .wall.wall-moppets .s-moppet-airway {
+    grid-area: mairway;
+  }
 }
 
-.mop-shell {
-  min-height: 100vh;
-  background: var(--m-bg);
-  color: var(--m-ink);
-  font-family: var(--m-sans);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 14px 18px 20px;
-  box-sizing: border-box;
+.wall-moppets .left.s-moppet-stage .screen-body {
+  display: block;
+  background: #000000;
+  min-height: 0;
 }
 
-.mop-shell ::selection {
-  background: rgba(47, 191, 160, 0.28);
-  color: var(--m-ink);
-}
-
-.mop-shell *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.mop-shell *::-webkit-scrollbar-track {
-  background: var(--m-bg);
-}
-
-.mop-shell *::-webkit-scrollbar-thumb {
-  background: var(--m-border);
-  border-radius: 6px;
-}
-
-.mop-shell *::-webkit-scrollbar-thumb:hover {
-  background: #443d52;
-}
-
-.mop-num {
-  font-family: var(--m-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Top Transport Bar */
-.mop-topbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 16px;
-  padding: 10px 14px;
-  background: var(--m-surface);
-  border: 1px solid var(--m-border);
-  border-radius: 12px;
-}
-
-.mop-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.mop-brand-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid rgba(47, 191, 160, 0.45);
-}
-
-.mop-brand-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--m-ink);
-  margin: 0;
-}
-
-.mop-song-pill {
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background: var(--m-well);
-  border: 1px solid var(--m-border);
-  color: var(--m-amber);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.mop-transport {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1 1 320px;
-  max-width: 560px;
-}
-
-.mop-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 13px;
-  border-radius: 8px;
-  border: 1px solid var(--m-border);
-  background: var(--m-well);
-  color: var(--m-ink);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, transform 100ms ease;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.mop-btn:hover {
-  background: #2b2734;
-  border-color: #463e54;
-}
-
-.mop-btn:focus-visible {
-  outline: 2px solid var(--m-teal);
-  outline-offset: 2px;
-}
-
-.mop-btn:active {
-  transform: translateY(1px);
-}
-
-.mop-btn.primary {
-  background: var(--m-teal);
-  border-color: var(--m-teal);
-  color: #091815;
-}
-
-.mop-btn.primary:hover {
-  background: #38d2b0;
-  border-color: #38d2b0;
-}
-
-.mop-btn.export-active {
-  background: var(--m-amber);
-  border-color: var(--m-amber);
-  color: #191107;
-}
-
-.mop-btn.is-on {
-  border-color: var(--m-teal);
-  background: rgba(47, 191, 160, 0.16);
-  color: var(--m-teal);
-}
-
-.mop-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.mop-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  border-radius: 9999px;
-  background: var(--m-well);
-  border: 1px solid var(--m-border);
-  outline: none;
-  cursor: pointer;
-}
-
-.mop-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
-  background: var(--m-teal);
-  border: 2px solid var(--m-bg);
-  cursor: pointer;
-}
-
-.mop-range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
-  background: var(--m-teal);
-  border: 2px solid var(--m-bg);
-  cursor: pointer;
-}
-
-.mop-scrubber {
-  flex: 1 1 auto;
-  min-width: 120px;
-}
-
-.mop-top-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mop-vol-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--m-muted);
-}
-
-.mop-vol-wrap input {
-  width: 78px;
-}
-
-/* Stage Hero Viewport */
-.mop-stage-card {
+.moppet-stage-wrap {
   position: relative;
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
   aspect-ratio: 16 / 9;
-  background: #0d0b10;
-  border: 1px solid var(--m-border);
-  border-radius: 14px;
+  background: #050507;
   overflow: hidden;
 }
 
@@ -244,299 +43,185 @@
   display: block;
 }
 
-.mop-stage-overlay-top {
+.moppet-caption-bar {
   position: absolute;
-  top: 12px;
   left: 12px;
   right: 12px;
+  bottom: 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: center;
   pointer-events: none;
-  gap: 10px;
 }
 
-.mop-cam-group,
-.mop-action-group {
+.moppet-caption-text {
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.84);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  max-width: 90%;
+}
+
+.moppet-stage-head-lead {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
-  background: rgba(17, 16, 20, 0.8);
-  border: 1px solid rgba(46, 41, 56, 0.9);
-  pointer-events: auto;
-}
-
-.mop-pill-btn {
-  border: none;
-  background: transparent;
-  color: var(--m-muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 7px;
-  cursor: pointer;
-}
-
-.mop-pill-btn:hover {
-  color: var(--m-ink);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.mop-pill-btn.active {
-  background: var(--m-teal);
-  color: #091815;
-}
-
-.mop-stage-overlay-bottom {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  pointer-events: none;
-}
-
-.mop-caption-box {
-  margin-left: auto;
-  padding: 7px 14px;
-  border-radius: 10px;
-  background: rgba(17, 16, 20, 0.82);
-  border: 1px solid rgba(47, 191, 160, 0.35);
-  color: var(--m-ink);
-  font-size: 15px;
-  font-weight: 600;
-  max-width: 55%;
-  text-align: right;
-}
-
-/* 3-Column Bottom Console */
-.mop-console {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 270px minmax(340px, 1fr) 340px;
-  gap: 14px;
-}
-
-@media (max-width: 1060px) {
-  .mop-console {
-    grid-template-columns: 1fr;
-  }
-}
-
-.mop-panel {
-  background: var(--m-surface);
-  border: 1px solid var(--m-border);
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.mop-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
 }
 
-.mop-panel-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.mop-cast-active {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: 10px;
-  background: var(--m-well);
-  border: 1px solid rgba(47, 191, 160, 0.45);
-}
-
-.mop-cast-avatar {
-  width: 54px;
-  height: 54px;
-  border-radius: 10px;
+.moppet-avatar {
+  width: 24px;
+  height: 24px;
   object-fit: cover;
-  background: #0d0b10;
-  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
 }
 
-.mop-cast-meta {
-  min-width: 0;
-  flex: 1;
+.moppet-stage-title {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.mop-cast-name {
-  font-size: 15px;
-  font-weight: 700;
+.moppet-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
 }
 
-.mop-cast-role {
-  font-size: 12px;
-  color: var(--m-muted);
-  margin-top: 2px;
-}
-
-.mop-meter-track {
-  height: 6px;
-  border-radius: 9999px;
-  background: #121017;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.mop-meter-fill {
-  height: 100%;
-  background: var(--m-teal);
-  transition: width 40ms linear;
-}
-
-.mop-cast-next {
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px dashed var(--m-border);
-  color: var(--m-muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-/* Lead Sheet + Playable Keys */
-.mop-phrases {
-  max-height: 170px;
-  overflow-y: auto;
+.right-moppets {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-right: 4px;
+  gap: 10px;
+  min-width: 0;
 }
 
-.mop-phrase-row {
+.moppet-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 4px;
+}
+
+.moppet-timeline-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 90px;
+}
+
+.moppet-clock {
+  color: var(--label);
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 84px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.moppet-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 12px 10px;
+  max-height: 290px;
+  overflow-y: auto;
+}
+
+.moppet-phrase-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  text-align: left;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: var(--m-well);
-  color: var(--m-ink);
-  font-family: inherit;
+  width: 100%;
+  padding: 6px 10px;
+  background: #000000;
+  border: 1px solid var(--frame);
+  color: var(--ink);
   font-size: 13px;
+  font-weight: 500;
+  text-align: left;
   cursor: pointer;
 }
 
-.mop-phrase-row:hover {
-  border-color: #463e54;
+.moppet-phrase-btn:hover {
+  border-color: var(--line-strong);
 }
 
-.mop-phrase-row.active {
-  background: rgba(47, 191, 160, 0.14);
-  border-color: var(--m-teal);
+.moppet-phrase-btn.on {
+  border-color: var(--amber);
+  color: var(--amber);
 }
 
-.mop-phrase-cue {
-  font-family: var(--m-mono);
+.moppet-phrase-tag {
+  color: var(--label-quiet);
   font-size: 11px;
-  color: var(--m-amber);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
-.mop-piano {
-  display: flex;
-  gap: 3px;
-  height: 68px;
-  user-select: none;
-}
-
-.mop-key {
-  flex: 1;
-  border-radius: 6px;
-  border: 1px solid var(--m-border);
-  background: #272330;
-  color: var(--m-muted);
-  font-family: var(--m-mono);
-  font-size: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: 6px;
-  cursor: pointer;
-}
-
-.mop-key.sharp {
-  background: #141218;
-  color: #7c758b;
-  flex: 0.72;
-}
-
-.mop-key.pressed,
-.mop-key:active {
-  background: var(--m-teal);
-  border-color: var(--m-teal);
-  color: #091815;
-}
-
-/* Voice & Airway Inspector */
-.mop-sliders {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 12px;
-}
-
-.mop-slider-field {
+.moppet-edit-row {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
-  color: var(--m-muted);
+  padding: 6px 8px;
+  border: 1px solid var(--frame);
+  background: #000000;
 }
 
-.mop-slider-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.moppet-edit-row.bad {
+  border-color: var(--red);
 }
 
-.mop-tract-box {
-  height: 185px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--m-border);
-  background: #06090e;
-  position: relative;
-}
-
-.mop-tract-box .canvas-wrap,
-.mop-tract-box canvas {
+.moppet-edit-input {
   width: 100%;
-  height: 100%;
+  padding: 5px 8px;
+  background: #000000;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.mop-status-line {
-  font-size: 12px;
-  color: var(--m-muted);
+.moppet-edit-meta {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--label);
 }
 
-.mop-status-err {
-  color: var(--m-danger);
+.moppet-edit-meta.bad {
+  color: var(--red);
+}
+
+.moppet-edit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+
+.moppet-notice {
+  margin: 0;
+  padding: 4px 12px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--green);
+}
+
+.moppet-notice.err {
+  color: var(--red);
+}
+
+.s-moppet-airway .screen-body {
+  min-height: 240px;
+  height: 100%;
 }
